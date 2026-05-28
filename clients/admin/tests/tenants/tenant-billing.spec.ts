@@ -167,6 +167,73 @@ test.describe("tenant detail — renew", () => {
   });
 });
 
+test.describe("tenant detail — adjust validity", () => {
+  test("posts the expected body to /adjust-validity", async ({ page }) => {
+    await mockPlans(page);
+    await page.route("**/api/v1/tenants/acme-corp/status", (route) =>
+      route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "acme-corp", name: "Acme Corp", adminEmail: "admin@acme.example",
+          isActive: true, validUpto: "2026-05-01T00:00:00Z", issuer: "acme-corp.issuer",
+          plan: "pro", expiryState: "Active", graceEndsUtc: "2026-05-08T00:00:00Z",
+        }),
+      }),
+    );
+    await page.route("**/api/v1/tenants/*/provisioning", (route) =>
+      route.fulfill({ status: 404, headers: { "Content-Type": "application/json" }, body: "{}" }),
+    );
+    await page.route("**/api/v1/tenants/theme", (route) =>
+      route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lightPalette: {}, darkPalette: {}, brandAssets: {},
+          typography: { fontFamily: "Inter", headingFontFamily: "Inter", fontSizeBase: 14, lineHeightBase: 1.5 },
+          layout: { borderRadius: "4px", defaultElevation: 1 },
+          isDefault: true,
+        }),
+      }),
+    );
+    await page.route("**/api/v1/identity/impersonation/grants**", (route) =>
+      route.fulfill({ status: 200, headers: { "Content-Type": "application/json" }, body: "[]" }),
+    );
+
+    await page.goto("/tenants/acme-corp");
+
+    // The adjust button is gated behind UpgradeSubscription (in ADMIN_PERMS).
+    const adjustButton = page.getByRole("main").getByRole("button", { name: /Adjust validity/ });
+    await expect(adjustButton).toBeVisible({ timeout: 10_000 });
+    await adjustButton.click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("heading", { name: "Adjust validity" })).toBeVisible();
+
+    await dialog.getByLabel(/^Valid until/).fill("2026-09-15");
+
+    const adjustReq = page.waitForRequest(
+      (r) => r.url().includes("/api/v1/tenants/acme-corp/adjust-validity") && r.method() === "POST",
+      { timeout: 5_000 },
+    );
+    await page.route("**/api/v1/tenants/acme-corp/adjust-validity", (route) =>
+      route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenantId: "acme-corp", validUpto: "2026-09-15T00:00:00Z" }),
+      }),
+    );
+    await dialog.getByRole("button", { name: "Adjust validity", exact: true }).click();
+    const req = await adjustReq;
+
+    const body = JSON.parse(req.postData() ?? "{}");
+    expect(body.tenantId).toBe("acme-corp");
+    // validUpto is sent as an ISO 8601 string for the picked date.
+    expect(body.validUpto).toMatch(/^2026-09-15T/);
+    expect(Number.isNaN(new Date(body.validUpto).getTime())).toBe(false);
+  });
+});
+
 test.describe("plan dialog — billing interval", () => {
   test("yearly reveals the annual price field and posts interval + annualPrice", async ({ page }) => {
     await mockPlans(page); // plans list query
@@ -206,6 +273,42 @@ test.describe("plan dialog — billing interval", () => {
     expect(JSON.parse(req.postData() ?? "{}")).toMatchObject({
       key: "team-annual", interval: "Yearly", annualPrice: 500, monthlyBasePrice: 50,
     });
+  });
+
+  test("rejects a negative monthly price client-side with no network call", async ({ page }) => {
+    await mockPlans(page); // plans list query
+
+    // Fail the test if a create POST is ever attempted.
+    let posted = false;
+    await page.route("**/api/v1/billing/plans", async (route) => {
+      if (route.request().method() === "POST") {
+        posted = true;
+        await route.fulfill({ status: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify("p-new") });
+        return;
+      }
+      await route.fallback();
+    });
+
+    await page.goto("/billing/plans");
+    await page.getByRole("button", { name: "New plan", exact: true }).click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("heading", { name: "New plan", exact: true })).toBeVisible({ timeout: 10_000 });
+
+    await dialog.getByLabel(/^Key/).fill("cheap");
+    await dialog.getByLabel(/^Display name/).fill("Cheap");
+    await dialog.getByLabel(/^Currency/).fill("USD");
+    await dialog.getByLabel(/^Monthly base price/).fill("-5");
+
+    // The client-side zod refinement surfaces the error and disables submit.
+    await expect(dialog.getByText("Must be a non-negative number.")).toBeVisible();
+
+    const submit = dialog.getByRole("button", { name: "Create plan", exact: true });
+    await expect(submit).toBeDisabled();
+    // Force a click even while disabled to prove the guard holds — no request fires.
+    await submit.click({ force: true });
+    await page.waitForTimeout(300);
+    expect(posted).toBe(false);
   });
 
   test("editing a plan opens the dialog prefilled", async ({ page }) => {

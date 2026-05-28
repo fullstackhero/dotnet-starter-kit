@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   Building2,
   CalendarClock,
+  CalendarCog,
   CheckCircle2,
   CircleDashed,
   ClipboardList,
@@ -24,8 +25,9 @@ import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog
 import { ActiveGrantsCard } from "@/components/impersonation/active-grants-card";
 import { TenantBrandingCard } from "@/components/tenants/tenant-branding-card";
 import { RenewTenantDialog } from "@/components/tenants/renew-tenant-dialog";
+import { AdjustValidityDialog } from "@/components/tenants/adjust-validity-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { IdentityPermissions } from "@/lib/permissions";
+import { IdentityPermissions, MultitenancyPermissions } from "@/lib/permissions";
 import {
   changeTenantActivation,
   getTenantProvisioningStatus,
@@ -52,9 +54,13 @@ export function TenantDetailPage() {
   const { user: currentUser } = useAuth();
   const [impersonateOpen, setImpersonateOpen] = useState(false);
   const [renewOpen, setRenewOpen] = useState(false);
+  const [adjustOpen, setAdjustOpen] = useState(false);
   const [activationConfirmOpen, setActivationConfirmOpen] = useState(false);
-  const canImpersonate = (currentUser?.permissions ?? []).includes(
-    IdentityPermissions.Users.Impersonate,
+  const permissions = currentUser?.permissions ?? [];
+  const canImpersonate = permissions.includes(IdentityPermissions.Users.Impersonate);
+  // Same gate as Renew — adjusting validity is a root-operator subscription action.
+  const canManageSubscription = permissions.includes(
+    MultitenancyPermissions.Tenants.UpgradeSubscription,
   );
 
   const tenantQuery = useQuery({
@@ -200,6 +206,17 @@ export function TenantDetailPage() {
                   <CalendarClock className="mr-1.5 h-3.5 w-3.5" />
                   Renew / change plan
                 </Button>
+                {canManageSubscription && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setAdjustOpen(true)}
+                    className="shrink-0"
+                    title="Set the expiry date directly with no invoice (operator override)"
+                  >
+                    <CalendarCog className="mr-1.5 h-3.5 w-3.5" />
+                    Adjust validity
+                  </Button>
+                )}
                 <Button
                   variant={tenant.isActive ? "outline" : "default"}
                   onClick={() => setActivationConfirmOpen(true)}
@@ -230,6 +247,15 @@ export function TenantDetailPage() {
             currentPlanKey={tenant.plan}
             validUpto={tenant.validUpto}
           />
+
+          {canManageSubscription && (
+            <AdjustValidityDialog
+              open={adjustOpen}
+              onOpenChange={setAdjustOpen}
+              tenantId={tenant.id}
+              validUpto={tenant.validUpto}
+            />
+          )}
 
           <ConfirmDialog
             open={activationConfirmOpen}

@@ -46,6 +46,22 @@ export async function installShellMocks(page: Page): Promise<void> {
   // Defensive: profile + permissions (harmless if a page re-reads them).
   await mockJsonResponse(page, "**/api/v1/identity/profile", DEFAULT_PROFILE);
   await mockJsonResponse(page, "**/api/v1/identity/permissions", []);
+
+  // Tenant status drives the global expiry/grace banner mounted in the
+  // AppShell. Default to a healthy, far-future tenant so the banner stays
+  // hidden; specs that exercise the banner override this after the call.
+  await mockJsonResponse(page, "**/api/v1/tenants/me/status**", {
+    id: "acme",
+    name: "Acme Corp",
+    isActive: true,
+    validUpto: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    hasConnectionString: false,
+    adminEmail: "admin@acme.com",
+    issuer: null,
+    plan: "Scale",
+    expiryState: "Active",
+    graceEndsUtc: new Date(Date.now() + 372 * 24 * 60 * 60 * 1000).toISOString(),
+  });
 }
 
 /** Build a Playwright-shaped paged response body. */

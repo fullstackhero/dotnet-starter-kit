@@ -1,5 +1,6 @@
 import {
   Activity,
+  CreditCard,
   FolderOpen,
   FolderTree,
   HeartPulse,
@@ -60,6 +61,7 @@ export const sections: NavSection[] = [
     icon: Activity,
     items: [
       { to: "/activity", label: "Live activity", icon: Activity },
+      { to: "/subscription", label: "Subscription", icon: CreditCard },
       { to: "/invoices", label: "Invoices", icon: Receipt },
     ],
   },

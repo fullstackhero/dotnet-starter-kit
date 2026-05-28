@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { CreditCard, Gauge } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,6 +26,24 @@ import { ApiRequestError } from "@/lib/api-client";
 
 const PLAN_KEY_PATTERN = /^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$/;
 
+// A money/rate field is a free-text decimal string. These refinements run
+// client-side so a negative price is rejected before any network call (the
+// server also rejects it, but we don't rely on that).
+const NON_NEGATIVE_MSG = "Must be a non-negative number.";
+
+/** Required non-negative decimal (e.g. monthly base price). */
+const requiredNonNegative = z
+  .string()
+  .trim()
+  .min(1, "Required.")
+  .refine((v) => Number.isFinite(Number(v)) && Number(v) >= 0, NON_NEGATIVE_MSG);
+
+/** Optional non-negative decimal (blank allowed → omitted). */
+const optionalNonNegative = z
+  .string()
+  .trim()
+  .refine((v) => v === "" || (Number.isFinite(Number(v)) && Number(v) >= 0), NON_NEGATIVE_MSG);
+
 const INTERVAL_OPTIONS: SelectOption<PlanInterval>[] = [
   { value: "Monthly", label: "Monthly", hint: "billed every month" },
   { value: "Yearly", label: "Yearly", hint: "billed every 12 months" },
@@ -46,11 +65,19 @@ function toOverageNumbers(state: OverageState): Record<string, number> | null {
     const raw = state[key];
     if (raw === undefined || raw.trim() === "") continue;
     const n = Number(raw);
+    // Submission is blocked upstream when a value is invalid, so anything that
+    // reaches here is a non-negative finite number.
     if (!Number.isFinite(n) || n < 0) continue;
     out[key] = n;
     any = true;
   }
   return any ? out : null;
+}
+
+/** First validation message for a value against a schema, or undefined when valid. */
+function fieldError(schema: z.ZodTypeAny, value: string): string | undefined {
+  const result = schema.safeParse(value);
+  return result.success ? undefined : result.error.issues[0]?.message;
 }
 
 function describe(err: unknown, fallback: string): string {
@@ -126,10 +153,27 @@ export function PlanFormDialog({
 
   const keyInvalid = !isEdit && key.length > 0 && !PLAN_KEY_PATTERN.test(key);
   const priceNum = Number(monthlyBasePrice);
-  const priceInvalid = monthlyBasePrice.length > 0 && (!Number.isFinite(priceNum) || priceNum < 0);
+  // Only surface the price error once something's been typed; submit-time
+  // validation (onSubmit) still blocks an empty required field.
+  const priceError =
+    monthlyBasePrice.length > 0 ? fieldError(requiredNonNegative, monthlyBasePrice) : undefined;
   const annualNum = Number(annualPrice);
-  const annualInvalid = annualPrice.trim().length > 0 && (!Number.isFinite(annualNum) || annualNum < 0);
+  const annualError = fieldError(optionalNonNegative, annualPrice);
   const annualPricePayload = interval === "Yearly" && annualPrice.trim().length > 0 ? annualNum : null;
+
+  // Per-resource overage validation — a negative or non-numeric rate blocks submit.
+  const overageErrors = useMemo(() => {
+    const out: Partial<Record<string, string>> = {};
+    for (const { key: resKey } of OVERAGE_RESOURCES) {
+      const err = fieldError(optionalNonNegative, overage[resKey] ?? "");
+      if (err) out[resKey] = err;
+    }
+    return out;
+  }, [overage]);
+  const hasOverageError = Object.keys(overageErrors).length > 0;
+  // Aggregate validity for disabling submit. Monthly price is required + non-negative.
+  const pricingInvalid =
+    !!fieldError(requiredNonNegative, monthlyBasePrice) || !!annualError || hasOverageError;
 
   const onClose = () => onOpenChange(false);
 
@@ -157,7 +201,7 @@ export function PlanFormDialog({
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (priceInvalid || annualInvalid) return;
+    if (pricingInvalid) return;
     const overageRates = toOverageNumbers(overage);
 
     if (isEdit && plan) {
@@ -252,7 +296,7 @@ export function PlanFormDialog({
                   label="Monthly base price"
                   hint="Canonical monthly rate; the term price for monthly plans."
                   required
-                  error={priceInvalid ? "Must be a non-negative number." : undefined}
+                  error={priceError}
                 >
                   <Input
                     id="pf-monthlyBasePrice"
@@ -275,7 +319,7 @@ export function PlanFormDialog({
                     id="pf-annualPrice"
                     label="Annual price"
                     hint="Per yearly term. Blank → 12× monthly."
-                    error={annualInvalid ? "Must be a non-negative number." : undefined}
+                    error={annualError}
                   >
                     <Input
                       id="pf-annualPrice"
@@ -299,7 +343,12 @@ export function PlanFormDialog({
               <div className="h-px bg-[var(--color-border)] opacity-60" />
               <div className="grid gap-4 sm:grid-cols-2">
                 {OVERAGE_RESOURCES.map((res) => (
-                  <Field key={res.key} id={`pf-overage-${res.key}`} label={res.label}>
+                  <Field
+                    key={res.key}
+                    id={`pf-overage-${res.key}`}
+                    label={res.label}
+                    error={overageErrors[res.key]}
+                  >
                     <Input
                       id={`pf-overage-${res.key}`}
                       value={overage[res.key] ?? ""}
@@ -317,7 +366,7 @@ export function PlanFormDialog({
             <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
               Cancel
             </Button>
-            <Button type="submit" disabled={pending || keyInvalid || priceInvalid || annualInvalid}>
+            <Button type="submit" disabled={pending || keyInvalid || pricingInvalid}>
               {pending ? "Saving…" : isEdit ? "Save changes" : "Create plan"}
             </Button>
           </DialogFooter>

@@ -113,8 +113,8 @@ function relativeTime(iso: string, now: number = Date.now()): string {
 
 function subscriptionTone(status: SubscriptionDto["status"] | undefined) {
   if (status === "Active") return "success" as const;
-  if (status === "Canceled") return "warning" as const;
-  if (status === "Expired") return "danger" as const;
+  if (status === "Suspended") return "warning" as const;
+  if (status === "Cancelled") return "danger" as const;
   return "default" as const;
 }
 
@@ -329,7 +329,7 @@ function SubscriptionBody({
           </p>
         </div>
         <Button asChild variant="soft" size="sm">
-          <Link to="/invoices">Choose plan</Link>
+          <Link to="/subscription">View subscription</Link>
         </Button>
       </div>
     );
@@ -611,9 +611,9 @@ const QUICK_ACTIONS: QuickAction[] = [
     tone: "success",
   },
   {
-    to: "/invoices",
+    to: "/subscription",
     title: "Subscription",
-    description: "Plans, invoices, usage.",
+    description: "Plan, usage, invoices.",
     icon: CreditCard,
     tone: "primary",
   },
