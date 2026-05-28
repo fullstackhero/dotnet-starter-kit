@@ -22,6 +22,13 @@ export type NavSpec = {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  /**
+   * Permission required to see this item. Items without a `perm` are visible to
+   * every authenticated tenant user; gated items are hidden when the current
+   * user (or impersonated user) lacks the permission, so they never land on a
+   * page the API will reject with 403.
+   */
+  perm?: string;
 };
 
 export type NavSection = {
@@ -90,12 +97,29 @@ export const sections: NavSection[] = [
     icon: HeartPulse,
     items: [
       { to: "/system/health", label: "Health", icon: HeartPulse },
-      { to: "/system/audits", label: "Audit trail", icon: ScrollText },
-      { to: "/system/sessions", label: "Sessions", icon: Wifi },
+      { to: "/system/audits", label: "Audit trail", icon: ScrollText, perm: "Permissions.AuditTrails.View" },
+      { to: "/system/sessions", label: "Sessions", icon: Wifi, perm: "Permissions.Sessions.ViewAll" },
       { to: "/system/trash", label: "Trash", icon: Trash2 },
     ],
   },
 ];
+
+/** True when the item is ungated, or the user holds its required permission. */
+function isNavItemVisible(item: NavSpec, permissions: readonly string[]): boolean {
+  return !item.perm || permissions.includes(item.perm);
+}
+
+/** Drop items the user can't access, then drop any section left empty. */
+export function visibleSections(permissions: readonly string[]): NavSection[] {
+  return sections
+    .map((s) => ({ ...s, items: s.items.filter((i) => isNavItemVisible(i, permissions)) }))
+    .filter((s) => s.items.length > 0);
+}
+
+/** Filter a flat nav list (top/bottom) by permission. */
+export function visibleItems(items: NavSpec[], permissions: readonly string[]): NavSpec[] {
+  return items.filter((i) => isNavItemVisible(i, permissions));
+}
 
 /** Find the section whose items contain the given path (best prefix match). */
 export function findSectionForPath(pathname: string): string | null {

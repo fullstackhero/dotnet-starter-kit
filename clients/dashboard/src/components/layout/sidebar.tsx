@@ -6,11 +6,13 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAuth } from "@/auth/use-auth";
 import {
   findSectionForPath,
-  sections,
   topNavBottom,
   topNavTop,
+  visibleItems,
+  visibleSections,
   type NavSection,
   type NavSpec,
 } from "@/components/layout/nav-data";
@@ -186,6 +188,14 @@ export function SidebarNavBody({
    *  drawer to close itself on navigation. */
   onNavigate?: () => void;
 }) {
+  // Hide nav entries the current (or impersonated) user lacks permission for,
+  // so they can't navigate to a page the API will reject with 403.
+  const { user } = useAuth();
+  const perms = user?.permissions ?? [];
+  const navTop = visibleItems(topNavTop, perms);
+  const navSections = visibleSections(perms);
+  const navBottom = visibleItems(topNavBottom, perms);
+
   return (
     /* Nav scrolls vertically when item count exceeds available height.
        `overflow-x: clip` keeps the collapsed-mode hover tooltips from
@@ -194,7 +204,7 @@ export function SidebarNavBody({
     <nav className="flex-1 space-y-1.5 overflow-y-auto overflow-x-clip px-2.5 py-3.5">
       {/* Top-level: Overview */}
       <div className="space-y-0.5">
-        {topNavTop.map((item) => (
+        {navTop.map((item) => (
           <NavItemLink key={item.to} item={item} collapsed={collapsed} indent={false} onNavigate={onNavigate} />
         ))}
       </div>
@@ -202,7 +212,7 @@ export function SidebarNavBody({
       {/* Section accordions */}
       {!collapsed && (
         <div className="space-y-1.5 pt-1.5">
-          {sections.map((section) => (
+          {navSections.map((section) => (
             <AccordionSection
               key={section.id}
               section={section}
@@ -221,7 +231,7 @@ export function SidebarNavBody({
           label-driven affordance and isn't useful at 64px wide. */}
       {collapsed && (
         <div className="space-y-1 pt-1.5">
-          {sections.map((section, idx) => (
+          {navSections.map((section, idx) => (
             <div key={section.id}>
               {idx > 0 && (
                 <div
@@ -247,7 +257,7 @@ export function SidebarNavBody({
 
       {/* Top-level: Settings */}
       <div className="space-y-0.5 pt-1.5">
-        {topNavBottom.map((item) => (
+        {navBottom.map((item) => (
           <NavItemLink key={item.to} item={item} collapsed={collapsed} indent={false} onNavigate={onNavigate} />
         ))}
       </div>
