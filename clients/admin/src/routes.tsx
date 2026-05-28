@@ -34,7 +34,6 @@ const RolesListPage = lazyNamed(() => import("@/pages/roles/list"), "RolesListPa
 const RoleDetailPage = lazyNamed(() => import("@/pages/roles/detail"), "RoleDetailPage");
 const BillingLayout = lazyNamed(() => import("@/pages/billing/layout"), "BillingLayout");
 const PlansListPage = lazyNamed(() => import("@/pages/billing/plans-list"), "PlansListPage");
-const PlanFormPage = lazyNamed(() => import("@/pages/billing/plan-form"), "PlanFormPage");
 const InvoicesListPage = lazyNamed(() => import("@/pages/billing/invoices-list"), "InvoicesListPage");
 const InvoiceDetailPage = lazyNamed(() => import("@/pages/billing/invoice-detail"), "InvoiceDetailPage");
 const AuditsListPage = lazyNamed(() => import("@/pages/audits/list"), "AuditsListPage");
@@ -163,8 +162,6 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <Navigate to="/billing/invoices" replace /> },
               { path: "plans", element: <PlansListPage /> },
-              { path: "plans/new", element: <PlanFormPage /> },
-              { path: "plans/:planId", element: <PlanFormPage /> },
               { path: "invoices", element: <InvoicesListPage /> },
               { path: "invoices/:invoiceId", element: <InvoiceDetailPage /> },
             ],

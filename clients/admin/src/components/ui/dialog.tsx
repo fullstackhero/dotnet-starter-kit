@@ -68,6 +68,9 @@ export const DialogContent = React.forwardRef<
         data-slot="dialog-content"
         className={cn(
           "fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2",
+          // Cap height to the viewport and scroll when content overflows so the footer
+          // (submit/cancel) stays reachable on short viewports and tall forms.
+          "max-h-[calc(100dvh-2rem)] overflow-y-auto",
           sizeClass[size],
           "rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
           "shadow-xl outline-none",

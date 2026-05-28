@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Plus, Tag } from "lucide-react";
 import { getPlans, planTermPrice, type BillingPlanDto } from "@/api/billing";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatStrip, Stat, SettingsSection } from "@/components/list";
+import { PlanFormDialog } from "@/components/billing/plan-form-dialog";
 import { ApiRequestError } from "@/lib/api-client";
 
 // ─── helpers ──────────────────────────────────────────────────────────
@@ -36,7 +36,18 @@ function describe(err: unknown): string {
 // ─── component ────────────────────────────────────────────────────────
 
 export function PlansListPage() {
-  const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<BillingPlanDto | undefined>(undefined);
+
+  const openCreate = () => {
+    setEditingPlan(undefined);
+    setDialogOpen(true);
+  };
+  const openEdit = (plan: BillingPlanDto) => {
+    setEditingPlan(plan);
+    setDialogOpen(true);
+  };
+
   const query = useQuery({
     queryKey: ["billing", "plans", { includeInactive: true }],
     queryFn: () => getPlans(true),
@@ -91,7 +102,7 @@ export function PlansListPage() {
         title="All plans"
         description="Pricing schedule used by tenant subscriptions and invoice generation."
         footer={
-          <Button onClick={() => navigate("/billing/plans/new")}>
+          <Button onClick={openCreate}>
             <Plus className="mr-1 h-4 w-4" /> New plan
           </Button>
         }
@@ -157,7 +168,7 @@ export function PlansListPage() {
                     variant="ghost"
                     size="icon"
                     aria-label={`Edit ${plan.name}`}
-                    onClick={() => navigate(`/billing/plans/${plan.id}`)}
+                    onClick={() => openEdit(plan)}
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -167,6 +178,8 @@ export function PlansListPage() {
           </ul>
         )}
       </SettingsSection>
+
+      <PlanFormDialog open={dialogOpen} onOpenChange={setDialogOpen} plan={editingPlan} />
     </div>
   );
 }
