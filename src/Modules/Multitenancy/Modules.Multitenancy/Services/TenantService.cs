@@ -200,7 +200,7 @@ public sealed class TenantService : ITenantService
         ArgumentException.ThrowIfNullOrWhiteSpace(newPlanKey);
 
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
 
         // Stack remaining time: renew from ValidUpto if still in the future, otherwise from now.
         var periodStart = DateTime.SpecifyKind(tenant.ValidUpto > now ? tenant.ValidUpto : now, DateTimeKind.Utc);
