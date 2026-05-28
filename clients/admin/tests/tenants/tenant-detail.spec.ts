@@ -85,10 +85,11 @@ test.describe("tenant detail header + provisioning", () => {
 
     await page.goto(`/tenants/${TENANT_ID}`);
 
-    // Provisioning section heading — FormSection renders it as "\ Provisioning".
-    await expect(page.getByText(/\\ Provisioning/).first()).toBeVisible({
-      timeout: 10_000,
-    });
+    // Provisioning section heading — SettingsSection renders the title as an
+    // <h2>. (The old mono "\ Provisioning" crumb was dropped in the reskin.)
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Provisioning", exact: true }),
+    ).toBeVisible({ timeout: 10_000 });
 
     // Overall status badge reflects Completed + current step.
     await expect(page.getByText(/Completed · CacheWarm/i)).toBeVisible();

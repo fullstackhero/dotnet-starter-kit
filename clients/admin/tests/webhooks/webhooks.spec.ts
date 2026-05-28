@@ -80,9 +80,13 @@ test.describe("webhook detail (deliveries)", () => {
       main.getByRole("heading", { name: SUB.url, exact: true }),
     ).toBeVisible({ timeout: 10_000 });
 
-    // FormSection titles render with a literal "\ " prefix — match via regex.
-    await expect(main.getByText(/\\\s*Endpoint/)).toBeVisible();
-    await expect(main.getByText(/\\\s*Deliveries/)).toBeVisible();
+    // Section titles now render via SettingsSection (h2 with plain titles).
+    await expect(
+      main.getByRole("heading", { name: "Endpoint", exact: true }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Deliveries", exact: true }),
+    ).toBeVisible();
 
     // Delivery row: event type chip + HTTP status badge.
     await expect(main.getByText("tenant.created", { exact: true }).first()).toBeVisible();

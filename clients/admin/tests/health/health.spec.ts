@@ -46,6 +46,14 @@ const READY_UNHEALTHY = {
 test.beforeEach(async ({ page }) => {
   await seedAuthedSession(page, { ...TEST_USER, permissions: [...ADMIN_PERMS] });
   await installAdminShellMocks(page);
+  // The Vite dev server proxies /health -> API (so probes reach the backend in
+  // real dev), which shadows the SPA's /health route on a hard navigation.
+  // Serve the SPA shell for the document request so client-side routing renders
+  // the page; the probe fetches below are still intercepted by their own mocks.
+  await page.route("http://localhost:5173/health", async (route) => {
+    const res = await page.request.get("http://localhost:5173/");
+    await route.fulfill({ status: 200, contentType: "text/html", body: await res.text() });
+  });
 });
 
 test.describe("health probes", () => {
@@ -60,11 +68,15 @@ test.describe("health probes", () => {
       main.getByRole("heading", { name: "Health", exact: true }),
     ).toBeVisible({ timeout: 10_000 });
 
-    // KPI strip labels.
-    await expect(main.getByText("Liveness", { exact: true }).first()).toBeVisible();
-    await expect(main.getByText("Readiness", { exact: true }).first()).toBeVisible();
-    await expect(main.getByText("Checks healthy", { exact: true })).toBeVisible();
-    await expect(main.getByText("Checks failing", { exact: true })).toBeVisible();
+    // KPI strip labels render as the Stat component's mono-caps ".meta" crumb.
+    // "Liveness"/"Readiness" also appear as ProbeSection (SettingsSection) <h2>
+    // titles, so target the label element by its class rather than a bare text
+    // match.
+    const kpiLabel = (text: string) => main.locator("div.meta", { hasText: text });
+    await expect(kpiLabel("Liveness")).toBeVisible();
+    await expect(kpiLabel("Readiness")).toBeVisible();
+    await expect(kpiLabel("Checks healthy")).toBeVisible();
+    await expect(kpiLabel("Checks failing")).toBeVisible();
 
     // A check name from the readiness mock.
     await expect(main.getByText("npgsql", { exact: true })).toBeVisible();

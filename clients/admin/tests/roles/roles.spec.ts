@@ -26,11 +26,18 @@ test.describe("roles list", () => {
     await expect(main.getByRole("heading", { name: "Roles", exact: true })).toBeVisible({
       timeout: 10_000,
     });
-    await expect(main.getByText("Manager", { exact: true })).toBeVisible();
-    await expect(main.getByText("Admin", { exact: true })).toBeVisible();
-    await expect(main.getByText("Basic", { exact: true })).toBeVisible();
-    // System roles get a "system" badge.
-    await expect(main.getByText("system", { exact: true }).first()).toBeVisible();
+    // Each role renders in both a mobile card (hidden at desktop width) and a
+    // desktop row button whose accessible name starts with the role name
+    // ("Manager Manages a team —"). The mobile button is labelled "Open role …",
+    // so a name anchored to the start uniquely targets the visible desktop row.
+    await expect(main.getByRole("button", { name: /^Manager\b/ })).toBeVisible();
+    await expect(main.getByRole("button", { name: /^Admin\b/ })).toBeVisible();
+    await expect(main.getByRole("button", { name: /^Basic\b/ })).toBeVisible();
+    // System roles (Admin/Basic) get a "System" badge — scope to the visible
+    // desktop Admin row so we don't match the hidden mobile-card duplicate.
+    await expect(
+      main.getByRole("button", { name: /^Admin\b/ }).getByText("System", { exact: true }),
+    ).toBeVisible();
   });
 
   test("shows the empty state when no roles are defined", async ({ page }) => {
@@ -47,22 +54,34 @@ test.describe("roles list", () => {
 });
 
 test.describe("roles create form", () => {
+  // Creation is now a Radix dialog opened from the "New role" button on the
+  // /roles list page — the old /roles/new route just redirects to /roles.
+  // Mock a populated list so the empty-state's own "New role" button doesn't
+  // collide with the header trigger.
   test("renders the name + description fields and the create action", async ({ page }) => {
-    await page.goto("/roles/new");
+    await mockJsonResponse(page, "**/api/v1/identity/roles", paged(ROLES), { method: "GET" });
 
+    await page.goto("/roles");
+
+    const main = page.getByRole("main");
+    await main.getByRole("button", { name: "New role" }).click();
+
+    const dialog = page.getByRole("dialog");
     await expect(
-      page.getByRole("heading", { name: "New role", exact: true }),
+      dialog.getByRole("heading", { name: "New role", exact: true }),
     ).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByLabel(/^Name/)).toBeVisible();
-    await expect(page.getByLabel(/^Description/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Name/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Description/)).toBeVisible();
 
     await expect(
-      page.getByRole("button", { name: "Create role", exact: true }),
+      dialog.getByRole("button", { name: "Create role", exact: true }),
     ).toBeVisible();
   });
 
   test("filling the form and submitting POSTs to /identity/roles with an empty id", async ({ page }) => {
+    // GET roles list (registered first so the POST handler's fallback reaches it).
+    await mockJsonResponse(page, "**/api/v1/identity/roles", paged(ROLES), { method: "GET" });
     await page.route("**/api/v1/identity/roles", async (route) => {
       if (route.request().method() !== "POST") {
         await route.fallback();
@@ -82,17 +101,21 @@ test.describe("roles create form", () => {
       permissions: [],
     });
 
-    await page.goto("/roles/new");
-    await expect(page.getByLabel(/^Name/)).toBeVisible({ timeout: 10_000 });
+    await page.goto("/roles");
+    const main = page.getByRole("main");
+    await main.getByRole("button", { name: "New role" }).click();
 
-    await page.getByLabel(/^Name/).fill("Support agent");
-    await page.getByLabel(/^Description/).fill("Inbound support");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^Name/)).toBeVisible({ timeout: 10_000 });
+
+    await dialog.getByLabel(/^Name/).fill("Support agent");
+    await dialog.getByLabel(/^Description/).fill("Inbound support");
 
     const reqPromise = page.waitForRequest(
       (r) => r.url().endsWith("/api/v1/identity/roles") && r.method() === "POST",
       { timeout: 5_000 },
     );
-    await page.getByRole("button", { name: "Create role", exact: true }).click();
+    await dialog.getByRole("button", { name: "Create role", exact: true }).click();
     const req = await reqPromise;
 
     const body = JSON.parse(req.postData() ?? "{}");
@@ -106,21 +129,34 @@ test.describe("roles create form", () => {
   test("client-side validation blocks submit when the name is too short", async ({ page }) => {
     let posted = false;
     await page.route("**/api/v1/identity/roles", async (route) => {
-      if (route.request().method() === "POST") posted = true;
+      if (route.request().method() === "POST") {
+        posted = true;
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: "x", name: "x" }),
+        });
+        return;
+      }
+      // GET roles list — keep the list populated so only the header trigger exists.
       await route.fulfill({
         status: 200,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: "x", name: "x" }),
+        body: JSON.stringify(paged(ROLES)),
       });
     });
 
-    await page.goto("/roles/new");
-    await expect(page.getByLabel(/^Name/)).toBeVisible({ timeout: 10_000 });
+    await page.goto("/roles");
+    const main = page.getByRole("main");
+    await main.getByRole("button", { name: "New role" }).click();
 
-    await page.getByLabel(/^Name/).fill("A");
-    await page.getByRole("button", { name: "Create role", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^Name/)).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByText(/At least 2 characters\./i)).toBeVisible();
+    await dialog.getByLabel(/^Name/).fill("A");
+    await dialog.getByRole("button", { name: "Create role", exact: true }).click();
+
+    await expect(dialog.getByText(/At least 2 characters\./i)).toBeVisible();
     expect(posted).toBe(false);
   });
 });
@@ -149,8 +185,10 @@ test.describe("role detail permission matrix", () => {
     await expect(main.getByLabel(/^Name/)).toHaveValue("Manager");
 
     // Section heading + catalog groups (rendered client-side from PERMISSION_CATALOG).
-    // FormSection renders the title as "\ Permissions".
-    await expect(main.getByText(/\\ Permissions/i).first()).toBeVisible();
+    // SettingsSection renders the title as a plain <h2>Permissions</h2>.
+    await expect(
+      main.getByRole("heading", { name: "Permissions", exact: true }),
+    ).toBeVisible();
     await expect(main.getByRole("heading", { name: "Users", exact: true })).toBeVisible();
     await expect(main.getByRole("heading", { name: "Roles", exact: true })).toBeVisible();
     await expect(main.getByRole("heading", { name: "Sessions", exact: true })).toBeVisible();
