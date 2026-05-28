@@ -26,6 +26,8 @@ using FSH.Modules.Multitenancy.Features.v1.RenewTenant;
 using FSH.Modules.Multitenancy.Features.v1.UpdateTenantTheme;
 using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Services;
+using Hangfire;
+using Hangfire.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -54,6 +56,7 @@ public sealed class MultitenancyModule : IModule
         builder.Services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
         builder.Services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
         builder.Services.AddTransient<TenantProvisioningJob>();
+        builder.Services.AddTransient<TenantExpiryScanJob>();
 
         // Singleton — the buffer survives the request scope that calls Store(...)
         // so the background Hangfire-scheduled seed scope can still TryConsume(...).
@@ -250,5 +253,16 @@ public sealed class MultitenancyModule : IModule
         GetTenantThemeEndpoint.Map(group);
         UpdateTenantThemeEndpoint.Map(group);
         ResetTenantThemeEndpoint.Map(group);
+
+        var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
+        if (jobManager is not null)
+        {
+            // Scan tenants daily at 02:00 UTC; publishes nearing-expiry / entered-grace / expired notices.
+            jobManager.AddOrUpdate(
+                "tenant-expiry-scan",
+                Job.FromExpression<TenantExpiryScanJob>(j => j.RunAsync(CancellationToken.None)),
+                "0 2 * * *",
+                new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+        }
     }
 }

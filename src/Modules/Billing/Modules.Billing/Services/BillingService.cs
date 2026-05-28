@@ -1,8 +1,10 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Eventing.Abstractions;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Contracts;
+using FSH.Modules.Billing.Contracts.Events;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -15,17 +17,23 @@ public sealed class BillingService : IBillingService
     private readonly BillingDbContext _db;
     private readonly IUsageReporter _usageReporter;
     private readonly IMultiTenantStore<AppTenantInfo> _tenantStore;
+    private readonly IEventBus _eventBus;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<BillingService> _logger;
 
     public BillingService(
         BillingDbContext db,
         IUsageReporter usageReporter,
         IMultiTenantStore<AppTenantInfo> tenantStore,
+        IEventBus eventBus,
+        TimeProvider timeProvider,
         ILogger<BillingService> logger)
     {
         _db = db;
         _usageReporter = usageReporter;
         _tenantStore = tenantStore;
+        _eventBus = eventBus;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -219,6 +227,23 @@ public sealed class BillingService : IBillingService
             _logger.LogInformation("[Billing] issued subscription invoice {InvoiceNumber} for tenant {TenantId} total={Total} {Currency}",
                 invoice.InvoiceNumber, tenantId, invoice.SubtotalAmount, invoice.Currency);
         }
+
+        // Notify (e.g. email the tenant) that a real bill was issued. Only fires for newly-created
+        // invoices — the idempotent early-return above skips this on event redelivery.
+        await _eventBus.PublishAsync(new InvoiceIssuedIntegrationEvent(
+            Id: Guid.NewGuid(),
+            OccurredOnUtc: _timeProvider.GetUtcNow().UtcDateTime,
+            TenantId: tenantId,
+            CorrelationId: Guid.NewGuid().ToString(),
+            Source: "Billing",
+            InvoiceId: invoice.Id,
+            InvoiceNumber: invoice.InvoiceNumber,
+            Amount: invoice.SubtotalAmount,
+            Currency: invoice.Currency,
+            DueAtUtc: invoice.DueAtUtc,
+            PeriodYear: invoice.PeriodYear,
+            PeriodMonth: invoice.PeriodMonth), cancellationToken).ConfigureAwait(false);
+
         return invoice;
     }
 
