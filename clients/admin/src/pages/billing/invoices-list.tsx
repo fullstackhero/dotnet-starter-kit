@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/list";
 import { KpiTile } from "@/components/kpi-tile";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
@@ -215,22 +216,16 @@ export function InvoicesListPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="filter-status">Status</Label>
-            <select
+            <Select
               id="filter-status"
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as InvoiceStatus | "");
+              onValueChange={(v) => {
+                setStatusFilter(v as InvoiceStatus | "");
                 setPageNumber(1);
               }}
-              className="flex h-9 w-full rounded-md border border-[var(--color-input)] bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
-            >
-              <option value="">All</option>
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              options={STATUSES.map((s) => ({ value: s, label: s }))}
+              emptyLabel="All"
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="filter-year">Year</Label>

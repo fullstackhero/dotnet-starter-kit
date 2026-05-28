@@ -50,9 +50,9 @@ test.describe("billing invoices list", () => {
       main.locator("div", { hasText: /^Invoices$/ }).first(),
     ).toBeVisible({ timeout: 10_000 });
 
-    // The invoice row from our mock: number code + status badge. The status
-    // <select> also contains an <option>Draft</option>, so target the visible
-    // badge <span> rather than the hidden option.
+    // The invoice row from our mock: number code + status badge. Target the
+    // visible badge <span>; the status filter is a closed dropdown, so its
+    // "Draft" item isn't in the DOM to collide with.
     await expect(main.getByText("INV-2026-0001", { exact: true })).toBeVisible();
     await expect(main.locator("span", { hasText: /^Draft$/ })).toBeVisible();
   });

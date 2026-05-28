@@ -84,18 +84,15 @@ test.describe("audit trail list", () => {
       main.getByRole("heading", { name: "Audit trail", exact: true }),
     ).toBeVisible({ timeout: 10_000 });
 
-    // The // Filters rail with its two native <select> comboboxes. Options are
-    // hidden inside a native select, so assert the comboboxes + their default
-    // empty-label option text (attached, not visible) instead.
+    // The // Filters rail with its two dropdown triggers (Radix button-based
+    // selects). Assert the triggers by their default empty-label text.
     await expect(main.getByText("// Filters", { exact: true })).toBeVisible();
-    const combos = main.getByRole("combobox");
-    await expect(combos).toHaveCount(2);
     await expect(
-      main.getByRole("option", { name: "All event types" }),
-    ).toBeAttached();
+      main.getByRole("button", { name: "All event types" }),
+    ).toBeVisible();
     await expect(
-      main.getByRole("option", { name: "All severities" }),
-    ).toBeAttached();
+      main.getByRole("button", { name: "All severities" }),
+    ).toBeVisible();
     // Search box.
     await expect(
       main.getByPlaceholder("Search user, source, correlation…"),
