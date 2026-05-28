@@ -3,6 +3,8 @@ import type { PagedResponse } from "@/lib/api-types";
 
 export type { PagedResponse } from "@/lib/api-types";
 
+export type TenantExpiryState = "Active" | "InGrace" | "Expired" | (string & {});
+
 export type TenantDto = {
   id: string;
   name: string;
@@ -10,6 +12,10 @@ export type TenantDto = {
   isActive: boolean;
   validUpto: string;
   issuer?: string;
+  /** Present on the status endpoint (TenantStatusDto); absent on the list projection. */
+  plan?: string | null;
+  expiryState?: TenantExpiryState;
+  graceEndsUtc?: string;
 };
 
 export type ListTenantsParams = {
@@ -25,6 +31,15 @@ export type CreateTenantInput = {
   adminPassword: string;
   issuer: string;
   connectionString?: string | null;
+  /** Plan key to subscribe the tenant to. Omitted → server falls back to the default/trial plan. */
+  planKey?: string | null;
+};
+
+export type RenewTenantResponse = {
+  tenantId: string;
+  validUpto: string;
+  planKey: string;
+  planChanged: boolean;
 };
 
 export type CreateTenantResponse = {
@@ -84,7 +99,16 @@ export async function createTenant(input: CreateTenantInput): Promise<CreateTena
       adminPassword: input.adminPassword,
       issuer: input.issuer,
       connectionString: input.connectionString ?? null,
+      planKey: input.planKey ?? null,
     }),
+  });
+}
+
+/** Renew a tenant for one more plan term, optionally switching plans. */
+export async function renewTenant(id: string, planKey?: string | null): Promise<RenewTenantResponse> {
+  return apiFetch<RenewTenantResponse>(`/api/v1/tenants/${encodeURIComponent(id)}/renew`, {
+    method: "POST",
+    body: JSON.stringify({ tenantId: id, planKey: planKey ?? null }),
   });
 }
 

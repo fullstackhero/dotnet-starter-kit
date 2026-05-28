@@ -8,11 +8,17 @@ import {
   getPlans,
   updatePlan,
   type BillingPlanDto,
+  type PlanInterval,
   type QuotaResource,
 } from "@/api/billing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { EntityPageHeader, SettingsSection, Field } from "@/components/list";
+import { EntityPageHeader, SettingsSection, Field, Select, type SelectOption } from "@/components/list";
+
+const INTERVAL_OPTIONS: SelectOption<PlanInterval>[] = [
+  { value: "Monthly", label: "Monthly", hint: "billed every month" },
+  { value: "Yearly", label: "Yearly", hint: "billed every 12 months" },
+];
 import { ApiRequestError } from "@/lib/api-client";
 
 // Plan keys are canonical lowercase slugs (a-z 0-9 -), 2-64 chars.
@@ -58,6 +64,8 @@ export function PlanFormPage() {
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [monthlyBasePrice, setMonthlyBasePrice] = useState("");
+  const [interval, setInterval] = useState<PlanInterval>("Monthly");
+  const [annualPrice, setAnnualPrice] = useState("");
   const [overage, setOverage] = useState<OverageState>({});
 
   // ── load existing plan when editing ────────────────────────────────
@@ -77,6 +85,8 @@ export function PlanFormPage() {
     setName(existing.name);
     setCurrency(existing.currency);
     setMonthlyBasePrice(String(existing.monthlyBasePrice));
+    setInterval(existing.interval === "Yearly" ? "Yearly" : "Monthly");
+    setAnnualPrice(existing.annualPrice != null ? String(existing.annualPrice) : "");
     const next: OverageState = {};
     for (const [resource, rate] of Object.entries(existing.overageRates)) {
       if (rate !== undefined && rate !== null) next[resource] = String(rate);
@@ -89,6 +99,11 @@ export function PlanFormPage() {
   const priceNum = Number(monthlyBasePrice);
   const priceInvalid =
     monthlyBasePrice.length > 0 && (!Number.isFinite(priceNum) || priceNum < 0);
+  const annualNum = Number(annualPrice);
+  const annualInvalid =
+    annualPrice.trim().length > 0 && (!Number.isFinite(annualNum) || annualNum < 0);
+  const annualPricePayload =
+    interval === "Yearly" && annualPrice.trim().length > 0 ? annualNum : null;
 
   // ── submit ─────────────────────────────────────────────────────────
   const createMutation = useMutation({
@@ -113,7 +128,7 @@ export function PlanFormPage() {
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (priceInvalid) return;
+    if (priceInvalid || annualInvalid) return;
 
     const overageRates = toOverageNumbers(overage);
 
@@ -123,6 +138,8 @@ export function PlanFormPage() {
         name: name.trim(),
         monthlyBasePrice: priceNum,
         overageRates,
+        interval,
+        annualPrice: annualPricePayload,
       });
       return;
     }
@@ -133,6 +150,8 @@ export function PlanFormPage() {
       currency: currency.trim().toUpperCase(),
       monthlyBasePrice: priceNum,
       overageRates,
+      interval,
+      annualPrice: annualPricePayload,
     });
   };
 
@@ -172,7 +191,7 @@ export function PlanFormPage() {
           }
           footer={
             <div className="flex gap-2">
-              <Button type="submit" disabled={pending || loadingExisting || keyInvalid || priceInvalid}>
+              <Button type="submit" disabled={pending || loadingExisting || keyInvalid || priceInvalid || annualInvalid}>
                 {pending ? "Saving…" : isEdit ? "Save changes" : "Create plan"}
               </Button>
               <Button
@@ -233,7 +252,7 @@ export function PlanFormPage() {
               <Field
                 id="monthlyBasePrice"
                 label="Monthly base price"
-                hint="Recurring fee charged each billing period."
+                hint="Canonical monthly rate. Also the term price for monthly plans."
                 required
                 error={priceInvalid ? "Must be a non-negative number." : undefined}
               >
@@ -246,6 +265,38 @@ export function PlanFormPage() {
                   placeholder="29.00"
                 />
               </Field>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1fr]">
+              <Field
+                id="interval"
+                label="Billing interval"
+                hint="How long one term lasts and how often the tenant is billed."
+                required
+              >
+                <Select<PlanInterval>
+                  id="interval"
+                  value={interval}
+                  onValueChange={(v) => setInterval(v === "Yearly" ? "Yearly" : "Monthly")}
+                  options={INTERVAL_OPTIONS}
+                />
+              </Field>
+              {interval === "Yearly" && (
+                <Field
+                  id="annualPrice"
+                  label="Annual price"
+                  hint="Charged per yearly term. Leave blank to default to 12× the monthly price."
+                  error={annualInvalid ? "Must be a non-negative number." : undefined}
+                >
+                  <Input
+                    id="annualPrice"
+                    value={annualPrice}
+                    onChange={(e) => setAnnualPrice(e.target.value)}
+                    inputMode="decimal"
+                    placeholder={monthlyBasePrice ? String(Number(monthlyBasePrice) * 12) : "290.00"}
+                  />
+                </Field>
+              )}
             </div>
 
             <SettingsSection
