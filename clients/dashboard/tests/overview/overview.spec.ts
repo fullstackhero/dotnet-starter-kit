@@ -78,7 +78,7 @@ test.describe("invoices (/invoices)", () => {
   });
 
   test("renders an invoice row from the API", async ({ page }) => {
-    await mockJsonResponse(page, "**/api/v1/billing/invoices/me**", [INVOICE]);
+    await mockJsonResponse(page, "**/api/v1/billing/invoices/me**", paged([INVOICE]));
     await page.goto("/invoices");
     await expect(page.getByRole("heading", { name: /invoices/i })).toBeVisible();
     // Invoice number + status render in both a (hidden) mobile card and the
@@ -88,13 +88,13 @@ test.describe("invoices (/invoices)", () => {
   });
 
   test("shows the empty state when there are no invoices", async ({ page }) => {
-    await mockJsonResponse(page, "**/api/v1/billing/invoices/me**", []);
+    await mockJsonResponse(page, "**/api/v1/billing/invoices/me**", paged([]));
     await page.goto("/invoices");
     await expect(page.getByText(/no invoices yet/i)).toBeVisible();
   });
 
   test("filters by search term", async ({ page }) => {
-    await mockJsonResponse(page, "**/api/v1/billing/invoices/me**", [INVOICE]);
+    await mockJsonResponse(page, "**/api/v1/billing/invoices/me**", paged([INVOICE]));
     await page.goto("/invoices");
     await expect(page.getByText("INV-2026-05").last()).toBeVisible();
     await page.getByPlaceholder(/search by invoice number/i).fill("nomatch-xyz");

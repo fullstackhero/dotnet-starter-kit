@@ -153,6 +153,45 @@ test.describe("billing invoice detail", () => {
     await expect(page.getByText(/marked paid/i)).toBeVisible();
   });
 
+  test("Download PDF fetches the invoice /pdf endpoint", async ({ page }) => {
+    await page.route("**/api/v1/billing/invoices/inv-1", async (route) => {
+      const method = route.request().method();
+      if (method === "GET") {
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(DRAFT_INVOICE),
+        });
+        return;
+      }
+      await route.fallback();
+    });
+    // Stub the PDF stream with a tiny fake body so the blob download succeeds.
+    await page.route("**/api/v1/billing/invoices/inv-1/pdf", async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/pdf" },
+        body: "%PDF-1.4 fake",
+      });
+    });
+
+    await page.goto("/billing/invoices/inv-1");
+    const main = page.getByRole("main");
+    const downloadBtn = main.getByRole("button", { name: /download pdf/i });
+    await expect(downloadBtn).toBeEnabled({ timeout: 10_000 });
+
+    const reqPromise = page.waitForRequest(
+      (r) => r.url().endsWith("/api/v1/billing/invoices/inv-1/pdf") && r.method() === "GET",
+      { timeout: 5_000 },
+    );
+    await downloadBtn.click();
+    const req = await reqPromise;
+
+    // Replicates getInvoice's auth + tenant headers so cross-tenant viewing works.
+    expect(req.headers()["authorization"]).toMatch(/^Bearer /);
+    expect(req.headers()["tenant"]).toBe("root");
+  });
+
   test("Void invoice POSTs to /void with the supplied reason", async ({ page }) => {
     await page.route("**/api/v1/billing/invoices/inv-1", async (route) => {
       const method = route.request().method();

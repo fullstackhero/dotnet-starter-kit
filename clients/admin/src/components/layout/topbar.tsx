@@ -102,31 +102,6 @@ function SimpleMenuItem({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TenantChip — tenant indicator in the topbar right zone.
-// ─────────────────────────────────────────────────────────────────────────────
-
-function TenantChip({ tenant }: { tenant?: string }) {
-  return (
-    <div
-      className="hidden items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-2.5 py-1 md:inline-flex"
-      title="Active tenant"
-    >
-      <span
-        aria-hidden
-        className="inline-flex h-1.5 w-1.5 rounded-full bg-[var(--color-success)]"
-        style={{ color: "var(--color-success)" }}
-      />
-      <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-        tenant
-      </span>
-      <span className="font-mono text-[12px] font-medium tracking-tight text-[var(--color-foreground)]">
-        {tenant ?? "—"}
-      </span>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Topbar
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -154,9 +129,6 @@ export function Topbar() {
 
       {/* Spacer pushes right-side actions to the trailing edge */}
       <div className="flex-1" />
-
-      {/* Tenant chip */}
-      <TenantChip tenant={user?.tenant} />
 
       {/* Notification bell */}
       <NotificationBell />

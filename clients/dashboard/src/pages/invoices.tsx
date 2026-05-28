@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Receipt } from "lucide-react";
 import {
@@ -67,8 +68,8 @@ const DESKTOP_GRID =
 export function InvoicesPage() {
   const { user } = useAuth();
   const query = useQuery({
-    queryKey: ["billing", "invoices", "me"],
-    queryFn: getMyInvoices,
+    queryKey: ["billing", "invoices", "me", { pageNumber: 1, pageSize: 100 }],
+    queryFn: () => getMyInvoices({ pageNumber: 1, pageSize: 100 }),
     staleTime: 30_000,
   });
 
@@ -78,7 +79,7 @@ export function InvoicesPage() {
 
   const [search, setSearch] = useState("");
 
-  const invoices = useMemo(() => query.data ?? [], [query.data]);
+  const invoices = useMemo(() => query.data?.items ?? [], [query.data]);
 
   const sorted = useMemo(
     () =>
@@ -115,7 +116,7 @@ export function InvoicesPage() {
       <EntityPageHeader
         icon={Receipt}
         title="Invoices"
-        total={query.data?.length ?? null}
+        total={query.data?.totalCount ?? null}
         unit="invoice"
         description="Your tenant's billing history, newest first."
       />
@@ -196,7 +197,9 @@ export function InvoicesPage() {
 
 function MobileCard({ invoice }: { invoice: InvoiceDto }) {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs">
+    <Link
+      to={`/invoices/${invoice.id}`}
+      className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs transition-colors hover:border-[var(--color-border-strong)]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <ToneIconTile icon={Receipt} tone="primary" size="md" className="rounded-xl" />
@@ -225,7 +228,7 @@ function MobileCard({ invoice }: { invoice: InvoiceDto }) {
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -236,8 +239,13 @@ function DesktopRow({
   invoice: InvoiceDto;
   isLast: boolean;
 }) {
+  const navigate = useNavigate();
   return (
-    <EntityListRow className={DESKTOP_GRID} isLast={isLast}>
+    <EntityListRow
+      className={DESKTOP_GRID}
+      isLast={isLast}
+      onClick={() => navigate(`/invoices/${invoice.id}`)}
+    >
       {/* Invoice number + icon */}
       <div className="flex min-w-0 items-center gap-3">
         <ToneIconTile icon={Receipt} tone="primary" size="md" className="rounded-xl" />

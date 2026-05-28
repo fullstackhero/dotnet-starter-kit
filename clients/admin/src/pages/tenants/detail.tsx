@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   Building2,
   CalendarClock,
+  CalendarCog,
   CheckCircle2,
   CircleDashed,
   ClipboardList,
@@ -24,7 +25,9 @@ import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog
 import { ActiveGrantsCard } from "@/components/impersonation/active-grants-card";
 import { TenantBrandingCard } from "@/components/tenants/tenant-branding-card";
 import { RenewTenantDialog } from "@/components/tenants/renew-tenant-dialog";
-import { IdentityPermissions } from "@/lib/permissions";
+import { AdjustValidityDialog } from "@/components/tenants/adjust-validity-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { IdentityPermissions, MultitenancyPermissions } from "@/lib/permissions";
 import {
   changeTenantActivation,
   getTenantProvisioningStatus,
@@ -51,8 +54,13 @@ export function TenantDetailPage() {
   const { user: currentUser } = useAuth();
   const [impersonateOpen, setImpersonateOpen] = useState(false);
   const [renewOpen, setRenewOpen] = useState(false);
-  const canImpersonate = (currentUser?.permissions ?? []).includes(
-    IdentityPermissions.Users.Impersonate,
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [activationConfirmOpen, setActivationConfirmOpen] = useState(false);
+  const permissions = currentUser?.permissions ?? [];
+  const canImpersonate = permissions.includes(IdentityPermissions.Users.Impersonate);
+  // Same gate as Renew — adjusting validity is a root-operator subscription action.
+  const canManageSubscription = permissions.includes(
+    MultitenancyPermissions.Tenants.UpgradeSubscription,
   );
 
   const tenantQuery = useQuery({
@@ -85,6 +93,7 @@ export function TenantDetailPage() {
     mutationFn: (isActive: boolean) => changeTenantActivation(id, isActive),
     onSuccess: (result) => {
       toast.success(result.isActive ? "Tenant activated" : "Tenant deactivated");
+      setActivationConfirmOpen(false);
       queryClient.invalidateQueries({ queryKey: ["tenant", id] });
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
     },
@@ -197,9 +206,20 @@ export function TenantDetailPage() {
                   <CalendarClock className="mr-1.5 h-3.5 w-3.5" />
                   Renew / change plan
                 </Button>
+                {canManageSubscription && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setAdjustOpen(true)}
+                    className="shrink-0"
+                    title="Set the expiry date directly with no invoice (operator override)"
+                  >
+                    <CalendarCog className="mr-1.5 h-3.5 w-3.5" />
+                    Adjust validity
+                  </Button>
+                )}
                 <Button
                   variant={tenant.isActive ? "outline" : "default"}
-                  onClick={() => activationMutation.mutate(!tenant.isActive)}
+                  onClick={() => setActivationConfirmOpen(true)}
                   disabled={activationMutation.isPending}
                   className="shrink-0"
                 >
@@ -226,6 +246,39 @@ export function TenantDetailPage() {
             tenantId={tenant.id}
             currentPlanKey={tenant.plan}
             validUpto={tenant.validUpto}
+          />
+
+          {canManageSubscription && (
+            <AdjustValidityDialog
+              open={adjustOpen}
+              onOpenChange={setAdjustOpen}
+              tenantId={tenant.id}
+              validUpto={tenant.validUpto}
+            />
+          )}
+
+          <ConfirmDialog
+            open={activationConfirmOpen}
+            onOpenChange={setActivationConfirmOpen}
+            destructive={tenant.isActive}
+            title={tenant.isActive ? "Deactivate tenant?" : "Activate tenant?"}
+            description={
+              tenant.isActive ? (
+                <>
+                  Users of <strong className="text-[var(--color-foreground)]">{tenant.name}</strong> will
+                  be blocked from signing in and all their API requests will be rejected until you
+                  reactivate the tenant.
+                </>
+              ) : (
+                <>
+                  <strong className="text-[var(--color-foreground)]">{tenant.name}</strong>&apos;s users
+                  will be able to sign in and use the platform again.
+                </>
+              )
+            }
+            confirmLabel={tenant.isActive ? "Deactivate" : "Activate"}
+            pending={activationMutation.isPending}
+            onConfirm={() => activationMutation.mutate(!tenant.isActive)}
           />
 
           <ActiveGrantsCard tenantId={tenant.id} />

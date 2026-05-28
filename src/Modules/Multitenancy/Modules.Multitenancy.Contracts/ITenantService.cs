@@ -29,6 +29,14 @@ public interface ITenantService
     Task<(DateTime PeriodStartUtc, DateTime ValidUpto, bool PlanChanged)> RenewAsync(
         string id, string newPlanKey, int termMonths, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Operator override that sets the tenant's validity to an explicit date with no billing
+    /// side-effect (no subscription, no invoice, no renewal event) — for comps, support extensions,
+    /// or immediate expiry. Unlike <see cref="RenewAsync"/> this may move the date backward. Returns
+    /// the applied <c>ValidUpto</c> (UTC).
+    /// </summary>
+    Task<DateTime> AdjustValidityAsync(string id, DateTime validUpto, CancellationToken cancellationToken = default);
+
     Task MigrateTenantAsync(AppTenantInfo tenant, CancellationToken cancellationToken);
 
     Task SeedTenantAsync(AppTenantInfo tenant, CancellationToken cancellationToken);

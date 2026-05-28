@@ -15,8 +15,11 @@
 		<ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
 		<ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
 		<ProjectReference Include="..\..\..\BuildingBlocks\Eventing\Eventing.csproj" />
+		<ProjectReference Include="..\..\..\BuildingBlocks\Mailing\Mailing.csproj" />
 		<ProjectReference Include="..\Modules.Notifications.Contracts\Modules.Notifications.Contracts.csproj" />
 		<ProjectReference Include="..\..\Chat\Modules.Chat.Contracts\Modules.Chat.Contracts.csproj" />
+		<ProjectReference Include="..\..\Multitenancy\Modules.Multitenancy.Contracts\Modules.Multitenancy.Contracts.csproj" />
+		<ProjectReference Include="..\..\Billing\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />
 	</ItemGroup>
 
 </Project>

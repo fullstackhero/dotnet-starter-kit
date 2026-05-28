@@ -44,6 +44,14 @@ const ConfirmEmailPage = lazyNamed(
 const OverviewPage = lazyNamed(() => import("@/pages/overview"), "OverviewPage");
 const ActivityPage = lazyNamed(() => import("@/pages/activity"), "ActivityPage");
 const InvoicesPage = lazyNamed(() => import("@/pages/invoices"), "InvoicesPage");
+const InvoiceDetailPage = lazyNamed(
+  () => import("@/pages/invoice-detail"),
+  "InvoiceDetailPage",
+);
+const SubscriptionPage = lazyNamed(
+  () => import("@/pages/subscription"),
+  "SubscriptionPage",
+);
 const BrandsPage = lazyNamed(() => import("@/pages/catalog/brands"), "BrandsPage");
 const CategoriesPage = lazyNamed(() => import("@/pages/catalog/categories"), "CategoriesPage");
 const ProductsPage = lazyNamed(() => import("@/pages/catalog/products"), "ProductsPage");
@@ -160,7 +168,9 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: withSuspense(<OverviewPage />) },
           { path: "activity", element: withSuspense(<ActivityPage />) },
+          { path: "subscription", element: withSuspense(<SubscriptionPage />) },
           { path: "invoices", element: withSuspense(<InvoicesPage />) },
+          { path: "invoices/:id", element: withSuspense(<InvoiceDetailPage />) },
           { path: "system/health", element: withSuspense(<HealthPage />) },
           { path: "system/audits", element: withSuspense(<AuditsPage />) },
           { path: "system/trash", element: withSuspense(<TrashPage />) },

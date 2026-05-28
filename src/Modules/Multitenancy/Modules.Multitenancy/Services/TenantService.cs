@@ -12,6 +12,7 @@ using FSH.Modules.Multitenancy.Features.v1.GetTenants;
 using FSH.Modules.Multitenancy.Provisioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Multitenancy.Services;
@@ -25,6 +26,7 @@ public sealed class TenantService : ITenantService
     private readonly ITenantProvisioningService _provisioningService;
     private readonly TimeProvider _timeProvider;
     private readonly TenantBillingOptions _billingOptions;
+    private readonly ILogger<TenantService> _logger;
 
     public TenantService(
         IMultiTenantStore<AppTenantInfo> tenantStore,
@@ -33,7 +35,8 @@ public sealed class TenantService : ITenantService
         TenantDbContext dbContext,
         ITenantProvisioningService provisioningService,
         TimeProvider timeProvider,
-        IOptions<TenantBillingOptions> billingOptions)
+        IOptions<TenantBillingOptions> billingOptions,
+        ILogger<TenantService> logger)
     {
         ArgumentNullException.ThrowIfNull(config);
         ArgumentNullException.ThrowIfNull(billingOptions);
@@ -44,6 +47,7 @@ public sealed class TenantService : ITenantService
         _provisioningService = provisioningService;
         _timeProvider = timeProvider;
         _billingOptions = billingOptions.Value;
+        _logger = logger;
     }
 
     public async Task<string> ActivateAsync(string id, CancellationToken cancellationToken)
@@ -200,7 +204,7 @@ public sealed class TenantService : ITenantService
         ArgumentException.ThrowIfNullOrWhiteSpace(newPlanKey);
 
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
 
         // Stack remaining time: renew from ValidUpto if still in the future, otherwise from now.
         var periodStart = DateTime.SpecifyKind(tenant.ValidUpto > now ? tenant.ValidUpto : now, DateTimeKind.Utc);
@@ -217,6 +221,29 @@ public sealed class TenantService : ITenantService
         await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
 
         return (periodStart, newValidUpto, planChanged);
+    }
+
+    public async Task<DateTime> AdjustValidityAsync(string id, DateTime validUpto, CancellationToken cancellationToken = default)
+    {
+        var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
+
+        // Set directly rather than via SetValidity: this operator override is allowed to move the date
+        // backward (e.g. immediate expiry / correcting a mistake), which SetValidity forbids.
+        var normalized = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc);
+        var previous = tenant.ValidUpto;
+        tenant.ValidUpto = normalized;
+
+        await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
+
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "[Multitenancy] operator adjusted tenant {TenantId} validity from {Previous:o} to {ValidUpto:o}",
+                id, previous, normalized);
+        }
+
+        return normalized;
     }
 
     private async Task<AppTenantInfo> GetTenantInfoAsync(string id, CancellationToken cancellationToken = default) =>

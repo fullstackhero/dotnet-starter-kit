@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Ban, CheckCircle2, FileText, Send } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, Download, FileText, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
+  downloadInvoicePdf,
   getInvoice,
   issueInvoice,
   markInvoicePaid,
@@ -89,6 +90,13 @@ export function InvoiceDetailPage() {
   const [dueAt, setDueAt] = useState("");
   const [voidReason, setVoidReason] = useState("");
 
+  // Pass id + number via mutate(arg) — never close over invoice state, which
+  // could be stale if the query refetched between render and click.
+  const downloadMutation = useMutation({
+    mutationFn: ({ id, number }: { id: string; number: string }) => downloadInvoicePdf(id, number),
+    onError: (err) => toast.error("Download failed", { description: describe(err, "Could not download the invoice PDF.") }),
+  });
+
   const issueMutation = useMutation({
     mutationFn: () => issueInvoice(invoiceId, dueAt ? new Date(dueAt).toISOString() : null),
     onSuccess: () => {
@@ -170,7 +178,20 @@ export function InvoiceDetailPage() {
                 </span>
               </span>
             }
-          />
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                downloadMutation.mutate({ id: invoice.id, number: invoice.invoiceNumber })
+              }
+              disabled={downloadMutation.isPending}
+              title="Download this invoice as a PDF"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              {downloadMutation.isPending ? "Preparing…" : "Download PDF"}
+            </Button>
+          </EntityPageHeader>
         ) : null}
       </div>
 

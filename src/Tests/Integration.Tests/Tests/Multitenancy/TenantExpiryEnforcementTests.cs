@@ -1,3 +1,4 @@
+using System.Globalization;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.Stores;
 using FSH.Framework.Shared.Multitenancy;
@@ -51,6 +52,31 @@ public sealed class TenantExpiryEnforcementTests
             "a lapsed tenant within the grace window must still be allowed through the guard");
     }
 
+    [Fact]
+    public async Task LapsedTenant_WithinGrace_Should_Emit_GraceHeader()
+    {
+        var tenantId = await CreateTenantAsync();
+
+        // One day past expiry — inside the 7-day grace window.
+        await SetTenantValidityAsync(tenantId, DateTime.UtcNow.AddDays(-1));
+
+        var (status, grace) = await ProbeAsync(tenantId);
+
+        status.ShouldNotBe(HttpStatusCode.Forbidden);
+        grace.ShouldNotBeNull("a tenant in the grace window must receive the X-Subscription-Grace header");
+        int.Parse(grace!, CultureInfo.InvariantCulture).ShouldBeInRange(1, 7);
+    }
+
+    [Fact]
+    public async Task ActiveTenant_Should_Not_Emit_GraceHeader()
+    {
+        var tenantId = await CreateTenantAsync();
+
+        var (_, grace) = await ProbeAsync(tenantId);
+
+        grace.ShouldBeNull("an active (non-lapsed) tenant must not receive the grace header");
+    }
+
     private async Task<string> CreateTenantAsync()
     {
         using var adminClient = await _auth.CreateRootAdminClientAsync();
@@ -93,12 +119,24 @@ public sealed class TenantExpiryEnforcementTests
 
     private async Task<HttpStatusCode> TryIssueTokenAsync(string tenantId)
     {
+        var (status, _) = await ProbeAsync(tenantId);
+        return status;
+    }
+
+    // Probes the post-auth guard with an anonymous token-issue request scoped to the tenant header,
+    // returning the response status plus the X-Subscription-Grace header (null when absent). The guard
+    // runs before the token handler, so the grace header is set regardless of the credential outcome.
+    private async Task<(HttpStatusCode Status, string? Grace)> ProbeAsync(string tenantId)
+    {
         using var client = _factory.CreateClient();
         using var request = new HttpRequestMessage(
             HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
         request.Headers.Add("tenant", tenantId);
         request.Content = JsonContent.Create(new { email = "nobody@example.com", password = "Wrong-Password-1!" });
         using var response = await client.SendAsync(request);
-        return response.StatusCode;
+        var grace = response.Headers.TryGetValues("X-Subscription-Grace", out var values)
+            ? values.FirstOrDefault()
+            : null;
+        return (response.StatusCode, grace);
     }
 }

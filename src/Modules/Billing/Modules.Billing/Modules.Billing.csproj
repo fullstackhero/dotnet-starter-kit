@@ -17,4 +17,8 @@
 	  <ProjectReference Include="..\..\Multitenancy\Modules.Multitenancy.Contracts\Modules.Multitenancy.Contracts.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="QuestPDF" />
+	</ItemGroup>
+
 </Project>

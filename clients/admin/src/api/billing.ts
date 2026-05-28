@@ -1,5 +1,7 @@
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, ApiRequestError } from "@/lib/api-client";
 import type { PagedResponse } from "@/lib/api-types";
+import { env } from "@/env";
+import { tokenStore } from "@/auth/token-store";
 
 // ─── shared enums ────────────────────────────────────────────────────
 
@@ -180,6 +182,48 @@ export function listInvoices(params: ListInvoicesParams = {}): Promise<PagedResp
 
 export function getInvoice(invoiceId: string): Promise<InvoiceDto> {
   return apiFetch<InvoiceDto>(`/api/v1/billing/invoices/${encodeURIComponent(invoiceId)}`);
+}
+
+/**
+ * Fetch the invoice PDF as a blob and trigger a browser download named
+ * `{invoiceNumber}.pdf`. The endpoint streams `application/pdf`, so it can't
+ * go through `apiFetch` (which only parses JSON). We replicate apiFetch's
+ * auth + tenant headers by hand so cross-tenant viewing works identically to
+ * how the detail page loads the invoice via `getInvoice`.
+ */
+export async function downloadInvoicePdf(invoiceId: string, invoiceNumber: string): Promise<void> {
+  const headers = new Headers({ Accept: "application/pdf" });
+
+  const accessToken = tokenStore.getAccessToken();
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+  const tenant = tokenStore.getTenant() ?? env.defaultTenant;
+  if (tenant) {
+    headers.set("tenant", tenant);
+  }
+
+  const response = await fetch(
+    `${env.apiBase}/api/v1/billing/invoices/${encodeURIComponent(invoiceId)}/pdf`,
+    { headers },
+  );
+
+  if (!response.ok) {
+    throw new ApiRequestError(response.status, `Failed to download invoice PDF (${response.status})`);
+  }
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = `${invoiceNumber}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 export function generateInvoices(periodYear: number, periodMonth: number): Promise<{ generated: number }> {

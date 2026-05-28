@@ -17,11 +17,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.6.0" />
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.6.0" />
-
     <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.2" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
@@ -30,6 +28,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.15.0-beta.1" />
+    <PackageVersion Include="QuestPDF" Version="2026.5.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Span" Version="3.1.0" />
@@ -107,7 +106,6 @@
     <PackageVersion Include="Testcontainers.Redis" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.Minio" Version="4.11.0" />
   </ItemGroup>
-
   <ItemGroup Label="AWS">
     <PackageVersion Include="AWSSDK.S3" Version="4.0.23.4" />
   </ItemGroup>

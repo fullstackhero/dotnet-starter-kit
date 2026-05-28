@@ -87,6 +87,49 @@ public sealed class RenewTenantTests
         status.Plan.ShouldBe(annual);
     }
 
+    [Fact]
+    public async Task RenewTenant_Should_Stack_Two_Terms_When_RenewedTwice()
+    {
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var tenantId = $"renew-x2-{unique}";
+        var planKey = await CreatePlanAsync(rootClient, $"x2-m-{unique}", monthlyBasePrice: 10m);
+        await CreateTenantAsync(rootClient, tenantId, $"renew-x2-{unique}@tenant.com", planKey);
+
+        var before = (await GetStatusAsync(rootClient, tenantId)).ValidUpto!.Value;
+
+        await RenewAsync(rootClient, tenantId, planKey);
+        await RenewAsync(rootClient, tenantId, planKey);
+
+        var after = (await GetStatusAsync(rootClient, tenantId)).ValidUpto!.Value;
+        // Two monthly terms stacked onto the validity present before the renewals.
+        after.ShouldBeGreaterThan(before.AddDays(58));
+        after.ShouldBeLessThan(before.AddDays(64));
+    }
+
+    [Fact]
+    public async Task RenewTenant_Should_StartFromNow_When_TenantHasLapsed()
+    {
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var tenantId = $"renew-lapsed-{unique}";
+        var planKey = await CreatePlanAsync(rootClient, $"lap-m-{unique}", monthlyBasePrice: 10m);
+        await CreateTenantAsync(rootClient, tenantId, $"renew-lapsed-{unique}@tenant.com", planKey);
+
+        // Lapse the tenant 30 days ago (operator override), then renew: stacking must restart from "now",
+        // not from the long-past validity, so the tenant gets a full term going forward.
+        var adjust = await rootClient.PostAsJsonAsync(
+            $"{TestConstants.TenantsBasePath}/{tenantId}/adjust-validity",
+            new { tenantId, validUpto = DateTime.UtcNow.AddDays(-30) });
+        adjust.StatusCode.ShouldBe(HttpStatusCode.OK, await adjust.Content.ReadAsStringAsync());
+
+        var result = await RenewAsync(rootClient, tenantId, planKey);
+
+        result.ValidUpto.ShouldBeGreaterThan(DateTime.UtcNow.AddDays(27),
+            "renewing a lapsed tenant must restart the term from now, not stack on the past validity");
+        result.ValidUpto.ShouldBeLessThan(DateTime.UtcNow.AddDays(32));
+    }
+
     #endregion
 
     #region Validation / Bad Request
@@ -180,6 +223,17 @@ public sealed class RenewTenantTests
             }
         }
         return await _auth.CreateAuthenticatedClientAsync(email, password, tenant);
+    }
+
+    private static async Task<RenewResult> RenewAsync(HttpClient client, string tenantId, string planKey)
+    {
+        var response = await client.PostAsJsonAsync(
+            $"{TestConstants.TenantsBasePath}/{tenantId}/renew",
+            new { tenantId, planKey });
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+        var result = await response.Content.ReadFromJsonAsync<RenewResult>(Json);
+        result.ShouldNotBeNull();
+        return result!;
     }
 
     private static async Task<string> CreatePlanAsync(HttpClient client, string key, decimal monthlyBasePrice)

@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
+		<ProjectReference Include="..\..\..\BuildingBlocks\Eventing.Abstractions\Eventing.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

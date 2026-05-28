@@ -210,6 +210,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const stopImpersonation = useCallback(async () => {
+    // No stash ⇒ the operator arrived via a cross-app handoff (e.g. a root
+    // SuperAdmin started impersonation from the admin app), so there is no
+    // dashboard session to return to. The local impersonation token is
+    // disposable, so end INSTANTLY by logging out — don't block the UI on the
+    // server `end` call (it has a 30s timeout and intermittently leaves the
+    // banner stuck on "Ending…"). Fire it best-effort for grant revocation +
+    // audit; the short-lived impersonation token expires shortly regardless.
+    // Restoring the operator here would also drop a root-tenant account into
+    // the tenant dashboard, which `login` forbids.
+    if (!tokenStore.hasImpersonationStash()) {
+      void endImpersonation().catch(() => {
+        /* best-effort: token expires shortly, nothing to recover here */
+      });
+      logout();
+      return;
+    }
+
+    // Intra-app impersonation: we genuinely need the server-minted operator
+    // tokens to restore the original dashboard session, so await the call.
     try {
       const fresh = await endImpersonation();
       tokenStore.endImpersonationWithFreshTokens(fresh.accessToken, fresh.refreshToken);
@@ -222,7 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       queryClient.clear();
     }
-  }, [queryClient]);
+  }, [queryClient, logout]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
