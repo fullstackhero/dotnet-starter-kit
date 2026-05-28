@@ -222,15 +222,18 @@ public sealed class BillingService : IBillingService
         return invoice;
     }
 
-    private static string BuildUsageInvoiceNumber(string tenantId, int periodYear, int periodMonth)
-    {
-        var shortTenant = tenantId.Length <= 8 ? tenantId : tenantId[..8];
-        return $"USG-{periodYear}{periodMonth:00}-{shortTenant}";
-    }
+    private static string BuildUsageInvoiceNumber(string tenantId, int periodYear, int periodMonth) =>
+        $"USG-{periodYear}{periodMonth:00}-{TenantToken(tenantId)}";
 
-    private static string BuildSubscriptionInvoiceNumber(string tenantId, DateTime periodStartUtc)
+    private static string BuildSubscriptionInvoiceNumber(string tenantId, DateTime periodStartUtc) =>
+        $"SUB-{periodStartUtc:yyyyMM}-{TenantToken(tenantId)}";
+
+    // A stable, collision-resistant token from the full tenant id. A naive prefix truncation collides
+    // for tenants sharing a prefix (e.g. "billing-a", "billing-b"), which would clash on the unique
+    // InvoiceNumber index when the monthly job invoices many tenants for the same period.
+    private static string TenantToken(string tenantId)
     {
-        var shortTenant = tenantId.Length <= 8 ? tenantId : tenantId[..8];
-        return $"SUB-{periodStartUtc:yyyyMM}-{shortTenant}";
+        var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(tenantId));
+        return Convert.ToHexString(hash, 0, 6);
     }
 }

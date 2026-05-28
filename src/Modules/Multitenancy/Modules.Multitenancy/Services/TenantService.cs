@@ -78,8 +78,11 @@ public sealed class TenantService : ITenantService
         AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer)
         {
             Plan = planKey,
+            // Set the initial validity directly to the plan term. SetValidity() guards against moving
+            // the date backward (correct for renewals), but the constructor seeds ValidUpto to now+1mo,
+            // so using it here would reject a term computed from an earlier 'now'.
+            ValidUpto = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc),
         };
-        tenant.SetValidity(DateTime.SpecifyKind(validUpto, DateTimeKind.Utc));
         await _tenantStore.AddAsync(tenant).ConfigureAwait(false);
         await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
 

@@ -53,7 +53,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
                 table: "Invoices",
                 type: "integer",
                 nullable: false,
-                defaultValue: 1);
+                defaultValue: 0);
 
             migrationBuilder.CreateIndex(
                 name: "ux_invoices_tenant_period_purpose",

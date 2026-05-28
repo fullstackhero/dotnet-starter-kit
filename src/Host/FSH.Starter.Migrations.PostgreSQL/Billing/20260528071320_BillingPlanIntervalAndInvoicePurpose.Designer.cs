@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FSH.Starter.Migrations.PostgreSQL.Billing
 {
     [DbContext(typeof(BillingDbContext))]
-    [Migration("20260528064204_BillingPlanIntervalAndInvoicePurpose")]
+    [Migration("20260528071320_BillingPlanIntervalAndInvoicePurpose")]
     partial class BillingPlanIntervalAndInvoicePurpose
     {
         /// <inheritdoc />
@@ -131,7 +131,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
                     b.Property<int>("Purpose")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                        .HasDefaultValue(0);
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

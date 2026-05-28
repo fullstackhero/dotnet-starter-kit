@@ -128,7 +128,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
                     b.Property<int>("Purpose")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                        .HasDefaultValue(0);
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

@@ -80,7 +80,8 @@ public sealed class TenantExpiryEnforcementTests
         var efStore = stores.First(s => s.GetType().Name.StartsWith("EFCoreStore", StringComparison.Ordinal));
         var tenant = await efStore.GetAsync(tenantId);
         tenant.ShouldNotBeNull();
-        tenant!.SetValidity(DateTime.SpecifyKind(validUpto, DateTimeKind.Utc));
+        // Set directly (SetValidity forbids moving the date backward, which is exactly what we need here).
+        tenant!.ValidUpto = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc);
         await efStore.UpdateAsync(tenant);
 
         var cacheStore = stores.FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<AppTenantInfo>));
