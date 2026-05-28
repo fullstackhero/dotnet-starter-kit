@@ -15,6 +15,7 @@ using FSH.Modules.Multitenancy.Data;
 using FSH.Modules.Multitenancy.Features.v1.AdjustTenantValidity;
 using FSH.Modules.Multitenancy.Features.v1.ChangeTenantActivation;
 using FSH.Modules.Multitenancy.Features.v1.CreateTenant;
+using FSH.Modules.Multitenancy.Features.v1.GetMyTenantStatus;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantMigrations;
 using FSH.Modules.Multitenancy.Features.v1.GetTenants;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
@@ -245,6 +246,7 @@ public sealed class MultitenancyModule : IModule
         AdjustTenantValidityEndpoint.Map(group);
         CreateTenantEndpoint.Map(group);
         GetTenantStatusEndpoint.Map(group);
+        GetMyTenantStatusEndpoint.Map(group);
         GetTenantProvisioningStatusEndpoint.Map(group);
         RetryTenantProvisioningEndpoint.Map(group);
         TenantMigrationsEndpoint.Map(group);
