@@ -28,6 +28,18 @@ public interface IBillingService
         int periodMonth,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Creates and issues a Subscription-purpose invoice for one plan term (the term base fee). Called
+    /// when a tenant subscribes or renews. Returns null for free/zero-price plans (no invoice).
+    /// Idempotent: returns the existing invoice if one already exists for the term.
+    /// </summary>
+    Task<Invoice?> CreateSubscriptionInvoiceAsync(
+        string tenantId,
+        Guid planId,
+        DateTime periodStartUtc,
+        DateTime periodEndUtc,
+        CancellationToken cancellationToken = default);
+
     Task IssueInvoiceAsync(Guid invoiceId, DateTime? dueAtUtc, CancellationToken cancellationToken = default);
 
     Task MarkInvoicePaidAsync(Guid invoiceId, CancellationToken cancellationToken = default);

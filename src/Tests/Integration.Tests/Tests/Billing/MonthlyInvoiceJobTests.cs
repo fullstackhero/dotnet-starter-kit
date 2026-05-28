@@ -56,7 +56,9 @@ public sealed class MonthlyInvoiceJobTests
         invoice!.Status.ShouldBe(InvoiceStatus.Draft);
         invoice.PeriodYear.ShouldBe(previous.Year);
         invoice.PeriodMonth.ShouldBe(previous.Month);
-        invoice.SubtotalAmount.ShouldBeGreaterThanOrEqualTo(12.34m, "the assigned plan's base fee must land on the invoice");
+        invoice.Purpose.ShouldBe(InvoicePurpose.Usage, "the monthly job produces usage invoices");
+        invoice.SubtotalAmount.ShouldBe(0m,
+            "usage invoices bill metered overage only — the base fee is billed on the subscription invoice on create/renew, and root has no overage");
     }
 
     #endregion

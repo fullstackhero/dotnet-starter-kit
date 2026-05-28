@@ -547,7 +547,9 @@ public sealed class BillingEndpointTests
         page.Items.Count.ShouldBe(1);
         var inv = page.Items.Single();
         inv.Status.ShouldBe(InvoiceStatus.Draft);
-        inv.SubtotalAmount.ShouldBeGreaterThanOrEqualTo(7m, "base fee from the assigned plan should be in the subtotal");
+        inv.Purpose.ShouldBe(InvoicePurpose.Usage, "invoices/generate produces usage invoices");
+        inv.SubtotalAmount.ShouldBe(0m,
+            "usage invoices bill metered overage only — the base fee moved to the subscription invoice, and root has no overage");
 
         // Second call must be idempotent — no new invoices for the same period.
         using var secondResp = await client.PostAsJsonAsync(
