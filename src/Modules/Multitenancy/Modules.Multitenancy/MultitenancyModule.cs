@@ -12,6 +12,7 @@ using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Multitenancy.Contracts;
 using FSH.Modules.Multitenancy.Data;
+using FSH.Modules.Multitenancy.Features.v1.AdjustTenantValidity;
 using FSH.Modules.Multitenancy.Features.v1.ChangeTenantActivation;
 using FSH.Modules.Multitenancy.Features.v1.CreateTenant;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantMigrations;
@@ -196,9 +197,25 @@ public sealed class MultitenancyModule : IModule
                     var graceDays = ctx.RequestServices
                         .GetRequiredService<IOptions<TenantBillingOptions>>().Value.GraceWindowDays;
                     var nowUtc = ctx.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime;
-                    if (nowUtc > tenant.ValidUpto.AddDays(graceDays))
+                    var graceEndsUtc = tenant.ValidUpto.AddDays(graceDays);
+                    if (nowUtc > graceEndsUtc)
                     {
                         throw new ForbiddenException("This tenant's subscription has expired. Please renew to continue.");
+                    }
+
+                    // Inside the grace window (past ValidUpto, before grace ends): surface the days left
+                    // so clients can warn the tenant. Set via OnStarting so the header survives even when
+                    // an exception handler rewrites the response (e.g. a failed login still in grace).
+                    if (nowUtc > tenant.ValidUpto)
+                    {
+                        var daysLeft = (int)Math.Ceiling((graceEndsUtc - nowUtc).TotalDays);
+                        var headerValue = daysLeft.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        ctx.Response.OnStarting(static state =>
+                        {
+                            var (response, value) = ((HttpResponse, string))state;
+                            response.Headers["X-Subscription-Grace"] = value;
+                            return Task.CompletedTask;
+                        }, (ctx.Response, headerValue));
                     }
                 }
             }
@@ -222,6 +239,7 @@ public sealed class MultitenancyModule : IModule
         ChangeTenantActivationEndpoint.Map(group);
         GetTenantsEndpoint.Map(group);
         RenewTenantEndpoint.Map(group);
+        AdjustTenantValidityEndpoint.Map(group);
         CreateTenantEndpoint.Map(group);
         GetTenantStatusEndpoint.Map(group);
         GetTenantProvisioningStatusEndpoint.Map(group);

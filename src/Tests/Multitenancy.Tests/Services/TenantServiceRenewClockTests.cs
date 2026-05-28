@@ -4,6 +4,7 @@ using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Multitenancy;
 using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
@@ -34,7 +35,8 @@ public sealed class TenantServiceRenewClockTests
             dbContext: null!,            // RenewAsync never touches the DbContext
             provisioningService: null!,  // RenewAsync never touches provisioning
             _clock,
-            Options.Create(new TenantBillingOptions()));
+            Options.Create(new TenantBillingOptions()),
+            NullLogger<TenantService>.Instance);
     }
 
     [Fact]
