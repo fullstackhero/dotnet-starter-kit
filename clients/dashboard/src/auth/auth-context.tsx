@@ -212,23 +212,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const stopImpersonation = useCallback(async () => {
     // No stash ⇒ the operator arrived via a cross-app handoff (e.g. a root
     // SuperAdmin started impersonation from the admin app), so there is no
-    // dashboard session to return to. Restoring the operator here would drop a
-    // root-tenant account into the tenant dashboard — which `login` explicitly
-    // forbids — so end cleanly by logging out instead.
-    const crossAppHandoff = !tokenStore.hasImpersonationStash();
+    // dashboard session to return to. The local impersonation token is
+    // disposable, so end INSTANTLY by logging out — don't block the UI on the
+    // server `end` call (it has a 30s timeout and intermittently leaves the
+    // banner stuck on "Ending…"). Fire it best-effort for grant revocation +
+    // audit; the short-lived impersonation token expires shortly regardless.
+    // Restoring the operator here would also drop a root-tenant account into
+    // the tenant dashboard, which `login` forbids.
+    if (!tokenStore.hasImpersonationStash()) {
+      void endImpersonation().catch(() => {
+        /* best-effort: token expires shortly, nothing to recover here */
+      });
+      logout();
+      return;
+    }
+
+    // Intra-app impersonation: we genuinely need the server-minted operator
+    // tokens to restore the original dashboard session, so await the call.
     try {
-      // Still call the server so the impersonation grant is ended + audited.
       const fresh = await endImpersonation();
-      if (crossAppHandoff) {
-        logout();
-        return;
-      }
       tokenStore.endImpersonationWithFreshTokens(fresh.accessToken, fresh.refreshToken);
     } catch {
-      if (crossAppHandoff) {
-        logout();
-        return;
-      }
       // End endpoint failed (server unreachable / token invalid). Fall
       // back to whatever we stashed locally; the operator may need to
       // re-authenticate if the stashed access token has expired.
