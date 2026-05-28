@@ -147,8 +147,16 @@ export function InvoiceDetailPage() {
                   {invoice.invoiceNumber}
                 </code>
                 <Badge variant={statusVariant(invoice.status)}>{invoice.status}</Badge>
+                {invoice.purpose && (
+                  <Badge variant="outline">
+                    {invoice.purpose === "Subscription" ? "Subscription" : "Usage"}
+                  </Badge>
+                )}
                 <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
                   tenant {invoice.tenantId} · period {formatPeriod(invoice.periodYear, invoice.periodMonth)} · created {formatDate(invoice.createdAtUtc)}
+                  {invoice.periodStartUtc && invoice.periodEndUtc && (
+                    ` · term ${formatDate(invoice.periodStartUtc)} – ${formatDate(invoice.periodEndUtc)}`
+                  )}
                   {invoice.issuedAtUtc && ` · issued ${formatDate(invoice.issuedAtUtc)}`}
                   {invoice.dueAtUtc && invoice.status === "Issued" && (
                     <span className="text-[var(--color-warning)]"> · due {formatDate(invoice.dueAtUtc)}</span>

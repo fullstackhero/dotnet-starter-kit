@@ -328,6 +328,11 @@ export function InvoicesListPage() {
                           {inv.invoiceNumber}
                         </code>
                         <Badge variant={statusVariant(inv.status)}>{inv.status}</Badge>
+                        {inv.purpose && (
+                          <Badge variant="outline">
+                            {inv.purpose === "Subscription" ? "Subscription" : "Usage"}
+                          </Badge>
+                        )}
                       </div>
                       <div className="mt-1 truncate font-mono text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
                         tenant <span className="text-[var(--color-foreground)]">{inv.tenantId}</span> ·

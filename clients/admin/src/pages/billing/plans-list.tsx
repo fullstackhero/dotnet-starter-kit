@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Plus, Tag } from "lucide-react";
-import { getPlans, type BillingPlanDto } from "@/api/billing";
+import { getPlans, planTermPrice, type BillingPlanDto } from "@/api/billing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -130,6 +130,7 @@ export function PlansListPage() {
                       {plan.key}
                     </code>
                     <span className="font-display text-base font-semibold">{plan.name}</span>
+                    <Badge variant="outline">{plan.interval === "Yearly" ? "Yearly" : "Monthly"}</Badge>
                     {plan.isActive ? (
                       <Badge variant="success">Active</Badge>
                     ) : (
@@ -146,10 +147,10 @@ export function PlansListPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div className="text-display text-lg font-semibold leading-none tabular-nums">
-                      {formatMoney(plan.monthlyBasePrice, plan.currency)}
+                      {formatMoney(planTermPrice(plan), plan.currency)}
                     </div>
                     <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                      per month
+                      {plan.interval === "Yearly" ? "per year" : "per month"}
                     </div>
                   </div>
                   <Button
