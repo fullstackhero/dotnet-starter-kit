@@ -21,6 +21,9 @@ public sealed class Subscription : BaseEntity<Guid>
     private Subscription() { }
 
     public static Subscription Create(string tenantId, Guid planId, DateTime startUtc)
+        => Create(tenantId, planId, startUtc, endUtc: null);
+
+    public static Subscription Create(string tenantId, Guid planId, DateTime startUtc, DateTime? endUtc)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         if (planId == Guid.Empty)
@@ -34,6 +37,7 @@ public sealed class Subscription : BaseEntity<Guid>
             TenantId = tenantId,
             PlanId = planId,
             StartUtc = DateTime.SpecifyKind(startUtc, DateTimeKind.Utc),
+            EndUtc = endUtc is { } e ? DateTime.SpecifyKind(e, DateTimeKind.Utc) : null,
             Status = SubscriptionStatus.Active,
             CreatedAtUtc = DateTime.UtcNow
         };
