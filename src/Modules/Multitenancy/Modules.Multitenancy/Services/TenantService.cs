@@ -23,20 +23,27 @@ public sealed class TenantService : ITenantService
     private readonly IServiceProvider _serviceProvider;
     private readonly TenantDbContext _dbContext;
     private readonly ITenantProvisioningService _provisioningService;
+    private readonly TimeProvider _timeProvider;
+    private readonly TenantBillingOptions _billingOptions;
 
     public TenantService(
         IMultiTenantStore<AppTenantInfo> tenantStore,
         IOptions<DatabaseOptions> config,
         IServiceProvider serviceProvider,
         TenantDbContext dbContext,
-        ITenantProvisioningService provisioningService)
+        ITenantProvisioningService provisioningService,
+        TimeProvider timeProvider,
+        IOptions<TenantBillingOptions> billingOptions)
     {
         ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(billingOptions);
         _tenantStore = tenantStore;
         _config = config.Value;
         _serviceProvider = serviceProvider;
         _dbContext = dbContext;
         _provisioningService = provisioningService;
+        _timeProvider = timeProvider;
+        _billingOptions = billingOptions.Value;
     }
 
     public async Task<string> ActivateAsync(string id, CancellationToken cancellationToken)
@@ -153,6 +160,22 @@ public sealed class TenantService : ITenantService
     {
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
 
+        var graceEnds = tenant.ValidUpto.AddDays(_billingOptions.GraceWindowDays);
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        string expiryState;
+        if (now <= tenant.ValidUpto)
+        {
+            expiryState = "Active";
+        }
+        else if (now <= graceEnds)
+        {
+            expiryState = "InGrace";
+        }
+        else
+        {
+            expiryState = "Expired";
+        }
+
         return new TenantStatusDto
         {
             Id = tenant.Id!,
@@ -162,7 +185,9 @@ public sealed class TenantService : ITenantService
             HasConnectionString = !string.IsNullOrWhiteSpace(tenant.ConnectionString),
             AdminEmail = tenant.AdminEmail!,
             Issuer = tenant.Issuer,
-            Plan = tenant.Plan
+            Plan = tenant.Plan,
+            ExpiryState = expiryState,
+            GraceEndsUtc = graceEnds
         };
     }
 
