@@ -248,6 +248,7 @@ public class EndpointConventionTests
                                name.StartsWith("Remove", StringComparison.Ordinal) ||
                                name.StartsWith("Retry", StringComparison.Ordinal) ||
                                name.StartsWith("Upgrade", StringComparison.Ordinal) ||
+                               name.StartsWith("Renew", StringComparison.Ordinal) ||
                                name.StartsWith("Self", StringComparison.Ordinal) ||
                                name.StartsWith("Tenant", StringComparison.Ordinal) ||
                                name.StartsWith("Start", StringComparison.Ordinal) ||
