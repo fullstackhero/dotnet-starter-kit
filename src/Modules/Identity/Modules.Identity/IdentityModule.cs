@@ -126,6 +126,9 @@ public class IdentityModule : IModule
         // Configure password policy options
         services.Configure<PasswordPolicyOptions>(builder.Configuration.GetSection("PasswordPolicy"));
 
+        // Tenant subscription grace window (shared "Billing" section) — used by the login expiry check.
+        services.Configure<TenantGraceOptions>(builder.Configuration.GetSection(TenantGraceOptions.SectionName));
+
         // Register password history service
         services.AddScoped<IPasswordHistoryService, PasswordHistoryService>();
 

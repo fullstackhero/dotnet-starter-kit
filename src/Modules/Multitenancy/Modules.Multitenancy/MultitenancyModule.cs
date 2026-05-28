@@ -44,6 +44,9 @@ public sealed class MultitenancyModule : IModule
         FSH.Framework.Shared.Constants.PermissionConstants.Register(
             FSH.Modules.Multitenancy.Contracts.Authorization.MultitenancyPermissions.All);
 
+        builder.Services.Configure<TenantBillingOptions>(
+            builder.Configuration.GetSection(TenantBillingOptions.SectionName));
+
         builder.Services.AddScoped<ITenantService, TenantService>();
         builder.Services.AddScoped<ITenantThemeService, TenantThemeService>();
         builder.Services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
