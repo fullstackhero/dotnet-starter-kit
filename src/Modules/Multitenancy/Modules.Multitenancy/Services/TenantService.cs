@@ -61,15 +61,20 @@ public sealed class TenantService : ITenantService
     public async Task<string> CreateAsync(string id,
         string name,
         string? connectionString,
-        string adminEmail, string? issuer, CancellationToken cancellationToken)
+        string adminEmail, string? issuer, string planKey, DateTime validUpto, CancellationToken cancellationToken)
     {
         if (connectionString?.Trim() == _config.ConnectionString.Trim())
         {
             connectionString = string.Empty;
         }
 
-        AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer);
+        AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer)
+        {
+            Plan = planKey,
+        };
+        tenant.SetValidity(DateTime.SpecifyKind(validUpto, DateTimeKind.Utc));
         await _tenantStore.AddAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
 
         return tenant.Id;
     }
