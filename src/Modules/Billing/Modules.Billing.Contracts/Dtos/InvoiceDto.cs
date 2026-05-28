@@ -15,4 +15,7 @@ public sealed record InvoiceDto(
     DateTime? PaidAtUtc,
     DateTime? VoidedAtUtc,
     string? Notes,
-    IReadOnlyList<InvoiceLineItemDto> LineItems);
+    IReadOnlyList<InvoiceLineItemDto> LineItems,
+    InvoicePurpose Purpose,
+    DateTime? PeriodStartUtc,
+    DateTime? PeriodEndUtc);
