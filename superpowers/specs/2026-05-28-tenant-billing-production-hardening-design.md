@@ -51,17 +51,18 @@ clock-controllable for tests and consistent with `GetStatusAsync` / the handler.
 ceil of remaining days). Hard-block (403) past grace stays as-is. Active tenants get no header. This is
 a cheap signal for clients; the dashboard banner does not depend on it (it uses `tenants/me/status`).
 
-### A3. Indexes (one Billing migration)
-- `UsageSnapshot`: **unique** index on `(TenantId, PeriodYear, PeriodMonth, Resource)` — promotes the
-  current app-only idempotency to a DB invariant.
-- `Subscription`: **non-unique** index on `(TenantId, Status)` — speeds the "find active subscription"
-  lookup used by the replace flow + monthly job. Deliberately **not** a partial-unique index on active:
-  the cancel-old/create-new replace runs in one `SaveChanges` and Postgres checks unique constraints
-  per-statement, so a unique-active index could trip transiently. The single-active invariant is
-  enforced by app logic + asserted by an integration test (E).
+### A3. Indexes — ALREADY DONE (verified during planning; audit was wrong)
+Reading the EF configs shows both indexes the audit claimed were missing already exist:
+- `UsageSnapshotConfiguration` has a **unique** index `ux_usage_snapshots_tenant_period_resource` on
+  `(TenantId, PeriodYear, PeriodMonth, Resource)`.
+- `SubscriptionConfiguration` has `(TenantId, Status)` **and** a **partial-unique**
+  `ux_subscriptions_tenantid_active` (`TenantId` WHERE `Status = Active`) — the single-active invariant
+  is already a DB constraint.
 
-Migration lives in `FSH.Starter.Migrations.PostgreSQL` under the Billing folder. Full-build before
-`migrations add` (the snapshot footgun). No tenant-store schema change.
+**No index migration needed.** The replace flow (cancel-old → create-new in one `SaveChanges`) works
+against the partial-unique index in prod (EF emits the UPDATE-to-Cancelled before the INSERT). E still
+adds an integration test asserting the invariant + that the unique-active index rejects a forced second
+active row, to lock the behavior against regressions.
 
 ### A4. `AdjustTenantValidityCommand` (operator override)
 - Contract: `Modules.Multitenancy.Contracts/v1/AdjustTenantValidity/AdjustTenantValidityCommand.cs`
