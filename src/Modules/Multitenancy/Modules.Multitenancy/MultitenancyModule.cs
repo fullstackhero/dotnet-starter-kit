@@ -21,8 +21,8 @@ using FSH.Modules.Multitenancy.Features.v1.GetTenantTheme;
 using FSH.Modules.Multitenancy.Features.v1.ResetTenantTheme;
 using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.GetTenantProvisioningStatus;
 using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.RetryTenantProvisioning;
+using FSH.Modules.Multitenancy.Features.v1.RenewTenant;
 using FSH.Modules.Multitenancy.Features.v1.UpdateTenantTheme;
-using FSH.Modules.Multitenancy.Features.v1.UpgradeTenant;
 using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Services;
 using Microsoft.AspNetCore.Builder;
@@ -207,7 +207,7 @@ public sealed class MultitenancyModule : IModule
             .WithApiVersionSet(versionSet);
         ChangeTenantActivationEndpoint.Map(group);
         GetTenantsEndpoint.Map(group);
-        UpgradeTenantEndpoint.Map(group);
+        RenewTenantEndpoint.Map(group);
         CreateTenantEndpoint.Map(group);
         GetTenantStatusEndpoint.Map(group);
         GetTenantProvisioningStatusEndpoint.Map(group);

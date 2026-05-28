@@ -161,22 +161,34 @@ public sealed class TenantService : ITenantService
             ValidUpto = tenant.ValidUpto,
             HasConnectionString = !string.IsNullOrWhiteSpace(tenant.ConnectionString),
             AdminEmail = tenant.AdminEmail!,
-            Issuer = tenant.Issuer
+            Issuer = tenant.Issuer,
+            Plan = tenant.Plan
         };
     }
 
-    public async Task<DateTime> UpgradeSubscriptionAsync(string id, DateTime extendedExpiryDate, CancellationToken cancellationToken = default)
+    public async Task<(DateTime PeriodStartUtc, DateTime ValidUpto, bool PlanChanged)> RenewAsync(
+        string id, string newPlanKey, int termMonths, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newPlanKey);
+
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
+        var now = DateTime.UtcNow;
 
-        // Ensure the date is UTC for PostgreSQL compatibility
-        var utcExpiryDate = extendedExpiryDate.Kind == DateTimeKind.Utc
-            ? extendedExpiryDate
-            : DateTime.SpecifyKind(extendedExpiryDate, DateTimeKind.Utc);
+        // Stack remaining time: renew from ValidUpto if still in the future, otherwise from now.
+        var periodStart = DateTime.SpecifyKind(tenant.ValidUpto > now ? tenant.ValidUpto : now, DateTimeKind.Utc);
+        var newValidUpto = DateTime.SpecifyKind(periodStart.AddMonths(termMonths), DateTimeKind.Utc);
+        var planChanged = !string.Equals(tenant.Plan, newPlanKey, StringComparison.OrdinalIgnoreCase);
 
-        tenant.SetValidity(utcExpiryDate);
+        tenant.SetValidity(newValidUpto);
+        if (planChanged)
+        {
+            tenant.Plan = newPlanKey;
+        }
+
         await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
-        return tenant.ValidUpto;
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
+
+        return (periodStart, newValidUpto, planChanged);
     }
 
     private async Task<AppTenantInfo> GetTenantInfoAsync(string id, CancellationToken cancellationToken = default) =>

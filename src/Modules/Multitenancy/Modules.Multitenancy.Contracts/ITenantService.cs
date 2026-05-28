@@ -21,7 +21,13 @@ public interface ITenantService
 
     Task<string> DeactivateAsync(string id, CancellationToken cancellationToken = default);
 
-    Task<DateTime> UpgradeSubscriptionAsync(string id, DateTime extendedExpiryDate, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Extends the tenant's validity by one plan term, stacking on remaining time (no backdating), and
+    /// switches the tenant's plan when <paramref name="newPlanKey"/> differs. Returns the term window
+    /// applied and whether the plan changed, so the caller can publish a matching renewal event.
+    /// </summary>
+    Task<(DateTime PeriodStartUtc, DateTime ValidUpto, bool PlanChanged)> RenewAsync(
+        string id, string newPlanKey, int termMonths, CancellationToken cancellationToken = default);
 
     Task MigrateTenantAsync(AppTenantInfo tenant, CancellationToken cancellationToken);
 
