@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\BuildingBlocks\Core\Core.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Caching\Caching.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Persistence\Persistence.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Shared\Shared.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Web\Web.csproj" />

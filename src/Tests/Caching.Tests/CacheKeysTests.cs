@@ -27,9 +27,15 @@ public sealed class CacheKeysTests
     }
 
     [Fact]
-    public void IdempotencyEntry_Should_ScopeByTenant()
+    public void IdempotencyEntry_Should_ReturnLogicalKey()
     {
-        CacheKeys.IdempotencyEntry("t1", "req-42").ShouldBe("idem:t:t1:req-42");
+        CacheKeys.IdempotencyEntry("req-42").ShouldBe("idem:req-42");
+    }
+
+    [Fact]
+    public void IdempotencyEntryFull_Should_ScopeByTenant()
+    {
+        CacheKeys.IdempotencyEntryFull("t1", "req-42").ShouldBe("t:t1:idem:req-42");
     }
 
     [Fact]

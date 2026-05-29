@@ -72,6 +72,7 @@ public sealed class TenantCreationTests
             name = "No Auth Tenant",
             connectionString = (string?)null,
             adminEmail = "noauth@tenant.com",
+            adminPassword = TestConstants.DefaultPassword,
             issuer = "noauth.issuer"
         });
 

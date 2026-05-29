@@ -1,3 +1,4 @@
+using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
@@ -84,6 +85,21 @@ public static class Extensions
         // (a DefaultHybridCache factory installed by AddHybridCache), remove it, and register a
         // factory that builds the inner via the original descriptor and returns our wrapper.
         DecorateHybridCache(services);
+
+        // Register the tenant-scoped cache service. Scoped lifetime because the tenant context
+        // (and therefore the key prefix) is per-request. Module code must inject
+        // ITenantCacheService — injecting HybridCache directly is prohibited in module assemblies
+        // and enforced by architecture tests.
+        services.AddScoped<ITenantCacheService>(sp =>
+            new TenantHybridCache(
+                sp.GetRequiredService<HybridCache>(),
+                sp.GetRequiredService<IMultiTenantContextAccessor>()));
+
+        // Register the global (cross-tenant) cache service. Singleton lifetime because it
+        // carries no per-request state. Use this ONLY for data shared across all tenants,
+        // e.g. system defaults, global lookup tables, shared configuration.
+        services.AddSingleton<IGlobalCacheService>(sp =>
+            new GlobalHybridCache(sp.GetRequiredService<HybridCache>()));
 
         return services;
     }
