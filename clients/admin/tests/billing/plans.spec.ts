@@ -49,6 +49,35 @@ test.describe("billing plans list", () => {
     await expect(main.getByRole("button", { name: /new plan/i })).toBeVisible();
   });
 
+  test("hides New plan + per-row Edit for a Billing.View-only user", async ({ page }) => {
+    // Re-seed as a billing viewer: keep Billing.View (route guard), drop Billing.Manage.
+    const viewOnly = ADMIN_PERMS.filter((p) => p !== "Permissions.Billing.Manage");
+    await seedAuthedSession(page, { ...TEST_USER, permissions: viewOnly });
+    await installAdminShellMocks(page, viewOnly);
+
+    await page.route("**/api/v1/billing/plans?*", async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify([PLAN_PRO]),
+      });
+    });
+
+    await page.goto("/billing/plans");
+
+    const main = page.getByRole("main");
+    await expect(main.getByText("All plans", { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(main.getByText("Pro", { exact: true })).toBeVisible();
+
+    // Manage affordances must be absent.
+    await expect(main.getByRole("button", { name: /new plan/i })).toHaveCount(0);
+    await expect(main.getByRole("button", { name: /edit pro/i })).toHaveCount(0);
+  });
+
   test("shows the empty state when there are no plans", async ({ page }) => {
     await page.route("**/api/v1/billing/plans?*", async (route) => {
       if (route.request().method() !== "GET") {

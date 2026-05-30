@@ -1,9 +1,9 @@
-import type { ChannelDto, MessageDto } from "@/api/chat";
+import { ChannelType, type ChannelDto, type MessageDto } from "@/api/chat";
 
 /** Stable display name for a channel — falls back through type-appropriate paths. */
 export function channelTitle(channel: ChannelDto, selfUserId?: string): string {
-  if (channel.type === 2) return channel.name?.trim() || "(unnamed channel)";
-  if (channel.type === 0) {
+  if (channel.type === ChannelType.Channel) return channel.name?.trim() || "(unnamed channel)";
+  if (channel.type === ChannelType.DirectMessage) {
     // DM — show the other member's user id (richer name resolution would
     // require an Identity lookup; users can be wired in later via a
     // useUserDisplay hook).

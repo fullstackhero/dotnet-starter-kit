@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, Loader2, Paperclip, Send, X } from "lucide-react";
 import { toast } from "sonner";
-import { sendMessage, type ChannelTypeValue, type MessageDto } from "@/api/chat";
+import { ChannelType, sendMessage, type ChannelTypeValue, type MessageDto } from "@/api/chat";
 import { getFileDownloadUrl, Visibility } from "@/api/files";
 import { searchUsers, type UserDto } from "@/api/identity";
 import { useRealtime } from "@/realtime/realtime-context";
@@ -406,14 +406,14 @@ export function Composer({
           placeholder={
             replyTo
               ? "Type your reply…"
-              : channelType === 2
+              : channelType === ChannelType.Channel
                 ? `Message #${channelTitle}`
                 : `Message ${channelTitle}`
           }
           aria-label={
             replyTo
               ? "Type your reply"
-              : channelType === 2
+              : channelType === ChannelType.Channel
                 ? `Message channel ${channelTitle}`
                 : `Message ${channelTitle}`
           }

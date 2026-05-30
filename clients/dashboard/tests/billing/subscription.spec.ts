@@ -48,6 +48,14 @@ const GRACE_STATUS = {
   graceEndsUtc: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
 };
 
+/** Fully lapsed — grace exhausted. Persistent danger bar should appear. */
+const EXPIRED_STATUS = {
+  ...HEALTHY_STATUS,
+  validUpto: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+  expiryState: "Expired",
+  graceEndsUtc: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(),
+};
+
 const USAGE = [
   {
     id: "use-1",
@@ -182,6 +190,16 @@ test.describe("expiry banner", () => {
     await mockJsonResponse(page, "**/api/v1/tenants/me/status**", NEARING_STATUS);
     await page.goto("/");
     await expect(page.getByText(/your subscription expires in/i)).toBeVisible();
+  });
+
+  test("pins a persistent bar when expired (no dismiss)", async ({ page }) => {
+    await mockJsonResponse(page, "**/api/v1/tenants/me/status**", EXPIRED_STATUS);
+    await page.goto("/");
+    await expect(page.getByText(/your subscription has expired/i)).toBeVisible();
+    // Expired is the hardest state — it cannot be dismissed.
+    await expect(
+      page.getByRole("button", { name: /dismiss subscription notice/i }),
+    ).toHaveCount(0);
   });
 
   test("is absent when healthy", async ({ page }) => {

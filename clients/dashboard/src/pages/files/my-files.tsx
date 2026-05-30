@@ -19,6 +19,7 @@ import {
   listMyFiles,
   listSharedFiles,
   type FileAssetDto,
+  type VisibilityValue,
 } from "@/api/files";
 import { FileDropzone } from "@/components/file/file-dropzone";
 import { FilePreviewDialog } from "@/components/file/file-preview-dialog";
@@ -593,7 +594,7 @@ function FileList({
   );
 }
 
-function VisibilityChip({ visibility }: { visibility: number }) {
+function VisibilityChip({ visibility }: { visibility: VisibilityValue }) {
   const isPublic = visibility === Visibility.Public;
   return (
     <EntityStatusBadge tone={isPublic ? "info" : "default"}>

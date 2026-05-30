@@ -79,13 +79,6 @@ function expiryTone(state: TenantExpiryState | undefined): {
   }
 }
 
-function subscriptionTone(status: SubscriptionDto["status"] | undefined): EntityStatusTone {
-  if (status === "Active") return "success";
-  if (status === "Suspended") return "warning";
-  if (status === "Cancelled") return "danger";
-  return "default";
-}
-
 function invoiceStatusTone(status: InvoiceStatus): EntityStatusTone {
   switch (status) {
     case "Paid":
@@ -206,7 +199,11 @@ export function SubscriptionPage() {
               </Link>
             }
           >
-            <RecentInvoicesBody invoices={recentInvoices} loading={invoices.isLoading} />
+            <RecentInvoicesBody
+              invoices={recentInvoices}
+              loading={invoices.isLoading}
+              isError={invoices.isError}
+            />
           </EntityDetailSection>
         </div>
       </div>
@@ -258,9 +255,9 @@ function PlanBody({
           {planName ?? "—"}
         </span>
         {subscription && (
-          <Badge variant={badgeVariantFor(subscriptionTone(subscription.status))}>
-            {subscription.status}
-          </Badge>
+          // The dashboard's /subscriptions/me only ever surfaces the ACTIVE
+          // subscription (or null), so the badge is always the active tone.
+          <Badge variant="success">{subscription.status}</Badge>
         )}
       </div>
 
@@ -287,13 +284,6 @@ function PlanBody({
       </p>
     </div>
   );
-}
-
-/** Map a status tone to the matching Badge variant. */
-function badgeVariantFor(
-  tone: EntityStatusTone,
-): "default" | "success" | "warning" | "danger" | "info" {
-  return tone === "default" ? "default" : tone;
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -470,9 +460,11 @@ function UsageRow({ row }: { row: UsageRowVm }) {
 function RecentInvoicesBody({
   invoices,
   loading,
+  isError,
 }: {
   invoices: InvoiceDto[];
   loading: boolean;
+  isError: boolean;
 }) {
   if (loading) {
     return (
@@ -485,6 +477,14 @@ function RecentInvoicesBody({
           </li>
         ))}
       </ul>
+    );
+  }
+
+  if (isError) {
+    return (
+      <p className="py-6 text-center text-[12px] text-[var(--color-muted-foreground)]">
+        Couldn't load invoices. Try refreshing.
+      </p>
     );
   }
 

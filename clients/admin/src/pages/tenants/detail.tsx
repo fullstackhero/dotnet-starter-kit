@@ -58,10 +58,12 @@ export function TenantDetailPage() {
   const [activationConfirmOpen, setActivationConfirmOpen] = useState(false);
   const permissions = currentUser?.permissions ?? [];
   const canImpersonate = permissions.includes(IdentityPermissions.Users.Impersonate);
-  // Same gate as Renew — adjusting validity is a root-operator subscription action.
+  // Renew / change plan + adjust validity are root-operator subscription actions.
   const canManageSubscription = permissions.includes(
     MultitenancyPermissions.Tenants.UpgradeSubscription,
   );
+  // Activation toggle + retry-provisioning are tenant-update operations.
+  const canUpdateTenant = permissions.includes(MultitenancyPermissions.Tenants.Update);
 
   const tenantQuery = useQuery({
     queryKey: ["tenant", id],
@@ -197,15 +199,17 @@ export function TenantDetailPage() {
                     Impersonate user
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  onClick={() => setRenewOpen(true)}
-                  className="shrink-0"
-                  title="Extend validity by one plan term, or switch plans"
-                >
-                  <CalendarClock className="mr-1.5 h-3.5 w-3.5" />
-                  Renew / change plan
-                </Button>
+                {canManageSubscription && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setRenewOpen(true)}
+                    className="shrink-0"
+                    title="Extend validity by one plan term, or switch plans"
+                  >
+                    <CalendarClock className="mr-1.5 h-3.5 w-3.5" />
+                    Renew / change plan
+                  </Button>
+                )}
                 {canManageSubscription && (
                   <Button
                     variant="outline"
@@ -217,18 +221,20 @@ export function TenantDetailPage() {
                     Adjust validity
                   </Button>
                 )}
-                <Button
-                  variant={tenant.isActive ? "outline" : "default"}
-                  onClick={() => setActivationConfirmOpen(true)}
-                  disabled={activationMutation.isPending}
-                  className="shrink-0"
-                >
-                  {activationMutation.isPending
-                    ? "Updating…"
-                    : tenant.isActive
-                      ? "Deactivate tenant"
-                      : "Activate tenant"}
-                </Button>
+                {canUpdateTenant && (
+                  <Button
+                    variant={tenant.isActive ? "outline" : "default"}
+                    onClick={() => setActivationConfirmOpen(true)}
+                    disabled={activationMutation.isPending}
+                    className="shrink-0"
+                  >
+                    {activationMutation.isPending
+                      ? "Updating…"
+                      : tenant.isActive
+                        ? "Deactivate tenant"
+                        : "Activate tenant"}
+                  </Button>
+                )}
               </div>
             </div>
           </SettingsSection>
@@ -240,13 +246,15 @@ export function TenantDetailPage() {
             tenantName={tenant.name}
           />
 
-          <RenewTenantDialog
-            open={renewOpen}
-            onOpenChange={setRenewOpen}
-            tenantId={tenant.id}
-            currentPlanKey={tenant.plan}
-            validUpto={tenant.validUpto}
-          />
+          {canManageSubscription && (
+            <RenewTenantDialog
+              open={renewOpen}
+              onOpenChange={setRenewOpen}
+              tenantId={tenant.id}
+              currentPlanKey={tenant.plan}
+              validUpto={tenant.validUpto}
+            />
+          )}
 
           {canManageSubscription && (
             <AdjustValidityDialog
@@ -257,6 +265,7 @@ export function TenantDetailPage() {
             />
           )}
 
+          {canUpdateTenant && (
           <ConfirmDialog
             open={activationConfirmOpen}
             onOpenChange={setActivationConfirmOpen}
@@ -280,6 +289,7 @@ export function TenantDetailPage() {
             pending={activationMutation.isPending}
             onConfirm={() => activationMutation.mutate(!tenant.isActive)}
           />
+          )}
 
           <ActiveGrantsCard tenantId={tenant.id} />
 
@@ -334,6 +344,7 @@ export function TenantDetailPage() {
               notTracked={provisioningNotTracked}
               onRetry={() => retryMutation.mutate()}
               retryPending={retryMutation.isPending}
+              canRetry={canUpdateTenant}
             />
           </SettingsSection>
         </>
@@ -402,6 +413,7 @@ function ProvisioningPanel({
   notTracked = false,
   onRetry,
   retryPending,
+  canRetry = false,
 }: {
   steps: TenantProvisioningStep[];
   status?: string;
@@ -412,6 +424,7 @@ function ProvisioningPanel({
   notTracked?: boolean;
   onRetry: () => void;
   retryPending: boolean;
+  canRetry?: boolean;
 }) {
   const overall = notTracked ? "Not tracked" : status ?? (loading ? "Loading" : "Unknown");
 
@@ -438,7 +451,7 @@ function ProvisioningPanel({
                 : overall}
           </Badge>
         </div>
-        {status === "Failed" && (
+        {status === "Failed" && canRetry && (
           <Button size="sm" variant="outline" onClick={onRetry} disabled={retryPending}>
             <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", retryPending && "animate-spin")} />
             {retryPending ? "Re-queuing…" : "Retry provisioning"}

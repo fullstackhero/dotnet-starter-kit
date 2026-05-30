@@ -56,6 +56,44 @@ test.describe("overview (/)", () => {
     // Empty usage → calm empty state, not a crash.
     await expect(page.getByText(/no usage captured yet/i)).toBeVisible();
   });
+
+  test("Valid-for card reflects an in-grace tenant", async ({ page }) => {
+    await mockJsonResponse(page, "**/api/v1/tenants/me/status**", {
+      id: "acme",
+      name: "Acme Corp",
+      isActive: true,
+      validUpto: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      hasConnectionString: false,
+      adminEmail: "admin@acme.com",
+      issuer: null,
+      plan: "Scale",
+      expiryState: "InGrace",
+      graceEndsUtc: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    await page.goto("/");
+    await expect(page.getByText("Valid for", { exact: true })).toBeVisible();
+    // Grace surfaces the grace-end caption on the stat card.
+    await expect(page.getByText(/grace ends/i)).toBeVisible();
+  });
+
+  test("Valid-for card reflects an expired tenant", async ({ page }) => {
+    await mockJsonResponse(page, "**/api/v1/tenants/me/status**", {
+      id: "acme",
+      name: "Acme Corp",
+      isActive: false,
+      validUpto: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      hasConnectionString: false,
+      adminEmail: "admin@acme.com",
+      issuer: null,
+      plan: "Scale",
+      expiryState: "Expired",
+      graceEndsUtc: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    await page.goto("/");
+    await expect(page.getByText("Valid for", { exact: true })).toBeVisible();
+    // The stat card reads "Expired" rather than a healthy day count.
+    await expect(page.getByText("Expired", { exact: true })).toBeVisible();
+  });
 });
 
 test.describe("activity (/activity)", () => {
@@ -99,5 +137,36 @@ test.describe("invoices (/invoices)", () => {
     await expect(page.getByText("INV-2026-05").last()).toBeVisible();
     await page.getByPlaceholder(/search by invoice number/i).fill("nomatch-xyz");
     await expect(page.getByText(/no invoices found/i)).toBeVisible();
+  });
+
+  test("paginates across pages using the PagedResult envelope", async ({ page }) => {
+    const PAGE_1 = { ...INVOICE, id: "inv-1", invoiceNumber: "INV-2026-05" };
+    const PAGE_2 = { ...INVOICE, id: "inv-2", invoiceNumber: "INV-2026-04", periodMonth: 4 };
+
+    // Serve page 1 or page 2 based on the requested pageNumber so the next
+    // control drives a real envelope transition. totalCount=2, totalPages=2.
+    await page.route("**/api/v1/billing/invoices/me**", async (route) => {
+      const url = new URL(route.request().url());
+      const pageNumber = Number(url.searchParams.get("pageNumber") ?? "1");
+      const item = pageNumber >= 2 ? PAGE_2 : PAGE_1;
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          paged([item], { pageNumber, pageSize: 20, totalCount: 2, totalPages: 2 }),
+        ),
+      });
+    });
+
+    await page.goto("/invoices");
+    // Header reflects the TRUE total, not the loaded page size.
+    await expect(page.getByText(/showing 1 of 2 invoices/i)).toBeVisible();
+    await expect(page.getByText("INV-2026-05").last()).toBeVisible();
+    await expect(page.getByText("Page 1 of 2", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: /next page/i }).click();
+
+    await expect(page.getByText("INV-2026-04").last()).toBeVisible();
+    await expect(page.getByText("Page 2 of 2", { exact: true })).toBeVisible();
   });
 });

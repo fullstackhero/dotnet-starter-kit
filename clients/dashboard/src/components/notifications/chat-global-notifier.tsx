@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Hash, Lock, MessageCircle, Users2, X } from "lucide-react";
-import type { ChannelDto, MessageDto } from "@/api/chat";
+import { ChannelType, type ChannelDto, type MessageDto } from "@/api/chat";
 import { useAuth } from "@/auth/use-auth";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { useUserDisplay } from "@/lib/use-user-display";
@@ -93,14 +93,14 @@ function ChatToast({
 
   const channelLabel = !channel
     ? "a channel"
-    : channel.type === 2
+    : channel.type === ChannelType.Channel
       ? `#${channel.name ?? "channel"}`
-      : channel.type === 0
+      : channel.type === ChannelType.DirectMessage
         ? "direct message"
         : "group chat";
   const ChannelIcon = !channel
     ? MessageCircle
-    : channel.type === 2
+    : channel.type === ChannelType.Channel
       ? channel.isPrivate
         ? Lock
         : Hash

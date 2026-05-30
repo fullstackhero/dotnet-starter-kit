@@ -91,6 +91,8 @@ export type PagedResult<T> = {
   pageNumber: number;
   pageSize: number;
   totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 };
 
 export type InvoiceSearchParams = {

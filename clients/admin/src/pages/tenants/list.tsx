@@ -9,6 +9,8 @@ import { EntityPageHeader, ErrorBand } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { CreateTenantDialog } from "@/components/tenants/create-tenant-dialog";
+import { useAuth } from "@/auth/use-auth";
+import { MultitenancyPermissions } from "@/lib/permissions";
 
 const PAGE_SIZE = 12;
 
@@ -24,6 +26,10 @@ export function TenantsListPage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
+  const canCreateTenant = (currentUser?.permissions ?? []).includes(
+    MultitenancyPermissions.Tenants.Create,
+  );
 
   const query = useQuery({
     queryKey: ["tenants", { pageNumber, pageSize: PAGE_SIZE }],
@@ -55,12 +61,14 @@ export function TenantsListPage() {
             : "Loading the registry…"
         }
       >
-        <Button
-          onClick={() => setCreateOpen(true)}
-          className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
-        >
-          <Plus className="size-4" /> New tenant
-        </Button>
+        {canCreateTenant && (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
+          >
+            <Plus className="size-4" /> New tenant
+          </Button>
+        )}
       </EntityPageHeader>
 
       {query.isError && (

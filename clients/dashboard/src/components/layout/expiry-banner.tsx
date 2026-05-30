@@ -16,6 +16,7 @@ type BannerView =
       daysLeft: number;
       graceEndsLabel: string;
     }
+  | { kind: "expired" }
   | {
       kind: "nearing";
       daysLeft: number;
@@ -53,6 +54,10 @@ function deriveBannerView(
     };
   }
 
+  if (status.expiryState === "Expired") {
+    return { kind: "expired" };
+  }
+
   if (status.expiryState === "Active") {
     const daysLeft = daysUntil(status.validUpto, now);
     if (daysLeft <= NEARING_EXPIRY_DAYS) {
@@ -60,7 +65,7 @@ function deriveBannerView(
     }
   }
 
-  // Expired and fully-healthy states render nothing in this bar.
+  // Fully-healthy state renders nothing in this bar.
   return { kind: "none" };
 }
 
@@ -88,14 +93,26 @@ export function ExpiryBanner() {
 
   const view = deriveBannerView(statusQuery.data);
 
-  if (dismissed || view.kind === "none") return null;
+  if (view.kind === "none") return null;
+
+  // The expired state is the hardest failure — it stays pinned (no dismiss)
+  // so the tenant can't lose track that their subscription has lapsed. The
+  // softer grace/nearing notices remain dismissible for the session.
+  const isExpired = view.kind === "expired";
+  if (dismissed && !isExpired) return null;
 
   const isGrace = view.kind === "grace";
-  const tone = isGrace ? "var(--color-warning)" : "var(--color-info)";
-  const Icon = isGrace ? AlertTriangle : Clock;
-  const message = isGrace
-    ? `Your subscription expired — ${pluralizeDays(view.daysLeft)} of grace left (until ${view.graceEndsLabel}). Contact your operator to renew.`
-    : `Your subscription expires in ${pluralizeDays(view.daysLeft)}.`;
+  const tone = isExpired
+    ? "var(--color-destructive)"
+    : isGrace
+      ? "var(--color-warning)"
+      : "var(--color-info)";
+  const Icon = isExpired || isGrace ? AlertTriangle : Clock;
+  const message = isExpired
+    ? "Your subscription has expired. Contact your operator to renew and restore full access."
+    : isGrace
+      ? `Your subscription expired — ${pluralizeDays(view.daysLeft)} of grace left (until ${view.graceEndsLabel}). Contact your operator to renew.`
+      : `Your subscription expires in ${pluralizeDays(view.daysLeft)}.`;
 
   return (
     <div
@@ -129,16 +146,18 @@ export function ExpiryBanner() {
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setDismissed(true)}
-        aria-label="Dismiss subscription notice"
-        title="Dismiss"
-        className="grid size-7 shrink-0 cursor-pointer place-items-center rounded-md transition-colors hover:bg-[oklch(from_var(--color-foreground)_l_c_h_/_0.06)]"
-        style={{ color: tone }}
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
+      {!isExpired && (
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          aria-label="Dismiss subscription notice"
+          title="Dismiss"
+          className="grid size-7 shrink-0 cursor-pointer place-items-center rounded-md transition-colors hover:bg-[oklch(from_var(--color-foreground)_l_c_h_/_0.06)]"
+          style={{ color: tone }}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
     </div>
   );
 }

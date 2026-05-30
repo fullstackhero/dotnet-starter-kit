@@ -73,6 +73,59 @@ test.describe("billing invoice detail", () => {
     await expect(main.getByText("BaseFee", { exact: true })).toBeVisible();
   });
 
+  test("hides Issue/Mark-paid/Void + Download for a Billing.View-only user", async ({ page }) => {
+    // Keep Billing.View so the route guard passes; drop Billing.Manage.
+    const viewOnly = ADMIN_PERMS.filter((p) => p !== "Permissions.Billing.Manage");
+    await seedAuthedSession(page, { ...TEST_USER, permissions: viewOnly });
+    await installAdminShellMocks(page, viewOnly);
+
+    await page.route("**/api/v1/billing/invoices/inv-1", async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(DRAFT_INVOICE),
+      });
+    });
+
+    await page.goto("/billing/invoices/inv-1");
+    const main = page.getByRole("main");
+
+    // Read-only content still renders.
+    await expect(main.getByText("INV-2026-0001", { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(main.getByText("Pro monthly base fee", { exact: true })).toBeVisible();
+
+    // Every manage affordance must be absent.
+    await expect(main.getByRole("button", { name: /issue invoice/i })).toHaveCount(0);
+    await expect(main.getByRole("button", { name: /mark as paid/i })).toHaveCount(0);
+    await expect(main.getByRole("button", { name: /void invoice/i })).toHaveCount(0);
+    await expect(main.getByRole("button", { name: /download pdf/i })).toHaveCount(0);
+  });
+
+  test("renders an error state (not a stuck Loading…) when the invoice fails to load", async ({ page }) => {
+    await page.route("**/api/v1/billing/invoices/inv-err", async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 500,
+        headers: { "Content-Type": "application/problem+json" },
+        body: JSON.stringify({ title: "Server error", detail: "Boom." }),
+      });
+    });
+
+    await page.goto("/billing/invoices/inv-err");
+    const main = page.getByRole("main");
+
+    // Line-items section surfaces the error and does NOT stick on "Loading…".
+    await expect(main.getByText(/boom\.|failed to load/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(main.getByText("Loading…", { exact: true })).toHaveCount(0);
+  });
+
   test("Issue invoice POSTs to /issue for a Draft invoice", async ({ page }) => {
     await page.route("**/api/v1/billing/invoices/inv-1", async (route) => {
       const method = route.request().method();

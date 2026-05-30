@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { EntityPageHeader, SettingsSection, Field } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { useAuth } from "@/auth/use-auth";
+import { BillingPermissions } from "@/lib/permissions";
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -72,6 +74,9 @@ export function InvoiceDetailPage() {
   const { invoiceId = "" } = useParams<{ invoiceId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
+  // Issue / mark-paid / void and PDF download all require Billing.Manage on the server.
+  const canManageBilling = (currentUser?.permissions ?? []).includes(BillingPermissions.Manage);
 
   const query = useQuery({
     queryKey: ["billing", "invoice", invoiceId],
@@ -179,18 +184,20 @@ export function InvoiceDetailPage() {
               </span>
             }
           >
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                downloadMutation.mutate({ id: invoice.id, number: invoice.invoiceNumber })
-              }
-              disabled={downloadMutation.isPending}
-              title="Download this invoice as a PDF"
-            >
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              {downloadMutation.isPending ? "Preparing…" : "Download PDF"}
-            </Button>
+            {canManageBilling && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  downloadMutation.mutate({ id: invoice.id, number: invoice.invoiceNumber })
+                }
+                disabled={downloadMutation.isPending}
+                title="Download this invoice as a PDF"
+              >
+                <Download className="mr-1.5 h-3.5 w-3.5" />
+                {downloadMutation.isPending ? "Preparing…" : "Download PDF"}
+              </Button>
+            )}
           </EntityPageHeader>
         ) : null}
       </div>
@@ -202,10 +209,16 @@ export function InvoiceDetailPage() {
           description={
             invoice
               ? `${invoice.lineItems.length} line${invoice.lineItems.length === 1 ? "" : "s"}`
-              : "Loading…"
+              : query.isError
+                ? "Unavailable"
+                : "Loading…"
           }
         >
-          {query.isLoading ? (
+          {query.isError ? (
+            <div className="py-8 text-center text-sm text-[var(--color-destructive)]">
+              {describe(query.error, "Failed to load line items.")}
+            </div>
+          ) : query.isLoading ? (
             <ul className="-mx-5 divide-y divide-[var(--color-border)] border-t border-[var(--color-border)]">
               {Array.from({ length: 2 }).map((_, i) => (
                 <li key={i} className="px-5 py-4">
@@ -239,6 +252,10 @@ export function InvoiceDetailPage() {
         <div className="space-y-4">
           {invoice && (
             <>
+              {/* Issue / Mark-paid / Void all mutate invoice state — gated behind
+                  Billing.Manage. View-only users still see read-only Notes below. */}
+              {canManageBilling && (
+                <>
               {/* Issue */}
               <SettingsSection
                 icon={Send}
@@ -324,6 +341,8 @@ export function InvoiceDetailPage() {
                   </Button>
                 </div>
               </SettingsSection>
+                </>
+              )}
 
               {invoice.notes && (
                 <SettingsSection title="Notes">
