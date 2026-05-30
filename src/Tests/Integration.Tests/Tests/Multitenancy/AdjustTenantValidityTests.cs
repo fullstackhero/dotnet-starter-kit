@@ -99,6 +99,21 @@ public sealed class AdjustTenantValidityTests
     }
 
     [Fact]
+    public async Task AdjustValidity_Should_Return400_When_TargetIsRootTenant()
+    {
+        // The root operator tenant must never expire — adjusting its validity is rejected so an
+        // operator can't accidentally backdate the platform tenant into an expired state.
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+
+        var response = await rootClient.PostAsJsonAsync(
+            $"{TestConstants.TenantsBasePath}/{TestConstants.RootTenantId}/adjust-validity",
+            new { tenantId = TestConstants.RootTenantId, validUpto = DateTime.UtcNow.AddDays(-1) });
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest,
+            "the root operator tenant's validity must not be adjustable");
+    }
+
+    [Fact]
     public async Task AdjustValidity_Should_Return401_When_NotAuthenticated()
     {
         using var client = _factory.CreateClient();

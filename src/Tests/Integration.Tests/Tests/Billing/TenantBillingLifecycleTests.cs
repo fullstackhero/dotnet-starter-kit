@@ -22,6 +22,8 @@ public sealed class TenantBillingLifecycleTests
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
+        // API serializes enums as string names (global JsonStringEnumConverter); read them back.
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
     private readonly AuthHelper _auth;

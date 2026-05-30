@@ -27,4 +27,27 @@ internal static class TenantSubscriptionMaintenance
         db.Subscriptions.Add(Subscription.Create(tenantId, planId, startUtc, endUtc));
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Same-plan renewal: extend the active subscription's end so <c>Subscription.EndUtc</c> stays in
+    /// step with the tenant's renewed <c>ValidUpto</c> (otherwise the dashboard's subscription term
+    /// drifts behind the enforced validity). Idempotent via <see cref="Subscription.Extend"/>.
+    /// </summary>
+    public static async Task ExtendActiveSubscriptionAsync(
+        BillingDbContext db,
+        string tenantId,
+        DateTime endUtc,
+        CancellationToken cancellationToken)
+    {
+        var active = await db.Subscriptions
+            .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.Status == SubscriptionStatus.Active, cancellationToken)
+            .ConfigureAwait(false);
+        if (active is null)
+        {
+            return;
+        }
+
+        active.Extend(endUtc);
+        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
 }
