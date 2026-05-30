@@ -359,30 +359,11 @@ jobs:
           dotnet restore src/FSH.Starter.slnx
           dotnet build src/FSH.Starter.slnx -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
 
-      - name: Pack BuildingBlocks
-        run: |
-          dotnet pack src/BuildingBlocks/Core/Core.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Shared/Shared.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Persistence/Persistence.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Caching/Caching.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Mailing/Mailing.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Jobs/Jobs.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Storage/Storage.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Eventing/Eventing.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Eventing.Abstractions/Eventing.Abstractions.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/BuildingBlocks/Web/Web.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-
-      - name: Pack Modules
-        run: |
-          dotnet pack src/Modules/Auditing/Modules.Auditing.Contracts/Modules.Auditing.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/Modules/Auditing/Modules.Auditing/Modules.Auditing.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/Modules/Identity/Modules.Identity.Contracts/Modules.Identity.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/Modules/Identity/Modules.Identity/Modules.Identity.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/Modules/Multitenancy/Modules.Multitenancy.Contracts/Modules.Multitenancy.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/Modules/Multitenancy/Modules.Multitenancy/Modules.Multitenancy.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/Modules/Webhooks/Modules.Webhooks.Contracts/Modules.Webhooks.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-          dotnet pack src/Modules/Webhooks/Modules.Webhooks/Modules.Webhooks.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
-
+      # Distribution model is source-ownership: consumers get the FULL source via the
+      # `dotnet new fsh` template (below), NOT per-module/BuildingBlocks NuGet packages.
+      # Only two artifacts publish to NuGet — the `fsh` global CLI tool and the template.
+      # (The previous per-module packs were incomplete — 4 of 10 modules — and contradicted
+      # the locked source-ownership model, so they were removed.)
       - name: Pack CLI Tool
         run: dotnet pack src/Tools/CLI/FSH.CLI.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
 
