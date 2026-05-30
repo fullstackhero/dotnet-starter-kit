@@ -210,7 +210,17 @@ internal sealed class IdentityDbInitializer(
             var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id!);
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, initialPassword);
-            await userManager.CreateAsync(adminUser);
+            // The IdentityResult MUST be checked: a silent failure here (e.g. a password-policy
+            // rejection or a transient DB error) would otherwise mark provisioning "Completed" with no
+            // admin user — an unrecoverable tenant with no login. Throwing surfaces it as a Failed
+            // provisioning step that the operator can retry.
+            var createResult = await userManager.CreateAsync(adminUser);
+            if (!createResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to seed admin user for tenant '{multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id}': "
+                    + string.Join("; ", createResult.Errors.Select(e => e.Description)));
+            }
         }
 
         // Assign role to user

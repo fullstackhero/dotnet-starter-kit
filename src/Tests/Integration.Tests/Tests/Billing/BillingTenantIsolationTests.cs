@@ -1,8 +1,10 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Contracts.Dtos;
 using FSH.Modules.Billing.Data;
@@ -138,6 +140,173 @@ public sealed class BillingTenantIsolationTests
 
     #endregion
 
+    #region Cross-tenant mutation isolation (P0 security regressions)
+
+    // A non-root tenant must never be able to MUTATE another tenant's billing resources by id —
+    // the read-side isolation above is necessary but not sufficient. Each test below encodes the
+    // exact attack: tenant B (fresh, non-root) targets root's resource. Pre-fix these succeeded.
+
+    [Fact]
+    public async Task VoidInvoice_Should_Return404_When_OwnedByDifferentTenant()
+    {
+        var (year, month) = NextPeriod();
+        var invoiceId = await SeedDraftInvoiceAsync(TestConstants.RootTenantId, year, month, basePrice: 77.00m);
+
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var (otherClient, _) = await CreateForeignTenantClientAsync(rootClient, "void");
+        using var _o = otherClient;
+
+        // Tenant B tries to void root's invoice → must 404, and the invoice must stay Draft.
+        using var crossResp = await otherClient.PostAsJsonAsync(
+            $"{BillingBasePath}/invoices/{invoiceId}/void", new { reason = "malicious" });
+        crossResp.StatusCode.ShouldBe(HttpStatusCode.NotFound,
+            "a tenant must not be able to void another tenant's invoice by id");
+
+        using var ownerRead = await rootClient.GetAsync($"{BillingBasePath}/invoices/{invoiceId}");
+        var dto = await ParseAsync<InvoiceDto>(ownerRead);
+        dto.Status.ShouldBe(InvoiceStatus.Draft, "the cross-tenant void attempt must not have mutated the invoice");
+
+        // The owner (root) CAN void it.
+        using var ownerVoid = await rootClient.PostAsJsonAsync(
+            $"{BillingBasePath}/invoices/{invoiceId}/void", new { reason = "ok" });
+        ownerVoid.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task AssignSubscription_Should_NotAffect_OtherTenant_When_NonRootPassesForeignTenantId()
+    {
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var key = UniqueKey("assign");
+        await CreatePlanAsync(rootClient, key, name: "Plan-assign", monthlyBasePrice: 9m);
+        var rootSubId = await AssignSubscriptionAsync(rootClient, TestConstants.RootTenantId, key);
+
+        var (otherClient, _) = await CreateForeignTenantClientAsync(rootClient, "assign");
+        using var _o = otherClient;
+
+        // Tenant B tries to (re)assign ROOT's subscription by passing root's tenant id in the body.
+        // The handler must pin B to its own tenant, so root's active subscription is untouched.
+        using var resp = await otherClient.PostAsJsonAsync(
+            $"{BillingBasePath}/subscriptions", new { tenantId = TestConstants.RootTenantId, planKey = key });
+
+        var rootSubAfter = await GetSubscriptionAsync(rootClient, TestConstants.RootTenantId);
+        rootSubAfter.ShouldNotBeNull();
+        rootSubAfter!.Id.ShouldBe(rootSubId,
+            "a tenant must not be able to cancel/replace root's subscription via a foreign tenant id");
+    }
+
+    [Fact]
+    public async Task GetUsage_Should_NotLeak_OtherTenants_Snapshots()
+    {
+        var (year, month) = NextPeriod();
+        const long Marker = 918273645; // distinctive usedUnits value to spot a leak in the raw JSON
+        await SeedDirectAsync(TestConstants.RootTenantId, async db =>
+        {
+            db.UsageSnapshots.Add(UsageSnapshot.Capture(
+                TestConstants.RootTenantId, year, month, QuotaResource.ApiCalls, usedUnits: Marker, limitUnits: 1000));
+            await db.SaveChangesAsync();
+        });
+
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var (otherClient, _) = await CreateForeignTenantClientAsync(rootClient, "usage");
+        using var _o = otherClient;
+        var markerText = Marker.ToString(CultureInfo.InvariantCulture);
+
+        // B with no filter must not see root's snapshot.
+        using var noFilter = await otherClient.GetAsync($"{BillingBasePath}/usage");
+        noFilter.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await noFilter.Content.ReadAsStringAsync()).Contains(markerText, StringComparison.Ordinal)
+            .ShouldBeFalse("a tenant must not see another tenant's usage snapshots");
+
+        // B explicitly passing root's tenant id must STILL be scoped to B (no bypass).
+        using var withRootId = await otherClient.GetAsync($"{BillingBasePath}/usage?tenantId={TestConstants.RootTenantId}");
+        withRootId.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await withRootId.Content.ReadAsStringAsync()).Contains(markerText, StringComparison.Ordinal)
+            .ShouldBeFalse("passing another tenant's id must not bypass tenant scoping");
+
+        // Root can read its own.
+        using var rootRead = await rootClient.GetAsync($"{BillingBasePath}/usage?tenantId={TestConstants.RootTenantId}");
+        (await rootRead.Content.ReadAsStringAsync()).Contains(markerText, StringComparison.Ordinal)
+            .ShouldBeTrue("the owning tenant must see its own usage snapshot");
+    }
+
+    [Fact]
+    public async Task CaptureUsage_Should_BeScopedToCaller_When_NonRootPassesForeignTenantId()
+    {
+        var (year, month) = NextPeriod();
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var (otherClient, _) = await CreateForeignTenantClientAsync(rootClient, "capture");
+        using var _o = otherClient;
+
+        // B asks to capture usage FOR ROOT. The handler must pin to B, so nothing it returns/writes
+        // belongs to root.
+        using var resp = await otherClient.PostAsJsonAsync(
+            $"{BillingBasePath}/usage/snapshots/capture",
+            new { tenantId = TestConstants.RootTenantId, periodYear = year, periodMonth = month });
+        resp.StatusCode.ShouldBe(HttpStatusCode.OK, await resp.Content.ReadAsStringAsync());
+
+        var snaps = await ParseAsync<List<UsageSnapshotDto>>(resp);
+        snaps.ShouldAllBe(s => s.TenantId != TestConstants.RootTenantId,
+            "a tenant capturing usage must be scoped to itself — never able to write another tenant's usage");
+    }
+
+    [Fact]
+    public async Task GenerateInvoices_Should_BeForbidden_For_NonRootTenant()
+    {
+        var (year, month) = NextPeriod();
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var (otherClient, _) = await CreateForeignTenantClientAsync(rootClient, "generate");
+        using var _o = otherClient;
+
+        using var crossResp = await otherClient.PostAsJsonAsync(
+            $"{BillingBasePath}/invoices/generate", new { periodYear = year, periodMonth = month });
+        crossResp.StatusCode.ShouldBe(HttpStatusCode.Forbidden,
+            "platform-wide invoice generation must be root-operator only");
+
+        using var rootResp = await rootClient.PostAsJsonAsync(
+            $"{BillingBasePath}/invoices/generate", new { periodYear = year, periodMonth = month });
+        rootResp.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    #endregion
+
+    #region Usage-invoice generation correctness (P1)
+
+    [Fact]
+    public async Task GenerateInvoiceForPeriod_Should_CreateUsageInvoice_EvenWhen_SubscriptionInvoiceSharesThePeriod()
+    {
+        // Reproduces the revenue bug: the idempotency check used to match ANY invoice for the period
+        // (no Purpose), so when a Subscription invoice already existed for the month the Usage/overage
+        // invoice was silently skipped. Seed an active subscription + a Subscription invoice, then
+        // generate — a Usage invoice must still be produced.
+        var (year, month) = NextPeriod();
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var key = UniqueKey("usgskip");
+        await CreatePlanAsync(rootClient, key, name: "Plan-usgskip", monthlyBasePrice: 15m);
+        await AssignSubscriptionAsync(rootClient, TestConstants.RootTenantId, key);
+
+        await SeedDirectAsync(TestConstants.RootTenantId, async db =>
+        {
+            var subInvoice = Invoice.CreateDraft(
+                TestConstants.RootTenantId,
+                $"SUB-SEED-{year}{month:00}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}",
+                year, month, "USD", InvoicePurpose.Subscription, periodStartUtc: null, periodEndUtc: null);
+            subInvoice.AddLineItem(InvoiceLineItemKind.BaseFee, "Seeded subscription fee", 1m, 15m);
+            db.Invoices.Add(subInvoice);
+            await db.SaveChangesAsync();
+        });
+
+        // Invoke the generator directly for this exact period (tenant context = root). Pre-fix the
+        // idempotency check matched the seeded SUBSCRIPTION invoice and returned it (Purpose=Subscription),
+        // skipping usage billing. Post-fix it must produce a USAGE invoice.
+        var generated = await InvokeGenerateInvoiceForPeriodAsync(TestConstants.RootTenantId, year, month);
+
+        generated.ShouldNotBeNull("the generator must produce an invoice when an active subscription exists");
+        generated!.Purpose.ShouldBe(InvoicePurpose.Usage,
+            "the usage invoice must be generated even when a subscription invoice already shares the month");
+    }
+
+    #endregion
+
     #region helpers
 
     /// <summary>Plan keys are lowercased + unique-indexed; this helper guarantees no collisions.</summary>
@@ -254,6 +423,29 @@ public sealed class BillingTenantIsolationTests
         }
 
         return await _auth.CreateAuthenticatedClientAsync(email, password, tenant);
+    }
+
+    /// <summary>Provisions a fresh non-root tenant and returns an authenticated admin client for it.</summary>
+    private async Task<(HttpClient Client, string TenantId)> CreateForeignTenantClientAsync(HttpClient rootClient, string label)
+    {
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var tenantId = $"billing-{label}-iso-{uniqueId}";
+        var adminEmail = $"billing-{label}-admin-{uniqueId}@tenant.com";
+        await CreateTenantAsync(rootClient, tenantId, adminEmail);
+        await WaitForProvisioningAsync(rootClient, tenantId);
+        var client = await CreateTenantAdminClientWithRetryAsync(adminEmail, TestConstants.DefaultPassword, tenantId);
+        return (client, tenantId);
+    }
+
+    /// <summary>Invokes the billing generator for one tenant/period directly, under that tenant's context.</summary>
+    private async Task<Invoice?> InvokeGenerateInvoiceForPeriodAsync(string tenantId, int year, int month)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var tenant = await scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>().GetAsync(tenantId);
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
+            new MultiTenantContext<AppTenantInfo>(tenant);
+        var billing = scope.ServiceProvider.GetRequiredService<FSH.Modules.Billing.Services.IBillingService>();
+        return await billing.GenerateInvoiceForPeriodAsync(tenantId, year, month);
     }
 
     private static async Task CreateTenantAsync(HttpClient rootClient, string tenantId, string adminEmail)

@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatStrip, Stat, SettingsSection } from "@/components/list";
 import { PlanFormDialog } from "@/components/billing/plan-form-dialog";
 import { ApiRequestError } from "@/lib/api-client";
+import { useAuth } from "@/auth/use-auth";
+import { BillingPermissions } from "@/lib/permissions";
 
 // ─── helpers ──────────────────────────────────────────────────────────
 
@@ -38,6 +40,8 @@ function describe(err: unknown): string {
 export function PlansListPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<BillingPlanDto | undefined>(undefined);
+  const { user: currentUser } = useAuth();
+  const canManageBilling = (currentUser?.permissions ?? []).includes(BillingPermissions.Manage);
 
   const openCreate = () => {
     setEditingPlan(undefined);
@@ -102,9 +106,11 @@ export function PlansListPage() {
         title="All plans"
         description="Pricing schedule used by tenant subscriptions and invoice generation."
         footer={
-          <Button onClick={openCreate}>
-            <Plus className="mr-1 h-4 w-4" /> New plan
-          </Button>
+          canManageBilling ? (
+            <Button onClick={openCreate}>
+              <Plus className="mr-1 h-4 w-4" /> New plan
+            </Button>
+          ) : undefined
         }
       >
         {query.isError && (
@@ -164,14 +170,16 @@ export function PlansListPage() {
                       {plan.interval === "Yearly" ? "per year" : "per month"}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Edit ${plan.name}`}
-                    onClick={() => openEdit(plan)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  {canManageBilling && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Edit ${plan.name}`}
+                      onClick={() => openEdit(plan)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </li>
             ))}

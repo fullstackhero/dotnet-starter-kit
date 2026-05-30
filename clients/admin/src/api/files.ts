@@ -1,19 +1,20 @@
 import { apiFetch } from "@/lib/api-client";
 import type { PagedResponse } from "@/lib/api-types";
 
-// Mirrors FSH.Modules.Files.Domain.Visibility — Public/Private numeric codes
-// match the server's int? Visibility shape on the FileAssetDto.
+// Mirrors FSH.Modules.Files.Domain.Visibility — the server serializes this
+// enum as its string name (JsonStringEnumConverter) on the FileAssetDto and
+// accepts the same string names on request bodies.
 export const Visibility = {
-  Public: 0,
-  Private: 1,
+  Public: "Public",
+  Private: "Private",
 } as const;
 export type VisibilityValue = (typeof Visibility)[keyof typeof Visibility];
 
-// Mirrors FSH.Modules.Files.Domain.FileAssetStatus.
+// Mirrors FSH.Modules.Files.Domain.FileAssetStatus — serialized as string name.
 export const FileAssetStatus = {
-  PendingUpload: 0,
-  Available: 1,
-  Quarantined: 2,
+  PendingUpload: "PendingUpload",
+  Available: "Available",
+  Quarantined: "Quarantined",
 } as const;
 export type FileAssetStatusValue = (typeof FileAssetStatus)[keyof typeof FileAssetStatus];
 

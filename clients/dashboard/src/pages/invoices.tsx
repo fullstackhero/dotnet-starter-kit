@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Receipt } from "lucide-react";
 import {
   getMyInvoices,
@@ -17,6 +17,7 @@ import {
   EntityListLoading,
   EntityListRow,
   EntityPageHeader,
+  EntityPager,
   EntitySearch,
   EntityStatusBadge,
   ErrorBand,
@@ -24,6 +25,8 @@ import {
   type EntityStatusTone,
 } from "@/components/list";
 import { formatDate } from "@/lib/list-helpers";
+
+const PAGE_SIZE = 20;
 
 // ────────────────────────────────────────────────────────────────────
 // Pure helpers — module scope so they're not re-allocated each render.
@@ -67,10 +70,12 @@ const DESKTOP_GRID =
 
 export function InvoicesPage() {
   const { user } = useAuth();
+  const [pageNumber, setPageNumber] = useState(1);
   const query = useQuery({
-    queryKey: ["billing", "invoices", "me", { pageNumber: 1, pageSize: 100 }],
-    queryFn: () => getMyInvoices({ pageNumber: 1, pageSize: 100 }),
+    queryKey: ["billing", "invoices", "me", { pageNumber, pageSize: PAGE_SIZE }],
+    queryFn: () => getMyInvoices({ pageNumber, pageSize: PAGE_SIZE }),
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 
   // Tenant chip retained as a no-op consumer; the new shell drops the
@@ -90,6 +95,10 @@ export function InvoicesPage() {
     [invoices],
   );
 
+  // Free-text search is a client-side filter over the CURRENT page only —
+  // the backend invoice search has no text param. Pagination is therefore
+  // suppressed while a search term is active to avoid implying the filter
+  // spans every page.
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (term.length === 0) return sorted;
@@ -110,6 +119,8 @@ export function InvoicesPage() {
         : null;
 
   const searchActive = search.trim().length > 0;
+  const totalCount = query.data?.totalCount ?? 0;
+  const totalPages = query.data?.totalPages ?? 1;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -156,8 +167,18 @@ export function InvoicesPage() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
-              {filtered.length} invoice{filtered.length === 1 ? "" : "s"}{" "}
-              {searchActive ? "matched" : "found"}
+              {searchActive ? (
+                <>
+                  {filtered.length} invoice{filtered.length === 1 ? "" : "s"} matched
+                  on this page
+                </>
+              ) : (
+                <>
+                  Showing {sorted.length} of {totalCount} invoice
+                  {totalCount === 1 ? "" : "s"}
+                  {totalPages > 1 ? ` · page ${pageNumber} of ${totalPages}` : ""}
+                </>
+              )}
             </p>
           </div>
 
@@ -185,6 +206,18 @@ export function InvoicesPage() {
               />
             ))}
           </EntityListCard>
+
+          {/* Pagination — only meaningful when not filtering client-side. */}
+          {!searchActive && (
+            <EntityPager
+              page={query.data?.pageNumber ?? pageNumber}
+              totalPages={totalPages}
+              hasPrev={pageNumber > 1}
+              hasNext={pageNumber < totalPages}
+              onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
+              onNext={() => setPageNumber((p) => p + 1)}
+            />
+          )}
         </div>
       )}
     </div>

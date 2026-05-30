@@ -19,7 +19,7 @@ public static class GetMyInvoicesEndpoint
                         periodYear,
                         periodMonth,
                         pageNumber <= 0 ? 1 : pageNumber,
-                        pageSize <= 0 ? 20 : pageSize), ct))
+                        pageSize <= 0 ? 20 : Math.Min(pageSize, 100)), ct))
             .WithName("GetMyInvoices")
             .WithSummary("List invoices for the current tenant");
     }

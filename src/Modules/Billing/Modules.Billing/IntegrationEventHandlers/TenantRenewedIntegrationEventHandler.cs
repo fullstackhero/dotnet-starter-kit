@@ -27,6 +27,13 @@ public sealed class TenantRenewedIntegrationEventHandler(
             await TenantSubscriptionMaintenance.ReplaceActiveSubscriptionAsync(
                 db, tenantId, @event.PlanId, @event.PeriodStartUtc, @event.PeriodEndUtc, ct).ConfigureAwait(false);
         }
+        else
+        {
+            // Same-plan renewal: extend the active subscription's term so EndUtc tracks the renewed
+            // ValidUpto (otherwise the dashboard's "Current term"/validity drifts behind enforcement).
+            await TenantSubscriptionMaintenance.ExtendActiveSubscriptionAsync(
+                db, tenantId, @event.PeriodEndUtc, ct).ConfigureAwait(false);
+        }
 
         await billing.CreateSubscriptionInvoiceAsync(
             tenantId, @event.PlanId, @event.PeriodStartUtc, @event.PeriodEndUtc, ct).ConfigureAwait(false);

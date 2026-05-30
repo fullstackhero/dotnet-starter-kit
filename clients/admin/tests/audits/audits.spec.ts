@@ -6,8 +6,8 @@ import { mockJsonResponse } from "../helpers/api-mocks";
 const AUDIT_ROW = {
   id: "aud-1111-2222-3333",
   occurredAtUtc: "2026-05-20T14:22:01Z",
-  eventType: 2, // Security (int form — the API boundary normalizes it)
-  severity: 5, // Error
+  eventType: "Security", // string name — the real API contract
+  severity: "Error",
   tenantId: "root",
   userId: "u-77",
   userName: "rootadmin",

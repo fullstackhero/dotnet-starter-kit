@@ -29,12 +29,12 @@ import { installShellMocks } from "../helpers/shell-mocks";
 
 const CHANNEL_ID = "00000000-0000-0000-0000-0000000c1111";
 
-// type 2 = Channel (named, public). Using a named channel keeps the header /
+// type "Channel" (named, public). Using a named channel keeps the header /
 // composer title deterministic — channelTitle returns channel.name verbatim
 // (no Identity lookup needed, unlike DMs which resolve a partner name).
 const CHANNEL_ENGINEERING = {
   id: CHANNEL_ID,
-  type: 2,
+  type: "Channel",
   name: "engineering",
   slug: "engineering",
   description: "Where the builders talk.",
@@ -48,7 +48,7 @@ const CHANNEL_ENGINEERING = {
     {
       id: "m-1",
       userId: TEST_USER.sub,
-      role: 1,
+      role: "Admin",
       joinedAtUtc: "2026-05-01T10:00:00Z",
       lastReadMessageId: null,
       isMuted: false,

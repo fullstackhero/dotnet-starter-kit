@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  ChannelType,
   getChannelById,
   listChannelMessages,
   listMyChannels,
@@ -190,7 +191,9 @@ function ActiveChannel({
   // For 1-on-1 DMs, resolve the other member's real name so the header +
   // composer placeholder show "Alice Anderson" instead of "@4d3a45fc".
   const otherDmMember =
-    channel?.type === 0 ? channel.members.find((m) => m.userId !== selfUserId) : null;
+    channel?.type === ChannelType.DirectMessage
+      ? channel.members.find((m) => m.userId !== selfUserId)
+      : null;
   const dmPartner = useUserDisplay(otherDmMember?.userId);
 
   // Mark-read effect — every time the latest message id changes (new
@@ -235,9 +238,11 @@ function ActiveChannel({
   }
 
   const title =
-    channel.type === 0 && otherDmMember ? dmPartner.name : channelTitle(channel, selfUserId);
+    channel.type === ChannelType.DirectMessage && otherDmMember
+      ? dmPartner.name
+      : channelTitle(channel, selfUserId);
   const Icon =
-    channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
+    channel.type === ChannelType.Channel ? (channel.isPrivate ? Lock : Hash) : Users2;
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
@@ -278,7 +283,7 @@ function ActiveChannel({
             <h2 className="truncate font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]">
               {title}
             </h2>
-            {channel.description && channel.type === 2 && (
+            {channel.description && channel.type === ChannelType.Channel && (
               <p className="truncate text-[11px] text-[var(--color-muted-foreground)]">
                 {channel.description}
               </p>
@@ -297,7 +302,7 @@ function ActiveChannel({
           >
             <Search className="size-3.5" />
           </button>
-          {channel.type === 2 && (
+          {channel.type === ChannelType.Channel && (
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}

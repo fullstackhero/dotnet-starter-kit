@@ -148,6 +148,20 @@ public sealed class InvoiceTests
         inv.Notes.ShouldBe("original note; Voided: mistake");
     }
 
+    [Fact]
+    public void Void_Should_Be_Idempotent_When_Already_Void()
+    {
+        var inv = NewDraft();
+        inv.Void("duplicate");
+        var firstVoidedAt = inv.VoidedAtUtc;
+
+        inv.Void("second attempt");
+
+        inv.Status.ShouldBe(InvoiceStatus.Void);
+        inv.VoidedAtUtc.ShouldBe(firstVoidedAt, "re-voiding must not re-stamp VoidedAtUtc");
+        inv.Notes.ShouldBe("duplicate", "re-voiding must not append the reason again");
+    }
+
     #endregion
 
     #region Exceptions

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Hash, Lock, MessageCircle, Plus, Search, Users2, X } from "lucide-react";
 import {
+  ChannelType,
   createChannel,
   findOrCreateDm,
   listMyChannels,
@@ -80,8 +81,12 @@ export function ChannelRail({
     const match = (c: ChannelDto) =>
       f.length === 0 || channelTitle(c, selfUserId).toLowerCase().includes(f);
     return {
-      namedChannels: channels.filter((c) => c.type === 2 && match(c)),
-      dms: channels.filter((c) => (c.type === 0 || c.type === 1) && match(c)),
+      namedChannels: channels.filter((c) => c.type === ChannelType.Channel && match(c)),
+      dms: channels.filter(
+        (c) =>
+          (c.type === ChannelType.DirectMessage || c.type === ChannelType.GroupMessage) &&
+          match(c),
+      ),
     };
   }, [channels, filter, selfUserId]);
 
@@ -265,17 +270,21 @@ function ChannelRow({
   selected: boolean;
   onSelect: () => void;
 }) {
-  // For 1-on-1 DMs, resolve the partner's real name. Group DMs (type=1) and
-  // named channels (type=2) keep channelTitle's fallback formatting.
+  // For 1-on-1 DMs, resolve the partner's real name. Group DMs and named
+  // channels keep channelTitle's fallback formatting.
   const otherDmMember =
-    channel.type === 0 ? channel.members.find((m) => m.userId !== selfUserId) : null;
+    channel.type === ChannelType.DirectMessage
+      ? channel.members.find((m) => m.userId !== selfUserId)
+      : null;
   const dmPartner = useUserDisplay(otherDmMember?.userId);
   const dmPartnerOnline = usePresence(otherDmMember?.userId);
   const title =
-    channel.type === 0 && otherDmMember ? dmPartner.name : channelTitle(channel, selfUserId);
+    channel.type === ChannelType.DirectMessage && otherDmMember
+      ? dmPartner.name
+      : channelTitle(channel, selfUserId);
   const hasUnread = channel.unreadCount > 0;
   const Icon =
-    channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
+    channel.type === ChannelType.Channel ? (channel.isPrivate ? Lock : Hash) : Users2;
 
   return (
     <button
@@ -302,7 +311,7 @@ function ChannelRow({
         )}
       />
 
-      {channel.type === 0 && otherDmMember ? (
+      {channel.type === ChannelType.DirectMessage && otherDmMember ? (
         <Avatar
           name={dmPartner.name}
           src={dmPartner.imageUrl ?? null}

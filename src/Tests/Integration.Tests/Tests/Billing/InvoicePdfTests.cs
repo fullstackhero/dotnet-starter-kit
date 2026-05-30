@@ -6,8 +6,9 @@ namespace Integration.Tests.Tests.Billing;
 
 /// <summary>
 /// Coverage for the invoice PDF download endpoint (<c>GET /api/v1/billing/invoices/{id}/pdf</c>):
-/// a tenant can download its own invoice as application/pdf, and the fetch is scoped to the caller's
-/// tenant so another tenant's invoice id resolves to 404 (no cross-tenant leak).
+/// the OWNER tenant and the ROOT operator can download an invoice as application/pdf, but a different
+/// (non-root) tenant's request for that invoice id resolves to 404 — no cross-tenant leak. (The root
+/// operator's cross-tenant download backs the admin console's "Download PDF" action.)
 /// </summary>
 [Collection(FshCollectionDefinition.Name)]
 public sealed class InvoicePdfTests
@@ -22,7 +23,7 @@ public sealed class InvoicePdfTests
     }
 
     [Fact]
-    public async Task Tenant_Should_Download_Own_Invoice_AsPdf_And_NotAnotherTenants()
+    public async Task InvoicePdf_Should_Be_Downloadable_By_Owner_And_RootOperator_But_Not_AnotherTenant()
     {
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var unique = Guid.NewGuid().ToString("N")[..8];
@@ -37,7 +38,7 @@ public sealed class InvoicePdfTests
 
         using var tenantClient = await CreateTenantAdminClientWithRetryAsync(adminEmail, TestConstants.DefaultPassword, tenantId);
 
-        // Own invoice → 200 application/pdf with a real PDF body.
+        // Owner → 200 application/pdf with a real PDF body.
         using var ownResponse = await tenantClient.GetAsync($"{BillingBasePath}/invoices/{invoiceId}/pdf");
         ownResponse.StatusCode.ShouldBe(HttpStatusCode.OK, await ownResponse.Content.ReadAsStringAsync());
         ownResponse.Content.Headers.ContentType?.MediaType.ShouldBe("application/pdf");
@@ -45,9 +46,23 @@ public sealed class InvoicePdfTests
         bytes.Length.ShouldBeGreaterThan(0);
         Encoding.ASCII.GetString(bytes, 0, 4).ShouldBe("%PDF");
 
-        // Cross-tenant: the root operator's own context has no such invoice → 404 (no leak).
-        using var crossResponse = await rootClient.GetAsync($"{BillingBasePath}/invoices/{invoiceId}/pdf");
-        crossResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        // Root operator → 200: the operator may download ANY tenant's invoice (admin "Download PDF").
+        using var rootResponse = await rootClient.GetAsync($"{BillingBasePath}/invoices/{invoiceId}/pdf");
+        rootResponse.StatusCode.ShouldBe(HttpStatusCode.OK,
+            "the root operator must be able to download any tenant's invoice PDF");
+
+        // A DIFFERENT non-root tenant → 404: cross-tenant access is denied (no leak).
+        var otherUnique = Guid.NewGuid().ToString("N")[..8];
+        var otherTenantId = $"pdf-other-{otherUnique}";
+        var otherEmail = $"pdf-other-{otherUnique}@tenant.com";
+        await CreateTenantAsync(rootClient, otherTenantId, otherEmail, planKey);
+        await WaitForProvisioningAsync(rootClient, otherTenantId);
+        using var otherClient = await CreateTenantAdminClientWithRetryAsync(
+            otherEmail, TestConstants.DefaultPassword, otherTenantId);
+
+        using var crossResponse = await otherClient.GetAsync($"{BillingBasePath}/invoices/{invoiceId}/pdf");
+        crossResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound,
+            "a tenant must not be able to download another tenant's invoice PDF");
     }
 
     private static async Task<string> GetFirstInvoiceIdAsync(HttpClient client, string tenantId)

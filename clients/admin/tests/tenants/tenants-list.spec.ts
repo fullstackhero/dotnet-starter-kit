@@ -86,4 +86,26 @@ test.describe("tenants registry list", () => {
       dialog.getByRole("heading", { name: "New tenant", exact: true }),
     ).toBeVisible();
   });
+
+  test("hides the New tenant button for a Tenants.View-only user", async ({ page }) => {
+    // Keep Tenants.View (route guard) but drop Tenants.Create.
+    const viewOnly = ADMIN_PERMS.filter((p) => p !== "Permissions.Tenants.Create");
+    await seedAuthedSession(page, { ...TEST_USER, permissions: viewOnly });
+    await installAdminShellMocks(page, viewOnly);
+
+    await page.route("**/api/v1/tenants/?*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paged([TENANT_ACME])),
+      });
+    });
+
+    await page.goto("/tenants");
+    await expect(
+      page.getByRole("heading", { name: "Registry", exact: true }),
+    ).toBeVisible({ timeout: 10_000 });
+
+    await expect(page.getByRole("button", { name: "New tenant", exact: true })).toHaveCount(0);
+  });
 });

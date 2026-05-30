@@ -32,6 +32,7 @@ import {
   getFileDownloadUrl,
   getFileMetadata,
   type FileAssetDto,
+  type FileAssetStatusValue,
 } from "@/api/files";
 import { useAuth } from "@/auth/use-auth";
 import { useUserDisplay } from "@/lib/use-user-display";
@@ -493,7 +494,7 @@ function DownloadButton({ file }: { file: FileAssetDto }) {
   );
 }
 
-function statusLabel(status: number): string {
+function statusLabel(status: FileAssetStatusValue): string {
   switch (status) {
     case FileAssetStatus.PendingUpload:
       return "Pending upload";

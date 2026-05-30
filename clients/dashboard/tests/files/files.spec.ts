@@ -24,8 +24,8 @@ const FILE_REPORT = {
   originalFileName: "quarterly-report.pdf",
   contentType: "application/pdf",
   sizeBytes: 248_000,
-  visibility: 1, // Private
-  status: 1, // Available
+  visibility: "Private",
+  status: "Available",
   scanStatus: 1,
   createdAtUtc: "2026-05-10T10:00:00Z",
   publicUrl: null,
@@ -39,8 +39,8 @@ const FILE_SHARED = {
   originalFileName: "team-handbook.pdf",
   contentType: "application/pdf",
   sizeBytes: 512_000,
-  visibility: 0, // Public
-  status: 1,
+  visibility: "Public",
+  status: "Available",
   scanStatus: 1,
   createdAtUtc: "2026-05-11T10:00:00Z",
   publicUrl: "https://cdn.example.com/team-handbook.pdf",

@@ -130,6 +130,33 @@ public sealed class RenewTenantTests
         result.ValidUpto.ShouldBeLessThan(DateTime.UtcNow.AddDays(32));
     }
 
+    [Fact]
+    public async Task RenewTenant_Should_Advance_SubscriptionEndUtc_On_SamePlanRenewal()
+    {
+        // Regression for billing/tenant drift: a SAME-PLAN renewal advanced tenant.ValidUpto (which
+        // enforcement uses) but left Subscription.EndUtc (which the dashboard term reads) untouched —
+        // so the two diverged after every renewal. Both must move together.
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var tenantId = $"renew-drift-{unique}";
+        var planKey = await CreatePlanAsync(rootClient, $"drift-m-{unique}", monthlyBasePrice: 10m);
+        await CreateTenantAsync(rootClient, tenantId, $"renew-drift-{unique}@tenant.com", planKey);
+        await WaitForProvisioningAsync(rootClient, tenantId);
+
+        var before = await GetSubscriptionEndUtcAsync(rootClient, tenantId);
+        before.ShouldNotBeNull("a plan-bound tenant has an active subscription with an end date");
+
+        var result = await RenewAsync(rootClient, tenantId, planKey);
+        result.PlanChanged.ShouldBeFalse("renewing the same plan does not change it");
+
+        var after = await PollSubscriptionEndUtcAdvancedAsync(rootClient, tenantId, before!.Value);
+        after.ShouldNotBeNull();
+        after!.Value.ShouldBeGreaterThan(before.Value,
+            "a same-plan renewal must extend Subscription.EndUtc, not just tenant ValidUpto");
+        after.Value.ShouldBe(result.ValidUpto, tolerance: TimeSpan.FromSeconds(5),
+            "the subscription term should track the renewed validity");
+    }
+
     #endregion
 
     #region Validation / Bad Request
@@ -297,6 +324,40 @@ public sealed class RenewTenantTests
             await Task.Delay(1000);
         }
         throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
+    }
+
+    private static async Task<DateTime?> GetSubscriptionEndUtcAsync(HttpClient client, string tenantId)
+    {
+        var resp = await client.GetAsync($"{BillingBasePath}/subscriptions?tenantId={tenantId}");
+        resp.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var json = await resp.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(json) || json == "null")
+        {
+            return null;
+        }
+        return JsonSerializer.Deserialize<SubRow>(json, Json)?.EndUtc;
+    }
+
+    // The subscription extension is applied by the renewal integration handler; allow a brief window
+    // in case dispatch is not perfectly synchronous with the renew response.
+    private static async Task<DateTime?> PollSubscriptionEndUtcAdvancedAsync(
+        HttpClient client, string tenantId, DateTime baseline, int maxRetries = 20)
+    {
+        for (var i = 0; i < maxRetries; i++)
+        {
+            var end = await GetSubscriptionEndUtcAsync(client, tenantId);
+            if (end is { } e && e > baseline)
+            {
+                return end;
+            }
+            await Task.Delay(500);
+        }
+        return await GetSubscriptionEndUtcAsync(client, tenantId);
+    }
+
+    private sealed record SubRow
+    {
+        public DateTime? EndUtc { get; init; }
     }
 
     private sealed record RenewResult(string TenantId, DateTime ValidUpto, string PlanKey, bool PlanChanged);

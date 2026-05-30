@@ -17,6 +17,7 @@ public sealed class BillingService : IBillingService
     private readonly BillingDbContext _db;
     private readonly IUsageReporter _usageReporter;
     private readonly IMultiTenantStore<AppTenantInfo> _tenantStore;
+    private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly IEventBus _eventBus;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<BillingService> _logger;
@@ -25,6 +26,7 @@ public sealed class BillingService : IBillingService
         BillingDbContext db,
         IUsageReporter usageReporter,
         IMultiTenantStore<AppTenantInfo> tenantStore,
+        IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         IEventBus eventBus,
         TimeProvider timeProvider,
         ILogger<BillingService> logger)
@@ -32,6 +34,7 @@ public sealed class BillingService : IBillingService
         _db = db;
         _usageReporter = usageReporter;
         _tenantStore = tenantStore;
+        _tenantAccessor = tenantAccessor;
         _eventBus = eventBus;
         _timeProvider = timeProvider;
         _logger = logger;
@@ -45,14 +48,19 @@ public sealed class BillingService : IBillingService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
+        // Scope idempotency to the Usage invoice only. The unique index is
+        // (TenantId, PeriodYear, PeriodMonth, Purpose), so a Subscription invoice can legitimately
+        // share the month — without the Purpose filter the existence check would find that
+        // subscription invoice and skip generating the usage/overage invoice (unbilled overage).
         var existing = await _db.Invoices
-            .FirstOrDefaultAsync(i => i.TenantId == tenantId && i.PeriodYear == periodYear && i.PeriodMonth == periodMonth, cancellationToken)
+            .FirstOrDefaultAsync(i => i.TenantId == tenantId && i.PeriodYear == periodYear && i.PeriodMonth == periodMonth
+                && i.Purpose == InvoicePurpose.Usage, cancellationToken)
             .ConfigureAwait(false);
         if (existing is not null)
         {
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("[Billing] invoice already exists for tenant {TenantId} period {Year}-{Month:00}, skipping",
+                _logger.LogInformation("[Billing] usage invoice already exists for tenant {TenantId} period {Year}-{Month:00}, skipping",
                     tenantId, periodYear, periodMonth);
             }
             return existing;
@@ -122,7 +130,8 @@ public sealed class BillingService : IBillingService
             .ConfigureAwait(false);
 
         var alreadyInvoiced = await _db.Invoices
-            .Where(i => i.PeriodYear == periodYear && i.PeriodMonth == periodMonth && subscribedTenantIds.Contains(i.TenantId))
+            .Where(i => i.PeriodYear == periodYear && i.PeriodMonth == periodMonth
+                && i.Purpose == InvoicePurpose.Usage && subscribedTenantIds.Contains(i.TenantId))
             .Select(i => i.TenantId)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -171,9 +180,20 @@ public sealed class BillingService : IBillingService
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<Invoice> LoadInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken) =>
-        await _db.Invoices.FirstOrDefaultAsync(i => i.Id == invoiceId, cancellationToken).ConfigureAwait(false)
+    // Issue/MarkPaid/Void load through here. BillingDbContext is not tenant-filtered, so scope to the
+    // caller: the root operator may mutate any tenant's invoice; a tenant caller is pinned to its own,
+    // so a cross-tenant id resolves to 404 (mirrors GetInvoiceByIdQueryHandler) and can't be mutated.
+    private async Task<Invoice> LoadInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken)
+    {
+        var callerTenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id
+            ?? throw new UnauthorizedException("Tenant context is required.");
+        var isRoot = callerTenantId == MultitenancyConstants.Root.Id;
+
+        return await _db.Invoices
+            .FirstOrDefaultAsync(i => i.Id == invoiceId && (isRoot || i.TenantId == callerTenantId), cancellationToken)
+            .ConfigureAwait(false)
             ?? throw new NotFoundException($"Invoice {invoiceId} not found.");
+    }
 
     public async Task<Invoice?> CreateSubscriptionInvoiceAsync(
         string tenantId,

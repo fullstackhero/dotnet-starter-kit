@@ -22,15 +22,19 @@ import {
   Zap,
 } from "lucide-react";
 import {
+  getMyStatus,
   getMySubscription,
   getUsageSnapshots,
   type SubscriptionDto,
+  type TenantExpiryState,
+  type TenantStatusDto,
   type UsageSnapshotDto,
 } from "@/api/billing";
 import {
   AuditEventType,
   AuditSeverity,
   AUDIT_EVENT_TYPE_LABELS,
+  severityRank,
   listAudits,
   type AuditSummaryDto,
 } from "@/api/audits";
@@ -73,20 +77,30 @@ function toUsageRows(snapshots: UsageSnapshotDto[]): UsageRowVm[] {
     .sort((a, b) => b.utilization - a.utilization);
 }
 
-function daysLeftInMonth(now: Date = new Date()): number {
-  const last = new Date(now.getUTCFullYear(), now.getUTCMonth() + 1, 0).getUTCDate();
-  return Math.max(0, last - now.getUTCDate());
+/**
+ * Fraction of the subscription term elapsed, 0..1 — computed from the
+ * subscription's own start→end window (NOT the calendar month), so it tracks
+ * the same validity the operator sees. Returns null for an open-ended or
+ * unparseable term (no finite window to chart). A future-dated start clamps
+ * to 0, a past end clamps to 1.
+ */
+function subscriptionProgress(
+  startUtc: string,
+  endUtc: string | null | undefined,
+  now: Date = new Date(),
+): number | null {
+  if (!endUtc) return null;
+  const start = Date.parse(startUtc);
+  const end = Date.parse(endUtc);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+  return Math.min(1, Math.max(0, (now.getTime() - start) / (end - start)));
 }
 
-function currentPeriodLabel(now: Date = new Date()): string {
-  return now.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-}
-
-function periodProgress(now: Date = new Date()): number {
-  // Fraction of the current month elapsed, 0..1.
-  const day = now.getUTCDate();
-  const last = new Date(now.getUTCFullYear(), now.getUTCMonth() + 1, 0).getUTCDate();
-  return Math.min(1, Math.max(0, day / last));
+/** Whole days from now until `iso`, floored at 0. */
+function daysUntil(iso: string, now: Date = new Date()): number {
+  const target = Date.parse(iso);
+  if (!Number.isFinite(target)) return 0;
+  return Math.max(0, Math.ceil((target - now.getTime()) / 86_400_000));
 }
 
 /**
@@ -111,11 +125,42 @@ function relativeTime(iso: string, now: number = Date.now()): string {
   return `${Math.floor(h / 24)}d`;
 }
 
-function subscriptionTone(status: SubscriptionDto["status"] | undefined) {
-  if (status === "Active") return "success" as const;
-  if (status === "Suspended") return "warning" as const;
-  if (status === "Cancelled") return "danger" as const;
-  return "default" as const;
+/**
+ * Derive the "Valid for" stat-card view from the tenant's expiry state — the
+ * same source of truth the Subscription page's ValidityBody reads. Drives the
+ * card tone (success/warning/danger) and the days-left target so an in-grace
+ * or expired tenant sees the warning instead of a healthy number.
+ */
+function validityView(status: TenantStatusDto | undefined): {
+  tone: StatTone;
+  state: TenantExpiryState | undefined;
+  /** ISO the card counts down to (validUpto when active, graceEnds when in grace). */
+  targetUtc: string | null;
+  daysLeft: number | null;
+} {
+  if (!status) {
+    return { tone: "success", state: undefined, targetUtc: null, daysLeft: null };
+  }
+  if (status.expiryState === "Expired") {
+    return { tone: "danger", state: "Expired", targetUtc: null, daysLeft: 0 };
+  }
+  if (status.expiryState === "InGrace") {
+    const target = status.graceEndsUtc || null;
+    return {
+      tone: "warning",
+      state: "InGrace",
+      targetUtc: target,
+      daysLeft: target ? daysUntil(target) : 0,
+    };
+  }
+  // Active.
+  const target = status.validUpto || null;
+  return {
+    tone: "success",
+    state: "Active",
+    targetUtc: target,
+    daysLeft: target ? daysUntil(target) : null,
+  };
 }
 
 const timeFmt = new Intl.DateTimeFormat("en-US", {
@@ -142,12 +187,13 @@ function eventTone(type: string): "default" | "success" | "warning" | "danger" |
 // tabular-nums value stacked on the right. Tone tints the icon plate.
 // ────────────────────────────────────────────────────────────────────────
 
-type StatTone = "primary" | "success" | "warning" | "info";
+type StatTone = "primary" | "success" | "warning" | "danger" | "info";
 
 const STAT_TONE_BG: Record<StatTone, string> = {
   primary: "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] text-[var(--color-primary)]",
   success: "bg-[oklch(from_var(--color-success)_l_c_h_/_0.10)] text-[var(--color-success)]",
   warning: "bg-[oklch(from_var(--color-warning)_l_c_h_/_0.12)] text-[var(--color-warning)]",
+  danger: "bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] text-[var(--color-destructive)]",
   info: "bg-[oklch(from_var(--color-info)_l_c_h_/_0.10)] text-[var(--color-info)]",
 };
 
@@ -303,9 +349,11 @@ function UsageEmpty({ title, description }: { title: string; description: string
 function SubscriptionBody({
   data,
   loading,
+  isError,
 }: {
   data: SubscriptionDto | null | undefined;
   loading: boolean;
+  isError: boolean;
 }) {
   if (loading) {
     return (
@@ -314,6 +362,20 @@ function SubscriptionBody({
         <Skeleton className="h-3 w-2/5" />
         <Skeleton className="h-3 w-4/5" />
         <Skeleton className="h-2 w-full" />
+      </div>
+    );
+  }
+  if (isError) {
+    return (
+      <div className="flex flex-col items-start gap-3">
+        <div>
+          <div className="text-[13px] font-semibold tracking-tight text-foreground">
+            Couldn't load subscription
+          </div>
+          <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
+            The subscription endpoint returned an error. Try refreshing.
+          </p>
+        </div>
       </div>
     );
   }
@@ -335,9 +397,9 @@ function SubscriptionBody({
     );
   }
 
-  const tone = subscriptionTone(data.status);
-  const progressPct = Math.round(periodProgress() * 100);
-  const daysLeft = daysLeftInMonth();
+  const progress = subscriptionProgress(data.startUtc, data.endUtc);
+  const progressPct = progress === null ? null : Math.round(progress * 100);
+  const daysLeft = data.endUtc ? daysUntil(data.endUtc) : null;
 
   const dateFmt: Intl.DateTimeFormatOptions = {
     month: "short",
@@ -351,14 +413,14 @@ function SubscriptionBody({
         <span className="font-display text-[22px] font-bold tracking-tight text-foreground">
           {data.planKey}
         </span>
-        <Badge variant={tone}>
-          {data.status === "Active" && (
-            <span
-              aria-hidden
-              className="pulse-dot inline-block h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: "var(--color-success)", color: "var(--color-success)" }}
-            />
-          )}
+        {/* /subscriptions/me only ever returns the ACTIVE subscription, so
+            the status badge is always the active tone. */}
+        <Badge variant="success">
+          <span
+            aria-hidden
+            className="pulse-dot inline-block h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: "var(--color-success)", color: "var(--color-success)" }}
+          />
           {data.status}
         </Badge>
       </div>
@@ -382,17 +444,21 @@ function SubscriptionBody({
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="text-muted-foreground">Current period</span>
+          <span className="text-muted-foreground">Current term</span>
           <span className="tabular-nums text-foreground">
-            {progressPct}% · {daysLeft}d left
+            {progressPct === null
+              ? "open-ended"
+              : `${progressPct}% · ${daysLeft}d left`}
           </span>
         </div>
-        <div className="h-1 overflow-hidden rounded-full bg-[var(--color-muted)]">
-          <div
-            className="h-full rounded-full bg-[var(--color-primary)] transition-[width] duration-[700ms] ease-[var(--ease-out-cubic)]"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
+        {progressPct !== null && (
+          <div className="h-1 overflow-hidden rounded-full bg-[var(--color-muted)]">
+            <div
+              className="h-full rounded-full bg-[var(--color-primary)] transition-[width] duration-[700ms] ease-[var(--ease-out-cubic)]"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -478,14 +544,15 @@ function SystemStatusBody({
 // actor + relative timestamp. Click row to deep-link into the trail.
 // ────────────────────────────────────────────────────────────────────────
 
-function recentSeverityColor(severity: number): string {
-  if (severity >= AuditSeverity.Error) return "var(--color-destructive)";
-  if (severity >= AuditSeverity.Warning) return "var(--color-warning)";
-  if (severity >= AuditSeverity.Information) return "var(--color-info)";
+function recentSeverityColor(severity: AuditSeverity): string {
+  const rank = severityRank(severity);
+  if (rank >= severityRank(AuditSeverity.Error)) return "var(--color-destructive)";
+  if (rank >= severityRank(AuditSeverity.Warning)) return "var(--color-warning)";
+  if (rank >= severityRank(AuditSeverity.Information)) return "var(--color-info)";
   return "var(--color-muted-foreground)";
 }
 
-function recentEventTypeIcon(eventType: number): React.ComponentType<{ className?: string }> {
+function recentEventTypeIcon(eventType: AuditEventType): React.ComponentType<{ className?: string }> {
   if (eventType === AuditEventType.Security) return ShieldCheck;
   if (eventType === AuditEventType.Exception) return Activity;
   if (eventType === AuditEventType.EntityChange) return Server;
@@ -889,16 +956,31 @@ export function OverviewPage() {
     staleTime: 60_000,
   });
 
+  // Tenant status drives the "Valid for" stat card and its tone — the same
+  // source of truth (expiryState / validUpto / graceEndsUtc) the Subscription
+  // page reads, so the landing page reflects grace/expired instead of a
+  // healthy number computed from the subscription term alone.
+  const status = useQuery({
+    queryKey: ["tenant", "me", "status"],
+    queryFn: () => getMyStatus(),
+    staleTime: 60_000,
+  });
+
   // First-run state — show only when the tenant has no active subscription
-  // and the user hasn't dismissed it for this tenant. Re-checks on tenant
-  // change so switching tenants restores the panel.
+  // and the user hasn't dismissed it for this tenant. Gated on `!isError` so
+  // an API failure surfaces an error branch instead of masquerading as a
+  // first-run (no-plan) tenant. Re-checks on tenant change so switching
+  // tenants restores the panel.
   const tenantId = user?.tenant;
   const [dismissed, setDismissed] = useState<boolean>(() => readDismissed(tenantId));
   useEffect(() => {
     setDismissed(readDismissed(tenantId));
   }, [tenantId]);
   const showFirstRun =
-    !dismissed && !subscription.isLoading && !subscription.data;
+    !dismissed &&
+    !subscription.isLoading &&
+    !subscription.isError &&
+    !subscription.data;
 
   const rows = useMemo(
     () => (usage.data ? toUsageRows(usage.data) : []),
@@ -914,10 +996,11 @@ export function OverviewPage() {
     return { resourceCount: rows.length, avgUtilization: avg, overage };
   }, [rows]);
 
-  const refreshing = usage.isFetching || subscription.isFetching;
+  const refreshing = usage.isFetching || subscription.isFetching || status.isFetching;
   const onRefresh = () => {
     void usage.refetch();
     void subscription.refetch();
+    void status.refetch();
   };
 
   // ── Header strings ────────────────────────────────────────────────────
@@ -940,9 +1023,57 @@ export function OverviewPage() {
   ) : (
     subscription.data?.planKey ?? "—"
   );
-  const planSub = subscription.data
-    ? subscription.data.status
-    : "No subscription";
+  const planSub = subscription.isError
+    ? "Unavailable"
+    : subscription.data
+      ? subscription.data.status
+      : "No subscription";
+
+  // ── Validity card — driven by the tenant's expiry state (validUpto /
+  // graceEndsUtc), so an in-grace tenant counts down to grace-end and an
+  // expired tenant reads "Expired" in a danger tone — matching the global
+  // banner and the Subscription page. Falls back gracefully when status is
+  // unavailable.
+  const validity = useMemo(() => validityView(status.data), [status.data]);
+  const validityDateFmt: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  };
+  const validityValue = status.isLoading ? (
+    <Skeleton className="h-5 w-16" />
+  ) : status.isError || !status.data ? (
+    "—"
+  ) : validity.state === "Expired" ? (
+    <span className="text-[var(--color-destructive)]">Expired</span>
+  ) : validity.daysLeft === null ? (
+    "Open-ended"
+  ) : (
+    <span className="inline-flex items-baseline gap-1">
+      <span
+        className={cn(
+          "tabular-nums",
+          validity.tone === "warning" && "text-[var(--color-warning)]",
+        )}
+      >
+        {formatNumber(validity.daysLeft)}
+      </span>
+      <span className="text-[12px] font-medium text-muted-foreground">days</span>
+    </span>
+  );
+  const validitySub = status.isLoading
+    ? undefined
+    : status.isError || !status.data
+      ? "Status unavailable"
+      : validity.state === "Expired"
+        ? "Contact your operator to renew"
+        : validity.state === "InGrace"
+          ? validity.targetUtc
+            ? `grace ends ${new Date(validity.targetUtc).toLocaleDateString("en-US", validityDateFmt)}`
+            : "in grace period"
+          : validity.targetUtc
+            ? `until ${new Date(validity.targetUtc).toLocaleDateString("en-US", validityDateFmt)}`
+            : "no end date";
 
   const resourcesValue = usage.isLoading ? (
     <Skeleton className="h-5 w-10" />
@@ -1018,11 +1149,11 @@ export function OverviewPage() {
         />
         <StatCard
           index={1}
-          tone="success"
+          tone={status.isLoading || status.isError || !status.data ? "success" : validity.tone}
           icon={Calendar}
-          label="Period"
-          value={currentPeriodLabel()}
-          sublabel={`${daysLeftInMonth()} days remaining`}
+          label="Valid for"
+          value={validityValue}
+          sublabel={validitySub}
         />
         <StatCard
           index={2}
@@ -1072,7 +1203,11 @@ export function OverviewPage() {
         {/* Left rail */}
         <aside className="w-full space-y-4 lg:w-[360px] lg:shrink-0">
           <EntityDetailSection title="Subscription" icon={CreditCard}>
-            <SubscriptionBody data={subscription.data} loading={subscription.isLoading} />
+            <SubscriptionBody
+              data={subscription.data}
+              loading={subscription.isLoading}
+              isError={subscription.isError}
+            />
           </EntityDetailSection>
 
           <EntityDetailSection title="System status" icon={Wifi}>

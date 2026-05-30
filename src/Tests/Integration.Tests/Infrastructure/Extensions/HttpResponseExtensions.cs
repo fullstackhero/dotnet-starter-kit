@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Integration.Tests.Infrastructure.Extensions;
 
@@ -7,7 +8,10 @@ public static class HttpResponseExtensions
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        // The API serializes enums as string names (global JsonStringEnumConverter); the converter
+        // also reads them back, so DTOs with enum fields (e.g. BillingPlanDto.Interval) deserialize.
+        Converters = { new JsonStringEnumConverter() }
     };
 
     public static async Task<T> DeserializeAsync<T>(this HttpResponseMessage response, CancellationToken ct = default)

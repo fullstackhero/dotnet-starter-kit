@@ -26,7 +26,9 @@ public sealed class AuditPayloadFilterTests
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        // API serializes enums as string names (global JsonStringEnumConverter); read them back.
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
     private readonly FshWebApplicationFactory _factory;

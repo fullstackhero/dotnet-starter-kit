@@ -24,6 +24,7 @@ import {
   AUDIT_EVENT_TYPE_LABELS,
   AUDIT_SEVERITY_LABELS,
   AUDIT_TAG_LABELS,
+  severityRank,
   decodeTags,
   getAuditById,
   getAuditsByCorrelation,
@@ -87,15 +88,16 @@ function rangeBounds(key: RangeKey): { from: string; to: string } {
 // the row colour bar, drawer header, and severity pills.
 // ────────────────────────────────────────────────────────────────────────
 
-function severityTone(severity: number): "default" | "info" | "warning" | "danger" {
-  if (severity >= AuditSeverity.Critical) return "danger";
-  if (severity >= AuditSeverity.Error) return "danger";
-  if (severity >= AuditSeverity.Warning) return "warning";
-  if (severity >= AuditSeverity.Information) return "info";
+function severityTone(severity: AuditSeverity): "default" | "info" | "warning" | "danger" {
+  const rank = severityRank(severity);
+  if (rank >= severityRank(AuditSeverity.Critical)) return "danger";
+  if (rank >= severityRank(AuditSeverity.Error)) return "danger";
+  if (rank >= severityRank(AuditSeverity.Warning)) return "warning";
+  if (rank >= severityRank(AuditSeverity.Information)) return "info";
   return "default";
 }
 
-function severityColorVar(severity: number): string {
+function severityColorVar(severity: AuditSeverity): string {
   const tone = severityTone(severity);
   return tone === "danger"
     ? "var(--color-destructive)"
@@ -106,7 +108,7 @@ function severityColorVar(severity: number): string {
         : "var(--color-muted-foreground)";
 }
 
-function eventTypeIcon(eventType: number): React.ComponentType<React.SVGProps<SVGSVGElement>> {
+function eventTypeIcon(eventType: AuditEventType): React.ComponentType<React.SVGProps<SVGSVGElement>> {
   if (eventType === AuditEventType.Security) return Shield;
   if (eventType === AuditEventType.Exception) return CircleAlert;
   if (eventType === AuditEventType.EntityChange) return Database;
@@ -149,8 +151,8 @@ function fmtRelative(iso: string, now: number = Date.now()): string {
 
 type FilterState = {
   range: RangeKey;
-  eventType: number | null;
-  severity: number | null;
+  eventType: AuditEventType | null;
+  severity: AuditSeverity | null;
   tagsMask: number;
   source: string;
   user: string;
@@ -230,16 +232,16 @@ export function AuditsPage() {
     return {
       grand,
       byType: {
-        activity: s.eventsByType[String(AuditEventType.Activity)] ?? 0,
-        entity: s.eventsByType[String(AuditEventType.EntityChange)] ?? 0,
-        security: s.eventsByType[String(AuditEventType.Security)] ?? 0,
-        exception: s.eventsByType[String(AuditEventType.Exception)] ?? 0,
+        activity: s.eventsByType[AuditEventType.Activity] ?? 0,
+        entity: s.eventsByType[AuditEventType.EntityChange] ?? 0,
+        security: s.eventsByType[AuditEventType.Security] ?? 0,
+        exception: s.eventsByType[AuditEventType.Exception] ?? 0,
       },
       bySeverity: {
-        info: s.eventsBySeverity[String(AuditSeverity.Information)] ?? 0,
-        warn: s.eventsBySeverity[String(AuditSeverity.Warning)] ?? 0,
-        err: s.eventsBySeverity[String(AuditSeverity.Error)] ?? 0,
-        crit: s.eventsBySeverity[String(AuditSeverity.Critical)] ?? 0,
+        info: s.eventsBySeverity[AuditSeverity.Information] ?? 0,
+        warn: s.eventsBySeverity[AuditSeverity.Warning] ?? 0,
+        err: s.eventsBySeverity[AuditSeverity.Error] ?? 0,
+        crit: s.eventsBySeverity[AuditSeverity.Critical] ?? 0,
       },
       bySource: Object.entries(s.eventsBySource)
         .sort((a, b) => b[1] - a[1])

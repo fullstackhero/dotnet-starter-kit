@@ -61,4 +61,19 @@ public sealed class Subscription : BaseEntity<Guid>
         EndUtc = DateTime.SpecifyKind(endUtc, DateTimeKind.Utc);
         UpdatedAtUtc = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Extends the active term's end. Used by a same-plan renewal to keep <see cref="EndUtc"/> in step
+    /// with the tenant's ValidUpto (a plan change replaces the subscription instead). Idempotent: only
+    /// ever moves the end forward, so a redelivered renewal event is a no-op.
+    /// </summary>
+    public void Extend(DateTime endUtc)
+    {
+        var newEnd = DateTime.SpecifyKind(endUtc, DateTimeKind.Utc);
+        if (EndUtc is null || newEnd > EndUtc)
+        {
+            EndUtc = newEnd;
+            UpdatedAtUtc = DateTime.UtcNow;
+        }
+    }
 }

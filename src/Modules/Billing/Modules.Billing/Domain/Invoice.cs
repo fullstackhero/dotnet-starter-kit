@@ -129,6 +129,11 @@ public sealed class Invoice : AggregateRoot<Guid>
         {
             throw new InvalidOperationException("Paid invoices cannot be voided.");
         }
+        if (Status is InvoiceStatus.Void)
+        {
+            // Idempotent: re-voiding must not re-stamp VoidedAtUtc or append the reason again.
+            return;
+        }
         Status = InvoiceStatus.Void;
         VoidedAtUtc = DateTime.UtcNow;
         if (!string.IsNullOrWhiteSpace(reason))

@@ -192,10 +192,18 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
 
     private void FilterRootPermissions(List<string> permissions)
     {
-        if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id != MultitenancyConstants.Root.Id)
+        if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == MultitenancyConstants.Root.Id)
         {
-            permissions.RemoveAll(u => u.StartsWith("Permissions.Root.", StringComparison.InvariantCultureIgnoreCase));
+            // The root operator may manage root-only permissions.
+            return;
         }
+
+        // Strip every permission flagged IsRoot in the registry. The previous check removed only names
+        // starting with "Permissions.Root." — but NO root permission uses that prefix (they are
+        // Permissions.Tenants.* / Permissions.Platform.*, flagged via IsRoot), so the filter was a
+        // no-op and a non-root tenant admin with Roles.Update could grant their role root permissions.
+        var rootOnly = PermissionConstants.Root.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+        permissions.RemoveAll(rootOnly.Contains);
     }
 
     private async Task RemoveRevokedPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions, CancellationToken cancellationToken = default)

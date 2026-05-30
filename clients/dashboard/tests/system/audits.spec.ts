@@ -3,13 +3,14 @@ import { mockJsonResponse } from "../helpers/api-mocks";
 import { seedAuthedSession, TEST_USER } from "../helpers/auth-seed";
 import { installShellMocks, paged } from "../helpers/shell-mocks";
 
-// AuditEventType: 1 Entity, 2 Security, 3 Activity, 4 Exception
-// AuditSeverity: 3 Info, 4 Warn, 5 Error, 6 Critical
+// The API serializes enums as their string name (global JsonStringEnumConverter).
+// AuditEventType: EntityChange | Security | Activity | Exception
+// AuditSeverity: Information | Warning | Error | Critical
 type AuditRow = {
   id: string;
   occurredAtUtc: string;
-  eventType: number;
-  severity: number;
+  eventType: string;
+  severity: string;
   tenantId?: string | null;
   userId?: string | null;
   userName?: string | null;
@@ -24,8 +25,8 @@ function row(over: Partial<AuditRow> = {}): AuditRow {
   return {
     id: "a-1",
     occurredAtUtc: "2026-05-20T14:32:11.234Z",
-    eventType: 2,
-    severity: 5,
+    eventType: "Security",
+    severity: "Error",
     tenantId: "acme",
     userId: "11111111-2222-3333-4444-555555555555",
     userName: "Alice Nguyen",
@@ -40,8 +41,8 @@ async function mockSummary(page: import("@playwright/test").Page) {
   // register the summary mock AFTER the list mock — most-recently-registered
   // route wins in Playwright, so the summary call resolves to this shape.
   await mockJsonResponse(page, "**/api/v1/audits/summary**", {
-    eventsByType: { "2": 3, "3": 10 },
-    eventsBySeverity: { "3": 8, "5": 5 },
+    eventsByType: { Security: 3, Activity: 10 },
+    eventsBySeverity: { Information: 8, Error: 5 },
     eventsBySource: { "api.identity.RegisterUser": 4 },
     eventsByTenant: { acme: 13 },
   });
@@ -102,11 +103,11 @@ test.describe("system/audits", () => {
       page.getByRole("heading", { name: "Audit trail", level: 1 }),
     ).toBeVisible();
 
-    // Security == AuditEventType 2 → EventType=2 in the query string.
+    // Security → EventType=Security in the query string.
     const reqPromise = page.waitForRequest(
       (r) =>
         r.url().includes("/api/v1/audits?") &&
-        /[?&]EventType=2(&|$)/.test(r.url()),
+        /[?&]EventType=Security(&|$)/.test(r.url()),
       { timeout: 5_000 },
     );
     await page.getByRole("button", { name: "Security", exact: true }).click();
