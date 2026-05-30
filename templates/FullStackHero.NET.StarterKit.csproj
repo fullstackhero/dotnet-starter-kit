@@ -31,7 +31,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <IncludeContentInPack>true</IncludeContentInPack>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- NU5128: template pack has content but no dependencies/lib (by design).
+         NU5110/NU5111: bundled deploy.ps1 scripts are template CONTENT, not NuGet install
+         scripts — they must not be moved to tools/ or renamed; the warnings are noise. -->
+    <NoWarn>$(NoWarn);NU5128;NU5110;NU5111</NoWarn>
     <NoDefaultExcludes>true</NoDefaultExcludes>
     <EnableDefaultItems>false</EnableDefaultItems>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
