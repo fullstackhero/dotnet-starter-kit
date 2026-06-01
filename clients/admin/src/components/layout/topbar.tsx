@@ -4,6 +4,7 @@ import {
   Check,
   ChevronsUpDown,
   LogOut,
+  Monitor,
   Moon,
   Settings as SettingsIcon,
   Sun,
@@ -107,7 +108,7 @@ function SimpleMenuItem({
 
 export function Topbar() {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { mode, setMode } = useTheme();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -213,14 +214,20 @@ export function Topbar() {
             <ThemeMenuItem
               icon={Sun}
               label="Light"
-              active={theme === "light"}
-              onSelect={() => setTheme("light")}
+              active={mode === "light"}
+              onSelect={() => setMode("light")}
             />
             <ThemeMenuItem
               icon={Moon}
               label="Dark"
-              active={theme === "dark"}
-              onSelect={() => setTheme("dark")}
+              active={mode === "dark"}
+              onSelect={() => setMode("dark")}
+            />
+            <ThemeMenuItem
+              icon={Monitor}
+              label="System"
+              active={mode === "system"}
+              onSelect={() => setMode("system")}
             />
           </div>
 

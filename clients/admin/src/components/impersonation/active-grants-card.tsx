@@ -180,7 +180,7 @@ function RowActions({
 }) {
   if (!canRevoke && !canReopen) {
     return (
-      <Badge variant="muted" className="font-mono uppercase tracking-[0.14em]">
+      <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
         <UserCog className="h-3 w-3" /> view-only
       </Badge>
     );

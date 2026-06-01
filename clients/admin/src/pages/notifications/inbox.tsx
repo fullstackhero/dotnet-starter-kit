@@ -82,7 +82,7 @@ export function NotificationsInboxPage() {
           Refresh
         </Button>
         <Button
-          variant="signal"
+          variant="default"
           size="sm"
           onClick={() => markAll.mutate()}
           disabled={markAll.isPending}
@@ -160,7 +160,7 @@ function Row({
           unread ? "bg-[var(--color-accent-signal)]" : "bg-transparent border border-[var(--color-border-strong)]",
         )}
       />
-      <Badge variant="muted" className="font-mono uppercase tracking-[0.14em]">
+      <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
         {notif.source}
       </Badge>
       <div className="min-w-0">

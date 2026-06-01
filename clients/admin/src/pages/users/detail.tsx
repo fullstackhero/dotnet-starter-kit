@@ -107,7 +107,7 @@ export function UserDetailPage() {
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Badge
-                      variant={user.isActive ? "success" : "muted"}
+                      variant={user.isActive ? "success" : "outline"}
                       className="font-mono text-[10px] uppercase tracking-[0.14em]"
                     >
                       {user.isActive ? "Active" : "Disabled"}

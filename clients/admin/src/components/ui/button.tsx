@@ -8,7 +8,6 @@ import { cn } from "@/lib/cn";
  *
  * Variants (preserved + extended):
  *   • default     — solid primary brand fill with hover lift shadow.
- *   • signal      — maps to primary (was Console chartreuse; kept for admin call-site compat).
  *   • destructive — danger tone.
  *   • outline     — hairline border, transparent fill.
  *   • secondary   — filled secondary surface.
@@ -31,9 +30,6 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:brightness-[1.05] hover:shadow-[0_4px_18px_-6px_oklch(from_var(--color-primary)_l_c_h_/_0.45)]",
-        // `signal` kept for admin call-site compat — maps to primary.
-        signal:
           "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:brightness-[1.05] hover:shadow-[0_4px_18px_-6px_oklch(from_var(--color-primary)_l_c_h_/_0.45)]",
         destructive:
           "bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)] hover:brightness-[1.05]",

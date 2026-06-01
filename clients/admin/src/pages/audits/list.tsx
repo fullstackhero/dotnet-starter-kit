@@ -334,7 +334,7 @@ function eventTypeVariant(type: AuditEventType) {
     case "EntityChange":
       return "brand" as const;
     case "Activity":
-      return "muted" as const;
+      return "outline" as const;
     default:
       return "outline" as const;
   }

@@ -378,7 +378,7 @@ function ConfigureStep({
           </Button>
         )}
         <Button
-          variant="signal"
+          variant="default"
           disabled={!reasonValid || mutation.isPending}
           onClick={() => mutation.mutate()}
         >
@@ -424,7 +424,7 @@ function SelectedUserCard({
         </div>
         <div className="mt-0.5 flex flex-wrap items-baseline gap-2 font-mono text-[11px] text-[var(--color-muted-foreground)]">
           <span className="truncate">{user.email ?? "—"}</span>
-          <Badge variant="muted" className="font-mono uppercase tracking-[0.14em]">
+          <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
             {tenantName ?? tenantId}
           </Badge>
         </div>

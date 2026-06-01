@@ -237,7 +237,7 @@ export function CreateWebhookDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button type="submit" variant="signal" disabled={submitting}>
+            <Button type="submit" variant="default" disabled={submitting}>
               {submitting ? "Creating…" : "Create subscription"}
             </Button>
           </DialogFooter>

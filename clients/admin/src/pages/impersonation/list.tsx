@@ -245,7 +245,7 @@ function GrantRow({
                 {grant.impersonatedUserName ?? grant.impersonatedUserId}
               </span>
             </span>
-            <Badge variant="muted" className="font-mono uppercase tracking-[0.14em]">
+            <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
               {grant.impersonatedTenantId}
             </Badge>
           </div>
@@ -345,7 +345,7 @@ function StatusBadge({ status }: { status: ImpersonationGrantStatus }) {
     status === "Active" ? "brand" :
     status === "Revoked" ? "danger" :
     status === "Ended" ? "info" :
-    "muted";
+    "outline";
   return (
     <Badge variant={variant} className="font-mono uppercase tracking-[0.14em]">
       {status}

@@ -7,8 +7,6 @@ import { cn } from "@/lib/cn";
  * brand re-tone propagates without touching call sites. The `soft`
  * style uses the matching `*-soft` background where defined and falls
  * back to a tinted layer otherwise.
- *
- * Admin-specific variant `muted` is preserved for call-site compat.
  */
 const badgeVariants = cva(
   "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-tight whitespace-nowrap",
@@ -19,9 +17,6 @@ const badgeVariants = cva(
           "border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-foreground)]",
         brand:
           "border-transparent bg-[var(--color-primary-soft)] text-[var(--color-primary)]",
-        // `muted` kept for admin call-site compat.
-        muted:
-          "border-transparent bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
         success:
           "border-transparent bg-[oklch(from_var(--color-success)_l_c_h_/_0.14)] text-[var(--color-success)]",
         warning:

@@ -49,7 +49,7 @@ export function RouteError() {
         )}
 
         <div className="flex items-center justify-center gap-2 pt-2">
-          <Button variant="signal" onClick={() => navigate(0)}>
+          <Button variant="default" onClick={() => navigate(0)}>
             Reload →
           </Button>
           <Button variant="outline" onClick={() => navigate("/")}>

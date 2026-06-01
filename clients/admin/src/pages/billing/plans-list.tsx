@@ -151,7 +151,7 @@ export function PlansListPage() {
                     {plan.isActive ? (
                       <Badge variant="success">Active</Badge>
                     ) : (
-                      <Badge variant="muted">Inactive</Badge>
+                      <Badge variant="outline">Inactive</Badge>
                     )}
                   </div>
                   <div className="mt-1 font-mono text-[11px] tracking-tight text-[var(--color-muted-foreground)]">

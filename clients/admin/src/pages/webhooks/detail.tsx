@@ -145,7 +145,7 @@ export function WebhookDetailPage() {
             <dl className="grid grid-cols-1 gap-y-3 sm:grid-cols-2">
               <FieldRow label="URL" mono value={sub.url} />
               <FieldRow label="Status" value={
-                <Badge variant={sub.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
+                <Badge variant={sub.isActive ? "success" : "outline"} className="font-mono uppercase tracking-[0.14em]">
                   {sub.isActive ? "Active" : "Inactive"}
                 </Badge>
               } />

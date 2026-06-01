@@ -46,12 +46,12 @@ export function App() {
  * surface styling lives in globals.css under the `.fsh-toast` selectors.
  */
 function FshToaster() {
-  const { theme } = useTheme();
+  const { resolved } = useTheme();
   return (
     <Toaster
       position="top-right"
       closeButton
-      theme={theme}
+      theme={resolved}
       gap={10}
       expand
       visibleToasts={4}

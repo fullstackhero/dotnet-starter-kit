@@ -383,7 +383,7 @@ function formatEventType(raw: unknown): string {
   return typeof raw === "string" && raw.length > 0 ? raw : "Event";
 }
 
-function eventTypeVariant(eventType: string): "info" | "warning" | "danger" | "muted" {
+function eventTypeVariant(eventType: string): "info" | "warning" | "danger" | "outline" {
   switch (eventType) {
     case "Exception":
       return "danger";
@@ -393,11 +393,11 @@ function eventTypeVariant(eventType: string): "info" | "warning" | "danger" | "m
     case "Activity":
       return "info";
     default:
-      return "muted";
+      return "outline";
   }
 }
 
-function severityTone(s: string): { variant: "muted" | "info" | "warning" | "danger" | "default" } {
+function severityTone(s: string): { variant: "outline" | "info" | "warning" | "danger" | "default" } {
   switch (s) {
     case "Critical":
     case "Error":
@@ -408,7 +408,7 @@ function severityTone(s: string): { variant: "muted" | "info" | "warning" | "dan
       return { variant: "info" };
     case "Trace":
     case "Debug":
-      return { variant: "muted" };
+      return { variant: "outline" };
     default:
       return { variant: "default" };
   }

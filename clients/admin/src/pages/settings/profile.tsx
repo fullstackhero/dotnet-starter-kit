@@ -130,7 +130,7 @@ export function ProfileSettings() {
       >
         <div className="flex flex-wrap items-center gap-2">
           <Badge
-            variant={user.isActive ? "success" : "muted"}
+            variant={user.isActive ? "success" : "outline"}
             className="font-mono uppercase tracking-[0.14em]"
           >
             {user.isActive ? "Active" : "Disabled"}

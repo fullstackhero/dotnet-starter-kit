@@ -226,7 +226,7 @@ function Row({
           </div>
         </button>
         <Badge
-          variant={sub.isActive ? "success" : "muted"}
+          variant={sub.isActive ? "success" : "outline"}
           className="font-mono uppercase tracking-[0.14em]"
         >
           {sub.isActive ? "Active" : "Inactive"}

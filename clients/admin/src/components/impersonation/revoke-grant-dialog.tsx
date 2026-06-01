@@ -136,13 +136,13 @@ function GrantSummary({ grant }: { grant: ImpersonationGrantDto }) {
         <span className="font-medium">
           {grant.impersonatedUserName ?? grant.impersonatedUserId}
         </span>{" "}
-        <Badge variant="muted" className="ml-1 font-mono uppercase tracking-[0.14em]">
+        <Badge variant="outline" className="ml-1 font-mono uppercase tracking-[0.14em]">
           {grant.impersonatedTenantId}
         </Badge>
       </Row>
       <Row label="Started by">
         <span>{grant.actorUserName ?? grant.actorUserId}</span>{" "}
-        <Badge variant="muted" className="ml-1 font-mono uppercase tracking-[0.14em]">
+        <Badge variant="outline" className="ml-1 font-mono uppercase tracking-[0.14em]">
           {grant.actorTenantId}
         </Badge>
       </Row>

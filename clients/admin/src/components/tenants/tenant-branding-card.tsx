@@ -138,7 +138,7 @@ export function TenantBrandingCard({ tenantId }: { tenantId: string }) {
         </Button>
         <Button
           type="button"
-          variant="signal"
+          variant="default"
           onClick={() => draft && saveMutation.mutate(draft)}
           disabled={!dirty || saveMutation.isPending}
         >

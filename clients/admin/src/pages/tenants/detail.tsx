@@ -159,7 +159,7 @@ export function TenantDetailPage() {
                     </span>
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <Badge variant={tenant.isActive ? "success" : "muted"}>
+                    <Badge variant={tenant.isActive ? "success" : "outline"}>
                       {tenant.isActive ? "Active" : "Inactive"}
                     </Badge>
                     {tenant.expiryState && tenant.expiryState !== "Active" && (
@@ -190,7 +190,7 @@ export function TenantDetailPage() {
               <div className="flex shrink-0 flex-wrap items-center gap-2">
                 {canImpersonate && tenant.isActive && (
                   <Button
-                    variant="signal"
+                    variant="default"
                     onClick={() => setImpersonateOpen(true)}
                     className="shrink-0"
                     title="Sign in as a user inside this tenant"
@@ -319,7 +319,7 @@ export function TenantDetailPage() {
                 </span>
               </InfoRow>
               <InfoRow label="Status" isLast>
-                <Badge variant={tenant.isActive ? "success" : "muted"}>
+                <Badge variant={tenant.isActive ? "success" : "outline"}>
                   {tenant.isActive ? "Active" : "Inactive"}
                 </Badge>
               </InfoRow>

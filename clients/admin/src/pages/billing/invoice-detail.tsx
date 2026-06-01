@@ -378,7 +378,7 @@ function LineItemRow({
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium">{item.description}</span>
-          <Badge variant={item.kind === "BaseFee" ? "default" : item.kind === "Overage" ? "warning" : "muted"}>
+          <Badge variant={item.kind === "BaseFee" ? "default" : item.kind === "Overage" ? "warning" : "outline"}>
             {item.kind}
           </Badge>
           {item.resource && (

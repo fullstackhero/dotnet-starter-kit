@@ -166,7 +166,7 @@ function SessionRow({
           Active
         </Badge>
       ) : (
-        <Badge variant="muted" className="font-mono uppercase tracking-[0.14em]">
+        <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
           Revoked
         </Badge>
       )}

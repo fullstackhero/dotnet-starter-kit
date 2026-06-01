@@ -428,7 +428,7 @@ function TwoFactorEnroll() {
                 <Button
                   onClick={() => verifyMutation.mutate(code)}
                   disabled={code.length < 6 || verifyMutation.isPending}
-                  variant="signal"
+                  variant="default"
                 >
                   {verifyMutation.isPending ? "Verifying…" : "Confirm & enable"}
                 </Button>
