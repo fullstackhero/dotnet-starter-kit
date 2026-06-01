@@ -13,7 +13,6 @@ import {
 import {
   AlertTriangle,
   ArrowDown,
-  ChevronLeft,
   ChevronRight,
   CircleDollarSign,
   Minus,
@@ -60,6 +59,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   Combobox,
   EntityPageHeader,
+  EntityPager,
   Field,
 } from "@/components/list";
 import { cn } from "@/lib/cn";
@@ -371,32 +371,14 @@ export function ProductsPage() {
             ))}
           </div>
 
-          {/* Pagination */}
-          {(data?.totalPages ?? 1) > 1 && (
-            <div className="mt-3 flex items-center justify-between">
-              <p className="text-[11px] text-[var(--color-muted-foreground)]">
-                Page {page} of {data?.totalPages}
-              </p>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={!data?.hasPrevious}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="grid size-8 cursor-pointer place-items-center rounded-lg text-[var(--color-muted-foreground)] transition-colors hover:bg-[oklch(from_var(--color-muted)_l_c_h_/_0.5)] hover:text-[var(--color-foreground)] disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ChevronLeft className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  disabled={!data?.hasNext}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="grid size-8 cursor-pointer place-items-center rounded-lg text-[var(--color-muted-foreground)] transition-colors hover:bg-[oklch(from_var(--color-muted)_l_c_h_/_0.5)] hover:text-[var(--color-foreground)] disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ChevronRight className="size-4" />
-                </button>
-              </div>
-            </div>
-          )}
+          <EntityPager
+            page={page}
+            totalPages={data?.totalPages ?? 1}
+            hasPrev={data?.hasPrevious ?? false}
+            hasNext={data?.hasNext ?? false}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => p + 1)}
+          />
         </div>
       )}
 

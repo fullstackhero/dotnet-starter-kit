@@ -28,6 +28,12 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from "@/api/tickets";
+import {
+  PRIORITY_LABEL,
+  PRIORITY_TONE,
+  STATUS_LABEL,
+  STATUS_TONE,
+} from "@/lib/ticket-enums";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -54,7 +60,6 @@ import {
   EntitySearch,
   EntityStatusBadge,
   Field,
-  type EntityStatusTone,
 } from "@/components/list";
 import { cn } from "@/lib/cn";
 import { describe, formatRelative } from "@/lib/list-helpers";
@@ -63,36 +68,6 @@ import { useUserDisplay } from "@/lib/use-user-display";
 const PAGE_SIZE = 20;
 
 type EditorState = { mode: "closed" } | { mode: "create" };
-
-// ─── Status / Priority labels + tones ────────────────────────────────────
-
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  Open: "Open",
-  InProgress: "In progress",
-  Resolved: "Resolved",
-  Closed: "Closed",
-};
-
-const STATUS_TONE: Record<TicketStatus, EntityStatusTone> = {
-  Open: "info",
-  InProgress: "warning",
-  Resolved: "success",
-  Closed: "default",
-};
-
-const PRIORITY_LABEL: Record<TicketPriority, string> = {
-  Low: "Low",
-  Medium: "Medium",
-  High: "High",
-  Critical: "Critical",
-};
-
-const PRIORITY_TONE: Record<TicketPriority, EntityStatusTone> = {
-  Low: "default",
-  Medium: "info",
-  High: "warning",
-  Critical: "danger",
-};
 
 // ─── Grid template — used by header, rows, and the loading skeleton ──────
 
