@@ -110,7 +110,12 @@ export function TicketDetailPage() {
     <div className="space-y-5 pb-12">
       <EntityDetailBack to="/tickets" label="Back to tickets" />
 
-      {ticketQuery.isError && <ErrorBand message={describe(ticketQuery.error)} />}
+      {ticketQuery.isError && (
+        <ErrorBand
+          message={describe(ticketQuery.error)}
+          onRetry={() => void ticketQuery.refetch()}
+        />
+      )}
 
       {ticketQuery.isLoading ? (
         <DetailSkeleton />

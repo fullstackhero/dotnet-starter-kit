@@ -40,6 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   EntityEmpty,
   EntityInitialsAvatar,
@@ -521,17 +522,12 @@ function BrandEditorDialog({
               label="Description"
               hint="Shown on listing and product detail pages."
             >
-              <textarea
+              <Textarea
                 id="brand-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 maxLength={1024}
-                className={cn(
-                  "flex w-full rounded-lg border border-[var(--color-input)] bg-transparent px-3 py-2 text-sm shadow-xs",
-                  "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]",
-                  "focus-visible:border-[var(--color-ring)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
-                )}
                 placeholder="Quality essentials for the modern home."
               />
             </Field>

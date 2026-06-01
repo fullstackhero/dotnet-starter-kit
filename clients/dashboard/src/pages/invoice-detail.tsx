@@ -63,7 +63,10 @@ export function InvoiceDetailPage() {
 
       {query.isError && (
         <div className="mb-5">
-          <ErrorBand message={describe(query.error)} />
+          <ErrorBand
+            message={describe(query.error)}
+            onRetry={() => void query.refetch()}
+          />
         </div>
       )}
 

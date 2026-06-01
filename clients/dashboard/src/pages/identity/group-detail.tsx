@@ -55,6 +55,7 @@ import {
   EntityDetailStat,
   ErrorBand,
   Field,
+  DetailSkeleton,
 } from "@/components/list";
 import { describe, pad2 } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
@@ -194,10 +195,9 @@ export function GroupDetailPage() {
 
   if (groupQuery.isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <EntityDetailBack to="/identity/groups" label="Back to groups" />
-        <Skeleton className="h-32 rounded-xl" />
-        <Skeleton className="h-64 rounded-xl" />
+        <DetailSkeleton />
       </div>
     );
   }
@@ -206,7 +206,10 @@ export function GroupDetailPage() {
     return (
       <div className="space-y-4">
         <EntityDetailBack to="/identity/groups" label="Back to groups" />
-        <ErrorBand message={groupQuery.error ? describe(groupQuery.error) : "Group not found."} />
+        <ErrorBand
+          message={groupQuery.error ? describe(groupQuery.error) : "Group not found."}
+          onRetry={groupQuery.error ? () => void groupQuery.refetch() : undefined}
+        />
       </div>
     );
   }

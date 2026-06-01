@@ -32,7 +32,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogClose,
@@ -50,6 +49,7 @@ import {
   EntityDetailStat,
   ErrorBand,
   Field,
+  DetailSkeleton,
 } from "@/components/list";
 import { describe, pad2 } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
@@ -277,10 +277,9 @@ export function RoleDetailPage() {
   // empty catalog (which would look broken: zero groups, 0/0 enabled, etc.).
   if (roleQuery.isLoading || catalogQuery.isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <EntityDetailBack to="/identity/roles" label="Back to roles" />
-        <Skeleton className="h-32 rounded-xl" />
-        <Skeleton className="h-96 rounded-xl" />
+        <DetailSkeleton layout="stacked" />
       </div>
     );
   }
@@ -289,7 +288,10 @@ export function RoleDetailPage() {
     return (
       <div className="space-y-4">
         <EntityDetailBack to="/identity/roles" label="Back to roles" />
-        <ErrorBand message={roleQuery.error ? describe(roleQuery.error) : "Role not found."} />
+        <ErrorBand
+          message={roleQuery.error ? describe(roleQuery.error) : "Role not found."}
+          onRetry={roleQuery.error ? () => void roleQuery.refetch() : undefined}
+        />
       </div>
     );
   }
@@ -300,6 +302,7 @@ export function RoleDetailPage() {
         <EntityDetailBack to="/identity/roles" label="Back to roles" />
         <ErrorBand
           message={`Couldn't load the permission catalog: ${describe(catalogQuery.error)}`}
+          onRetry={() => void catalogQuery.refetch()}
         />
       </div>
     );

@@ -138,7 +138,9 @@ export function InvoicesPage() {
         placeholder="Search by invoice number, status, or period…"
       />
 
-      {errorMessage && <ErrorBand message={errorMessage} />}
+      {errorMessage && (
+        <ErrorBand message={errorMessage} onRetry={() => void query.refetch()} />
+      )}
 
       {query.isLoading ? (
         <EntityListLoading desktopColumns={DESKTOP_GRID} rows={4} />

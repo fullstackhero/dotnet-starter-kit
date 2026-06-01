@@ -259,6 +259,7 @@ export function MyFilesPage() {
                 ? "Couldn't load your files."
                 : "Couldn't load shared files."
           }
+          onRetry={() => void activeQuery.refetch()}
         />
       ) : activeQuery.isLoading ? (
         <EntityListLoading

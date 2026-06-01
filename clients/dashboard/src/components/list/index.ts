@@ -1,6 +1,8 @@
 export { PageHero } from "./page-hero";
 export { Field } from "./field";
 export { ErrorBand } from "./error-band";
+export { DetailSkeleton } from "./detail-skeleton";
+export { FormDialog } from "./form-dialog";
 export { Combobox, type ComboboxOption } from "./combobox";
 export {
   ToneIconTile,

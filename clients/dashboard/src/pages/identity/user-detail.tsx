@@ -58,6 +58,7 @@ import {
   EntityDetailSection,
   EntityDetailStat,
   ErrorBand,
+  DetailSkeleton,
 } from "@/components/list";
 import { describe } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
@@ -254,10 +255,9 @@ export function UserDetailPage() {
 
   if (userQuery.isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <EntityDetailBack to="/identity/users" label="Back to users" />
-        <Skeleton className="h-32 rounded-xl" />
-        <Skeleton className="h-64 rounded-xl" />
+        <DetailSkeleton />
       </div>
     );
   }
@@ -272,6 +272,7 @@ export function UserDetailPage() {
               ? describe(userQuery.error)
               : "User not found."
           }
+          onRetry={userQuery.error ? () => void userQuery.refetch() : undefined}
         />
       </div>
     );

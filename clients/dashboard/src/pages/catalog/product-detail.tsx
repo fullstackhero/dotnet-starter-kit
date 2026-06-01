@@ -130,7 +130,10 @@ export function ProductDetailPage() {
 
       {productQuery.isError && (
         <div className="mb-5">
-          <ErrorBand message={describe(productQuery.error)} />
+          <ErrorBand
+            message={describe(productQuery.error)}
+            onRetry={() => void productQuery.refetch()}
+          />
         </div>
       )}
 
