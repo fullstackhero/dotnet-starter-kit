@@ -37,9 +37,13 @@ import {
   resolveTicket,
   TICKET_PRIORITIES,
   type TicketDto,
-  type TicketPriority,
-  type TicketStatus,
 } from "@/api/tickets";
+import {
+  PRIORITY_LABEL,
+  PRIORITY_TONE,
+  STATUS_LABEL,
+  STATUS_TONE,
+} from "@/lib/ticket-enums";
 import { UserPicker } from "@/components/identity/user-picker";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,7 +67,6 @@ import {
   EntityStatusBadge,
   ErrorBand,
   Field,
-  type EntityStatusTone,
 } from "@/components/list";
 import { cn } from "@/lib/cn";
 import { useUserDisplay } from "@/lib/use-user-display";
@@ -78,35 +81,6 @@ type DialogState =
   | { mode: "resolve" }
   | { mode: "assign" };
 
-// ─── Tone tables (mirror tickets.tsx) ─────────────────────────────────
-
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  Open: "Open",
-  InProgress: "In progress",
-  Resolved: "Resolved",
-  Closed: "Closed",
-};
-
-const STATUS_TONE: Record<TicketStatus, EntityStatusTone> = {
-  Open: "info",
-  InProgress: "warning",
-  Resolved: "success",
-  Closed: "default",
-};
-
-const PRIORITY_LABEL: Record<TicketPriority, string> = {
-  Low: "Low",
-  Medium: "Medium",
-  High: "High",
-  Critical: "Critical",
-};
-
-const PRIORITY_TONE: Record<TicketPriority, EntityStatusTone> = {
-  Low: "default",
-  Medium: "info",
-  High: "warning",
-  Critical: "danger",
-};
 
 // ───────────────────────────────────────────────────────────────────────
 //  Page
