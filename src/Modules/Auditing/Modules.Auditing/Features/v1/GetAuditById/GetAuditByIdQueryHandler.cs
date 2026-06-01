@@ -1,4 +1,3 @@
-using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAuditById;
@@ -32,7 +31,10 @@ public sealed class GetAuditByIdQueryHandler : IQueryHandler<GetAuditByIdQuery, 
 
         if (record is null)
         {
-            throw new NotFoundException($"Audit record {query.Id} not found.");
+            // KeyNotFoundException is mapped to 404 by the global exception handler. Kept (rather
+            // than the framework NotFoundException) because the audit exception-type fixtures and
+            // severity classification key off this concrete type.
+            throw new KeyNotFoundException($"Audit record {query.Id} not found.");
         }
 
         JsonElement payload;
