@@ -15,6 +15,7 @@ public static class TicketsPermissions
         public const string Assign   = $"Permissions.{Resource}.Assign";
         public const string Resolve  = $"Permissions.{Resource}.Resolve";
         public const string Reopen   = $"Permissions.{Resource}.Reopen";
+        public const string Close    = $"Permissions.{Resource}.Close";
         public const string Comment  = $"Permissions.{Resource}.Comment";
     }
 
@@ -28,6 +29,7 @@ public static class TicketsPermissions
         new("Assign Tickets",  "Assign",  Tickets.Resource),
         new("Resolve Tickets", "Resolve", Tickets.Resource),
         new("Reopen Tickets",  "Reopen",  Tickets.Resource),
+        new("Close Tickets",   "Close",   Tickets.Resource),
         new("Comment on Tickets", "Comment", Tickets.Resource),
     ];
 }

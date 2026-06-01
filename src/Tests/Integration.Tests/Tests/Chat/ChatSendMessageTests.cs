@@ -302,7 +302,7 @@ public sealed class ChatSendMessageTests
             "Soft-delete query filter must hide archived channels from the send path.");
     }
 
-    [Fact(Skip = "Known bug: archiving a channel cascade-deletes ChannelMember rows (FK is OnDelete.Cascade and ChannelMember is not ISoftDeletable, so the soft-delete interceptor only converts the channel itself to Modified — children are still hard-deleted). Restore brings the channel row back but membership is gone, so the next send 404s. Fix options: make ChannelMember ISoftDeletable, or have RestoreChannel re-seed the original creator as a member.")]
+    [Fact]
     public async Task SendMessage_Should_Succeed_Again_After_Channel_Is_Restored()
     {
         using var client = await _auth.CreateRootAdminClientAsync();

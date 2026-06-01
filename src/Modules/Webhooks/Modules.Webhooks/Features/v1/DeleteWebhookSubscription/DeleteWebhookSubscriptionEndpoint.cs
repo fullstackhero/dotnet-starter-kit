@@ -1,3 +1,5 @@
+using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Modules.Webhooks.Contracts.Authorization;
 using FSH.Modules.Webhooks.Contracts.v1.DeleteWebhookSubscription;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -20,6 +22,7 @@ public static class DeleteWebhookSubscriptionEndpoint
         })
         .WithName("DeleteWebhookSubscription")
         .WithSummary("Delete a webhook subscription")
+        .RequirePermission(WebhooksPermissions.Subscriptions.Delete)
         .Produces(StatusCodes.Status204NoContent);
     }
 }

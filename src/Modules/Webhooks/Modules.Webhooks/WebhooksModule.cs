@@ -1,7 +1,9 @@
 using Asp.Versioning;
 using FSH.Framework.Persistence;
+using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.HttpResilience;
 using FSH.Framework.Web.Modules;
+using FSH.Modules.Webhooks.Contracts.Authorization;
 using FSH.Modules.Webhooks.Data;
 using FSH.Modules.Webhooks.Features.v1.CreateWebhookSubscription;
 using FSH.Modules.Webhooks.Features.v1.DeleteWebhookSubscription;
@@ -28,8 +30,11 @@ public sealed class WebhooksModule : IModule
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        PermissionConstants.Register(WebhooksPermissions.All);
+
         builder.Services.AddHeroDbContext<WebhookDbContext>();
         builder.Services.AddScoped<IDbInitializer, WebhookDbInitializer>();
+        builder.Services.AddSingleton<IWebhookSecretProtector, WebhookSecretProtector>();
         builder.Services.AddScoped<IWebhookDeliveryService, WebhookDeliveryService>();
         builder.Services.AddScoped<IWebhookDispatcher, WebhookDispatcher>();
         builder.Services.AddScoped<WebhookDispatchJob>();
