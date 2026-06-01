@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAuditById;
@@ -31,7 +32,7 @@ public sealed class GetAuditByIdQueryHandler : IQueryHandler<GetAuditByIdQuery, 
 
         if (record is null)
         {
-            throw new KeyNotFoundException($"Audit record {query.Id} not found.");
+            throw new NotFoundException($"Audit record {query.Id} not found.");
         }
 
         JsonElement payload;

@@ -10,17 +10,19 @@ namespace FSH.Modules.Billing.Services;
 public sealed class MonthlyInvoiceJob
 {
     private readonly IBillingService _billing;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<MonthlyInvoiceJob> _logger;
 
-    public MonthlyInvoiceJob(IBillingService billing, ILogger<MonthlyInvoiceJob> logger)
+    public MonthlyInvoiceJob(IBillingService billing, TimeProvider timeProvider, ILogger<MonthlyInvoiceJob> logger)
     {
         _billing = billing;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        var previous = DateTime.UtcNow.AddMonths(-1);
+        var previous = _timeProvider.GetUtcNow().UtcDateTime.AddMonths(-1);
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("[Billing] MonthlyInvoiceJob generating invoices for period {Year}-{Month:00}",

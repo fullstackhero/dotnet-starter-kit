@@ -8,7 +8,7 @@ public sealed class MonthlyInvoiceJobTests
 {
     private readonly IBillingService _billing = Substitute.For<IBillingService>();
 
-    private MonthlyInvoiceJob CreateSut() => new(_billing, NullLogger<MonthlyInvoiceJob>.Instance);
+    private MonthlyInvoiceJob CreateSut() => new(_billing, TimeProvider.System, NullLogger<MonthlyInvoiceJob>.Instance);
 
     #region Happy Path
 

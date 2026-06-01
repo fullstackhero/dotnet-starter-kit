@@ -59,10 +59,10 @@ public sealed class SessionCleanupHostedService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
-        var now = _timeProvider.GetUtcNow().UtcDateTime;
-        var cutoffDate = now.AddDays(-_retentionDays);
+        // cutoffDate = now - retentionDays, so ExpiresAt < cutoffDate already implies ExpiresAt < now.
+        var cutoffDate = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-_retentionDays);
         var deleted = await db.UserSessions
-            .Where(s => s.ExpiresAt < now && s.ExpiresAt < cutoffDate)
+            .Where(s => s.ExpiresAt < cutoffDate)
             .ExecuteDeleteAsync(cancellationToken);
 
         if (deleted > 0 && _logger.IsEnabled(LogLevel.Information))
