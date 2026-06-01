@@ -244,6 +244,24 @@ public sealed class TicketCrudAndCloseTests
         #endregion
     }
 
+    [Fact]
+    public async Task ListTicketComments_Should_Return404_When_TicketDoesNotExist()
+    {
+        #region Arrange
+        using var client = await _auth.CreateRootAdminClientAsync();
+        #endregion
+
+        #region Act
+        // A missing ticket must 404 (not a misleading empty 200 that also leaks id existence).
+        var response = await client.GetAsync(
+            $"{TestConstants.TicketsBasePath}/tickets/{Guid.NewGuid()}/comments");
+        #endregion
+
+        #region Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        #endregion
+    }
+
     // ─── helpers ─────────────────────────────────────────────────────
 
     private static string UniqueTitle(string prefix) =>

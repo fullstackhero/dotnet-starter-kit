@@ -17,8 +17,9 @@ public static class RetryTenantProvisioningEndpoint
     {
         return endpoints.MapPost("/{tenantId}/provisioning/retry", async (
             [FromRoute] string tenantId,
-            [FromServices] IMediator mediator) =>
-            TypedResults.Ok(await mediator.Send(new RetryTenantProvisioningCommand(tenantId))))
+            [FromServices] IMediator mediator,
+            CancellationToken cancellationToken) =>
+            TypedResults.Ok(await mediator.Send(new RetryTenantProvisioningCommand(tenantId), cancellationToken)))
             .WithName("RetryTenantProvisioning")
             .WithSummary("Retry tenant provisioning")
             .RequirePermission(MultitenancyPermissions.Tenants.Update)
