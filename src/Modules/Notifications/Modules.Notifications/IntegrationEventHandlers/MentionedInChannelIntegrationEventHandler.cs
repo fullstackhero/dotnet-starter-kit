@@ -1,4 +1,6 @@
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Eventing.Abstractions;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.Events;
 using FSH.Modules.Notifications.Data;
@@ -21,12 +23,28 @@ namespace FSH.Modules.Notifications.IntegrationEventHandlers;
 public sealed class MentionedInChannelIntegrationEventHandler(
     NotificationsDbContext db,
     IHubContext<AppHub> hub,
+    IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
     ILogger<MentionedInChannelIntegrationEventHandler> logger)
     : IIntegrationEventHandler<MentionedInChannelIntegrationEvent>
 {
     public async Task HandleAsync(MentionedInChannelIntegrationEvent @event, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(@event);
+
+        // Fail loud on a tenant-context mismatch instead of silently writing the notification to
+        // the wrong tenant. NotificationsDbContext captures its tenant at construction (BaseDbContext),
+        // so we cannot "restore" it here — but the publisher (Chat, in-memory synchronous dispatch)
+        // runs inside the originating request's tenant context, which flows into this scope. If a
+        // future background publisher omits that context, this guard turns a cross-tenant leak into a
+        // visible failure rather than corrupt data.
+        var ambientTenantId = tenantAccessor.MultiTenantContext.TenantInfo?.Id;
+        if (!string.Equals(ambientTenantId, @event.TenantId, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Tenant context mismatch handling {nameof(MentionedInChannelIntegrationEvent)}: ambient " +
+                $"'{ambientTenantId ?? "(none)"}' != event '{@event.TenantId ?? "(none)"}'. The publisher must " +
+                "establish the tenant's Finbuckle context before publishing (see eventing rules).");
+        }
 
         var notification = Notification.Create(
             userId: @event.MentionedUserId,

@@ -25,8 +25,10 @@ public sealed class ArchiveChannelCommandHandler(
 
         channel.RequireAdmin(userId.ToString());
 
-        // Remove triggers ISoftDeletable via the framework's audit interceptor.
-        db.Channels.Remove(channel);
+        // Explicit soft-delete (not db.Remove): removing the aggregate cascades Deleted onto
+        // the ChannelMember rows, which the audit interceptor does not rescue (they're FK
+        // children, not owned), so they'd be hard-deleted and lost on restore.
+        channel.Archive(userId.ToString());
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return Unit.Value;
     }

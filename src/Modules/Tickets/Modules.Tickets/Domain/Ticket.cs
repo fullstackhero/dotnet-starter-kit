@@ -134,6 +134,50 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
         TransitionStatus(TicketStatus.Resolved);
     }
 
+    /// <summary>
+    /// Finalizes a resolved ticket (Resolved → Closed). Idempotent when already Closed;
+    /// rejects any other source state with a 409 so the documented state machine holds.
+    /// </summary>
+    public void Close()
+    {
+        if (Status == TicketStatus.Closed)
+        {
+            return;
+        }
+        if (Status != TicketStatus.Resolved)
+        {
+            throw new CustomException(
+                $"Only a resolved ticket can be closed — current status is {Status}. Resolve it first.",
+                (IEnumerable<string>?)null,
+                HttpStatusCode.Conflict);
+        }
+
+        ClosedAtUtc = DateTime.UtcNow;
+        UpdatedAtUtc = DateTime.UtcNow;
+        TransitionStatus(TicketStatus.Closed);
+    }
+
+    /// <summary>
+    /// Edits the mutable details of an open/in-progress/resolved ticket. A closed ticket is
+    /// frozen — it must be reopened first.
+    /// </summary>
+    public void UpdateDetails(string title, string? description, TicketPriority priority)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+        if (Status == TicketStatus.Closed)
+        {
+            throw new CustomException(
+                "A closed ticket cannot be edited — reopen it first.",
+                (IEnumerable<string>?)null,
+                HttpStatusCode.Conflict);
+        }
+
+        Title = title.Trim();
+        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        Priority = priority;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
     public void Reopen()
     {
         if (Status is TicketStatus.Open or TicketStatus.InProgress)

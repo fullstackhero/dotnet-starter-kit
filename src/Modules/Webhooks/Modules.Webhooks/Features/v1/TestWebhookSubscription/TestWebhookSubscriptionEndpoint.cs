@@ -1,3 +1,5 @@
+using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Modules.Webhooks.Contracts.Authorization;
 using FSH.Modules.Webhooks.Contracts.v1.TestWebhookSubscription;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -19,6 +21,7 @@ public static class TestWebhookSubscriptionEndpoint
             return TypedResults.Ok(new { Success = success });
         })
         .WithName("TestWebhookSubscription")
-        .WithSummary("Send a test event to a webhook subscription");
+        .WithSummary("Send a test event to a webhook subscription")
+        .RequirePermission(WebhooksPermissions.Subscriptions.Test);
     }
 }

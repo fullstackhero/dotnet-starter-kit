@@ -26,15 +26,18 @@ public sealed class WebhookDispatchJob
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IWebhookSecretProtector _secretProtector;
     private readonly ILogger<WebhookDispatchJob> _logger;
 
     public WebhookDispatchJob(
         IServiceScopeFactory scopeFactory,
         IHttpClientFactory httpClientFactory,
+        IWebhookSecretProtector secretProtector,
         ILogger<WebhookDispatchJob> logger)
     {
         _scopeFactory = scopeFactory;
         _httpClientFactory = httpClientFactory;
+        _secretProtector = secretProtector;
         _logger = logger;
     }
 
@@ -101,9 +104,10 @@ public sealed class WebhookDispatchJob
         try
         {
             using var content = new StringContent(payloadJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
-            if (!string.IsNullOrEmpty(subscription.SecretHash))
+            var signingSecret = _secretProtector.Unprotect(subscription.SecretHash);
+            if (!string.IsNullOrEmpty(signingSecret))
             {
-                content.Headers.Add("X-Webhook-Signature", WebhookPayloadSigner.Sign(payloadJson, subscription.SecretHash));
+                content.Headers.Add("X-Webhook-Signature", WebhookPayloadSigner.Sign(payloadJson, signingSecret));
             }
             content.Headers.Add("X-Webhook-Event", eventType);
             content.Headers.Add("X-Webhook-Delivery-Id", delivery.Id.ToString());

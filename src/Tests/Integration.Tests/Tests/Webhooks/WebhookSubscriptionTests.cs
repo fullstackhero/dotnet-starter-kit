@@ -73,6 +73,19 @@ public sealed class WebhookSubscriptionTests
     }
 
     [Fact]
+    public async Task GetWebhookSubscriptions_Should_Return400_When_PageSizeIsZero()
+    {
+        using var client = await _auth.CreateRootAdminClientAsync();
+
+        // PageSize=0 previously reached Math.Ceiling(total / (double)0) -> 500. The validator
+        // now rejects it with a clean 400.
+        var response = await client.GetAsync(
+            $"{TestConstants.WebhooksBasePath}/subscriptions?pageNumber=1&pageSize=0");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task CreateWebhookSubscription_Should_Return401_When_NotAuthenticated()
     {
         using var client = _factory.CreateClient();

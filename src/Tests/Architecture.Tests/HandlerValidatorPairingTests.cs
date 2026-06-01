@@ -45,9 +45,7 @@ public class HandlerValidatorPairingTests
         "FSH.Modules.Catalog.Features.v1.Brands.ListTrashedBrands.ListTrashedBrandsQueryHandler",
         "FSH.Modules.Identity.Features.v1.Sessions.GetTenantSessions.GetTenantSessionsQueryHandler",
         "FSH.Modules.Tickets.Features.v1.Tickets.SearchTickets.SearchTicketsQueryHandler",
-        "FSH.Modules.Tickets.Features.v1.Tickets.ListTrashedTickets.ListTrashedTicketsQueryHandler",
-        "FSH.Modules.Webhooks.Features.v1.GetWebhookSubscriptions.GetWebhookSubscriptionsQueryHandler",
-        "FSH.Modules.Webhooks.Features.v1.GetWebhookDeliveries.GetWebhookDeliveriesQueryHandler"
+        "FSH.Modules.Tickets.Features.v1.Tickets.ListTrashedTickets.ListTrashedTicketsQueryHandler"
     ];
 
     [Fact]
