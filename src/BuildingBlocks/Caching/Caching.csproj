@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Caching</RootNamespace>
 		<AssemblyName>FSH.Framework.Caching</AssemblyName>
-		<PackageId>FullStackHero.Framework.Caching</PackageId>
 	</PropertyGroup>
 
 	<ItemGroup>

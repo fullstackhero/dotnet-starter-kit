@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Notifications</RootNamespace>
 		<AssemblyName>FSH.Modules.Notifications</AssemblyName>
-		<PackageId>FullStackHero.Modules.Notifications</PackageId>
 		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;CA1002;CA2227;S3267</NoWarn>
 	</PropertyGroup>
 

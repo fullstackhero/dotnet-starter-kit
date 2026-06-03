@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Quota</RootNamespace>
 		<AssemblyName>FSH.Framework.Quota</AssemblyName>
-		<PackageId>FullStackHero.Framework.Quota</PackageId>
 	</PropertyGroup>
 
 	<ItemGroup>

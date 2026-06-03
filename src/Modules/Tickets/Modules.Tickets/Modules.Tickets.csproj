@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Tickets</RootNamespace>
 		<AssemblyName>FSH.Modules.Tickets</AssemblyName>
-		<PackageId>FullStackHero.Modules.Tickets</PackageId>
 		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267</NoWarn>
 	</PropertyGroup>
 

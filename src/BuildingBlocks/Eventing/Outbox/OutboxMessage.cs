@@ -35,7 +35,7 @@ public class OutboxMessage : IGlobalEntity
     public bool IsDead { get; set; }
 }
 
-public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
+public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
 {
     private readonly string _schema;
 

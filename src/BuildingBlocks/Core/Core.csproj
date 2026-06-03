@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
 	    <RootNamespace>FSH.Framework.Core</RootNamespace>
 	    <AssemblyName>FSH.Framework.Core</AssemblyName>
-	    <PackageId>FullStackHero.Framework.Core</PackageId>
     </PropertyGroup>
 
 	<ItemGroup>

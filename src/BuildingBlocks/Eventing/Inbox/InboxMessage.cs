@@ -25,7 +25,7 @@ public class InboxMessage : IGlobalEntity
     public string? TenantId { get; set; }
 }
 
-public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
+public sealed class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
 {
     private readonly string _schema;
 

@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Mailing</RootNamespace>
 		<AssemblyName>FSH.Framework.Mailing</AssemblyName>
-		<PackageId>FullStackHero.Framework.Mailing</PackageId>
 	</PropertyGroup>
 	
 	<ItemGroup>

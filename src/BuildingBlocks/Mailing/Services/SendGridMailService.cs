@@ -6,14 +6,17 @@ using System.Threading.Tasks;
 
 namespace FSH.Framework.Mailing.Services;
 
-public class SendGridMailService : IMailService
+public sealed class SendGridMailService : IMailService
 {
     private readonly MailOptions _settings;
+    private readonly ISendGridClient _client;
 
-    public SendGridMailService(IOptions<MailOptions> settings)
+    public SendGridMailService(IOptions<MailOptions> settings, ISendGridClient client)
     {
         ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(client);
         _settings = settings.Value;
+        _client = client;
     }
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
@@ -21,7 +24,11 @@ public class SendGridMailService : IMailService
         ArgumentNullException.ThrowIfNull(request);
         ValidateConfiguration();
 
-        var client = new SendGridClient(_settings.SendGrid!.ApiKey!);
+        if (request.To is null or { Count: 0 })
+        {
+            throw new InvalidOperationException("At least one recipient is required.");
+        }
+
         var from = CreateFromAddress(request);
         var msg = MailHelper.CreateSingleEmail(
             from,
@@ -33,7 +40,7 @@ public class SendGridMailService : IMailService
         ConfigureRecipients(msg, request);
         AddAttachments(msg, request);
 
-        await client.SendEmailAsync(msg, ct);
+        await _client.SendEmailAsync(msg, ct).ConfigureAwait(false);
     }
 
     private void ValidateConfiguration()
