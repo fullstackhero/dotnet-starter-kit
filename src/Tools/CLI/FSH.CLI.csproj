@@ -9,6 +9,9 @@
     <ToolCommandName>fsh</ToolCommandName>
     <PackageId>FullStackHero.CLI</PackageId>
     <Description>CLI tool for scaffolding and managing FullStackHero .NET projects.</Description>
+    <PackageIcon>icon.png</PackageIcon>
+    <!-- The CLI exposes no public API surface; an empty XML doc file is dead weight. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
     <!-- Strip pre-release suffix for AssemblyVersion (requires major.minor.build.revision format) -->
     <AssemblyVersion>10.0.0.0</AssemblyVersion>
@@ -28,6 +31,11 @@
   <ItemGroup>
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="Spectre.Console.Cli" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Gallery icon for the published tool package. -->
+    <None Include="..\..\..\.template.config\icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
 </Project>

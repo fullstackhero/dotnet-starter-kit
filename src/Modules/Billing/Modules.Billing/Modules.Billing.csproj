@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Billing</RootNamespace>
 		<AssemblyName>FSH.Modules.Billing</AssemblyName>
-		<PackageId>FullStackHero.Modules.Billing</PackageId>
 		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;S3267</NoWarn>
 	</PropertyGroup>
 

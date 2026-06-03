@@ -27,6 +27,7 @@
     <RepositoryUrl>https://github.com/fullstackhero/dotnet-starter-kit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
 
     <TargetFramework>net10.0</TargetFramework>
     <IncludeContentInPack>true</IncludeContentInPack>
@@ -53,6 +54,8 @@
              Pack="true"
              PackagePath="content" />
     <Compile Remove="**\*" />
+    <!-- Gallery icon at package root (separate from the .template.config content copy). -->
+    <None Include="..\.template.config\icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
 </Project>

@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Persistence</RootNamespace>
 		<AssemblyName>FSH.Framework.Persistence</AssemblyName>
-		<PackageId>FullStackHero.Framework.Persistence</PackageId>
 		<NoWarn>$(NoWarn);S4144;CS0618</NoWarn>
 	</PropertyGroup>
 

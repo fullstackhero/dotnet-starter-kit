@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Catalog.Contracts</RootNamespace>
 		<AssemblyName>FSH.Modules.Catalog.Contracts</AssemblyName>
-		<PackageId>FullStackHero.Modules.Catalog.Contracts</PackageId>
 		<NoWarn>$(NoWarn);S2094</NoWarn>
 	</PropertyGroup>
 
