@@ -33,24 +33,26 @@ public sealed class ListMyChannelsQueryHandler(
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        // Batch the unread counts in a single query to avoid N+1.
+        // Single round-trip: for each channel in the page, count this user's unread messages with a
+        // correlated subquery instead of issuing one CountAsync per channel (was N+1, up to 200 round-trips).
+        // Same shape as SearchTicketsQueryHandler's CommentCount subquery.
         var channelIds = channels.Select(c => c.Id).ToList();
-        var unreadByChannel = await db.Channels.AsNoTracking()
+        var unread = await db.Channels.AsNoTracking()
             .Where(c => channelIds.Contains(c.Id))
-            .SelectMany(c => c.Members.Where(m => m.UserId == currentUserId), (c, m) => new { c.Id, LastRead = m.LastReadMessageId })
+            .SelectMany(
+                c => c.Members.Where(m => m.UserId == currentUserId),
+                (c, m) => new
+                {
+                    c.Id,
+                    Unread = db.Messages.Count(msg =>
+                        msg.ChannelId == c.Id
+                        && msg.DeletedAtUtc == null
+                        && (m.LastReadMessageId == null || msg.Id.CompareTo(m.LastReadMessageId.Value) > 0)),
+                })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var unreadMap = new Dictionary<Guid, int>();
-        foreach (var row in unreadByChannel)
-        {
-            unreadMap[row.Id] = await db.Messages.AsNoTracking()
-                .Where(msg => msg.ChannelId == row.Id
-                    && msg.DeletedAtUtc == null
-                    && (row.LastRead == null || msg.Id.CompareTo(row.LastRead.Value) > 0))
-                .CountAsync(cancellationToken)
-                .ConfigureAwait(false);
-        }
+        var unreadMap = unread.ToDictionary(x => x.Id, x => x.Unread);
 
         return channels.Select(c => c.ToDto(unreadMap.GetValueOrDefault(c.Id))).ToList().AsReadOnly();
     }

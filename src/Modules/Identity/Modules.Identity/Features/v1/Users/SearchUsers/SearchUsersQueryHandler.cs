@@ -84,28 +84,14 @@ public sealed class SearchUsersQueryHandler : IQueryHandler<SearchUsersQuery, Pa
 
         var pagedResult = await projected.ToPagedResponseAsync(query, cancellationToken).ConfigureAwait(false);
 
-        // Resolve image URLs for items
-        var items = pagedResult.Items.Select(u => new UserDto
+        // Resolve image URLs in place — the page is already-materialized UserDto instances we own,
+        // so there is no need to allocate a second full list reconstructing every DTO.
+        foreach (var u in pagedResult.Items)
         {
-            Id = u.Id,
-            UserName = u.UserName,
-            FirstName = u.FirstName,
-            LastName = u.LastName,
-            Email = u.Email,
-            IsActive = u.IsActive,
-            EmailConfirmed = u.EmailConfirmed,
-            PhoneNumber = u.PhoneNumber,
-            ImageUrl = ResolveImageUrl(u.ImageUrl)
-        }).ToList();
+            u.ImageUrl = ResolveImageUrl(u.ImageUrl);
+        }
 
-        return new PagedResponse<UserDto>
-        {
-            Items = items,
-            PageNumber = pagedResult.PageNumber,
-            PageSize = pagedResult.PageSize,
-            TotalCount = pagedResult.TotalCount,
-            TotalPages = pagedResult.TotalPages
-        };
+        return pagedResult;
     }
 
     private static readonly Dictionary<string, Expression<Func<FshUser, object?>>> SortableFields = new(StringComparer.OrdinalIgnoreCase)

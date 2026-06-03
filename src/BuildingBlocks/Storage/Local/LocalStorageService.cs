@@ -4,12 +4,20 @@ using FSH.Framework.Storage.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.StaticFiles;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace FSH.Framework.Storage.Local;
 
-public class LocalStorageService : IStorageService
+public sealed partial class LocalStorageService : IStorageService
 {
     private const string UploadBasePath = "uploads";
+
+    // Source-generated, compiled once — the inline Regex.Replace calls re-parsed the pattern on every upload.
+    [GeneratedRegex("[^a-z0-9]")]
+    private static partial Regex FolderSanitizer();
+
+    [GeneratedRegex(@"[^a-zA-Z0-9_\.-]")]
+    private static partial Regex FileNameSanitizer();
     private readonly string _rootPath;
     private readonly FileExtensionContentTypeProvider _contentTypeProvider;
 
@@ -42,7 +50,7 @@ public class LocalStorageService : IStorageService
         }
 
 #pragma warning disable CA1308 // folder names are intentionally lower-case for URLs/paths
-        var folder = Regex.Replace(typeof(T).Name.ToLowerInvariant(), @"[^a-z0-9]", "_");
+        var folder = FolderSanitizer().Replace(typeof(T).Name.ToLowerInvariant(), "_");
 #pragma warning restore CA1308
         var safeFileName = $"{Guid.NewGuid():N}_{SanitizeFileName(request.FileName)}";
         var relativePath = Path.Combine(UploadBasePath, folder, safeFileName);
@@ -136,14 +144,14 @@ public class LocalStorageService : IStorageService
 
     private static string SanitizeFileName(string fileName)
     {
-        return Regex.Replace(fileName, @"[^a-zA-Z0-9_\.-]", "_");
+        return FileNameSanitizer().Replace(fileName, "_");
     }
 
     // Local presigning is a development fallback when Storage:Provider != s3. Production deployments
     // use S3StorageService. The token store is process-static so the dev middleware (registered in
     // the host when Provider=local) can consume the token without re-resolving DI scope.
     private static LocalPresignTokenStore? _staticTokenStore;
-    public static LocalPresignTokenStore SharedTokenStore => _staticTokenStore ??= new LocalPresignTokenStore();
+    public static LocalPresignTokenStore SharedTokenStore => LazyInitializer.EnsureInitialized(ref _staticTokenStore);
 
     public Task<PresignedUploadUrl> GenerateUploadUrlAsync(
         string storageKey, string contentType, long maxBytes, TimeSpan ttl,
