@@ -675,6 +675,7 @@ function DeleteCategoryDialog({
     onSuccess: () => {
       toast.success("Category deleted");
       queryClient.invalidateQueries({ queryKey: ["catalog", "categories"] });
+      queryClient.invalidateQueries({ queryKey: ["trash", "categories"] });
       onClose();
     },
     onError: (err) => toast.error("Delete failed", { description: describe(err) }),

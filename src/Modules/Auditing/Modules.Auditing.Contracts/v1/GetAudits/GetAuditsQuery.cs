@@ -23,6 +23,10 @@ public sealed class GetAuditsQuery : IPagedQuery, IQuery<PagedResponse<AuditSumm
 
     public AuditEventType? EventType { get; set; }
 
+    /// <summary>Hide a single event type (e.g. <c>Activity</c> to drop system-level HTTP noise).
+    /// Applied as a not-equals filter so paging + totals stay correct.</summary>
+    public AuditEventType? ExcludeEventType { get; set; }
+
     public AuditSeverity? Severity { get; set; }
 
     public AuditTag? Tags { get; set; }

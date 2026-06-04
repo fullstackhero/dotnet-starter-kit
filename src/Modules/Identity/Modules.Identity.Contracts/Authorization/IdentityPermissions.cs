@@ -20,6 +20,7 @@ public static class IdentityPermissions
         public const string Export        = $"Permissions.{Resource}.Export";
         public const string ManageRoles   = $"Permissions.{Resource}.ManageRoles";
         public const string Impersonate   = $"Permissions.{Resource}.Impersonate";
+        public const string ConfirmEmail  = $"Permissions.{Resource}.ConfirmEmail";
     }
 
     public static class UserRoles
@@ -83,6 +84,7 @@ public static class IdentityPermissions
         new("Export Users",        ActionConstants.Export, Users.Resource),
         new("Manage User Roles",   "ManageRoles",          Users.Resource),
         new("Impersonate User",    "Impersonate",          Users.Resource),
+        new("Confirm User Email",  "ConfirmEmail",         Users.Resource),
 
         new("View User Roles",     ActionConstants.View,   UserRoles.Resource, IsBasic: true),
         new("Update User Roles",   ActionConstants.Update, UserRoles.Resource),

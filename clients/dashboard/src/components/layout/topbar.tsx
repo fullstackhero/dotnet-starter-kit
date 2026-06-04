@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   Check,
   ChevronsUpDown,
@@ -35,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
+import { getMyProfile } from "@/api/identity";
 import { useAuth } from "@/auth/use-auth";
 import { useSseStatus } from "@/sse/sse-context";
 import { useTheme } from "@/components/theme/theme-provider";
@@ -57,6 +59,35 @@ function initialsOf(name?: string | null): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+/** Square rose-tinted user tile (dos pattern) — shows the profile photo when set,
+ *  falling back to initials when there's no image or it fails to load. */
+function SquareUserAvatar({ src, name }: { src?: string | null; name?: string | null }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+  const showImage = Boolean(src) && !failed;
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg",
+        "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.15)] text-[var(--color-primary)]",
+        "font-display text-[11px] font-bold tracking-tight",
+      )}
+    >
+      {showImage ? (
+        <img
+          src={src ?? undefined}
+          alt=""
+          onError={() => setFailed(true)}
+          className="size-full object-cover"
+        />
+      ) : (
+        initialsOf(name)
+      )}
+    </span>
+  );
 }
 
 /** Theme-pick row inside the dropdown — icon + label + check on the
@@ -117,6 +148,14 @@ function SimpleMenuItem({
 
 export function Topbar() {
   const { user, logout } = useAuth();
+  // Shared with the Profile settings page (same query key), so changing the
+  // photo there invalidates this and the topbar avatar updates live.
+  const { data: profile } = useQuery({
+    queryKey: ["identity", "me"],
+    queryFn: getMyProfile,
+    staleTime: 5 * 60 * 1000,
+  });
+  const avatarUrl = profile?.imageUrl ?? null;
   const { status: sseStatus, eventCount } = useSseStatus();
   const { mode, setMode } = useTheme();
   const { setOpen: setPaletteOpen } = useCommandPalette();
@@ -230,17 +269,8 @@ export function Topbar() {
               "data-[state=open]:bg-[var(--color-accent)]",
             )}
           >
-            {/* Rose-tinted square initials tile (dos pattern) */}
-            <span
-              aria-hidden
-              className={cn(
-                "grid size-8 shrink-0 place-items-center rounded-lg",
-                "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.15)] text-[var(--color-primary)]",
-                "font-display text-[11px] font-bold tracking-tight",
-              )}
-            >
-              {initialsOf(user?.name ?? user?.email)}
-            </span>
+            {/* Rose-tinted square avatar tile — photo if set, else initials. */}
+            <SquareUserAvatar src={avatarUrl} name={user?.name ?? user?.email} />
             {/* Name + role caption — desktop only */}
             <div className="hidden min-w-0 text-left md:block">
               <p className="truncate text-[12px] font-medium leading-none text-[var(--color-foreground)]">
@@ -343,7 +373,7 @@ export function Topbar() {
           </DialogHeader>
           <DialogBody>
             <div className="flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2.5">
-              <Avatar name={user?.name ?? user?.email ?? "?"} size="md" />
+              <Avatar name={user?.name ?? user?.email ?? "?"} src={avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium tracking-tight">
                   {user?.name ?? user?.email ?? "Unknown"}

@@ -1174,8 +1174,11 @@ export function OverviewPage() {
               <span
                 aria-hidden
                 className={cn(
-                  "inline-block size-1.5 rounded-full",
-                  sseStatus === "connected" && "pulse-dot",
+                  "inline-block size-1.5 shrink-0 rounded-full",
+                  // Contained opacity pulse — the design-system .pulse-dot halo
+                  // (an overflowing ::before ring) gets clipped by this sublabel's
+                  // `truncate` (overflow-hidden), so it can't be used here.
+                  sseStatus === "connected" && "animate-pulse",
                 )}
                 style={{
                   backgroundColor:
@@ -1184,8 +1187,6 @@ export function OverviewPage() {
                       : sseStatus === "error"
                         ? "var(--color-destructive)"
                         : "var(--color-muted-foreground)",
-                  color:
-                    sseStatus === "connected" ? "var(--color-success)" : undefined,
                 }}
               />
               <span className="capitalize">{sseStatus}</span>

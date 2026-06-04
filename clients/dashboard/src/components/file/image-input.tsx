@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Image as ImageIcon, Loader2, Upload, X, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -97,6 +97,12 @@ export function ImageInput({
   const isWorking = isUploading || resolveUrl.isPending;
   const tileClass = shape === "circle" ? "rounded-full" : "rounded-xl";
 
+  // Show the placeholder (not a broken-image icon) when the current URL fails to
+  // load — e.g. a seeded default-avatar URL that 404s. Reset on every URL change.
+  const [imgFailed, setImgFailed] = useState(false);
+  useEffect(() => setImgFailed(false), [value]);
+  const showImage = hasImage && !imgFailed;
+
   return (
     <div className={cn("space-y-3", className)}>
       {/* Mode toggle */}
@@ -117,8 +123,13 @@ export function ImageInput({
             shape === "circle" ? "h-20 w-20 rounded-full" : "h-24 w-24 rounded-xl",
           )}
         >
-          {hasImage ? (
-            <img src={value} alt="" className={cn("h-full w-full object-cover", tileClass)} />
+          {showImage ? (
+            <img
+              src={value}
+              alt=""
+              onError={() => setImgFailed(true)}
+              className={cn("h-full w-full object-cover", tileClass)}
+            />
           ) : isWorking ? (
             <Loader2 className="h-5 w-5 animate-spin text-[var(--color-primary)]" />
           ) : (
@@ -133,9 +144,9 @@ export function ImageInput({
                 {isWorking
                   ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   : <Upload className="h-3.5 w-3.5" />}
-                {hasImage ? "Replace image" : "Choose image"}
+                {showImage ? "Replace image" : "Choose image"}
               </Button>
-              {hasImage && !isWorking && (
+              {showImage && !isWorking && (
                 <Button type="button" size="sm" variant="outline" onClick={() => onChange("")}>
                   <X className="h-3.5 w-3.5" />
                   Remove

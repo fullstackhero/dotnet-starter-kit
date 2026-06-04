@@ -144,6 +144,12 @@ export function EntityDetailAvatar({
         .toUpperCase() || "·"
     : "·";
 
+  // Fall back to the icon/initials when the image is missing OR fails to load
+  // (e.g. a seeded default-avatar URL that 404s) — never show a broken image.
+  const [imgFailed, setImgFailed] = React.useState(false);
+  React.useEffect(() => setImgFailed(false), [src]);
+  const showImage = Boolean(src) && !imgFailed;
+
   return (
     <div
       className={cn(
@@ -153,8 +159,13 @@ export function EntityDetailAvatar({
         className,
       )}
     >
-      {src ? (
-        <img src={src} alt="" className="size-full object-cover" />
+      {showImage ? (
+        <img
+          src={src ?? undefined}
+          alt=""
+          onError={() => setImgFailed(true)}
+          className="size-full object-cover"
+        />
       ) : Icon ? (
         <Icon className="size-5 text-[var(--color-primary)] sm:size-6" />
       ) : (

@@ -34,6 +34,15 @@ import {
   type FileAssetDto,
 } from "@/api/files";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
 import {
   EntityEmpty,
@@ -376,9 +385,11 @@ function TrashShell<T>({
   mapRow: (item: T) => RowVm;
 }) {
   const navigate = useNavigate();
+  const [pendingId, setPendingId] = useState<string | null>(null);
   const items = query.data?.items ?? [];
   const total = query.data?.totalCount ?? 0;
   const rows = items.map(mapRow);
+  const pendingRow = rows.find((r) => r.id === pendingId) ?? null;
 
   if (query.isLoading && rows.length === 0) {
     return <EntityListLoading desktopColumns={DESKTOP_COLS} />;
@@ -426,7 +437,11 @@ function TrashShell<T>({
       {/* Mobile cards */}
       <div className="space-y-2 md:hidden">
         {rows.map((row) => (
-          <TrashMobileCard key={row.id} row={row} />
+          <TrashMobileCard
+            key={row.id}
+            row={row}
+            onRequestRestore={() => setPendingId(row.id)}
+          />
         ))}
       </div>
 
@@ -439,7 +454,12 @@ function TrashShell<T>({
           <span className="text-right">Actions</span>
         </EntityListHeader>
         {rows.map((row, i) => (
-          <TrashDesktopRow key={row.id} row={row} isLast={i === rows.length - 1} />
+          <TrashDesktopRow
+            key={row.id}
+            row={row}
+            isLast={i === rows.length - 1}
+            onRequestRestore={() => setPendingId(row.id)}
+          />
         ))}
       </EntityListCard>
 
@@ -451,7 +471,59 @@ function TrashShell<T>({
         onPrev={() => setPageNumber(Math.max(1, pageNumber - 1))}
         onNext={() => setPageNumber(pageNumber + 1)}
       />
+
+      <RestoreConfirmDialog
+        row={pendingRow}
+        label={label}
+        onClose={() => setPendingId(null)}
+        onConfirm={() => {
+          pendingRow?.onRestore();
+          setPendingId(null);
+        }}
+      />
     </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+//  Restore confirmation
+// ───────────────────────────────────────────────────────────────────────
+
+function RestoreConfirmDialog({
+  row,
+  label,
+  onClose,
+  onConfirm,
+}: {
+  row: RowVm | null;
+  label: string;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const singular = label.replace(/s$/, "").toLowerCase();
+  return (
+    <Dialog open={row !== null} onOpenChange={(o) => (!o ? onClose() : undefined)}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Restore {singular}?</DialogTitle>
+          <DialogDescription>
+            <span className="font-medium text-[var(--color-foreground)]">{row?.title}</span>{" "}
+            will be moved back to its {singular} list with the same ID and history intact.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type="button" onClick={onConfirm} className="gap-1.5">
+            <RotateCcw className="size-3.5" />
+            Restore {singular}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -470,7 +542,13 @@ function tabPath(label: string): string {
 //  Mobile card
 // ───────────────────────────────────────────────────────────────────────
 
-function TrashMobileCard({ row }: { row: RowVm }) {
+function TrashMobileCard({
+  row,
+  onRequestRestore,
+}: {
+  row: RowVm;
+  onRequestRestore: () => void;
+}) {
   return (
     <div
       className={cn(
@@ -493,7 +571,7 @@ function TrashMobileCard({ row }: { row: RowVm }) {
         <Button
           variant="outline"
           size="sm"
-          onClick={row.onRestore}
+          onClick={onRequestRestore}
           disabled={row.isRestoring}
           className="shrink-0 gap-1.5"
         >
@@ -520,7 +598,15 @@ function TrashMobileCard({ row }: { row: RowVm }) {
 //  Desktop row
 // ───────────────────────────────────────────────────────────────────────
 
-function TrashDesktopRow({ row, isLast }: { row: RowVm; isLast: boolean }) {
+function TrashDesktopRow({
+  row,
+  isLast,
+  onRequestRestore,
+}: {
+  row: RowVm;
+  isLast: boolean;
+  onRequestRestore: () => void;
+}) {
   return (
     <EntityListRow className={DESKTOP_COLS} isLast={isLast}>
       {/* Entity */}
@@ -558,7 +644,7 @@ function TrashDesktopRow({ row, isLast }: { row: RowVm; isLast: boolean }) {
         <Button
           variant="outline"
           size="sm"
-          onClick={row.onRestore}
+          onClick={onRequestRestore}
           disabled={row.isRestoring}
           className="gap-1.5"
         >

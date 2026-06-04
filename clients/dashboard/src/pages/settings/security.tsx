@@ -3,8 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   AlertCircle,
+  Check,
   ClipboardCheck,
   Copy,
+  Eye,
+  EyeOff,
   KeyRound,
   LogOut,
   MonitorSmartphone,
@@ -23,6 +26,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -289,6 +293,95 @@ function PasswordCard() {
   );
 }
 
+// Labelled password field with an inline show/hide toggle. Reusable across the
+// security dialogs so every secret entry behaves identically.
+function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+  autoComplete,
+  autoFocus,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete: string;
+  autoFocus?: boolean;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={show ? "text" : "password"}
+          autoComplete={autoComplete}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoFocus={autoFocus}
+          required
+          className="pr-10"
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={show ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          onClick={() => setShow((s) => !s)}
+          className="absolute right-1.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-md text-[var(--color-muted-foreground)] outline-none transition-colors hover:text-[var(--color-foreground)] focus-visible:ring-2 focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
+        >
+          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 0–4 heuristic: length tiers + mixed case + digit/symbol. Drives the meter only;
+// the server enforces the real policy.
+function passwordStrength(pw: string): { score: number; label: string } {
+  if (!pw) return { score: 0, label: "" };
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
+  if (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) s++;
+  s = Math.max(1, Math.min(4, s));
+  return { score: s, label: ["", "Weak", "Fair", "Good", "Strong"][s] };
+}
+
+function StrengthMeter({ password }: { password: string }) {
+  if (!password) return null;
+  const { score, label } = passwordStrength(password);
+  const tone =
+    score <= 1
+      ? "var(--color-destructive)"
+      : score < 4
+        ? "var(--color-warning)"
+        : "var(--color-success)";
+  return (
+    <div className="mt-2 flex items-center gap-2.5">
+      <div className="flex flex-1 gap-1" aria-hidden>
+        {[1, 2, 3, 4].map((i) => (
+          <span
+            key={i}
+            className="h-1 flex-1 rounded-full transition-colors duration-[var(--duration-fast)]"
+            style={{ backgroundColor: i <= score ? tone : "var(--color-muted)" }}
+          />
+        ))}
+      </div>
+      <span
+        className="shrink-0 text-[11px] font-semibold tabular-nums"
+        style={{ color: tone }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
 function ChangePasswordDialog({
   open,
   onOpenChange,
@@ -350,60 +443,70 @@ function ChangePasswordDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change password</DialogTitle>
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.20)]">
+              <KeyRound className="size-4 text-[var(--color-primary)]" />
+            </span>
+            <DialogTitle>Change password</DialogTitle>
+          </div>
           <DialogDescription>
-            Sign-out events for other devices aren't fired automatically —
-            visit the Sessions list below to end them after rotating your password.
+            Pick a strong password you don&apos;t reuse elsewhere. Your other
+            signed-in sessions stay active — revoke them below if you want them out.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="space-y-3" noValidate>
-          <div className="space-y-1.5">
-            <Label htmlFor="cp-current">Current password</Label>
-            <Input
+        <form onSubmit={onSubmit} className="contents" noValidate>
+          <DialogBody className="space-y-4">
+            <PasswordField
               id="cp-current"
-              type="password"
-              autoComplete="current-password"
+              label="Current password"
               value={current}
-              onChange={(e) => setCurrent(e.target.value)}
-              required
+              onChange={setCurrent}
+              autoComplete="current-password"
               autoFocus
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="cp-next">New password</Label>
-            <Input
-              id="cp-next"
-              type="password"
-              autoComplete="new-password"
-              value={next}
-              onChange={(e) => setNext(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="cp-confirm">Confirm new password</Label>
-            <Input
-              id="cp-confirm"
-              type="password"
-              autoComplete="new-password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
 
-          {localError && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-md border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.40)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-sm text-[var(--color-destructive)]"
-            >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span className="leading-snug">{localError}</span>
+            <div>
+              <PasswordField
+                id="cp-next"
+                label="New password"
+                value={next}
+                onChange={setNext}
+                autoComplete="new-password"
+              />
+              <StrengthMeter password={next} />
             </div>
-          )}
+
+            <div>
+              <PasswordField
+                id="cp-confirm"
+                label="Confirm new password"
+                value={confirm}
+                onChange={setConfirm}
+                autoComplete="new-password"
+              />
+              {confirm.length > 0 &&
+                (confirm === next ? (
+                  <p className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-[var(--color-success)]">
+                    <Check className="size-3.5" /> Passwords match
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-[11px] text-[var(--color-muted-foreground)]">
+                    Passwords don&apos;t match yet
+                  </p>
+                ))}
+            </div>
+
+            {localError && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.40)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="leading-snug">{localError}</span>
+              </div>
+            )}
+          </DialogBody>
 
           <DialogFooter>
             <Button
@@ -675,17 +778,13 @@ function TwoFactorDisable() {
         a new QR code.
       </p>
       <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-        <div className="space-y-1.5">
-          <Label htmlFor="disable-pw">Current password</Label>
-          <Input
-            id="disable-pw"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="font-mono"
-          />
-        </div>
+        <PasswordField
+          id="disable-pw"
+          label="Current password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+        />
         <Button
           type="button"
           variant="destructive"

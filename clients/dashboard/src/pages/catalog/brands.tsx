@@ -588,6 +588,7 @@ function DeleteBrandDialog({
     onSuccess: () => {
       toast.success("Brand deleted");
       queryClient.invalidateQueries({ queryKey: ["catalog", "brands"] });
+      queryClient.invalidateQueries({ queryKey: ["trash", "brands"] });
       onClose();
     },
     onError: (err) => toast.error("Delete failed", { description: describe(err) }),

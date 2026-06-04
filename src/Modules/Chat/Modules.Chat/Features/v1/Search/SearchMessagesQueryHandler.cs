@@ -13,7 +13,8 @@ namespace FSH.Modules.Chat.Features.v1.Search;
 
 public sealed class SearchMessagesQueryHandler(
     ChatDbContext db,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IMediator mediator)
     : IQueryHandler<SearchMessagesQuery, ReadOnlyCollection<MessageDto>>
 {
     public async ValueTask<ReadOnlyCollection<MessageDto>> Handle(
@@ -70,6 +71,8 @@ LIMIT {pageSize} OFFSET {offset}
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return rows.Select(m => m.ToDto()).ToList().AsReadOnly();
+        var dtos = rows.Select(m => m.ToDto()).ToList();
+        var resolved = await ChatAttachmentUrls.ResolveAsync(dtos, mediator, cancellationToken).ConfigureAwait(false);
+        return resolved.AsReadOnly();
     }
 }

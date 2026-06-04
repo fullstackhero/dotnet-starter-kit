@@ -347,7 +347,7 @@ export function ProductsPage() {
           {/* Desktop: table */}
           <div className="hidden overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs md:block">
             {/* Header */}
-            <div className="grid grid-cols-[1fr_120px_24px] gap-3 border-b border-[var(--color-border)] bg-[oklch(from_var(--color-muted)_l_c_h_/_0.4)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:grid-cols-[1fr_140px_110px_120px_24px]">
+            <div className="grid grid-cols-[1fr_120px_24px] gap-3 border-b border-[var(--color-border)] bg-[oklch(from_var(--color-muted)_l_c_h_/_0.4)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:grid-cols-[1fr_140px_110px_120px_90px]">
               <span>Product</span>
               <span>SKU</span>
               <span className="hidden lg:block">Brand</span>
@@ -521,7 +521,7 @@ function DesktopRow({
       className={cn(
         "group grid grid-cols-[1fr_120px_24px] items-center gap-3 px-5 py-3 transition-colors duration-100",
         "hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)]",
-        "lg:grid-cols-[1fr_140px_110px_120px_24px]",
+        "lg:grid-cols-[1fr_140px_110px_120px_90px]",
         !isLast && "border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.3)]",
         !product.isActive && "opacity-75",
       )}
@@ -1369,6 +1369,7 @@ function DeleteProductDialog({
     onSuccess: () => {
       toast.success("Product deleted");
       queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["trash", "products"] });
       onClose();
     },
     onError: (err) => toast.error("Delete failed", { description: describe(err) }),
