@@ -8,5 +8,5 @@ namespace FSH.Modules.Files.Contracts.v1.Commands;
 /// <see cref="IFileAccessPolicy.CanChangeVisibilityAsync"/> — by default the uploader.
 /// Returns the refreshed FileAssetDto so the SPA can update its preview/list in place.
 /// </summary>
-public sealed record ChangeFileVisibilityCommand(Guid FileAssetId, int Visibility)
+public sealed record ChangeFileVisibilityCommand(Guid FileAssetId, Visibility Visibility)
     : ICommand<FileAssetDto>;

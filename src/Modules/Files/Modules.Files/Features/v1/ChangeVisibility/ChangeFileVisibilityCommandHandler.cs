@@ -24,7 +24,7 @@ public sealed class ChangeFileVisibilityCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
 
-        if (cmd.Visibility != (int)Visibility.Public && cmd.Visibility != (int)Visibility.Private)
+        if (cmd.Visibility is not (Visibility.Public or Visibility.Private))
         {
             throw new CustomException(
                 $"Unknown visibility value '{cmd.Visibility}'.",
@@ -46,7 +46,7 @@ public sealed class ChangeFileVisibilityCommandHandler(
             throw new ForbiddenException("not allowed to change this file's visibility");
         }
 
-        f.ChangeVisibility((Visibility)cmd.Visibility);
+        f.ChangeVisibility(cmd.Visibility);
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var publicUrl = f.Visibility == Visibility.Public

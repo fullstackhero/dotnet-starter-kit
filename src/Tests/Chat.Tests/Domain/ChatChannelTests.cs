@@ -1,3 +1,4 @@
+using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Domain;
 using FSH.Modules.Chat.Domain.Events;
 

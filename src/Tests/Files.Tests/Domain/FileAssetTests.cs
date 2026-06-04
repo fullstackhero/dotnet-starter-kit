@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Exceptions;
+using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Domain;
 
 namespace Files.Tests.Domain;
