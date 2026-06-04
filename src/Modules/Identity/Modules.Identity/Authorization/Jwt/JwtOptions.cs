@@ -22,6 +22,18 @@ public class JwtOptions : IValidatableObject
             yield return new ValidationResult("SigningKey must be at least 32 characters long.", [nameof(SigningKey)]);
         }
 
+        // Reject obvious placeholder strings shipped in sample configs. The framework's
+        // own appsettings.json carries a "replace-with-..." sample value; if an operator
+        // forgets to override it in their deployment, tokens are forgeable by anyone
+        // who has read this repo. Better to refuse to start than to silently issue them.
+        if (!string.IsNullOrEmpty(SigningKey) &&
+            SigningKey.Contains("replace-with", StringComparison.OrdinalIgnoreCase))
+        {
+            yield return new ValidationResult(
+                "SigningKey looks like a sample placeholder ('replace-with-…'). Set a real secret via environment variable or user-secrets before starting the host.",
+                [nameof(SigningKey)]);
+        }
+
         if (string.IsNullOrEmpty(Issuer))
         {
             yield return new ValidationResult("No Issuer defined in JwtOptions config", [nameof(Issuer)]);

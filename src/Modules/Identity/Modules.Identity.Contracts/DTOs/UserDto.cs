@@ -19,4 +19,7 @@ public class UserDto
     public string? PhoneNumber { get; set; }
 
     public string? ImageUrl { get; set; }
+
+    /// <summary>Whether the user has enrolled in TOTP-based two-factor authentication.</summary>
+    public bool TwoFactorEnabled { get; set; }
 }

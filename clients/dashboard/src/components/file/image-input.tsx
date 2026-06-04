@@ -113,7 +113,7 @@ export function ImageInput({
       <div className="flex items-start gap-4">
         <div
           className={cn(
-            "relative grid place-items-center overflow-hidden bg-[var(--color-surface-3)] ring-1 ring-[var(--color-border-strong)]",
+            "relative grid place-items-center overflow-hidden bg-[var(--color-muted)] ring-1 ring-inset ring-border",
             shape === "circle" ? "h-20 w-20 rounded-full" : "h-24 w-24 rounded-xl",
           )}
         >
@@ -142,7 +142,7 @@ export function ImageInput({
                 </Button>
               )}
               {isUploading && progress && (
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+                <span className="text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
                   {progress.percent}% · {formatBytes(progress.loaded)} / {formatBytes(progress.totalBytes)}
                 </span>
               )}
@@ -187,7 +187,7 @@ function ModeChip({
         "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-xs font-medium transition-colors duration-[var(--duration-fast)]",
         active
           ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
-          : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-surface-3)]",
+          : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]",
       )}
     >
       {icon}

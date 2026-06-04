@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Pin } from "lucide-react";
+import { ChevronDown, Pin } from "lucide-react";
 import { listPinnedMessages, type MessageDto } from "@/api/chat";
 import {
   DropdownMenu,
@@ -13,12 +13,14 @@ import { useUserDisplay } from "@/lib/use-user-display";
 import { shortDateTime } from "@/pages/chat/chat-utils";
 
 /**
- * Pinned messages dropdown — anchored to a Pin icon button in the channel
- * header. Lists pinned messages most-recently-pinned-first; click a row
- * to jump to the message in the feed (which scrolls + flashes via the
+ * Pinned-messages bar — a slim strip under the channel header that surfaces
+ * how many messages are pinned and opens a list to review/jump to them.
+ * Renders nothing when the channel has no pins. Replaces the old unlabelled
+ * header pin glyph: a labelled, counted bar is far more discoverable.
+ * Clicking a row jumps the feed to the message (scroll + flash via the
  * MessageList handle).
  */
-export function ChatPinnedDropdown({
+export function ChatPinnedBar({
   channelId,
   onJump,
 }: {
@@ -27,56 +29,69 @@ export function ChatPinnedDropdown({
 }) {
   const [open, setOpen] = useState(false);
 
+  // Eager (not gated on `open`) so the bar knows the count and can show or
+  // hide itself. Kept fresh by the pin/unpin mutation + realtime handlers,
+  // which invalidate this exact key.
   const pinnedQuery = useQuery({
     queryKey: ["chat", "pinned", channelId],
     queryFn: () => listPinnedMessages(channelId),
-    enabled: open,
     staleTime: 60_000,
   });
 
   const pinned = pinnedQuery.data ?? [];
+  // No bar until there's something pinned — keeps the chrome quiet by default.
+  if (pinned.length === 0) return null;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Pinned messages"
-          title="Pinned messages"
+          aria-label={`${pinned.length} pinned ${pinned.length === 1 ? "message" : "messages"}, click to review`}
           className={cn(
-            "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
-            "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+            "flex w-full shrink-0 cursor-pointer items-center gap-2 px-4 py-1.5 text-[12px]",
+            "border-b border-[var(--color-border)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.06)]",
+            "text-[var(--color-muted-foreground)]",
             "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+            "hover:bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] hover:text-[var(--color-foreground)]",
           )}
         >
-          <Pin className="h-3.5 w-3.5" />
+          <Pin className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" aria-hidden />
+          <span className="font-medium">
+            {pinned.length} pinned {pinned.length === 1 ? "message" : "messages"}
+          </span>
+          <ChevronDown
+            className={cn(
+              "ml-auto h-3.5 w-3.5 transition-transform duration-[var(--duration-fast)]",
+              open && "rotate-180",
+            )}
+            aria-hidden
+          />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[320px] p-0">
+      <DropdownMenuContent
+        align="start"
+        sideOffset={0}
+        className="w-[min(420px,calc(100vw-2rem))] p-0"
+      >
         <div className="border-b border-[var(--color-border)] px-3 py-2">
-          <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
             Pinned messages
           </p>
         </div>
         <div className="max-h-[60vh] overflow-y-auto">
-          {pinnedQuery.isLoading ? (
-            <Placeholder label="Loading…" mono />
-          ) : pinned.length === 0 ? (
-            <Placeholder label="Nothing pinned in this channel yet." />
-          ) : (
-            <ul className="divide-y divide-[var(--color-border)]">
-              {pinned.map((m) => (
-                <PinnedRow
-                  key={m.id}
-                  message={m}
-                  onPick={() => {
-                    onJump(m.id);
-                    setOpen(false);
-                  }}
-                />
-              ))}
-            </ul>
-          )}
+          <ul className="divide-y divide-[var(--color-border)]">
+            {pinned.map((m) => (
+              <PinnedRow
+                key={m.id}
+                message={m}
+                onPick={() => {
+                  onJump(m.id);
+                  setOpen(false);
+                }}
+              />
+            ))}
+          </ul>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -120,7 +135,7 @@ function PinnedRow({
             <span className="truncate text-[12.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
               {author.name}
             </span>
-            <span className="font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
+            <span className="text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
               {shortDateTime(message.createdAtUtc)}
             </span>
           </div>
@@ -133,17 +148,3 @@ function PinnedRow({
   );
 }
 
-function Placeholder({ label, mono }: { label: string; mono?: boolean }) {
-  return (
-    <div className="px-3 py-8 text-center">
-      <p
-        className={cn(
-          "text-sm text-[var(--color-muted-foreground)]",
-          mono && "font-mono text-[11px] uppercase tracking-[0.14em]",
-        )}
-      >
-        {label}
-      </p>
-    </div>
-  );
-}

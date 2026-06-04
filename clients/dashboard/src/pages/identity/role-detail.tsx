@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   useMutation,
   useQuery,
@@ -7,34 +7,29 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Check,
-  Hash,
+  ChevronDown,
+  KeyRound,
   Lock,
   Minus,
+  Search,
   ShieldCheck,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import {
   deleteRole,
+  getPermissionsCatalog,
   getRoleWithPermissions,
   updateRolePermissions,
   upsertRole,
 } from "@/api/identity";
 import {
-  IDENTITY_PERMISSIONS,
-  PERMISSION_GROUPS,
+  groupPermissions,
   type PermissionDescriptor,
 } from "@/api/permissions-catalog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,7 +42,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ErrorBand, Field } from "@/components/list";
+import {
+  EntityDetailAvatar,
+  EntityDetailBack,
+  EntityDetailHero,
+  EntityDetailSection,
+  EntityDetailStat,
+  ErrorBand,
+  Field,
+} from "@/components/list";
 import { describe, pad2 } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
 
@@ -71,6 +74,20 @@ export function RoleDetailPage() {
     enabled: !!roleId,
   });
 
+  // Permission catalog — fetched from the server so the editor knows about
+  // every module's permissions, not just Identity's. Stable for the session;
+  // tenant context only switches on full sign-in/out which kills the cache.
+  const catalogQuery = useQuery({
+    queryKey: ["identity", "permissions", "catalog"],
+    queryFn: getPermissionsCatalog,
+    staleTime: 10 * 60 * 1000,
+  });
+  const catalog = useMemo<PermissionDescriptor[]>(
+    () => catalogQuery.data ?? [],
+    [catalogQuery.data],
+  );
+  const catalogGroups = useMemo(() => groupPermissions(catalog), [catalog]);
+
   const role = roleQuery.data;
 
   const [name, setName] = useState("");
@@ -78,6 +95,16 @@ export function RoleDetailPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [initial, setInitial] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Permissions editor — browse-friendly state. Search, filter chips, and
+  // a Set of explicitly-expanded groups. Search or a non-"all" filter
+  // implicitly expands every matching group so results never hide behind
+  // a closed accordion.
+  type PermFilter = "all" | "enabled" | "modified" | "basic";
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<PermFilter>("all");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!role) return;
@@ -122,9 +149,75 @@ export function RoleDetailPage() {
   };
 
   const presetBasic = () =>
-    setSelected(new Set(IDENTITY_PERMISSIONS.filter((p) => p.isBasic).map((p) => p.name)));
-  const presetAll = () => setSelected(new Set(IDENTITY_PERMISSIONS.map((p) => p.name)));
+    setSelected(new Set(catalog.filter((p) => p.isBasic).map((p) => p.name)));
+  const presetAll = () => setSelected(new Set(catalog.map((p) => p.name)));
   const presetClear = () => setSelected(new Set());
+
+  // ── Editor filter pipeline ──────────────────────────────────────────────
+  // Counts for the filter chips — they read against the *current* selection,
+  // not the catalog, so "Modified · 3" updates live as the user toggles.
+  const modifiedCount = useMemo(() => {
+    let n = 0;
+    for (const p of catalog) {
+      if (selected.has(p.name) !== initial.has(p.name)) n += 1;
+    }
+    return n;
+  }, [selected, initial, catalog]);
+  const basicCount = useMemo(
+    () => catalog.filter((p) => p.isBasic).length,
+    [catalog],
+  );
+
+  const matchesSearch = (p: PermissionDescriptor, q: string) => {
+    if (!q) return true;
+    const needle = q.toLowerCase();
+    return (
+      p.resource.toLowerCase().includes(needle) ||
+      p.action.toLowerCase().includes(needle) ||
+      p.description.toLowerCase().includes(needle) ||
+      p.name.toLowerCase().includes(needle)
+    );
+  };
+  const matchesFilter = (p: PermissionDescriptor): boolean => {
+    switch (filter) {
+      case "enabled":
+        return selected.has(p.name);
+      case "modified":
+        return selected.has(p.name) !== initial.has(p.name);
+      case "basic":
+        return !!p.isBasic;
+      default:
+        return true;
+    }
+  };
+
+  // Visible groups: each group keeps only the perms that pass both filters.
+  // Groups with zero matches drop out entirely so the accordion stays tight.
+  const visibleGroups = useMemo(() => {
+    const q = searchQuery.trim();
+    return catalogGroups.map((g) => ({
+      resource: g.resource,
+      permissions: g.permissions.filter((p) => matchesSearch(p, q) && matchesFilter(p)),
+    })).filter((g) => g.permissions.length > 0);
+    // matchesFilter / matchesSearch use selected/initial/filter/searchQuery;
+    // explicit deps so eslint is happy and re-renders only when needed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, filter, selected, initial, catalogGroups]);
+
+  // Force-expand when a filter or search is active so results aren't hiding.
+  const forceExpand = searchQuery.trim() !== "" || filter !== "all";
+
+  const toggleGroup = (resource: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(resource)) next.delete(resource);
+      else next.add(resource);
+      return next;
+    });
+  };
+  const expandAllGroups = () =>
+    setExpandedGroups(new Set(catalogGroups.map((g) => g.resource)));
+  const collapseAllGroups = () => setExpandedGroups(new Set());
 
   const saveMeta = useMutation({
     mutationFn: () =>
@@ -180,12 +273,14 @@ export function RoleDetailPage() {
 
   const isSaving = saveMeta.isPending || savePerms.isPending;
 
-  if (roleQuery.isLoading) {
+  // Block on both queries so the permissions editor never renders with an
+  // empty catalog (which would look broken: zero groups, 0/0 enabled, etc.).
+  if (roleQuery.isLoading || catalogQuery.isLoading) {
     return (
       <div className="space-y-6">
-        <BackLink />
-        <Skeleton className="h-32 rounded-2xl" />
-        <Skeleton className="h-96 rounded-2xl" />
+        <EntityDetailBack to="/identity/roles" label="Back to roles" />
+        <Skeleton className="h-32 rounded-xl" />
+        <Skeleton className="h-96 rounded-xl" />
       </div>
     );
   }
@@ -193,97 +288,72 @@ export function RoleDetailPage() {
   if (roleQuery.isError || !role) {
     return (
       <div className="space-y-4">
-        <BackLink />
+        <EntityDetailBack to="/identity/roles" label="Back to roles" />
         <ErrorBand message={roleQuery.error ? describe(roleQuery.error) : "Role not found."} />
       </div>
     );
   }
 
+  if (catalogQuery.isError) {
+    return (
+      <div className="space-y-4">
+        <EntityDetailBack to="/identity/roles" label="Back to roles" />
+        <ErrorBand
+          message={`Couldn't load the permission catalog: ${describe(catalogQuery.error)}`}
+        />
+      </div>
+    );
+  }
+
   const totalSelected = selected.size;
-  const totalCatalog = IDENTITY_PERMISSIONS.length;
+  const totalCatalog = catalog.length;
   const isSystem = isSystemRoleName(role.name);
 
   return (
-    <div className="space-y-7 pb-12">
-      <BackLink />
+    <div className="space-y-5 pb-12">
+      <EntityDetailBack to="/identity/roles" label="Back to roles" />
 
-      {/* Hero */}
-      <section
-        className={cn(
-          "fsh-enter fsh-enter-1 card-shell relative overflow-hidden rounded-[20px]",
-          "bg-[var(--color-surface-3)]",
-        )}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            backgroundImage: `
-              radial-gradient(60% 70% at 0% 0%, oklch(from var(--color-primary) l c h / 0.15), transparent 60%),
-              radial-gradient(50% 60% at 100% 100%, oklch(from var(--color-primary) l c h / 0.07), transparent 70%)
-            `,
-          }}
-        />
-        <div className="relative flex flex-col gap-6 px-6 py-7 sm:px-8 sm:py-9 md:flex-row md:items-end md:justify-between md:px-10">
-          <div className="flex items-start gap-5">
-            <span
-              aria-hidden
-              className={cn(
-                "grid h-14 w-14 shrink-0 place-items-center rounded-2xl",
-                "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.22),oklch(from_var(--color-primary)_l_c_h_/_0.04))]",
-                "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.30)]",
-                "shadow-[var(--highlight-top)]",
-              )}
-            >
-              <ShieldCheck className="h-7 w-7 text-[var(--color-primary)]" />
-            </span>
-            <div className="min-w-0">
-              <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                {isSystem ? "System role · permissions" : "Role · permissions"}
-              </span>
-              <h1 className="text-display mt-1 flex items-center gap-3 truncate text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[38px]">
-                <span className="truncate">{role.name}</span>
-                {isSystem && (
-                  <span
-                    aria-hidden
-                    title="System role — managed by the framework"
-                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
-                  >
-                    <Lock className="h-3.5 w-3.5" />
-                  </span>
-                )}
-              </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <Badge variant="brand">
-                  {pad2(totalSelected)} / {pad2(totalCatalog)} permissions
-                </Badge>
-                {isSystem && <Badge variant="outline">system</Badge>}
-                <code className="inline-flex items-center gap-1 rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-muted-foreground)]">
-                  <Hash className="h-2.5 w-2.5" /> {role.id}
-                </code>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setConfirmDelete(true)}
-              disabled={isSystem}
-              title={isSystem ? "System roles cannot be deleted." : undefined}
-            >
-              <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete role
-            </Button>
-          </div>
-        </div>
-      </section>
+      <EntityDetailHero
+        avatar={<EntityDetailAvatar name={role.name} icon={ShieldCheck} />}
+        title={role.name}
+        badges={
+          <>
+            {isSystem && (
+              <Badge variant="outline">
+                <Lock className="h-3 w-3" /> System
+              </Badge>
+            )}
+          </>
+        }
+        subtitle={role.description || (isSystem ? "Built-in role managed by the framework." : "Custom role.")}
+        actions={
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setConfirmDelete(true)}
+            disabled={isSystem}
+            title={isSystem ? "System roles cannot be deleted." : undefined}
+          >
+            <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete role
+          </Button>
+        }
+        stats={
+          <>
+            <EntityDetailStat
+              icon={KeyRound}
+              value={`${pad2(totalSelected)} / ${pad2(totalCatalog)}`}
+              label="permissions"
+              tone="primary"
+            />
+          </>
+        }
+      />
 
       {isSystem && (
-        <section
+        <div
           role="status"
           aria-live="polite"
-          className="fsh-enter fsh-enter-1 flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3"
+          className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3"
         >
           <span
             aria-hidden
@@ -302,19 +372,16 @@ export function RoleDetailPage() {
               need a different set of grants.
             </p>
           </div>
-        </section>
+        </div>
       )}
 
       {/* Metadata */}
-      <Card className="fsh-enter fsh-enter-2">
-        <CardHeader>
-          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-            Identity
-          </span>
-          <CardTitle className="text-[15px]">Role details</CardTitle>
-          <CardDescription>The display label and a one-line summary admins will see at assignment time.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 pt-1 md:grid-cols-2">
+      <EntityDetailSection
+        title="Role details"
+        icon={ShieldCheck}
+        description="The display label and a one-line summary admins will see at assignment time."
+      >
+        <div className="grid gap-4 md:grid-cols-2">
           <Field id="role-name" label="Name" required>
             <Input
               id="role-name"
@@ -338,159 +405,245 @@ export function RoleDetailPage() {
               className={cn(isSystem && "cursor-not-allowed opacity-70")}
             />
           </Field>
-        </CardContent>
-      </Card>
+        </div>
+      </EntityDetailSection>
 
       {/* Permission editor */}
-      <Card className="fsh-enter fsh-enter-3 overflow-hidden">
-        <CardHeader>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                Authority · grants
-              </span>
-              <CardTitle className="mt-1 text-[15px]">Permissions</CardTitle>
-              <CardDescription>
-                Toggle individual permissions, or use a preset to seed a sensible default. Some
-                root-level permissions may be filtered server-side.
-              </CardDescription>
+      <EntityDetailSection
+        title="Permissions"
+        icon={KeyRound}
+        description="Search, filter, and toggle individual permissions — or seed a sensible default from a preset. Some root-level permissions may be filtered server-side."
+        action={
+          <div className="flex flex-wrap gap-1.5">
+            <PresetButton
+              onClick={presetBasic}
+              icon={<Sparkles className="h-3 w-3" />}
+              label="Basic"
+              disabled={isSystem}
+            />
+            <PresetButton onClick={presetAll} label="All" disabled={isSystem} />
+            <PresetButton onClick={presetClear} label="Clear" disabled={isSystem} />
+          </div>
+        }
+        padded={false}
+        footer={
+          !isSystem ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="text-[11.5px] font-medium text-[var(--color-muted-foreground)]">
+                {isDirty ? (
+                  <span className="inline-flex items-center gap-1.5 text-[var(--color-warning)]">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" />
+                    Unsaved changes
+                  </span>
+                ) : (
+                  "All changes saved"
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={reset} disabled={!isDirty || isSaving}>
+                  Discard
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={saveAll}
+                  disabled={!isDirty || isSaving}
+                >
+                  {isSaving ? "Saving…" : "Save changes"}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              <PresetButton
-                onClick={presetBasic}
-                icon={<Sparkles className="h-3 w-3" />}
-                label="Basic"
-                disabled={isSystem}
+          ) : undefined
+        }
+      >
+        {/* Toolbar — search + filter chips. Sticky-ish at the top of the
+            editor card so it stays in reach as the user scrolls long
+            group lists. */}
+        <div className="border-b border-[var(--color-border)] px-5 py-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by resource, action, or description…"
+                aria-label="Search permissions"
+                className={cn(
+                  "h-9 w-full rounded-md border border-[var(--color-input)] bg-transparent pl-9 pr-9",
+                  "text-[13px] outline-none transition-colors",
+                  "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]",
+                  "focus-visible:border-[var(--color-ring)] focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
+                )}
               />
-              <PresetButton onClick={presetAll} label="All" disabled={isSystem} />
-              <PresetButton onClick={presetClear} label="Clear" disabled={isSystem} />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-1 overflow-x-auto">
+              <FilterChip active={filter === "all"} count={totalCatalog} onClick={() => setFilter("all")}>
+                All
+              </FilterChip>
+              <FilterChip
+                active={filter === "enabled"}
+                count={totalSelected}
+                onClick={() => setFilter("enabled")}
+                disabled={totalSelected === 0}
+              >
+                Enabled
+              </FilterChip>
+              <FilterChip
+                active={filter === "modified"}
+                count={modifiedCount}
+                tone="warning"
+                onClick={() => setFilter("modified")}
+                disabled={modifiedCount === 0}
+              >
+                Modified
+              </FilterChip>
+              <FilterChip
+                active={filter === "basic"}
+                count={basicCount}
+                onClick={() => setFilter("basic")}
+              >
+                Basic
+              </FilterChip>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="px-0 pb-0 pt-0">
-          <div className="border-t border-[var(--color-border)] divide-y divide-[var(--color-border)]">
-            {PERMISSION_GROUPS.map((group) => {
-              const onCount = group.permissions.filter((p) => selected.has(p.name)).length;
-              const allOn = onCount === group.permissions.length;
-              const someOn = onCount > 0 && !allOn;
-              return (
-                <div key={group.resource} className="px-6 py-5 sm:px-8">
-                  {/* Group header */}
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setGroupAll(group.permissions, !allOn)}
-                        disabled={isSystem}
-                        className={cn(
-                          "grid h-5 w-5 shrink-0 place-items-center rounded border transition-colors",
-                          allOn
-                            ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
-                            : someOn
-                              ? "border-[var(--color-primary)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.40)] text-[var(--color-primary-foreground)]"
-                              : "border-[var(--color-input)] hover:border-[var(--color-foreground)]/40",
-                          isSystem && "cursor-not-allowed opacity-60",
-                        )}
-                        aria-label={`Toggle all ${group.resource}`}
-                      >
-                        {allOn ? (
-                          <Check className="h-3.5 w-3.5" />
-                        ) : someOn ? (
-                          <Minus className="h-3.5 w-3.5" />
-                        ) : null}
-                      </button>
-                      <h4 className="text-display text-[14px] font-semibold tracking-[-0.005em]">
-                        {group.resource}
-                      </h4>
-                      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-                        {pad2(onCount)} / {pad2(group.permissions.length)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setGroupAll(group.permissions, true)}
-                        disabled={isSystem}
-                        className={cn(
-                          "rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
-                          isSystem && "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-[var(--color-muted-foreground)]",
-                        )}
-                      >
-                        all
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setGroupAll(group.permissions, false)}
-                        disabled={isSystem}
-                        className={cn(
-                          "rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
-                          isSystem && "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-[var(--color-muted-foreground)]",
-                        )}
-                      >
-                        none
-                      </button>
-                    </div>
-                  </div>
+        </div>
 
-                  {/* Permissions grid */}
-                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                    {group.permissions.map((perm) => {
-                      const checked = selected.has(perm.name);
-                      const wasInitial = initial.has(perm.name);
-                      const dirty = checked !== wasInitial;
-                      return (
-                        <PermissionTile
-                          key={perm.name}
-                          perm={perm}
-                          checked={checked}
-                          dirty={dirty}
-                          onToggle={() => togglePerm(perm.name)}
-                          disabled={isSystem}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
+        {/* Summary strip — running count + expand/collapse-all */}
+        <div className="flex items-center justify-between gap-3 border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] bg-[var(--color-secondary)] px-5 py-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px]">
+            <span className="font-mono font-semibold tabular-nums text-[var(--color-foreground)]">
+              {pad2(totalSelected)} / {pad2(totalCatalog)}
+            </span>
+            <span className="text-[var(--color-muted-foreground)]">enabled</span>
+            {modifiedCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-[var(--color-warning)]">
+                <span aria-hidden className="text-[var(--color-muted-foreground)]">·</span>
+                <span aria-hidden className="inline-block size-1.5 rounded-full bg-[var(--color-warning)]" />
+                {modifiedCount} modified
+              </span>
+            )}
+            {forceExpand && visibleGroups.length > 0 && (
+              <span className="text-[var(--color-muted-foreground)]">
+                <span aria-hidden className="mr-1">·</span>
+                showing {visibleGroups.reduce((n, g) => n + g.permissions.length, 0)} match
+                {visibleGroups.reduce((n, g) => n + g.permissions.length, 0) === 1 ? "" : "es"}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-[11px]">
+            <button
+              type="button"
+              onClick={expandAllGroups}
+              disabled={forceExpand}
+              className={cn(
+                "cursor-pointer font-medium uppercase tracking-wider text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]",
+                forceExpand && "cursor-not-allowed opacity-40 hover:text-[var(--color-muted-foreground)]",
+              )}
+            >
+              Expand all
+            </button>
+            <span aria-hidden className="text-[var(--color-border-strong)]">·</span>
+            <button
+              type="button"
+              onClick={collapseAllGroups}
+              disabled={forceExpand}
+              className={cn(
+                "cursor-pointer font-medium uppercase tracking-wider text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]",
+                forceExpand && "cursor-not-allowed opacity-40 hover:text-[var(--color-muted-foreground)]",
+              )}
+            >
+              Collapse all
+            </button>
+          </div>
+        </div>
+
+        {/* Accordion of resource groups */}
+        {visibleGroups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 px-5 py-16 text-center">
+            <span
+              aria-hidden
+              className="grid size-10 place-items-center rounded-full bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
+            >
+              <Search className="size-4" />
+            </span>
+            <div>
+              <p className="text-[13px] font-medium text-[var(--color-foreground)]">
+                No permissions match
+              </p>
+              <p className="mt-0.5 text-[11.5px] text-[var(--color-muted-foreground)]">
+                Try a different term or clear the current filter.
+              </p>
+            </div>
+            {(searchQuery || filter !== "all") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilter("all");
+                  searchInputRef.current?.focus();
+                }}
+                className={cn(
+                  "mt-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-full px-3 text-[11px] font-medium",
+                  "bg-[var(--color-card)] ring-1 ring-inset ring-[var(--color-border)]",
+                  "text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+                )}
+              >
+                <X className="size-3" /> Reset filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--color-border)]">
+            {visibleGroups.map((group) => {
+              const fullGroup = catalogGroups.find((g) => g.resource === group.resource)!;
+              const onCount = fullGroup.permissions.filter((p) => selected.has(p.name)).length;
+              const total = fullGroup.permissions.length;
+              const allOn = onCount === total;
+              const someOn = onCount > 0 && !allOn;
+              const groupModified = fullGroup.permissions.filter(
+                (p) => selected.has(p.name) !== initial.has(p.name),
+              ).length;
+              const isExpanded = forceExpand || expandedGroups.has(group.resource);
+              const visibleCount = group.permissions.length;
+              return (
+                <PermissionGroupCard
+                  key={group.resource}
+                  resource={group.resource}
+                  visiblePermissions={group.permissions}
+                  totalInGroup={total}
+                  onCount={onCount}
+                  allOn={allOn}
+                  someOn={someOn}
+                  groupModified={groupModified}
+                  isExpanded={isExpanded}
+                  showingPartial={visibleCount !== total}
+                  visibleCount={visibleCount}
+                  onToggleExpand={() => toggleGroup(group.resource)}
+                  onSetGroupAll={(on) => setGroupAll(fullGroup.permissions, on)}
+                  onTogglePerm={togglePerm}
+                  selected={selected}
+                  initial={initial}
+                  disabled={isSystem}
+                />
               );
             })}
           </div>
-        </CardContent>
-
-        {/* Sticky save bar — hidden entirely for system roles since
-            the dirty/save flow does not apply when nothing can be edited. */}
-        {!isSystem && (
-          <div
-            className={cn(
-              "sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-border)]",
-              "bg-[var(--color-surface-2)] px-6 py-3 backdrop-blur",
-            )}
-          >
-            <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-              {isDirty ? (
-                <span className="inline-flex items-center gap-1.5 text-[var(--color-warning)]">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" />
-                  unsaved changes
-                </span>
-              ) : (
-                "all changes saved"
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={reset} disabled={!isDirty || isSaving}>
-                Discard
-              </Button>
-              <Button
-                size="sm"
-                onClick={saveAll}
-                disabled={!isDirty || isSaving}
-                className="brand-glow gradient-sheen"
-              >
-                {isSaving ? "Saving…" : "Save changes"}
-              </Button>
-            </div>
-          </div>
         )}
-      </Card>
+      </EntityDetailSection>
 
       {/* Delete dialog */}
       <Dialog
@@ -499,9 +652,6 @@ export function RoleDetailPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
-              Permanent action
-            </span>
             <DialogTitle>Delete role</DialogTitle>
             <DialogDescription>
               This permanently removes{" "}
@@ -546,12 +696,12 @@ function PresetButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "inline-flex h-7 items-center gap-1 rounded-full bg-[var(--color-surface-3)] px-3",
+        "inline-flex h-7 items-center gap-1 rounded-full bg-[var(--color-card)] px-3",
         "ring-1 ring-inset ring-[var(--color-border)]",
-        "font-mono text-[10.5px] font-medium uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]",
+        "text-[11px] font-medium text-[var(--color-muted-foreground)]",
         "transition-colors duration-[var(--duration-fast)]",
-        "hover:bg-[var(--color-surface-4)] hover:text-[var(--color-foreground)]",
-        disabled && "cursor-not-allowed opacity-50 hover:bg-[var(--color-surface-3)] hover:text-[var(--color-muted-foreground)]",
+        "hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+        disabled && "cursor-not-allowed opacity-50 hover:bg-[var(--color-card)] hover:text-[var(--color-muted-foreground)]",
       )}
     >
       {icon}
@@ -560,7 +710,284 @@ function PresetButton({
   );
 }
 
-function PermissionTile({
+/**
+ * FilterChip — pill that toggles a permissions filter. Shows a live count
+ * on the right. `tone="warning"` paints the count amber for the Modified
+ * chip so unsaved changes are scannable without reading the label.
+ */
+function FilterChip({
+  active,
+  count,
+  onClick,
+  disabled,
+  tone,
+  children,
+}: {
+  active: boolean;
+  count: number;
+  onClick: () => void;
+  disabled?: boolean;
+  tone?: "warning";
+  children: React.ReactNode;
+}) {
+  const isWarning = tone === "warning" && count > 0;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      className={cn(
+        "inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium",
+        "transition-colors duration-[var(--duration-fast)]",
+        active
+          ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.30)]"
+          : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+        disabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-[var(--color-muted-foreground)]",
+      )}
+    >
+      <span>{children}</span>
+      <span
+        className={cn(
+          "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+          active
+            ? "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.18)] text-[var(--color-primary)]"
+            : isWarning
+              ? "bg-[oklch(from_var(--color-warning)_l_c_h_/_0.16)] text-[var(--color-warning)]"
+              : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
+        )}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * PermissionGroupCard — collapsible accordion row for one resource. Header
+ * carries a tri-state group checkbox, the resource name, on-count + mini
+ * pip bar, "all/none" chip actions, and a chevron. Body lists each perm
+ * as a single horizontal row (no 3-col grid — much denser at 200+ scale).
+ *
+ * When the editor is in search/filter mode, the parent forces `isExpanded`
+ * so matches are never hiding behind a closed accordion. In that case the
+ * "all/none" actions still toggle the FULL group (not just the visible
+ * subset), which is the conventionally safer behaviour — the visible-only
+ * count is shown next to the bar so the user can confirm what they're
+ * about to do.
+ */
+function PermissionGroupCard({
+  resource,
+  visiblePermissions,
+  totalInGroup,
+  onCount,
+  allOn,
+  someOn,
+  groupModified,
+  isExpanded,
+  showingPartial,
+  visibleCount,
+  onToggleExpand,
+  onSetGroupAll,
+  onTogglePerm,
+  selected,
+  initial,
+  disabled,
+}: {
+  resource: string;
+  visiblePermissions: PermissionDescriptor[];
+  totalInGroup: number;
+  onCount: number;
+  allOn: boolean;
+  someOn: boolean;
+  groupModified: number;
+  isExpanded: boolean;
+  showingPartial: boolean;
+  visibleCount: number;
+  onToggleExpand: () => void;
+  onSetGroupAll: (on: boolean) => void;
+  onTogglePerm: (name: string) => void;
+  selected: Set<string>;
+  initial: Set<string>;
+  disabled?: boolean;
+}) {
+  return (
+    <div>
+      {/* Header — clickable to toggle expand. The group checkbox + chip
+          buttons stopPropagation so they don't double-fire. */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onToggleExpand}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggleExpand();
+          }
+        }}
+        aria-expanded={isExpanded}
+        className={cn(
+          "group/grouphdr flex w-full cursor-pointer items-center gap-3 px-5 py-3.5 text-left",
+          "transition-colors duration-[var(--duration-fast)]",
+          "hover:bg-[oklch(from_var(--color-primary)_l_c_h_/_0.03)]",
+          isExpanded && "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.02)]",
+        )}
+      >
+        {/* Group tri-state checkbox */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSetGroupAll(!allOn);
+          }}
+          disabled={disabled}
+          aria-label={`Toggle all ${resource}`}
+          className={cn(
+            "grid size-5 shrink-0 cursor-pointer place-items-center rounded border transition-colors",
+            allOn
+              ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+              : someOn
+                ? "border-[var(--color-primary)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.40)] text-[var(--color-primary-foreground)]"
+                : "border-[var(--color-input)] hover:border-[var(--color-foreground)]/40",
+            disabled && "cursor-not-allowed opacity-60",
+          )}
+        >
+          {allOn ? <Check className="size-3.5" /> : someOn ? <Minus className="size-3.5" /> : null}
+        </button>
+
+        {/* Resource name + meta */}
+        <div className="flex min-w-0 flex-1 items-baseline gap-3">
+          <span className="font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]">
+            {resource}
+          </span>
+          <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
+            {pad2(onCount)} / {pad2(totalInGroup)}
+          </span>
+          {/* Mini pip bar — one pip per perm in the group, filled if on.
+              Visually conveys density at a glance for groups with many
+              actions. */}
+          <PipBar onCount={onCount} total={totalInGroup} />
+          {groupModified > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-warning)]"
+              title={`${groupModified} unsaved change${groupModified === 1 ? "" : "s"}`}
+            >
+              <span aria-hidden className="size-1.5 rounded-full bg-[var(--color-warning)]" />
+              {groupModified} changed
+            </span>
+          )}
+          {showingPartial && (
+            <span className="text-[10.5px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
+              · {visibleCount} match{visibleCount === 1 ? "" : "es"}
+            </span>
+          )}
+        </div>
+
+        {/* All / none chip actions. Each button stops the click from
+            bubbling up to the row's expand-toggle handler. */}
+        <div className="hidden items-center gap-1 sm:flex">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSetGroupAll(true);
+            }}
+            disabled={disabled || allOn}
+            className={cn(
+              "cursor-pointer rounded-full px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider",
+              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+              "transition-colors duration-[var(--duration-fast)]",
+              (disabled || allOn) && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-[var(--color-muted-foreground)]",
+            )}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSetGroupAll(false);
+            }}
+            disabled={disabled || onCount === 0}
+            className={cn(
+              "cursor-pointer rounded-full px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider",
+              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+              "transition-colors duration-[var(--duration-fast)]",
+              (disabled || onCount === 0) && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-[var(--color-muted-foreground)]",
+            )}
+          >
+            None
+          </button>
+        </div>
+
+        {/* Chevron */}
+        <ChevronDown
+          aria-hidden
+          className={cn(
+            "size-4 shrink-0 text-[var(--color-muted-foreground)] transition-transform duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
+            isExpanded && "rotate-180",
+          )}
+        />
+      </div>
+
+      {/* Body — list of horizontal permission rows */}
+      {isExpanded && (
+        <div className="border-t border-[oklch(from_var(--color-border)_l_c_h_/_0.5)]">
+          {visiblePermissions.map((perm) => {
+            const checked = selected.has(perm.name);
+            const dirty = checked !== initial.has(perm.name);
+            return (
+              <PermissionRow
+                key={perm.name}
+                perm={perm}
+                checked={checked}
+                dirty={dirty}
+                onToggle={() => onTogglePerm(perm.name)}
+                disabled={disabled}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * PipBar — n discrete pips, filled left-to-right. Caps at 12 visible pips
+ * so wider groups still render at a sensible width; overflow is conveyed
+ * by the numeric count to the left of the bar.
+ */
+function PipBar({ onCount, total }: { onCount: number; total: number }) {
+  const cap = Math.min(total, 12);
+  const filledVisible = Math.round((onCount / total) * cap);
+  return (
+    <span aria-hidden className="flex items-center gap-[3px]">
+      {Array.from({ length: cap }).map((_, i) => (
+        <span
+          key={i}
+          className={cn(
+            "h-2 w-[3px] rounded-[1px] transition-colors",
+            i < filledVisible
+              ? "bg-[var(--color-primary)]"
+              : "bg-[var(--color-border-strong)]",
+          )}
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * PermissionRow — one permission as a horizontal scan-line. Click anywhere
+ * on the row toggles. The mono action name carries the technical handle,
+ * the description carries the human label; basic and modified states get
+ * small chips/dots on the right.
+ *
+ * Indent matches the group header chevron column so the visual hierarchy
+ * reads as parent → child without a tree-line.
+ */
+function PermissionRow({
   perm,
   checked,
   dirty,
@@ -576,14 +1003,14 @@ function PermissionTile({
   return (
     <label
       className={cn(
-        "group/perm relative flex items-start gap-2.5 rounded-xl border px-3 py-2.5",
-        "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-        disabled ? "cursor-not-allowed opacity-75" : "cursor-pointer",
+        "group/row relative flex items-center gap-3 px-5 py-2.5 pl-[3.25rem] text-[12.5px]",
+        "transition-colors duration-[var(--duration-fast)]",
+        disabled ? "cursor-not-allowed" : "cursor-pointer",
         checked
-          ? "border-[oklch(from_var(--color-primary)_l_c_h_/_0.30)] bg-[var(--color-primary-soft)]"
+          ? "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.04)] hover:bg-[oklch(from_var(--color-primary)_l_c_h_/_0.07)]"
           : !disabled
-            ? "border-[var(--color-border)] bg-[var(--color-surface-3)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-4)]"
-            : "border-[var(--color-border)] bg-[var(--color-surface-3)]",
+            ? "hover:bg-[var(--color-accent)]"
+            : "",
       )}
     >
       <input
@@ -593,65 +1020,71 @@ function PermissionTile({
         onChange={onToggle}
         disabled={disabled}
       />
+      {/* Custom checkbox */}
       <span
         aria-hidden
         className={cn(
-          "mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border transition-all",
+          "grid size-4 shrink-0 place-items-center rounded border transition-all",
           checked
             ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
-            : "border-[var(--color-input)] bg-transparent group-hover/perm:border-[var(--color-foreground)]/40",
+            : "border-[var(--color-input)] bg-transparent group-hover/row:border-[var(--color-foreground)]/40",
         )}
       >
-        {checked && <Check className="h-3 w-3" />}
+        {checked && <Check className="size-3" />}
       </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5">
+
+      {/* Action handle (mono) */}
+      <span
+        className={cn(
+          "min-w-[110px] shrink-0 truncate font-mono text-[12px] tabular-nums",
+          checked ? "text-[var(--color-primary)]" : "text-[var(--color-foreground)]",
+        )}
+      >
+        {perm.action}
+      </span>
+
+      {/* Human description */}
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate",
+          checked
+            ? "text-[var(--color-foreground)]"
+            : "text-[var(--color-muted-foreground)]",
+        )}
+      >
+        {perm.description}
+      </span>
+
+      {/* Badges */}
+      <span className="flex shrink-0 items-center gap-1.5">
+        {perm.isRoot && (
           <span
             className={cn(
-              "truncate font-mono text-[11.5px] font-medium tracking-[-0.005em]",
-              checked ? "text-[var(--color-primary)]" : "text-[var(--color-foreground)]",
+              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em]",
+              "bg-[oklch(from_var(--color-saffron)_l_c_h_/_0.16)] text-[var(--color-saffron)]",
+            )}
+            title="Root-level permission. May be filtered server-side."
+          >
+            root
+          </span>
+        )}
+        {perm.isBasic && (
+          <span
+            className={cn(
+              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em]",
+              "bg-[oklch(from_var(--color-info)_l_c_h_/_0.16)] text-[var(--color-info)]",
             )}
           >
-            {perm.action}
+            basic
           </span>
-          {perm.isBasic && (
-            <span className="rounded-full bg-[oklch(from_var(--color-info)_l_c_h_/_0.16)] px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-[var(--color-info)]">
-              basic
-            </span>
-          )}
-          {dirty && (
-            <span
-              className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]"
-              aria-label="modified"
-            />
-          )}
-        </span>
-        <span
-          className={cn(
-            "mt-0.5 block truncate text-[12px] leading-relaxed",
-            checked
-              ? "text-[var(--color-foreground)]/85"
-              : "text-[var(--color-muted-foreground)]",
-          )}
-        >
-          {perm.description}
-        </span>
+        )}
+        {dirty && (
+          <span
+            aria-label="modified"
+            className="inline-block size-1.5 rounded-full bg-[var(--color-warning)]"
+          />
+        )}
       </span>
     </label>
-  );
-}
-
-function BackLink() {
-  return (
-    <Link
-      to="/identity/roles"
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-2 py-1 -ml-2 text-[12.5px]",
-        "font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)]",
-        "transition-colors",
-      )}
-    >
-      <ArrowLeft className="h-3.5 w-3.5" /> All roles
-    </Link>
   );
 }

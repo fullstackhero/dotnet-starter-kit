@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Caching</RootNamespace>
 		<AssemblyName>FSH.Framework.Caching</AssemblyName>
-		<PackageId>FullStackHero.Framework.Caching</PackageId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -11,6 +10,7 @@
 	  <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
 	  <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
 	  <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+	  <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />

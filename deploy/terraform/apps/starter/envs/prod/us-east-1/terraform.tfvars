@@ -59,6 +59,20 @@ app_s3_cloudfront_price_class     = "PriceClass_200"
 app_s3_enable_intelligent_tiering = true
 
 ################################################################################
+# Frontend SPAs (S3 + CloudFront) — bucket names must be globally unique
+################################################################################
+
+dashboard_s3_bucket_name        = "prod-fsh-dashboard"
+admin_s3_bucket_name            = "prod-fsh-admin"
+frontend_cloudfront_price_class = "PriceClass_200"
+
+# Custom domains (ACM cert must be in us-east-1 for CloudFront):
+# dashboard_cloudfront_aliases         = ["app.example.com"]
+# admin_cloudfront_aliases             = ["admin.example.com"]
+# dashboard_cloudfront_certificate_arn = "arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID"
+# admin_cloudfront_certificate_arn     = "arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID"
+
+################################################################################
 # Database
 ################################################################################
 

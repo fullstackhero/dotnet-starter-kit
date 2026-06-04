@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -12,14 +11,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  Check,
-  Image as ImageIcon,
-  ImageOff,
+  ChevronRight,
   Pencil,
+  Plus,
   Search,
-  Sparkles,
+  Tag,
   Trash2,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -43,35 +40,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  DensityToggle,
-  EmptyState,
-  ErrorBand,
+  EntityEmpty,
+  EntityInitialsAvatar,
+  EntityListCard,
+  EntityListHeader,
+  EntityListLoading,
+  EntityListRow,
+  EntityMobileCard,
+  EntityPageHeader,
+  EntityPager,
+  EntitySearch,
   Field,
-  ListHero,
-  Pagination,
-  SortChips,
-  Stat,
-  StatStrip,
-  usePersistedDensity,
-  type Density,
-  type SortDir,
-  type SortOption,
 } from "@/components/list";
-import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
 import {
   describe,
   formatDate,
-  formatDateMono,
   formatRelative,
-  pad2,
   slugify,
 } from "@/lib/list-helpers";
 
 const PAGE_SIZE = 20;
-const DENSITY_KEY = "fsh.dashboard.catalog.brands.density";
 
 type EditorState =
   | { mode: "closed" }
@@ -79,29 +69,15 @@ type EditorState =
   | { mode: "edit"; brand: BrandDto }
   | { mode: "delete"; brand: BrandDto };
 
-type SortKey = "name" | "slug" | "createdAtUtc";
-
-const SORT_OPTIONS: SortOption<SortKey>[] = [
-  { key: "name", label: "Name" },
-  { key: "slug", label: "Slug" },
-  { key: "createdAtUtc", label: "Created" },
-];
-
 // ───────────────────────────────────────────────────────────────────────
 //  Page
 // ───────────────────────────────────────────────────────────────────────
 
 export function BrandsPage() {
-  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
-
-  const [sortKey, setSortKey] = useState<SortKey>("createdAtUtc");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-
-  const [density, setDensity] = usePersistedDensity(DENSITY_KEY);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -115,200 +91,139 @@ export function BrandsPage() {
     queryKey: [
       "catalog",
       "brands",
-      { search: debouncedSearch, pageNumber, pageSize: PAGE_SIZE, sortKey, sortDir },
+      { search: debouncedSearch, pageNumber, pageSize: PAGE_SIZE },
     ],
     queryFn: () =>
       searchBrands({
         search: debouncedSearch || undefined,
         pageNumber,
         pageSize: PAGE_SIZE,
-        sortBy: sortKey,
-        sortDir,
+        sortBy: "createdAtUtc",
+        sortDir: "desc",
       }),
     placeholderData: keepPreviousData,
   });
 
   const data = query.data;
   const items = data?.items ?? [];
-  // Server-side sort drives the order. Items are already sorted on arrival.
-  const sortedItems = items;
 
-  const featured = useMemo(() => {
-    if (debouncedSearch) return [];
-    return [...items]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAtUtc).getTime() -
-          new Date(a.createdAtUtc).getTime(),
-      )
-      .slice(0, 6);
-  }, [items, debouncedSearch]);
-
-  const stats = useMemo(() => {
-    if (!data) return null;
-    const total = data.totalCount;
-    const withLogos = items.filter((b) => b.logoUrl).length;
-    const pct = items.length === 0 ? 0 : Math.round((withLogos / items.length) * 100);
-    const latest =
-      items.length === 0
-        ? null
-        : items.reduce(
-            (best, b) =>
-              new Date(b.createdAtUtc) > new Date(best.createdAtUtc) ? b : best,
-            items[0],
-          );
-    return { total, withLogosPct: pct, latest };
-  }, [data, items]);
-
-  const onSort = useCallback(
-    (key: SortKey) => {
-      if (sortKey === key) {
-        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-      } else {
-        setSortKey(key);
-        setSortDir(key === "createdAtUtc" ? "desc" : "asc");
-      }
-    },
-    [sortKey],
-  );
+  const searchActive = debouncedSearch.length > 0;
 
   return (
-    <div className="space-y-7 pb-12">
-      <ListHero
-        eyebrow="Catalog · Inventory"
-        tenant={user?.tenant ?? "—"}
-        subEyebrow="registry of maker imprints"
+    <div className="space-y-4 sm:space-y-6">
+      <EntityPageHeader
+        icon={Tag}
         title="Brands"
-        totalCount={data?.totalCount ?? null}
-        subtitle="Curate the maker imprints behind every product in your catalog. Each brand collects its own slug, story, and visual mark."
-        searchValue={search}
-        onSearch={setSearch}
-        searchPlaceholder="Find a brand by name or slug…"
-        isFetching={query.isFetching}
-        onRefresh={() => void query.refetch()}
-        ctaLabel="New brand"
-        onCreate={() => setEditor({ mode: "create" })}
+        total={data?.totalCount ?? null}
+        unit="brand"
+        description="Curate the maker imprints behind every product. Each brand carries its own slug, story, and logo."
+      >
+        <Button
+          onClick={() => setEditor({ mode: "create" })}
+          className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
+        >
+          <Plus className="size-4" />
+          New brand
+        </Button>
+      </EntityPageHeader>
+
+      <EntitySearch
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by name or slug…"
       />
 
-      {stats && data && data.totalCount > 0 && (
-        <StatStrip cols={3}>
-          <Stat label="Total brands" value={pad2(stats.total)} hint="across this tenant" />
-          <Stat
-            label="With logo"
-            value={`${stats.withLogosPct}%`}
-            hint={stats.withLogosPct === 0 ? "none" : "of this page"}
-            accent
-          />
-          <Stat
-            label="Latest entry"
-            value={stats.latest ? formatRelative(stats.latest.createdAtUtc) : "—"}
-            hint={stats.latest ? stats.latest.name : "no entries"}
-          />
-        </StatStrip>
-      )}
-
-      {!debouncedSearch && featured.length > 1 && (
-        <FeaturedRail
-          items={featured}
-          onPick={(brand) => setEditor({ mode: "edit", brand })}
+      {query.isLoading && items.length === 0 ? (
+        <EntityListLoading desktopColumns="grid-cols-[1fr_180px_140px_24px]" />
+      ) : items.length === 0 ? (
+        <EntityEmpty
+          icon={searchActive ? Search : Tag}
+          title={searchActive ? "No brands found" : "No brands yet"}
+          body={
+            searchActive
+              ? debouncedSearch
+                ? `Nothing matches "${debouncedSearch}". Try a different term or clear the search.`
+                : "No brands match the current filters."
+              : "Add your first brand to start building the catalog. Each brand carries its own slug, description, and logo."
+          }
+          action={
+            searchActive ? (
+              <Button
+                variant="outline"
+                onClick={() => setSearch("")}
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                Clear search
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setEditor({ mode: "create" })}
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                <Plus className="mr-1.5 size-4" />
+                Add brand
+              </Button>
+            )
+          }
         />
+      ) : (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
+              {data?.totalCount ?? 0} brand
+              {(data?.totalCount ?? 0) !== 1 ? "s" : ""} found
+            </p>
+          </div>
+
+          {/* Mobile: card list */}
+          <div className="space-y-2 md:hidden">
+            {items.map((brand) => (
+              <MobileCard
+                key={brand.id}
+                brand={brand}
+                onEdit={() => setEditor({ mode: "edit", brand })}
+              />
+            ))}
+          </div>
+
+          {/* Desktop: list card */}
+          <EntityListCard className="hidden md:block">
+            <EntityListHeader className="grid-cols-[1fr_180px_140px_24px]">
+              <span>Brand</span>
+              <span>Slug</span>
+              <span>Created</span>
+              <span />
+            </EntityListHeader>
+
+            {items.map((brand, i) => (
+              <DesktopRow
+                key={brand.id}
+                brand={brand}
+                isLast={i === items.length - 1}
+                onEdit={() => setEditor({ mode: "edit", brand })}
+                onDelete={() => setEditor({ mode: "delete", brand })}
+              />
+            ))}
+          </EntityListCard>
+
+          <EntityPager
+            page={data?.pageNumber ?? 1}
+            totalPages={data?.totalPages ?? 1}
+            hasPrev={!!data?.hasPrevious}
+            hasNext={!!data?.hasNext}
+            onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
+            onNext={() => setPageNumber((p) => p + 1)}
+          />
+        </div>
       )}
 
-      {query.isError && <ErrorBand message={describe(query.error)} />}
-
-      <section className="fsh-enter fsh-enter-3 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SortChips
-            options={SORT_OPTIONS}
-            sortKey={sortKey}
-            sortDir={sortDir}
-            onSort={onSort}
-            prefixLabel={debouncedSearch ? "results" : "registry"}
-          />
-          <DensityToggle density={density} onChange={setDensity} />
-        </div>
-
+      {query.isError && (
         <div
-          className={cn(
-            "card-shell overflow-hidden rounded-2xl",
-            "bg-[var(--color-surface-3)]",
-          )}
+          role="alert"
+          className="rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-sm text-[var(--color-destructive)]"
         >
-          {query.isLoading && items.length === 0 ? (
-            <ul aria-busy>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <SkeletonRow key={i} delayMs={i * 40} density={density} />
-              ))}
-            </ul>
-          ) : sortedItems.length === 0 ? (
-            (() => {
-              const filtered = debouncedSearch.length > 0;
-              return (
-                <EmptyState
-                  eyebrow={filtered ? "No matches" : "Empty registry"}
-                  headline={
-                    filtered
-                      ? `Nothing matches "${debouncedSearch}".`
-                      : "Your catalog is awaiting its first brand."
-                  }
-                  body={
-                    filtered
-                      ? "Search runs across name and slug. Try a different term, or clear the filter and start fresh."
-                      : "A brand is the maker imprint behind a product — its name, slug, and visual mark. Create one to start curating."
-                  }
-                  icon={
-                    filtered ? (
-                      <Search className="h-6 w-6 text-[var(--color-primary)]" />
-                    ) : (
-                      <ImageOff className="h-6 w-6 text-[var(--color-primary)]" />
-                    )
-                  }
-                  primaryAction={{
-                    label: filtered ? "Add a new brand" : "Add the first brand",
-                    onClick: () => setEditor({ mode: "create" }),
-                    icon: <Sparkles className="h-3.5 w-3.5" />,
-                  }}
-                  secondaryAction={
-                    filtered
-                      ? {
-                          label: "Clear search",
-                          onClick: () => setSearch(""),
-                          icon: <X className="h-3.5 w-3.5" />,
-                        }
-                      : undefined
-                  }
-                />
-              );
-            })()
-          ) : (
-            <ul>
-              {sortedItems.map((brand, i) => (
-                <Row
-                  key={brand.id}
-                  brand={brand}
-                  density={density}
-                  delayMs={Math.min(i, 8) * 30}
-                  onEdit={() => setEditor({ mode: "edit", brand })}
-                  onDelete={() => setEditor({ mode: "delete", brand })}
-                />
-              ))}
-            </ul>
-          )}
+          {describe(query.error)}
         </div>
-      </section>
-
-      {data && data.totalCount > 0 && (
-        <Pagination
-          page={data.pageNumber}
-          totalPages={Math.max(data.totalPages, 1)}
-          totalCount={data.totalCount}
-          shown={items.length}
-          fetching={query.isFetching}
-          onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
-          onNext={() => setPageNumber((p) => p + 1)}
-          hasPrev={data.hasPrevious}
-          hasNext={data.hasNext}
-        />
       )}
 
       <BrandEditorDialog
@@ -324,241 +239,146 @@ export function BrandsPage() {
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Featured rail (Brand-specific — not lifted into shared primitives)
+//  Mobile card
 // ───────────────────────────────────────────────────────────────────────
 
-function FeaturedRail({
-  items,
-  onPick,
+function MobileCard({
+  brand,
+  onEdit,
 }: {
-  items: BrandDto[];
-  onPick: (brand: BrandDto) => void;
+  brand: BrandDto;
+  onEdit: () => void;
 }) {
   return (
-    <div className="fsh-enter fsh-enter-3">
-      <div className="mb-3 flex items-end justify-between">
-        <div className="flex items-baseline gap-2.5">
-          <h2 className="text-display text-[15px] font-semibold tracking-[-0.01em]">
-            Recently added
-          </h2>
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-            {pad2(items.length)} on file
-          </span>
-        </div>
-      </div>
-
-      <div
-        className="relative"
-        style={{
-          maskImage:
-            "linear-gradient(to right, black calc(100% - 28px), transparent)",
-          WebkitMaskImage:
-            "linear-gradient(to right, black calc(100% - 28px), transparent)",
-        }}
-      >
-        <ul className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {items.map((brand) => (
-            <li key={brand.id} className="snap-start">
-              <FeaturedCard brand={brand} onClick={() => onPick(brand)} />
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function FeaturedCard({ brand, onClick }: { brand: BrandDto; onClick: () => void }) {
-  const initial = brand.name.trim().charAt(0).toUpperCase() || "·";
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "group/feat card-shell card-shell-interactive relative flex w-[260px] shrink-0 cursor-pointer flex-col gap-3 overflow-hidden rounded-xl text-left",
-        "bg-[var(--color-surface-3)] p-4",
-        "transition-colors duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
-        "hover:bg-[var(--color-surface-4)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2",
-      )}
+    <EntityMobileCard
+      href="#"
+      onClick={(e) => {
+        e.preventDefault();
+        onEdit();
+      }}
+      aria-label={`Edit brand ${brand.name}`}
     >
-      <div className="flex items-center gap-3">
-        <Swatch logoUrl={brand.logoUrl} initial={initial} size={40} />
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-semibold leading-tight tracking-[-0.005em]">
-            {brand.name}
-          </div>
-          <div className="mt-0.5 truncate font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            {brand.slug}
+      <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <BrandAvatar brand={brand} size={40} />
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
+              {brand.name}
+            </p>
+            <code className="mt-0.5 block truncate font-mono text-[11px] text-[var(--color-muted-foreground)]">
+              {brand.slug}
+            </code>
           </div>
         </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ChevronRight className="size-4 text-[var(--color-border)]" />
+        </div>
       </div>
-      <p
-        className={cn(
-          "line-clamp-2 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]",
-          !brand.description && "italic opacity-70",
-        )}
-      >
-        {brand.description ?? "No description on file."}
-      </p>
-      <div className="mt-auto flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-        <span>{formatDateMono(brand.createdAtUtc)}</span>
-        <span className="opacity-70 transition-colors group-hover/feat:text-[var(--color-primary)] group-hover/feat:opacity-100">
-          {formatRelative(brand.createdAtUtc)}
-        </span>
-      </div>
-    </button>
+      {brand.description && (
+        <p className="mt-2 ml-[52px] line-clamp-2 text-[12px] text-[var(--color-muted-foreground)]">
+          {brand.description}
+        </p>
+      )}
+    </EntityMobileCard>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Row
+//  Desktop row
 // ───────────────────────────────────────────────────────────────────────
 
-function Row({
+function DesktopRow({
   brand,
-  density,
-  delayMs,
+  isLast,
   onEdit,
   onDelete,
 }: {
   brand: BrandDto;
-  density: Density;
-  delayMs: number;
+  isLast: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const padY = density === "compact" ? "py-3" : "py-4";
-
   return (
-    <li
-      className={cn(
-        "fsh-enter group/row relative flex items-center gap-4 border-b border-[var(--color-border)] px-5 last:border-b-0 sm:px-6",
-        padY,
-        "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-        "hover:bg-[var(--color-surface-4)]",
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
+    <EntityListRow
+      className="grid-cols-[1fr_180px_140px_24px]"
+      isLast={isLast}
     >
-      <span
-        aria-hidden
-        className={cn(
-          "absolute inset-y-2.5 left-0 w-[2px] rounded-r-full bg-[var(--color-primary)]",
-          "opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-          "group-hover/row:opacity-100 group-focus-within/row:opacity-100",
-        )}
-      />
-
-      <Swatch
-        logoUrl={brand.logoUrl}
-        initial={brand.name.trim().charAt(0).toUpperCase() || "·"}
-        size={density === "compact" ? 36 : 48}
-      />
-
-      <div className="flex min-w-0 flex-1 items-center gap-6">
-        <div className="min-w-0 flex-[1.4]">
-          <div className="flex items-baseline gap-2">
-            <span className="text-display truncate text-[15.5px] font-semibold leading-tight tracking-[-0.01em] sm:text-[16px]">
-              {brand.name}
-            </span>
-            <code
-              title={brand.slug}
-              className="hidden truncate rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-muted-foreground)] sm:inline-block"
+      {/* Name + avatar */}
+      <div className="flex min-w-0 items-center gap-3">
+        <BrandAvatar brand={brand} size={36} />
+        <div className="min-w-0">
+          <div className="truncate text-[14px] font-medium text-[var(--color-foreground)] transition-colors group-hover:text-[var(--color-primary)]">
+            {brand.name}
+          </div>
+          {brand.description && (
+            <div
+              className="mt-0.5 truncate text-[12px] text-[var(--color-muted-foreground)]"
+              title={brand.description}
             >
-              {brand.slug}
-            </code>
-          </div>
-          <div
-            className={cn(
-              "mt-1 truncate text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]",
-              !brand.description && "italic opacity-60",
-            )}
-            title={brand.description ?? undefined}
-          >
-            {brand.description ?? "No description on file."}
-          </div>
-        </div>
-
-        <div className="hidden min-w-[110px] text-right tabular-nums sm:block">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-foreground)]/85">
-            {formatDateMono(brand.createdAtUtc)}
-          </div>
-          <div className="mt-0.5 text-[10.5px] text-[var(--color-muted-foreground)]">
-            {formatRelative(brand.createdAtUtc)}
-          </div>
+              {brand.description}
+            </div>
+          )}
         </div>
       </div>
 
-      <div
-        className={cn(
-          "flex items-center gap-1",
-          "opacity-0 transition-opacity duration-[var(--duration-fast)]",
-          "group-hover/row:opacity-100 group-focus-within/row:opacity-100",
-        )}
+      {/* Slug */}
+      <code
+        title={brand.slug}
+        className="truncate font-mono text-[12px] text-[var(--color-muted-foreground)]"
       >
-        <RowAction label={`Edit ${brand.name}`} onClick={onEdit}>
-          <Pencil className="h-3.5 w-3.5" />
-        </RowAction>
-        <RowAction label={`Delete ${brand.name}`} onClick={onDelete} tone="danger">
-          <Trash2 className="h-3.5 w-3.5" />
-        </RowAction>
+        {brand.slug}
+      </code>
+
+      {/* Created */}
+      <div className="min-w-0 text-[12px] text-[var(--color-muted-foreground)] tabular-nums">
+        <div className="truncate">{formatDate(brand.createdAtUtc)}</div>
+        <div className="truncate text-[11px] opacity-70">
+          {formatRelative(brand.createdAtUtc)}
+        </div>
       </div>
-    </li>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-1">
+        <button
+          type="button"
+          aria-label={`Edit ${brand.name}`}
+          onClick={onEdit}
+          className="grid size-7 cursor-pointer place-items-center rounded-md text-[var(--color-muted-foreground)] opacity-0 transition-all hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)] group-hover:opacity-100"
+        >
+          <Pencil className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          aria-label={`Delete ${brand.name}`}
+          onClick={onDelete}
+          className="grid size-7 cursor-pointer place-items-center rounded-md text-[var(--color-muted-foreground)] opacity-0 transition-all hover:bg-[var(--color-muted)] hover:text-[var(--color-destructive)] group-hover:opacity-100"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+        <ChevronRight className="size-4 text-[var(--color-border)] transition-colors group-hover:text-[var(--color-muted-foreground)]" />
+      </div>
+    </EntityListRow>
   );
 }
 
-function RowAction({
-  label,
-  onClick,
-  tone = "default",
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  tone?: "default" | "danger";
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className={cn(
-        "grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-colors duration-[var(--duration-fast)]",
-        "text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]",
-        tone === "danger"
-          ? "hover:text-[var(--color-destructive)]"
-          : "hover:text-[var(--color-foreground)]",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
+// ───────────────────────────────────────────────────────────────────────
+//  Brand avatar — image if present, else initials tile.
+// ───────────────────────────────────────────────────────────────────────
 
-function Swatch({
-  logoUrl,
-  initial,
-  size,
-}: {
-  logoUrl: string | null | undefined;
-  initial: string;
-  size: number;
-}) {
-  const style = { width: size, height: size };
-  if (logoUrl) {
+function BrandAvatar({ brand, size }: { brand: BrandDto; size: number }) {
+  if (brand.logoUrl) {
     return (
       <span
-        style={style}
+        style={{ width: size, height: size }}
         className={cn(
           "relative grid shrink-0 place-items-center overflow-hidden rounded-xl",
-          "bg-[var(--color-surface-2)] ring-1 ring-inset ring-[var(--color-border)]",
+          "bg-[var(--color-muted)] ring-1 ring-inset ring-[var(--color-border)]",
         )}
       >
         <img
-          src={logoUrl}
+          src={brand.logoUrl}
           alt=""
-          className="h-full w-full object-contain p-1.5"
+          className="h-full w-full object-contain p-1"
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={(e) => {
@@ -572,67 +392,15 @@ function Swatch({
         <span
           data-fallback
           style={{ display: "none" }}
-          className="absolute inset-0 grid place-items-center text-[16px] font-semibold tracking-tight text-[var(--color-muted-foreground)]"
+          className="absolute inset-0 grid place-items-center font-display text-[14px] font-bold tracking-tight text-[var(--color-muted-foreground)]"
         >
-          {initial}
+          {brand.name.trim().charAt(0).toUpperCase() || "·"}
         </span>
       </span>
     );
   }
-
-  return (
-    <span
-      aria-hidden
-      style={style}
-      className={cn(
-        "relative grid shrink-0 place-items-center overflow-hidden rounded-xl",
-        "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.22),oklch(from_var(--color-primary)_l_c_h_/_0.04))]",
-        "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]",
-        "shadow-[var(--highlight-top)]",
-      )}
-    >
-      <span
-        aria-hidden
-        className="absolute -right-3 -top-3 h-8 w-8 rounded-full bg-[oklch(from_var(--color-primary)_l_c_h_/_0.18)] blur-md"
-      />
-      <span
-        className={cn(
-          "text-display relative font-semibold leading-none tracking-[-0.02em] text-[var(--color-primary)]",
-          size >= 48 ? "text-[18px]" : "text-[14px]",
-        )}
-      >
-        {initial}
-      </span>
-    </span>
-  );
+  return <EntityInitialsAvatar name={brand.name} size={size} />;
 }
-
-function SkeletonRow({ delayMs, density }: { delayMs: number; density: Density }) {
-  const padY = density === "compact" ? "py-3" : "py-4";
-  return (
-    <li
-      className={cn(
-        "fsh-enter flex items-center gap-4 border-b border-[var(--color-border)] px-5 last:border-b-0 sm:px-6",
-        padY,
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
-    >
-      <Skeleton className={cn("rounded-xl", density === "compact" ? "h-9 w-9" : "h-12 w-12")} />
-      <div className="flex flex-1 items-center gap-6">
-        <div className="min-w-0 flex-[1.4] space-y-2">
-          <Skeleton className="h-4 w-44" />
-          <Skeleton className="h-3 w-72" />
-        </div>
-        <div className="hidden min-w-[110px] space-y-1.5 text-right sm:block">
-          <Skeleton className="ml-auto h-3 w-24" />
-          <Skeleton className="ml-auto h-2.5 w-16" />
-        </div>
-      </div>
-      <Skeleton className="h-7 w-16" />
-    </li>
-  );
-}
-
 
 // ───────────────────────────────────────────────────────────────────────
 //  Editor dialog
@@ -655,7 +423,7 @@ function BrandEditorDialog({
       description: brand?.description ?? "",
       logoUrl: brand?.logoUrl ?? "",
     }),
-    [brand?.id, brand?.name, brand?.description, brand?.logoUrl],
+    [brand?.name, brand?.description, brand?.logoUrl],
   );
 
   const [name, setName] = useState(initial.name);
@@ -715,9 +483,6 @@ function BrandEditorDialog({
       <DialogContent className="!max-w-lg">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              {brand ? "Edit entry" : "New entry"}
-            </span>
             <DialogTitle>{brand ? "Edit brand" : "Add a brand"}</DialogTitle>
             <DialogDescription>
               {brand
@@ -727,13 +492,6 @@ function BrandEditorDialog({
           </DialogHeader>
 
           <DialogBody className="space-y-5">
-            <RowPreview
-              name={trimmedName}
-              slug={slugPreview}
-              description={description}
-              logoUrl={logoUrl}
-            />
-
             <Field id="brand-name" label="Name" required>
               <Input
                 id="brand-name"
@@ -751,16 +509,10 @@ function BrandEditorDialog({
               label="Slug"
               hint="Auto-derived from the name. Used in URLs."
             >
-              <div className="surface-edge flex h-9 items-center gap-2 rounded-md bg-[var(--color-muted)] px-3">
-                <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-                  →
-                </span>
+              <div className="flex h-9 items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-3">
                 <code className="truncate font-mono text-[12.5px] tracking-tight text-[var(--color-foreground)]">
                   {slugPreview}
                 </code>
-                <span className="ml-auto inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-success)]">
-                  <Check className="h-3 w-3" /> ready
-                </span>
               </div>
             </Field>
 
@@ -776,9 +528,9 @@ function BrandEditorDialog({
                 rows={3}
                 maxLength={1024}
                 className={cn(
-                  "flex w-full rounded-md border border-[var(--color-input)] bg-transparent px-3 py-2 text-sm shadow-sm",
-                  "placeholder:text-[var(--color-muted-foreground)]",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2",
+                  "flex w-full rounded-lg border border-[var(--color-input)] bg-transparent px-3 py-2 text-sm shadow-xs",
+                  "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]",
+                  "focus-visible:border-[var(--color-ring)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
                 )}
                 placeholder="Quality essentials for the modern home."
               />
@@ -806,75 +558,13 @@ function BrandEditorDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={isPending || !trimmedName}
-              className="brand-glow gradient-sheen"
-            >
+            <Button type="submit" disabled={isPending || !trimmedName}>
               {isPending ? "Saving…" : brand ? "Save changes" : "Add brand"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function RowPreview({
-  name,
-  slug,
-  description,
-  logoUrl,
-}: {
-  name: string;
-  slug: string;
-  description: string;
-  logoUrl: string;
-}) {
-  const initial = name.trim().charAt(0).toUpperCase() || "·";
-  return (
-    <div
-      aria-label="Live preview"
-      className="surface-edge rounded-xl bg-[var(--color-surface-2)] p-3"
-    >
-      <div className="mb-2 flex items-center justify-between">
-        <span className="font-mono text-[9.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-          Live preview · registry row
-        </span>
-      </div>
-      <div className="flex items-center gap-3">
-        {logoUrl.trim() ? (
-          <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-xl bg-[var(--color-surface-3)] ring-1 ring-inset ring-[var(--color-border)]">
-            <ImageIcon className="h-4 w-4 text-[var(--color-muted-foreground)]" />
-          </span>
-        ) : (
-          <span
-            aria-hidden
-            className="grid h-11 w-11 place-items-center rounded-xl bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.22),oklch(from_var(--color-primary)_l_c_h_/_0.04))] text-[15px] font-semibold text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]"
-          >
-            {initial}
-          </span>
-        )}
-        <div className="min-w-0 flex-1">
-          <div
-            className={cn(
-              "truncate text-[15px] font-semibold leading-tight tracking-[-0.005em]",
-              !name.trim() && "text-[var(--color-muted-foreground)]",
-            )}
-          >
-            {name.trim() || "Brand name"}
-          </div>
-          <div className="mt-0.5 truncate font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            {slug}
-          </div>
-        </div>
-      </div>
-      {description.trim() && (
-        <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed text-[var(--color-muted-foreground)]">
-          {description.trim()}
-        </p>
-      )}
-    </div>
   );
 }
 
@@ -907,15 +597,16 @@ function DeleteBrandDialog({
     <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
-            Permanent action
-          </span>
-          <DialogTitle>Delete brand</DialogTitle>
+          <DialogTitle className="text-[var(--color-destructive)]">
+            Delete brand
+          </DialogTitle>
           <DialogDescription>
             This permanently removes{" "}
-            <span className="font-medium text-[var(--color-foreground)]">{brand?.name}</span>{" "}
+            <span className="font-medium text-[var(--color-foreground)]">
+              {brand?.name}
+            </span>{" "}
             <span className="opacity-70">
-              ({brand && formatDate(brand.createdAtUtc)})
+              (created {brand && formatDate(brand.createdAtUtc)})
             </span>
             . Products referencing this brand will need to be reassigned.
           </DialogDescription>

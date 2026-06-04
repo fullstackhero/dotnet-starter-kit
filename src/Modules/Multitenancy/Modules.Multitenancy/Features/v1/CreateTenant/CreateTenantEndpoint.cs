@@ -17,10 +17,11 @@ public static class CreateTenantEndpoint
     {
         return endpoints.MapPost("/", async (
             [FromBody] CreateTenantCommand command,
-            [FromServices] IMediator mediator)
+            [FromServices] IMediator mediator,
+            CancellationToken cancellationToken)
             =>
             {
-                var result = await mediator.Send(command);
+                var result = await mediator.Send(command, cancellationToken);
                 return TypedResults.Created($"/api/v1/multitenancy/tenants/{result.Id}", result);
             })
             .WithName("CreateTenant")

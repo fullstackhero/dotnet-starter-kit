@@ -24,11 +24,28 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       // Project-specific deviations from jsx-a11y/recommended:
       // - autofocus is intentionally used on confirmation dialogs (sign-out)
-      //   where the destructive action should be the default focus.
+      //   where the destructive action should be the default focus, and on
+      //   the command-palette search input which is its only purpose.
       'jsx-a11y/no-autofocus': 'off',
-      // - role="tooltip" on a span is supplemented by the parent link's
-      //   `title=` attribute; the popup is a visual hint only.
-      'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+      // Promote from warn → error now that the four outstanding warnings
+      // have been resolved (img onError is excluded explicitly below so
+      // legitimate fallback handlers don't trip the rule).
+      'jsx-a11y/no-noninteractive-element-interactions': [
+        'error',
+        {
+          handlers: [
+            'onClick',
+            'onMouseDown',
+            'onMouseUp',
+            'onKeyPress',
+            'onKeyDown',
+            'onKeyUp',
+          ],
+        },
+      ],
+      'jsx-a11y/no-noninteractive-element-to-interactive-role': 'error',
+      'jsx-a11y/no-aria-hidden-on-focusable': 'error',
+      'jsx-a11y/anchor-has-content': 'error',
     },
   },
 );

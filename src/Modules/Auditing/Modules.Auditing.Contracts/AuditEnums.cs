@@ -1,4 +1,6 @@
-﻿namespace FSH.Modules.Auditing.Contracts;
+﻿using System.Text.Json.Serialization;
+
+namespace FSH.Modules.Auditing.Contracts;
 
 /// <summary>
 /// High-level classification of audit events.
@@ -88,6 +90,7 @@ public enum ExceptionArea
 /// Indicates which HTTP bodies are captured in activity events.
 /// </summary>
 [Flags]
+[JsonConverter(typeof(NumericEnumConverter<BodyCapture>))]
 public enum BodyCapture
 {
     None = 0,
@@ -100,6 +103,7 @@ public enum BodyCapture
 /// Compact, bitwise tags that provide additional audit metadata.
 /// </summary>
 [Flags]
+[JsonConverter(typeof(NumericEnumConverter<AuditTag>))]
 public enum AuditTag
 {
     None = 0,

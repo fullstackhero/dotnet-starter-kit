@@ -22,5 +22,8 @@ internal static class InvoiceMappings
         invoice.Notes,
         invoice.LineItems
             .Select(l => new InvoiceLineItemDto(l.Id, l.Kind, l.Resource, l.Description, l.Quantity, l.UnitPrice, l.Amount))
-            .ToList());
+            .ToList(),
+        invoice.Purpose,
+        invoice.PeriodStartUtc,
+        invoice.PeriodEndUtc);
 }

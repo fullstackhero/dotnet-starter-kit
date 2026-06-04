@@ -1,0 +1,5 @@
+{
+  "apiBase": "${FSH_API_URL}",
+  "defaultTenant": "${FSH_DEFAULT_TENANT}",
+  "dashboardUrl": "${FSH_DASHBOARD_URL}"
+}

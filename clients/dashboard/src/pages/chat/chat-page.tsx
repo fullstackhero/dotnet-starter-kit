@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+// Per-route chat chrome — Vite extracts this into the chat-page CSS chunk
+// so other pages stop shipping the unread divider / day rule / reaction
+// chip / jump-pill / mention pill / typing dot rules they'll never use.
+import "./chat.css";
 import {
   ArrowLeft,
   Hash,
@@ -12,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  ChannelType,
   getChannelById,
   listChannelMessages,
   listMyChannels,
@@ -21,7 +26,7 @@ import {
 import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
 import { ChannelSettingsDialog } from "@/pages/chat/channel-settings";
-import { ChatPinnedDropdown } from "@/pages/chat/chat-pinned";
+import { ChatPinnedBar } from "@/pages/chat/chat-pinned";
 import { ChatSearchOverlay } from "@/pages/chat/chat-search";
 import { Composer } from "@/pages/chat/composer";
 import {
@@ -32,6 +37,7 @@ import { TypingIndicator } from "@/pages/chat/typing-indicator";
 import { channelTitle } from "@/pages/chat/chat-utils";
 import { cn } from "@/lib/cn";
 import { useUserDisplay } from "@/lib/use-user-display";
+import { useRealtime } from "@/realtime/realtime-context";
 
 /**
  * /chat — top-level chat shell.
@@ -56,7 +62,7 @@ export function ChatPage() {
     staleTime: 30_000,
   });
 
-  const channels = channelsQuery.data ?? [];
+  const channels = useMemo(() => channelsQuery.data ?? [], [channelsQuery.data]);
 
   // Auto-pick the first channel when no channelId is in the route.
   useEffect(() => {
@@ -83,7 +89,7 @@ export function ChatPage() {
       />
       <main
         className={cn(
-          "min-w-0 flex-1 flex-col bg-[var(--color-surface-1)]",
+          "min-w-0 flex-1 flex-col bg-[var(--color-background)]",
           // Mobile: only one of rail / main is visible at a time. With an
           // active channel selected, the main column takes over and the
           // rail collapses; without one, the rail fills the screen.
@@ -102,42 +108,35 @@ export function ChatPage() {
 
 function EmptyState() {
   return (
-    <div className="flex h-full items-center justify-center p-6 md:p-10">
-      <div className="chat-empty-hero relative flex max-w-lg flex-col items-start gap-4 text-left">
-        <span
-          aria-hidden
-          className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]"
-        >
-          <MessageCircle className="h-5 w-5" />
-        </span>
-        <div className="flex flex-col gap-1.5">
-          <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-primary)]">
-            FSH · Chat
-          </p>
-          <h2 className="text-display text-2xl font-semibold leading-tight tracking-tight">
-            Pick a conversation
-            <br />
-            or start one.
-          </h2>
-          <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-            Choose a channel on the left to jump in. Channels are public to your
-            tenant; DMs are private to the people in them. Mentions land in the
-            notification bell, top right.
-          </p>
+    <div className="flex h-full items-center justify-center px-6">
+      <div className="flex flex-col items-center text-center">
+        <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--color-muted)]">
+          <MessageCircle className="size-6 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]" />
         </div>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-            ↵ Send
-          </span>
-          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-            ⇧↵ Newline
-          </span>
-          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-            @ Mention
-          </span>
+        <h3 className="mb-1.5 font-display text-[17px] font-semibold text-[var(--color-foreground)]">
+          Pick a conversation
+        </h3>
+        <p className="mb-6 max-w-[360px] text-[13px] text-[var(--color-muted-foreground)]">
+          Choose a channel on the left to jump in. Channels are public to your
+          tenant; DMs are private to the people in them. Mentions land in the
+          notification bell, top right.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <KeyHint label="Send" combo="↵" />
+          <KeyHint label="Newline" combo="⇧↵" />
+          <KeyHint label="Mention" combo="@" />
         </div>
       </div>
     </div>
+  );
+}
+
+function KeyHint({ label, combo }: { label: string; combo: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-2 py-0.5 text-[11px] text-[var(--color-muted-foreground)]">
+      <span className="font-semibold text-[var(--color-foreground)]">{combo}</span>
+      <span>{label}</span>
+    </span>
   );
 }
 
@@ -154,6 +153,17 @@ function ActiveChannel({
   const [searching, setSearching] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const messageListRef = useRef<MessageListHandle | null>(null);
+  const { invoke, status } = useRealtime();
+
+  // Join this channel's realtime group whenever it's opened, and re-join when the
+  // socket (re)connects. AppHub.OnConnectedAsync only pre-joins channels that existed
+  // at connect time, so a DM/channel opened later — or created after the socket came
+  // up — wouldn't receive live messages until a reload without this. The hub method is
+  // membership-gated and idempotent, so calling it on every open/reconnect is safe.
+  useEffect(() => {
+    if (status !== "connected") return;
+    void invoke("JoinChannel", channelId);
+  }, [channelId, status, invoke]);
 
   // Clear ephemeral state when the user switches channels.
   useEffect(() => {
@@ -181,7 +191,9 @@ function ActiveChannel({
   // For 1-on-1 DMs, resolve the other member's real name so the header +
   // composer placeholder show "Alice Anderson" instead of "@4d3a45fc".
   const otherDmMember =
-    channel?.type === 0 ? channel.members.find((m) => m.userId !== selfUserId) : null;
+    channel?.type === ChannelType.DirectMessage
+      ? channel.members.find((m) => m.userId !== selfUserId)
+      : null;
   const dmPartner = useUserDisplay(otherDmMember?.userId);
 
   // Mark-read effect — every time the latest message id changes (new
@@ -218,7 +230,7 @@ function ActiveChannel({
   if (!channel) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <p className="text-[12px] text-[var(--color-muted-foreground)]">
           Loading channel…
         </p>
       </div>
@@ -226,9 +238,11 @@ function ActiveChannel({
   }
 
   const title =
-    channel.type === 0 && otherDmMember ? dmPartner.name : channelTitle(channel, selfUserId);
+    channel.type === ChannelType.DirectMessage && otherDmMember
+      ? dmPartner.name
+      : channelTitle(channel, selfUserId);
   const Icon =
-    channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
+    channel.type === ChannelType.Channel ? (channel.isPrivate ? Lock : Hash) : Users2;
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
@@ -246,81 +260,59 @@ function ActiveChannel({
       ) : (
         <header
           className={cn(
-            "chat-channel-header flex h-14 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 md:gap-3 md:px-4",
+            "flex h-12 shrink-0 items-center gap-2 border-b border-[var(--color-border)] bg-[oklch(from_var(--color-background)_l_c_h_/_0.8)] px-3 backdrop-blur-sm md:gap-3 md:px-4",
           )}
         >
-          {/* Mobile back button — returns to the rail-only view. Hidden
-              from md+ where the rail is always visible alongside. */}
+          {/* Mobile back button — returns to the rail-only view. */}
           <button
             type="button"
             onClick={() => navigate("/chat")}
             aria-label="Back to channels"
             title="Back to channels"
-            className={cn(
-              "grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-md md:hidden",
-              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
-              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-            )}
+            className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-lg text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)] md:hidden"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="size-4" />
           </button>
           <span
             aria-hidden
-            className="hidden h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)] md:grid"
+            className="hidden size-7 shrink-0 place-items-center rounded-md bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)] md:grid"
           >
-            <Icon className="h-3.5 w-3.5" />
+            <Icon className="size-3.5" />
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="text-display truncate text-sm font-semibold tracking-tight">
+            <h2 className="truncate font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]">
               {title}
-            </h1>
-            {channel.description && channel.type === 2 && (
+            </h2>
+            {channel.description && channel.type === ChannelType.Channel && (
               <p className="truncate text-[11px] text-[var(--color-muted-foreground)]">
                 {channel.description}
               </p>
             )}
           </div>
+          <span className="hidden text-[11px] tabular-nums text-[var(--color-muted-foreground)] md:inline">
+            {channel.members.length}{" "}
+            {channel.members.length === 1 ? "member" : "members"}
+          </span>
           <button
             type="button"
             onClick={() => setSearching(true)}
             aria-label="Search messages"
             title="Search messages"
-            className={cn(
-              "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
-              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
-              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-            )}
+            className="grid size-8 cursor-pointer place-items-center rounded-lg text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]"
           >
-            <Search className="h-3.5 w-3.5" />
+            <Search className="size-3.5" />
           </button>
-          <ChatPinnedDropdown
-            channelId={channelId}
-            onJump={(id) => {
-              const ok = messageListRef.current?.jumpToMessage(id) ?? false;
-              if (!ok) {
-                toast.info("That message is older than the loaded window.");
-              }
-            }}
-          />
-          {channel.type === 2 && (
+          {channel.type === ChannelType.Channel && (
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
               aria-label="Channel settings"
               title="Channel settings"
-              className={cn(
-                "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
-                "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
-                "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-              )}
+              className="grid size-8 cursor-pointer place-items-center rounded-lg text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]"
             >
-              <Settings className="h-3.5 w-3.5" />
+              <Settings className="size-3.5" />
             </button>
           )}
-          <span className="hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)] md:inline">
-            <span className="tabular-nums">{channel.members.length}</span>{" "}
-            {channel.members.length === 1 ? "member" : "members"}
-          </span>
         </header>
       )}
 
@@ -329,6 +321,18 @@ function ActiveChannel({
         onOpenChange={setSettingsOpen}
         channel={channel}
         selfUserId={selfUserId}
+      />
+
+      {/* Pinned-messages bar — slim strip under the header; hidden when the
+          channel has nothing pinned. Click to review/jump to pins. */}
+      <ChatPinnedBar
+        channelId={channelId}
+        onJump={(id) => {
+          const ok = messageListRef.current?.jumpToMessage(id) ?? false;
+          if (!ok) {
+            toast.info("That message is older than the loaded window.");
+          }
+        }}
       />
 
       {/* Message list — fills the remaining height. */}

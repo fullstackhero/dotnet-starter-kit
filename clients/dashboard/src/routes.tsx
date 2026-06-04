@@ -18,20 +18,40 @@ import { cn } from "@/lib/cn";
 // shape compatible with React.lazy.
 // ─────────────────────────────────────────────────────────────────────────
 
-function lazyNamed<T extends Record<string, ComponentType<unknown>>, K extends keyof T>(
+function lazyNamed<T extends Record<string, unknown>, K extends keyof T>(
   importer: () => Promise<T>,
   name: K,
 ) {
   return lazy(async () => {
     const mod = await importer();
-    return { default: mod[name] };
+    return { default: mod[name] as ComponentType<unknown> };
   });
 }
 
 const LoginPage = lazyNamed(() => import("@/pages/login"), "LoginPage");
+const ForgotPasswordPage = lazyNamed(
+  () => import("@/pages/auth/forgot-password"),
+  "ForgotPasswordPage",
+);
+const ResetPasswordPage = lazyNamed(
+  () => import("@/pages/auth/reset-password"),
+  "ResetPasswordPage",
+);
+const ConfirmEmailPage = lazyNamed(
+  () => import("@/pages/auth/confirm-email"),
+  "ConfirmEmailPage",
+);
 const OverviewPage = lazyNamed(() => import("@/pages/overview"), "OverviewPage");
 const ActivityPage = lazyNamed(() => import("@/pages/activity"), "ActivityPage");
 const InvoicesPage = lazyNamed(() => import("@/pages/invoices"), "InvoicesPage");
+const InvoiceDetailPage = lazyNamed(
+  () => import("@/pages/invoice-detail"),
+  "InvoiceDetailPage",
+);
+const SubscriptionPage = lazyNamed(
+  () => import("@/pages/subscription"),
+  "SubscriptionPage",
+);
 const BrandsPage = lazyNamed(() => import("@/pages/catalog/brands"), "BrandsPage");
 const CategoriesPage = lazyNamed(() => import("@/pages/catalog/categories"), "CategoriesPage");
 const ProductsPage = lazyNamed(() => import("@/pages/catalog/products"), "ProductsPage");
@@ -90,7 +110,8 @@ const ChatPage = lazyNamed(() => import("@/pages/chat/chat-page"), "ChatPage");
  */
 function RouteFallback() {
   return (
-    <div className={cn("space-y-6 fsh-enter")} aria-busy>
+    <div className={cn("space-y-6 fsh-enter")} role="status" aria-busy="true">
+      <span className="sr-only">Loading…</span>
       <div className="space-y-2">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-8 w-64" />
@@ -123,6 +144,21 @@ export const router = createBrowserRouter([
     errorElement: <RouteError />,
   },
   {
+    path: "/forgot-password",
+    element: withSuspense(<ForgotPasswordPage />),
+    errorElement: <RouteError />,
+  },
+  {
+    path: "/reset-password",
+    element: withSuspense(<ResetPasswordPage />),
+    errorElement: <RouteError />,
+  },
+  {
+    path: "/confirm-email",
+    element: withSuspense(<ConfirmEmailPage />),
+    errorElement: <RouteError />,
+  },
+  {
     element: <ProtectedRoute />,
     errorElement: <RouteError />,
     children: [
@@ -132,7 +168,9 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: withSuspense(<OverviewPage />) },
           { path: "activity", element: withSuspense(<ActivityPage />) },
+          { path: "subscription", element: withSuspense(<SubscriptionPage />) },
           { path: "invoices", element: withSuspense(<InvoicesPage />) },
+          { path: "invoices/:id", element: withSuspense(<InvoiceDetailPage />) },
           { path: "system/health", element: withSuspense(<HealthPage />) },
           { path: "system/audits", element: withSuspense(<AuditsPage />) },
           { path: "system/trash", element: withSuspense(<TrashPage />) },

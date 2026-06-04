@@ -42,10 +42,14 @@ type ThemeContextValue = {
   setCustomAccent: (spec: CustomAccentSpec) => void;
   density: DensityMode;
   setDensity: (next: DensityMode) => void;
+  /** When true, forces reduced motion regardless of the OS setting. */
+  reducedMotion: boolean;
+  setReducedMotion: (next: boolean) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = "fsh.theme";
+const REDUCED_MOTION_STORAGE_KEY = "fsh.reduce-motion";
 const ACCENT_CLASS_PREFIX = "accent-";
 const FALLBACK_TRANSITION_MS = 280;
 
@@ -204,6 +208,20 @@ function applyDensity(value: DensityMode) {
   document.documentElement.classList.toggle("density-compact", value === "compact");
 }
 
+function readStoredReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(REDUCED_MOTION_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function applyReducedMotion(value: boolean) {
+  if (typeof document === "undefined") return;
+  document.documentElement.classList.toggle("reduce-motion", value);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(() => readStoredMode());
   const [resolved, setResolved] = useState<ResolvedTheme>(() =>
@@ -228,6 +246,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const stored = readStoredString(DENSITY_STORAGE_KEY, DEFAULT_DENSITY);
     return stored === "compact" ? "compact" : DEFAULT_DENSITY;
   });
+  const [reducedMotion, setReducedMotionState] = useState<boolean>(() =>
+    readStoredReducedMotion(),
+  );
 
   // Apply font / accent / density — covers initial render and any
   // subsequent change. The dark class is owned by withThemeTransition
@@ -237,6 +258,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => applyFont(font), [font]);
   useEffect(() => applyAccent(accent, customAccent), [accent, customAccent]);
   useEffect(() => applyDensity(density), [density]);
+  useEffect(() => applyReducedMotion(reducedMotion), [reducedMotion]);
 
   // Subscribe to system preference while in "system" mode. Future OS
   // changes route through withThemeTransition so they crossfade too.
@@ -318,6 +340,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setReducedMotion = useCallback((next: boolean) => {
+    setReducedMotionState(next);
+    try {
+      window.localStorage.setItem(REDUCED_MOTION_STORAGE_KEY, String(next));
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+
   const value = useMemo<ThemeContextValue>(
     () => ({
       mode, resolved, setMode,
@@ -325,6 +356,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       accent, setAccent,
       customAccent, setCustomAccent,
       density, setDensity,
+      reducedMotion, setReducedMotion,
     }),
     [
       mode, resolved, setMode,
@@ -332,6 +364,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       accent, setAccent,
       customAccent, setCustomAccent,
       density, setDensity,
+      reducedMotion, setReducedMotion,
     ],
   );
 

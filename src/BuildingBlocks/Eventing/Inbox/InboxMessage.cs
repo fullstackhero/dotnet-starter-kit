@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -5,8 +6,13 @@ namespace FSH.Framework.Eventing.Inbox;
 
 /// <summary>
 /// Inbox message to track processed integration events per handler for idempotent consumers.
+///
+/// Implements <see cref="IGlobalEntity"/> to opt out of automatic tenant
+/// filtering: inbox consumers run in background scopes and the
+/// "already-processed" lookup must cross tenants. Per-row tenant
+/// association is kept in the explicit nullable <see cref="TenantId"/> column.
 /// </summary>
-public class InboxMessage
+public class InboxMessage : IGlobalEntity
 {
     public Guid Id { get; set; }
 
@@ -19,7 +25,7 @@ public class InboxMessage
     public string? TenantId { get; set; }
 }
 
-public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
+public sealed class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
 {
     private readonly string _schema;
 

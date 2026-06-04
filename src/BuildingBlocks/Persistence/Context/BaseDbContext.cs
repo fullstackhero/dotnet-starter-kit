@@ -34,6 +34,11 @@ public class BaseDbContext(IMultiTenantContextAccessor<AppTenantInfo> multiTenan
         ArgumentNullException.ThrowIfNull(modelBuilder);
         modelBuilder.AppendGlobalQueryFilter<ISoftDeletable>(QueryFilters.SoftDelete, s => !s.IsDeleted);
         base.OnModelCreating(modelBuilder);
+        // Default-on tenant isolation: any entity not marked IGlobalEntity gets
+        // IsMultiTenant() applied. Subclasses must call base.OnModelCreating
+        // AFTER their ApplyConfigurationsFromAssembly so per-entity configs
+        // (unique indexes, owned types) are in place when we adjust them.
+        modelBuilder.ApplyTenantIsolationByDefault();
     }
 
     /// <summary>

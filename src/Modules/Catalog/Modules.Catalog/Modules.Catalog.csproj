@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Catalog</RootNamespace>
 		<AssemblyName>FSH.Modules.Catalog</AssemblyName>
-		<PackageId>FullStackHero.Modules.Catalog</PackageId>
 		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267</NoWarn>
 	</PropertyGroup>
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Coverage settings for the integration test suite. Scopes instrumentation to
+     FSH product code (modules + framework), excluding tests, migrations and generated code.
+     Run with: dotnet test (collect "XPlat Code Coverage", settings coverage.runsettings). -->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>[FSH.Modules.*]*,[FSH.Framework.*]*</Include>
+          <!-- Excluded from the meaningful-coverage denominator: hosted/background
+               services are long-running loops not driven by request flows or units. -->
+          <Exclude>[*.Tests]*,[*Tests]*,[FSH.Starter.Migrations.*]*,[*]*.Migrations.*,[*]*HostedService</Exclude>
+          <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute,DebuggerNonUserCodeAttribute</ExcludeByAttribute>
+          <SkipAutoProps>true</SkipAutoProps>
+          <UseSourceLink>false</UseSourceLink>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

@@ -5,19 +5,11 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import {
-  ChevronRight,
-  Hash,
-  Plus,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { ChevronRight, Plus, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { listRoles, upsertRole, type RoleDto } from "@/api/identity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogBody,
@@ -29,18 +21,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  EmptyState,
-  ErrorBand,
+  EntityEmpty,
+  EntityInitialsAvatar,
+  EntityListCard,
+  EntityListHeader,
+  EntityListLoading,
+  EntityListRow,
+  EntityMobileCard,
+  EntityPageHeader,
+  EntitySearch,
+  EntityStatusBadge,
   Field,
-  ListHero,
-  Stat,
-  StatStrip,
 } from "@/components/list";
-import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
-import { describe, pad2 } from "@/lib/list-helpers";
+import { describe } from "@/lib/list-helpers";
 
 const SYSTEM_ROLE_NAMES = new Set(["admin", "administrator", "basic", "user"]);
+
+// Desktop grid template, shared by header + rows + skeleton.
+const DESKTOP_COLS =
+  "grid-cols-[1fr_120px_24px] lg:grid-cols-[1.4fr_2fr_120px_24px]";
 
 function newGuid(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -52,7 +52,6 @@ function newGuid(): string {
 }
 
 export function RolesPage() {
-  const { user } = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -67,7 +66,7 @@ export function RolesPage() {
     queryFn: listRoles,
   });
 
-  const roles = query.data ?? [];
+  const roles = useMemo(() => query.data ?? [], [query.data]);
 
   const filtered = useMemo(() => {
     if (!debounced) return roles;
@@ -78,172 +77,217 @@ export function RolesPage() {
     );
   }, [roles, debounced]);
 
-  const stats = useMemo(() => {
-    if (!query.data) return null;
-    const system = roles.filter((r) => SYSTEM_ROLE_NAMES.has(r.name.toLowerCase())).length;
-    return {
-      total: roles.length,
-      system,
-      custom: roles.length - system,
-    };
-  }, [query.data, roles]);
+  const searchActive = debounced.length > 0;
 
   return (
-    <div className="space-y-7 pb-12">
-      <ListHero
-        eyebrow="Identity · Authority"
-        tenant={user?.tenant ?? "—"}
-        subEyebrow="role registry"
+    <div className="space-y-4 sm:space-y-6">
+      <EntityPageHeader
+        icon={Shield}
         title="Roles"
-        totalCount={query.data ? roles.length : null}
-        subtitle="Roles bundle permissions into named bands of authority. Assign them to members from the user detail page."
-        searchValue={search}
-        onSearch={setSearch}
-        searchPlaceholder="Find a role by name or description…"
-        isFetching={query.isFetching}
-        onRefresh={() => void query.refetch()}
-        ctaLabel="New role"
-        onCreate={() => setCreateOpen(true)}
+        total={query.data ? roles.length : null}
+        unit="role"
+        description="Roles bundle permissions into named bands of authority. Assign them from the user detail page."
+      >
+        <Button
+          onClick={() => setCreateOpen(true)}
+          className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
+        >
+          <Plus className="size-4" />
+          New role
+        </Button>
+      </EntityPageHeader>
+
+      <EntitySearch
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by name or description…"
       />
 
-      {stats && stats.total > 0 && (
-        <StatStrip cols={3}>
-          <Stat label="Total roles" value={pad2(stats.total)} hint="across this tenant" />
-          <Stat
-            label="System"
-            value={pad2(stats.system)}
-            hint={stats.system === 0 ? "none seeded" : "shipped with the framework"}
-          />
-          <Stat
-            label="Custom"
-            value={pad2(stats.custom)}
-            hint={stats.custom === 0 ? "none yet" : "tenant-defined"}
-            accent
-          />
-        </StatStrip>
+      {query.isLoading ? (
+        <EntityListLoading desktopColumns={DESKTOP_COLS} />
+      ) : filtered.length === 0 ? (
+        <EntityEmpty
+          icon={Shield}
+          title={searchActive ? "No roles found" : "No roles yet"}
+          body={
+            searchActive
+              ? `Nothing matches "${debounced}". Try a different term or clear the search.`
+              : "Create the first role to start grouping permissions. Without roles, members default to no access."
+          }
+          action={
+            searchActive ? (
+              <Button
+                variant="outline"
+                onClick={() => setSearch("")}
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                Clear search
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setCreateOpen(true)}
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                <Plus className="mr-1.5 size-4" />
+                Add role
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
+              {filtered.length} role{filtered.length !== 1 ? "s" : ""} found
+            </p>
+          </div>
+
+          {/* Mobile: card list */}
+          <div className="space-y-2 md:hidden">
+            {filtered.map((role) => (
+              <RoleMobileCard key={role.id} role={role} />
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <EntityListCard className="hidden md:block">
+            <EntityListHeader className={DESKTOP_COLS}>
+              <span>Name</span>
+              <span className="hidden lg:block">Description</span>
+              <span>Permissions</span>
+              <span />
+            </EntityListHeader>
+
+            {filtered.map((role, i) => (
+              <RoleDesktopRow
+                key={role.id}
+                role={role}
+                isLast={i === filtered.length - 1}
+              />
+            ))}
+          </EntityListCard>
+        </div>
       )}
 
-      {query.isError && <ErrorBand message={describe(query.error)} />}
+      {query.isError && (
+        <div
+          role="alert"
+          className="rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+        >
+          {describe(query.error)}
+        </div>
+      )}
 
-      <section className="fsh-enter fsh-enter-3 space-y-3">
-        {query.isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-36 rounded-2xl" style={{ animationDelay: `${i * 50}ms` }} />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div
-            className={cn(
-              "card-shell overflow-hidden rounded-2xl",
-              "bg-[var(--color-surface-3)]",
-            )}
-          >
-            <EmptyState
-              eyebrow={debounced ? "No matches" : "Empty registry"}
-              headline={
-                debounced
-                  ? `Nothing matches "${debounced}".`
-                  : "No roles defined yet."
-              }
-              body={
-                debounced
-                  ? "Search runs over name and description. Try a different term, or clear the search."
-                  : "Create the first role to start grouping permissions. Without roles, members default to no access."
-              }
-              icon={<ShieldCheck className="h-6 w-6 text-[var(--color-primary)]" />}
-              primaryAction={{
-                label: debounced ? "Add a new role" : "Add the first role",
-                onClick: () => setCreateOpen(true),
-                icon: <Sparkles className="h-3.5 w-3.5" />,
-              }}
-            />
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((role, i) => (
-              <RoleCard key={role.id} role={role} delayMs={Math.min(i, 8) * 30} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <CreateRoleDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      <CreateRoleDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+      />
     </div>
   );
 }
 
-function RoleCard({ role, delayMs }: { role: RoleDto; delayMs: number }) {
+// ───────────────────────────────────────────────────────────────────────
+//  Rows
+// ───────────────────────────────────────────────────────────────────────
+
+function permissionLabel(role: RoleDto) {
+  if (role.permissions === undefined || role.permissions === null) return "—";
+  const n = role.permissions.length;
+  return `${n} ${n === 1 ? "permission" : "permissions"}`;
+}
+
+function RoleMobileCard({ role }: { role: RoleDto }) {
   const isSystem = SYSTEM_ROLE_NAMES.has(role.name.toLowerCase());
   return (
-    <Link
-      to={`/identity/roles/${role.id}`}
-      className={cn(
-        "fsh-enter group/card relative flex flex-col gap-3 overflow-hidden rounded-2xl",
-        "card-shell card-shell-interactive p-5 text-left",
-        "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-4)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2",
-        "transition-colors duration-[var(--duration-default)]",
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
+    <EntityMobileCard
+      href={`/identity/roles/${role.id}`}
+      aria-label={`Open role ${role.name}`}
     >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 transition-opacity duration-[var(--duration-default)] group-hover/card:opacity-100"
-        style={{
-          background:
-            "radial-gradient(circle, oklch(from var(--color-primary) l c h / 0.20), transparent 70%)",
-        }}
-      />
-
-      <div className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className={cn(
-            "grid h-10 w-10 shrink-0 place-items-center rounded-xl",
-            "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.22),oklch(from_var(--color-primary)_l_c_h_/_0.04))]",
-            "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]",
-            "shadow-[var(--highlight-top)]",
-          )}
-        >
-          <ShieldCheck className="h-5 w-5 text-[var(--color-primary)]" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-display truncate text-[16px] font-semibold leading-tight tracking-[-0.01em]">
-              {role.name}
-            </span>
-            {isSystem && <Badge variant="outline">system</Badge>}
+      <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <EntityInitialsAvatar name={role.name} size={40} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
+                {role.name}
+              </p>
+              {isSystem && <EntityStatusBadge>System</EntityStatusBadge>}
+            </div>
+            <p
+              className={cn(
+                "mt-0.5 truncate text-[11px] text-[var(--color-muted-foreground)]",
+                !role.description && "italic opacity-60",
+              )}
+            >
+              {role.description ?? "No description on file."}
+            </p>
           </div>
-          <p
-            className={cn(
-              "mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]",
-              !role.description && "italic opacity-70",
-            )}
-          >
-            {role.description ?? "No description on file."}
-          </p>
         </div>
-        <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-muted-foreground)] transition-colors group-hover/card:text-[var(--color-primary)]" />
+        <ChevronRight className="size-4 shrink-0 text-[var(--color-border)]" />
+      </div>
+      <div className="mt-2 ml-[52px] flex flex-wrap items-center gap-1.5">
+        <EntityStatusBadge tone="info">
+          {permissionLabel(role)}
+        </EntityStatusBadge>
+      </div>
+    </EntityMobileCard>
+  );
+}
+
+function RoleDesktopRow({ role, isLast }: { role: RoleDto; isLast: boolean }) {
+  const isSystem = SYSTEM_ROLE_NAMES.has(role.name.toLowerCase());
+  return (
+    <EntityListRow className={DESKTOP_COLS} isLast={isLast}>
+      {/* Name */}
+      <Link
+        to={`/identity/roles/${role.id}`}
+        className="flex min-w-0 items-center gap-3 outline-none"
+      >
+        <EntityInitialsAvatar name={role.name} size={36} />
+        <span className="truncate text-[14px] font-medium text-[var(--color-foreground)] transition-colors group-hover:text-[var(--color-primary)]">
+          {role.name}
+        </span>
+        {isSystem && (
+          <EntityStatusBadge className="shrink-0">System</EntityStatusBadge>
+        )}
+      </Link>
+
+      {/* Description (lg+) */}
+      <div className="hidden lg:block">
+        <p
+          className={cn(
+            "truncate text-[12.5px] text-[var(--color-muted-foreground)]",
+            !role.description && "italic opacity-60",
+          )}
+          title={role.description ?? undefined}
+        >
+          {role.description ?? "No description on file."}
+        </p>
       </div>
 
-      <div className="mt-auto flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-          <Hash className="h-3 w-3" /> {role.id.slice(0, 8)}
-        </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] transition-colors group-hover/card:text-[var(--color-primary)]">
-          manage →
-        </span>
+      {/* Permission count */}
+      <span className="font-mono text-[12px] tabular-nums text-[var(--color-muted-foreground)]">
+        {permissionLabel(role)}
+      </span>
+
+      <div className="flex items-center justify-end">
+        <ChevronRight className="size-4 text-[var(--color-border)] transition-colors group-hover:text-[var(--color-muted-foreground)]" />
       </div>
-    </Link>
+    </EntityListRow>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Create dialog
+//  Create dialog — hooks/mutations preserved verbatim
 // ───────────────────────────────────────────────────────────────────────
 
-function CreateRoleDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+function CreateRoleDialog({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -264,12 +308,15 @@ function CreateRoleDialog({ open, onClose }: { open: boolean; onClose: () => voi
         description: description.trim() || undefined,
       }),
     onSuccess: (role) => {
-      toast.success("Role created", { description: `Now configure ${role.name}'s permissions.` });
+      toast.success("Role created", {
+        description: `Now configure ${role.name}'s permissions.`,
+      });
       void queryClient.invalidateQueries({ queryKey: ["identity", "roles"] });
       onClose();
       navigate(`/identity/roles/${role.id}`);
     },
-    onError: (err) => toast.error("Create failed", { description: describe(err) }),
+    onError: (err) =>
+      toast.error("Create failed", { description: describe(err) }),
   });
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -283,13 +330,10 @@ function CreateRoleDialog({ open, onClose }: { open: boolean; onClose: () => voi
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              New entry · authority
-            </span>
             <DialogTitle>Create a role</DialogTitle>
             <DialogDescription>
-              Roles bundle permissions. After creating, you'll be taken to the editor to assign
-              permissions and tune access.
+              Roles bundle permissions. After creating, you'll be taken to the
+              editor to assign permissions and tune access.
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="space-y-4">
@@ -320,14 +364,18 @@ function CreateRoleDialog({ open, onClose }: { open: boolean; onClose: () => voi
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={mutation.isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={mutation.isPending}
+              >
                 Cancel
               </Button>
             </DialogClose>
             <Button
               type="submit"
               disabled={mutation.isPending || !name.trim()}
-              className="brand-glow gradient-sheen gap-1.5"
+              className="gap-1.5"
             >
               <Plus className="h-4 w-4" />
               {mutation.isPending ? "Creating…" : "Create role"}

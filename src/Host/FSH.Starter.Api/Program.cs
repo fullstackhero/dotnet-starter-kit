@@ -12,8 +12,20 @@ using FSH.Modules.Catalog;
 using FSH.Modules.Tickets;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Serialize all enums as their string names on the HTTP API (e.g. "Active" not 0).
+// Reading still accepts both names and integers (allowIntegerValues default = true),
+// so request payloads sending either form keep working. Single-value enums become
+// strings; [Flags] enums (AuditTag, BodyCapture) opt back to numeric via their own
+// [JsonConverter(NumericEnumConverter<>)] attribute, since a comma-joined flag string
+// breaks bitwise consumers. Frontends mirror this contract (string unions).
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 if (builder.Environment.IsProduction())
 {
@@ -83,10 +95,9 @@ builder.AddHeroPlatform(o =>
 
 builder.AddModules(moduleAssemblies);
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddHostedService<FSH.Starter.Api.DevSeeding.DevDataSeeder>();
-}
+// Demo data (acme, globex, demo users, sample catalog/tickets/chat) is provisioned
+// by the DbMigrator's `seed-demo` verb — not by the API. The API never mutates data
+// on startup. See src/Host/FSH.Starter.DbMigrator/README.md.
 
 var app = builder.Build();
 

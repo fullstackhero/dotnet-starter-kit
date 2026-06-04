@@ -20,10 +20,12 @@ export type DemoAccount = {
 
 export const DEMO_PASSWORD = "Password123!";
 
-// Root tenant uses the platform default password (kept in sync with
-// MultitenancyConstants.DefaultPassword on the backend) — distinct from the
-// dev seed password used by the Acme/Globex demo accounts.
-export const ROOT_PASSWORD = "123Pa$$word!";
+// In the Aspire dev stack the demo seeder (`seed-demo`) runs after `apply --seed`
+// and realigns every tenant admin — including root's admin@root.com — to the
+// shared demo password, so in dev the root account signs in with the same
+// Password123! as the Acme/Globex demo users. (A production deploy that skips
+// seed-demo keeps whatever Seed:DefaultAdminPassword is configured.)
+export const ROOT_PASSWORD = DEMO_PASSWORD;
 
 const acme = (
   email: string,

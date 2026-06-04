@@ -1,17 +1,18 @@
 import { apiFetch } from "@/lib/api-client";
 
-// Mirrors FSH.Modules.Chat.Domain.ChannelType.
+// Mirrors FSH.Modules.Chat.Domain.ChannelType. The API serializes enums as
+// their string name (global JsonStringEnumConverter).
 export const ChannelType = {
-  DirectMessage: 0,
-  GroupMessage: 1,
-  Channel: 2,
+  DirectMessage: "DirectMessage",
+  GroupMessage: "GroupMessage",
+  Channel: "Channel",
 } as const;
 export type ChannelTypeValue = (typeof ChannelType)[keyof typeof ChannelType];
 
 // Mirrors FSH.Modules.Chat.Domain.ChannelMemberRole.
 export const ChannelMemberRole = {
-  Member: 0,
-  Admin: 1,
+  Member: "Member",
+  Admin: "Admin",
 } as const;
 export type ChannelMemberRoleValue = (typeof ChannelMemberRole)[keyof typeof ChannelMemberRole];
 
@@ -83,15 +84,6 @@ export function listMyChannels(params: { page?: number; pageSize?: number } = {}
   return apiFetch<ChannelDto[]>(`/api/v1/chat/channels${q ? `?${q}` : ""}`);
 }
 
-export function discoverChannels(params: { search?: string; page?: number; pageSize?: number } = {}): Promise<ChannelDto[]> {
-  const qs = new URLSearchParams();
-  if (params.search) qs.set("search", params.search);
-  if (params.page) qs.set("page", String(params.page));
-  if (params.pageSize) qs.set("pageSize", String(params.pageSize));
-  const q = qs.toString();
-  return apiFetch<ChannelDto[]>(`/api/v1/chat/channels/discover${q ? `?${q}` : ""}`);
-}
-
 export function getChannelById(channelId: string): Promise<ChannelDto> {
   return apiFetch<ChannelDto>(`/api/v1/chat/channels/${encodeURIComponent(channelId)}`);
 }
@@ -112,10 +104,6 @@ export function updateChannel(input: { channelId: string; name: string; descript
 
 export function archiveChannel(channelId: string): Promise<void> {
   return apiFetch<void>(`/api/v1/chat/channels/${encodeURIComponent(channelId)}`, { method: "DELETE" });
-}
-
-export function restoreChannel(channelId: string): Promise<void> {
-  return apiFetch<void>(`/api/v1/chat/channels/${encodeURIComponent(channelId)}/restore`, { method: "POST" });
 }
 
 export function addChannelMembers(channelId: string, userIds: string[]): Promise<void> {

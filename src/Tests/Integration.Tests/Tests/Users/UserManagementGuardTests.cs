@@ -95,7 +95,7 @@ public sealed class UserManagementGuardTests
     {
         var response = await client.GetAsync($"{TestConstants.IdentityBasePath}/roles");
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var roles = await response.DeserializeAsync<RoleDto[]>();
-        return (roles.First(r => r.Name == "Admin"), roles.First(r => r.Name == "Basic"));
+        var page = await response.DeserializeAsync<PagedResponse<RoleDto>>();
+        return (page.Items.First(r => r.Name == "Admin"), page.Items.First(r => r.Name == "Basic"));
     }
 }

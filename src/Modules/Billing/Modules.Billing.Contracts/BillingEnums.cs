@@ -21,3 +21,18 @@ public enum InvoiceLineItemKind
     Overage = 1,
     Adjustment = 2
 }
+
+public enum PlanInterval
+{
+    Monthly = 0,
+    Yearly = 1
+}
+
+public enum InvoicePurpose
+{
+    // Usage is 0 (the CLR default) so it doubles as the column default: existing rows backfill to
+    // Usage, and a Subscription invoice (1) is always written explicitly. Do NOT reorder — making
+    // Subscription 0 reintroduces the EF "CLR-default value is omitted, DB default wins" bug.
+    Usage = 0,
+    Subscription = 1
+}

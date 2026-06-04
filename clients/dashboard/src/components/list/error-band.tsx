@@ -5,9 +5,9 @@
  */
 export function ErrorBand({ message }: { message: string }) {
   return (
-    <div className="surface-edge rounded-xl bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-5 py-3 text-sm text-[var(--color-destructive)]">
-      <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em]">
-        failure ·{" "}
+    <div className="rounded-xl border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-5 py-3 text-sm text-[var(--color-destructive)]">
+      <span className="text-[11px] font-semibold uppercase tracking-wider">
+        Failure ·{" "}
       </span>
       {message}
     </div>

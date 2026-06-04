@@ -21,6 +21,9 @@ public sealed class Subscription : BaseEntity<Guid>
     private Subscription() { }
 
     public static Subscription Create(string tenantId, Guid planId, DateTime startUtc)
+        => Create(tenantId, planId, startUtc, endUtc: null);
+
+    public static Subscription Create(string tenantId, Guid planId, DateTime startUtc, DateTime? endUtc)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         if (planId == Guid.Empty)
@@ -34,6 +37,7 @@ public sealed class Subscription : BaseEntity<Guid>
             TenantId = tenantId,
             PlanId = planId,
             StartUtc = DateTime.SpecifyKind(startUtc, DateTimeKind.Utc),
+            EndUtc = endUtc is { } e ? DateTime.SpecifyKind(e, DateTimeKind.Utc) : null,
             Status = SubscriptionStatus.Active,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -56,5 +60,20 @@ public sealed class Subscription : BaseEntity<Guid>
         Status = SubscriptionStatus.Cancelled;
         EndUtc = DateTime.SpecifyKind(endUtc, DateTimeKind.Utc);
         UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Extends the active term's end. Used by a same-plan renewal to keep <see cref="EndUtc"/> in step
+    /// with the tenant's ValidUpto (a plan change replaces the subscription instead). Idempotent: only
+    /// ever moves the end forward, so a redelivered renewal event is a no-op.
+    /// </summary>
+    public void Extend(DateTime endUtc)
+    {
+        var newEnd = DateTime.SpecifyKind(endUtc, DateTimeKind.Utc);
+        if (EndUtc is null || newEnd > EndUtc)
+        {
+            EndUtc = newEnd;
+            UpdatedAtUtc = DateTime.UtcNow;
+        }
     }
 }

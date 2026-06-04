@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Eye, Paperclip, Pencil, Pin, PinOff, SmilePlus, Trash2 } from "lucide-react";
@@ -146,7 +146,7 @@ export function Message({
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none absolute top-1.5 hidden font-mono text-[10px] tabular-nums",
+            "pointer-events-none absolute top-1.5 hidden text-[10px] tabular-nums",
             "text-[var(--color-muted-foreground)] group-hover/message:block",
             isOwn ? "left-4" : "right-4",
           )}
@@ -157,7 +157,7 @@ export function Message({
 
       <div
         className={cn(
-          "flex min-w-0 max-w-[78%] flex-col",
+          "relative flex min-w-0 max-w-[78%] flex-col",
           isOwn ? "items-end" : "items-start",
         )}
       >
@@ -183,17 +183,17 @@ export function Message({
                   {author.name}
                 </span>
                 {author.handle && author.handle.toLowerCase() !== author.name.toLowerCase() && (
-                  <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+                  <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
                     @{author.handle}
                   </span>
                 )}
               </>
             )}
-            <span className="font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
+            <span className="text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
               {shortTime(message.createdAtUtc)}
             </span>
             {message.editedAtUtc && (
-              <span className="font-mono text-[10px] uppercase tracking-[0.10em] text-[var(--color-muted-foreground)]">
+              <span className="text-[10px] text-[var(--color-muted-foreground)]">
                 · edited
               </span>
             )}
@@ -205,7 +205,7 @@ export function Message({
           <span
             className={cn(
               "mb-0.5 inline-flex items-center gap-1 self-end px-1",
-              "font-mono text-[10px] uppercase tracking-[0.14em]",
+              "text-[10px] font-semibold uppercase tracking-wider",
               "text-[var(--color-primary)]",
             )}
             aria-label="Pinned"
@@ -221,13 +221,10 @@ export function Message({
             mid-flash was leaving ghost rings). */}
         <div
           className={cn(
-            "break-words rounded-2xl px-3 py-2",
+            "break-words rounded-2xl px-3.5 py-2 shadow-xs",
             isOwn
               ? "bg-[var(--color-primary-soft)] text-[var(--color-foreground)] rounded-tr-md"
-              : "bg-[var(--color-surface-2)] text-[var(--color-foreground)] rounded-tl-md",
-            // Sharp brand-tinted ring while flashing from a jump-to-parent;
-            // pinned messages get a thinner static ring. Either ring renders
-            // crisply because there's no transition smearing between states.
+              : "border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-foreground)] rounded-tl-md",
             isFlashing && "ring-2 ring-[var(--color-primary)]",
             message.isPinned &&
               !isFlashing &&
@@ -267,6 +264,11 @@ export function Message({
           )}
         </div>
 
+        {/* Hover action rail — anchored to the bubble's column so it tucks
+            into the margin right beside the bubble (left of own messages,
+            right of others) instead of drifting to the far pane edge. */}
+        <MessageActions message={message} isOwn={isOwn} onReply={onReply} />
+
         {/* Reactions — align toward the bubble's outer edge. */}
         {reactions.length > 0 && (
           <div
@@ -296,10 +298,6 @@ export function Message({
           />
         )}
       </div>
-
-      {/* Hover action rail — floats in the empty space opposite the bubble
-          (left side for own, right side for others). */}
-      <MessageActions message={message} isOwn={isOwn} onReply={onReply} />
     </div>
   );
 }
@@ -332,11 +330,11 @@ function ReplyContextPreview({
 
   const content = (
     <>
-      <div className="flex items-center gap-1">
-        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
           Replying to
         </span>
-        <span className="truncate text-[10.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
+        <span className="truncate text-[11px] font-semibold tracking-tight text-[var(--color-foreground)]">
           {parent ? author.name : "a message"}
         </span>
       </div>
@@ -405,7 +403,7 @@ function ReadReceipt({
     <span
       className={cn(
         "mt-0.5 flex items-center gap-1 self-end px-1",
-        "font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]",
+        "text-[10px] tabular-nums text-[var(--color-muted-foreground)]",
       )}
       aria-label={label}
     >
@@ -466,7 +464,7 @@ function AttachmentTile({ attachment }: { attachment: MessageAttachmentDto }) {
           className={cn(
             "pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-2.5 py-1.5",
             "bg-gradient-to-t from-[oklch(0_0_0_/_0.55)] to-transparent",
-            "font-mono text-[10px] uppercase tracking-[0.12em] text-white",
+            "text-[11px] font-medium text-[var(--color-overlay-foreground)]",
             "opacity-0 transition-opacity duration-[var(--duration-fast)] group-hover/att:opacity-100",
           )}
         >
@@ -484,10 +482,10 @@ function AttachmentTile({ attachment }: { attachment: MessageAttachmentDto }) {
       rel="noreferrer noopener"
       aria-disabled={!canOpen}
       className={cn(
-        "flex items-center gap-2.5 rounded-md border px-3 py-2 max-w-[320px]",
-        "border-[var(--color-border)] bg-[var(--color-surface-1)]",
+        "flex items-center gap-2.5 rounded-lg border px-3 py-2 max-w-[320px]",
+        "border-[var(--color-border)] bg-[var(--color-card)]",
         "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-        canOpen && "hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-2)]",
+        canOpen && "hover:border-[var(--color-primary)] hover:bg-[var(--color-muted)]",
         !canOpen && "pointer-events-none opacity-70",
       )}
       title={attachment.originalFileName}
@@ -495,8 +493,8 @@ function AttachmentTile({ attachment }: { attachment: MessageAttachmentDto }) {
       <span
         aria-hidden
         className={cn(
-          "grid h-9 w-9 shrink-0 place-items-center rounded-md",
-          "bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)]",
+          "grid h-9 w-9 shrink-0 place-items-center rounded-lg",
+          "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
         )}
       >
         <Paperclip className="h-4 w-4" />
@@ -505,7 +503,7 @@ function AttachmentTile({ attachment }: { attachment: MessageAttachmentDto }) {
         <p className="truncate text-[12.5px] font-medium text-[var(--color-foreground)]">
           {attachment.originalFileName}
         </p>
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <p className="text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
           {formatBytes(attachment.sizeBytes)}
         </p>
       </div>
@@ -605,21 +603,21 @@ function MentionPill({ username }: { username: string }) {
                 {loading ? `@${username}` : displayName}
               </span>
               {isSelf && (
-                <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+                <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
                   you
                 </span>
               )}
             </div>
-            <div className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+            <div className="truncate text-[11px] text-[var(--color-muted-foreground)]">
               @{resolved?.userName ?? username}
             </div>
             {resolved?.email && (
-              <div className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+              <div className="truncate text-[11px] text-[var(--color-muted-foreground)]">
                 {resolved.email}
               </div>
             )}
             {loading && (
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+              <div className="mt-1 text-[11px] text-[var(--color-muted-foreground)]">
                 Looking up…
               </div>
             )}
@@ -635,7 +633,7 @@ function MentionPill({ username }: { username: string }) {
             )}
           </div>
         </div>
-        <div className="flex items-center justify-end gap-1.5 border-t border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <div className="flex items-center justify-end gap-1.5 border-t border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2">
           <Button
             size="sm"
             variant="ghost"
@@ -682,6 +680,8 @@ function ReactionChip({
       data-mine={mine || undefined}
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
+      aria-pressed={mine}
+      aria-label={`${mine ? "Remove your" : "Add"} ${emoji} reaction, ${count} so far`}
       className="chat-reaction-chip"
     >
       <span aria-hidden>{emoji}</span>
@@ -742,20 +742,55 @@ function MessageActions({
     <>
       <div
         className={cn(
-          "absolute top-1 z-10 hidden gap-0.5 rounded-md border border-[var(--color-border)]",
+          "absolute top-0 z-10 hidden gap-0.5 rounded-lg border border-[var(--color-border)]",
           "bg-[var(--color-popover)] p-0.5 shadow-[var(--shadow-md)]",
-          "group-hover/message:flex",
-          // Float on the empty side: own messages sit right, so the rail
-          // floats on the left; other messages sit left, so the rail floats right.
-          isOwn ? "left-3" : "right-3",
+          // Keep the rail mounted while its emoji picker is open so the
+          // portaled picker stays anchored to a visible trigger.
+          pickerOpen ? "flex" : "group-hover/message:flex",
+          // Float in the margin immediately beside the bubble (anchored to the
+          // bubble's column, not the pane): own messages sit right so the rail
+          // tucks just left of the bubble; others sit left so it tucks right.
+          isOwn ? "right-full mr-1.5" : "left-full ml-1.5",
         )}
       >
-        <ActionButton title="React" onClick={() => setPickerOpen((v) => !v)}>
-          <SmilePlus className="h-3.5 w-3.5" />
-        </ActionButton>
+        {/* React — a portaled menu so the picker can't be clipped or
+            click-blocked by the next virtualized message row (the old
+            absolutely-positioned picker overflowed its row and the row
+            below stole the clicks). */}
+        <DropdownMenu open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DropdownMenuTrigger asChild>
+            <ActionButton title="React">
+              <SmilePlus className="h-3.5 w-3.5" />
+            </ActionButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="top"
+            align={isOwn ? "end" : "start"}
+            className="flex w-auto min-w-0 gap-1 p-1"
+          >
+            {QUICK_REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                aria-label={`React with ${emoji}`}
+                onClick={() => {
+                  reactMutation.mutate(emoji);
+                  setPickerOpen(false);
+                }}
+                className={cn(
+                  "grid h-8 w-8 cursor-pointer place-items-center rounded-md text-base",
+                  "hover:bg-[var(--color-accent)]",
+                  "transition-transform duration-[var(--duration-fast)] hover:scale-110",
+                )}
+              >
+                {emoji}
+              </button>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         {!message.parentMessageId && onReply && (
           <ActionButton title="Reply" onClick={() => onReply(message)}>
-            <span className="font-mono text-[10px] font-semibold tracking-tight">↪</span>
+            <span className="text-[12px] font-semibold leading-none">↪</span>
           </ActionButton>
         )}
         <ActionButton
@@ -783,34 +818,6 @@ function MessageActions({
           </ActionButton>
         )}
       </div>
-
-      {pickerOpen && (
-        <div
-          className={cn(
-            "absolute top-9 z-20 flex gap-1 rounded-md border border-[var(--color-border)]",
-            "bg-[var(--color-popover)] p-1 shadow-[var(--shadow-lg)]",
-            isOwn ? "left-3" : "right-3",
-          )}
-        >
-          {QUICK_REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => {
-                reactMutation.mutate(emoji);
-                setPickerOpen(false);
-              }}
-              className={cn(
-                "grid h-7 w-7 cursor-pointer place-items-center rounded-md text-base",
-                "hover:bg-[var(--color-accent)]",
-                "transition-transform duration-[var(--duration-fast)] hover:scale-110",
-              )}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      )}
 
       {editing && (
         <EditMessageInline
@@ -863,15 +870,15 @@ function DeleteMessageDialog({
           {display ? (
             <blockquote
               className={cn(
-                "rounded-md border-l-2 border-[var(--color-primary)] bg-[var(--color-surface-2)]",
+                "rounded-lg border-l-2 border-[var(--color-primary)] bg-[var(--color-muted)]",
                 "px-3 py-2 text-sm italic text-[var(--color-muted-foreground)]",
               )}
             >
               {display}
             </blockquote>
           ) : (
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-              (No text preview — attachments or empty body.)
+            <p className="text-[12px] italic text-[var(--color-muted-foreground)]">
+              No text preview — attachments or empty body.
             </p>
           )}
         </DialogBody>
@@ -888,35 +895,33 @@ function DeleteMessageDialog({
   );
 }
 
-function ActionButton({
-  title,
-  onClick,
-  destructive,
-  children,
-}: {
-  title: string;
-  onClick: () => void;
-  destructive?: boolean;
-  children: React.ReactNode;
-}) {
+// forwardRef + prop spread so this can serve as a Radix `asChild` trigger
+// (the React button is a DropdownMenuTrigger) — Radix injects ref, onClick,
+// and aria/data-state props that must reach the underlying <button>.
+const ActionButton = forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<"button"> & { destructive?: boolean }
+>(function ActionButton({ title, destructive, children, className, ...rest }, ref) {
   return (
     <button
-      type="button"
+      ref={ref}
       title={title}
       aria-label={title}
-      onClick={onClick}
       className={cn(
-        "grid h-6 w-6 cursor-pointer place-items-center rounded",
+        "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
         "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
         destructive
           ? "text-[var(--color-destructive)] hover:bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)]"
           : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+        className,
       )}
+      {...rest}
+      type="button"
     >
       {children}
     </button>
   );
-}
+});
 
 function EditMessageInline({
   message,
@@ -965,10 +970,10 @@ function EditMessageInline({
   };
 
   return (
-    <div className="ml-12 mt-1.5 space-y-1.5">
+    <div className="mt-1.5 w-full space-y-1.5">
       <div
         className={cn(
-          "relative rounded-lg border bg-[var(--color-surface-3)] transition-all",
+          "relative rounded-xl border bg-[var(--color-card)] transition-all",
           "duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
           "border-[var(--color-border)] focus-within:border-[var(--color-primary)]",
           "focus-within:shadow-[0_0_0_3px_var(--color-primary-soft)]",
@@ -989,8 +994,8 @@ function EditMessageInline({
         />
       </div>
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-          ↵ Save · ⇧↵ Newline · Esc Cancel
+        <span className="text-[11px] text-[var(--color-muted-foreground)]">
+          Enter to save · Shift+Enter for newline · Esc to cancel
         </span>
         <div className="flex items-center gap-1.5">
           <Button size="sm" variant="ghost" onClick={onClose} disabled={mutation.isPending}>

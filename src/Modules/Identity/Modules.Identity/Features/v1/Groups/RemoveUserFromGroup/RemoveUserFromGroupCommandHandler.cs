@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Exceptions;
+using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Groups.RemoveUserFromGroup;
 using FSH.Modules.Identity.Data;
 using Mediator;
@@ -9,10 +10,12 @@ namespace FSH.Modules.Identity.Features.v1.Groups.RemoveUserFromGroup;
 public sealed class RemoveUserFromGroupCommandHandler : ICommandHandler<RemoveUserFromGroupCommand, Unit>
 {
     private readonly IdentityDbContext _dbContext;
+    private readonly IUserPermissionService _userPermissionService;
 
-    public RemoveUserFromGroupCommandHandler(IdentityDbContext dbContext)
+    public RemoveUserFromGroupCommandHandler(IdentityDbContext dbContext, IUserPermissionService userPermissionService)
     {
         _dbContext = dbContext;
+        _userPermissionService = userPermissionService;
     }
 
     public async ValueTask<Unit> Handle(RemoveUserFromGroupCommand command, CancellationToken cancellationToken)
@@ -38,6 +41,10 @@ public sealed class RemoveUserFromGroupCommandHandler : ICommandHandler<RemoveUs
 
         _dbContext.UserGroups.Remove(membership);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Leaving a group may revoke roles the user only held through this group —
+        // invalidate so the cached permission set is rebuilt on next request.
+        await _userPermissionService.InvalidatePermissionCacheAsync(command.UserId, cancellationToken).ConfigureAwait(false);
 
         return Unit.Value;
     }

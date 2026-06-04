@@ -9,5 +9,5 @@ public sealed record RequestUploadUrlCommand(
     string FileName,
     string ContentType,
     long SizeBytes,
-    int Visibility,
+    Visibility Visibility,
     string Category) : ICommand<PresignedUploadResponse>;

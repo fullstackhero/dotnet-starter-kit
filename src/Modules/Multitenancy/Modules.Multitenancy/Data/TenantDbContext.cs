@@ -21,6 +21,8 @@ public class TenantDbContext : EFCoreStoreDbContext<AppTenantInfo>
 
     public DbSet<TenantTheme> TenantThemes => Set<TenantTheme>();
 
+    public DbSet<TenantExpiryNotice> TenantExpiryNotices => Set<TenantExpiryNotice>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

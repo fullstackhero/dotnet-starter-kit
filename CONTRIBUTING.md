@@ -22,7 +22,7 @@ Client apps live under `clients/admin` and `clients/dashboard` — `npm install 
 
 ## Pull requests
 
-- Branch from and target `develop`, not `main`.
+- Branch from and target `main`.
 - Follow [Conventional Commits](https://www.conventionalcommits.org) — match the existing history (`feat(chat): ...`, `fix(identity): ...`).
 - Add tests. The build runs with `TreatWarningsAsErrors=true`; analyzer warnings must be fixed.
 - Don't touch `src/BuildingBlocks/` without prior discussion — wide blast radius.

@@ -12,8 +12,27 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ permissions = [] }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, isInitializing, user } = useAuth();
   const location = useLocation();
+
+  // Resolving a stored session (silent token refresh) — hold rendering so we
+  // neither flash a protected surface with a stale/expired token nor bounce to
+  // /login before the refresh has had a chance to restore the session.
+  if (isInitializing) {
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center text-sm text-[var(--color-muted-foreground)]"
+        role="status"
+        aria-busy="true"
+      >
+        <span className="sr-only">Restoring your session…</span>
+        <span
+          className="size-5 animate-spin rounded-full border-2 border-current border-t-transparent"
+          aria-hidden
+        />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;

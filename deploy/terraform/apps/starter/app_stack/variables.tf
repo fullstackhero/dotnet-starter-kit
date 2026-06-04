@@ -564,3 +564,101 @@ variable "api_extra_environment_variables" {
   default     = {}
 }
 
+variable "api_extra_cors_origins" {
+  type        = list(string)
+  description = "Extra origins to add to the API CORS allow-list (the admin/dashboard SPA origins are added automatically)."
+  default     = []
+}
+
+################################################################################
+# Frontend (React SPA) Variables
+#
+# Two static SPAs are hosted on S3 + CloudFront (see the static_site module):
+#   - dashboard (clients/dashboard) — tenant-facing
+#   - admin     (clients/admin)     — operator-facing
+################################################################################
+
+variable "enable_dashboard_site" {
+  type        = bool
+  description = "Provision S3 + CloudFront hosting for the tenant dashboard SPA."
+  default     = true
+}
+
+variable "enable_admin_site" {
+  type        = bool
+  description = "Provision S3 + CloudFront hosting for the operator admin SPA."
+  default     = true
+}
+
+variable "dashboard_s3_bucket_name" {
+  type        = string
+  description = "Globally unique S3 bucket name for the dashboard SPA (required when enable_dashboard_site is true)."
+  default     = null
+}
+
+variable "admin_s3_bucket_name" {
+  type        = string
+  description = "Globally unique S3 bucket name for the admin SPA (required when enable_admin_site is true)."
+  default     = null
+}
+
+variable "dashboard_cloudfront_aliases" {
+  type        = list(string)
+  description = "Custom domain names (CNAMEs) for the dashboard distribution (e.g. [\"app.example.com\"])."
+  default     = []
+}
+
+variable "admin_cloudfront_aliases" {
+  type        = list(string)
+  description = "Custom domain names (CNAMEs) for the admin distribution (e.g. [\"admin.example.com\"])."
+  default     = []
+}
+
+variable "dashboard_cloudfront_certificate_arn" {
+  type        = string
+  description = "ACM certificate ARN (us-east-1) for the dashboard custom domains."
+  default     = null
+}
+
+variable "admin_cloudfront_certificate_arn" {
+  type        = string
+  description = "ACM certificate ARN (us-east-1) for the admin custom domains."
+  default     = null
+}
+
+variable "frontend_cloudfront_price_class" {
+  type        = string
+  description = "CloudFront price class for both SPA distributions."
+  default     = "PriceClass_100"
+}
+
+variable "frontend_response_headers_policy_id" {
+  type        = string
+  description = "Optional CloudFront response headers policy ID applied to both SPAs (e.g. a managed security-headers policy)."
+  default     = null
+}
+
+variable "frontend_default_tenant" {
+  type        = string
+  description = "Default tenant identifier baked into the SPA runtime config.json."
+  default     = "root"
+}
+
+variable "dashboard_demo_mode" {
+  type        = bool
+  description = "Set the dashboard SPA into demo mode via its runtime config.json."
+  default     = false
+}
+
+variable "dashboard_url" {
+  type        = string
+  description = "Override the dashboard origin used for API CORS when enable_dashboard_site is false (SPA hosted elsewhere)."
+  default     = null
+}
+
+variable "admin_url" {
+  type        = string
+  description = "Override the admin origin used for API CORS when enable_admin_site is false (SPA hosted elsewhere)."
+  default     = null
+}
+

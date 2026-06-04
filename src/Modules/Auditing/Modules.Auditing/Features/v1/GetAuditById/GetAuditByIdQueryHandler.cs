@@ -31,6 +31,9 @@ public sealed class GetAuditByIdQueryHandler : IQueryHandler<GetAuditByIdQuery, 
 
         if (record is null)
         {
+            // KeyNotFoundException is mapped to 404 by the global exception handler. Kept (rather
+            // than the framework NotFoundException) because the audit exception-type fixtures and
+            // severity classification key off this concrete type.
             throw new KeyNotFoundException($"Audit record {query.Id} not found.");
         }
 

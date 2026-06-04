@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Domain;
+using FSH.Modules.Files.Contracts.v1.DTOs;
 
 namespace FSH.Modules.Files.Domain.Events;
 

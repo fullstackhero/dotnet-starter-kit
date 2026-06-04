@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace FSH.Framework.Storage.S3;
 
-internal sealed class S3StorageService : IStorageService
+internal sealed partial class S3StorageService : IStorageService
 {
     private readonly IAmazonS3 _s3;
     private readonly S3StorageOptions _options;
@@ -18,6 +18,13 @@ internal sealed class S3StorageService : IStorageService
     private readonly FileExtensionContentTypeProvider _contentTypeProvider;
 
     private const string UploadBasePath = "uploads";
+
+    // Source-generated, compiled once — the inline Regex.Replace calls re-parsed the pattern on every upload.
+    [GeneratedRegex("[^a-z0-9]")]
+    private static partial Regex FolderSanitizer();
+
+    [GeneratedRegex(@"[^a-zA-Z0-9_\.-]")]
+    private static partial Regex FileNameSanitizer();
 
     public S3StorageService(IAmazonS3 s3, IOptions<S3StorageOptions> options, ILogger<S3StorageService> logger)
     {
@@ -349,7 +356,7 @@ internal sealed class S3StorageService : IStorageService
 
     private string BuildKey<T>(string fileName) where T : class
     {
-        var folder = Regex.Replace(typeof(T).Name.ToLowerInvariant(), @"[^a-z0-9]", "_");
+        var folder = FolderSanitizer().Replace(typeof(T).Name.ToLowerInvariant(), "_");
         var relativePath = Path.Combine(UploadBasePath, folder, $"{Guid.NewGuid():N}_{fileName}").Replace("\\", "/", StringComparison.Ordinal);
         if (!string.IsNullOrWhiteSpace(_options.Prefix))
         {
@@ -413,6 +420,6 @@ internal sealed class S3StorageService : IStorageService
 
     private static string SanitizeFileName(string fileName)
     {
-        return Regex.Replace(fileName, @"[^a-zA-Z0-9_\.-]", "_");
+        return FileNameSanitizer().Replace(fileName, "_");
     }
 }

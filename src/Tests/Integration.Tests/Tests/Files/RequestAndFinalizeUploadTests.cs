@@ -43,7 +43,7 @@ public sealed class RequestAndFinalizeUploadTests
         var dto = await finalize.DeserializeAsync<FileAssetDto>();
         dto.ShouldNotBeNull();
         dto.Id.ShouldBe(presigned.FileAssetId);
-        dto.Status.ShouldBe(1); // Available
+        dto.Status.ShouldBe(FileAssetStatus.Available);
         dto.SizeBytes.ShouldBe(bytes.Length);
         dto.OriginalFileName.ShouldBe("doc.pdf");
         dto.ContentType.ShouldBe("application/pdf");
@@ -60,7 +60,7 @@ public sealed class RequestAndFinalizeUploadTests
 
         var dto = await response.DeserializeAsync<FileAssetDto>();
         dto.Id.ShouldBe(id);
-        dto.Status.ShouldBe(1);
+        dto.Status.ShouldBe(FileAssetStatus.Available);
     }
 
     [Fact]

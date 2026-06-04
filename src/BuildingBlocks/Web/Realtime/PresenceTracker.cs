@@ -22,7 +22,16 @@ public sealed class PresenceTracker : IPresenceTracker
                 transitioned = true;
                 return 1;
             },
-            (_, prev) => prev + 1);
+            // prev == 0 means a Disconnect set the count to 0 but hasn't removed the key yet —
+            // this Connect resurrects it, which is still an offline→online transition.
+            (_, prev) =>
+            {
+                if (prev == 0)
+                {
+                    transitioned = true;
+                }
+                return prev + 1;
+            });
         return transitioned;
     }
 

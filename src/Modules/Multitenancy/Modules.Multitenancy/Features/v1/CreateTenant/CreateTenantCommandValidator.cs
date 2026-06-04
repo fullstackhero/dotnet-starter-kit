@@ -26,5 +26,21 @@ public sealed class CreateTenantCommandValidator : AbstractValidator<CreateTenan
         RuleFor(t => t.AdminEmail).Cascade(CascadeMode.Stop)
             .NotEmpty()
             .EmailAddress();
+
+        // Admin password is now operator-supplied rather than a hardcoded default.
+        // The minimum 8-char rule matches the Identity password policy floor; the
+        // mixed-character requirements (digit / upper / non-alpha) are enforced
+        // later by ASP.NET Identity's PasswordValidators when the seed runs.
+        RuleFor(t => t.AdminPassword).Cascade(CascadeMode.Stop)
+            .NotEmpty()
+            .MinimumLength(8)
+            .WithMessage("Admin password must be at least 8 characters.");
+
+        // Optional — null/empty falls back to the configured default plan. When supplied it must be a
+        // lowercase plan slug; existence is validated by GetPlanTerm in the handler.
+        RuleFor(t => t.PlanKey)
+            .Matches("^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$")
+            .When(t => !string.IsNullOrWhiteSpace(t.PlanKey))
+            .WithMessage("Plan key must be a lowercase slug (a-z, 0-9, hyphen).");
     }
 }

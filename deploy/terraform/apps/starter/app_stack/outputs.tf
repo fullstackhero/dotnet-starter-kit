@@ -128,6 +128,32 @@ output "s3_cloudfront_distribution_id" {
 }
 
 ################################################################################
+# Frontend (React SPA) Outputs
+################################################################################
+
+output "dashboard_site" {
+  description = "Dashboard SPA hosting details (bucket + CloudFront) for CI deploys, or null when not provisioned."
+  value = var.enable_dashboard_site ? {
+    bucket_name                = module.dashboard_site[0].bucket_name
+    cloudfront_distribution_id = module.dashboard_site[0].cloudfront_distribution_id
+    cloudfront_domain_name     = module.dashboard_site[0].cloudfront_domain_name
+    cloudfront_hosted_zone_id  = module.dashboard_site[0].cloudfront_hosted_zone_id
+    url                        = module.dashboard_site[0].url
+  } : null
+}
+
+output "admin_site" {
+  description = "Admin SPA hosting details (bucket + CloudFront) for CI deploys, or null when not provisioned."
+  value = var.enable_admin_site ? {
+    bucket_name                = module.admin_site[0].bucket_name
+    cloudfront_distribution_id = module.admin_site[0].cloudfront_distribution_id
+    cloudfront_domain_name     = module.admin_site[0].cloudfront_domain_name
+    cloudfront_hosted_zone_id  = module.admin_site[0].cloudfront_hosted_zone_id
+    url                        = module.admin_site[0].url
+  } : null
+}
+
+################################################################################
 # WAF Outputs
 ################################################################################
 

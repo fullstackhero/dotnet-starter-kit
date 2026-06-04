@@ -18,7 +18,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("billing")
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -29,6 +29,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("AnnualPrice")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -36,6 +40,11 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
                         .IsRequired()
                         .HasMaxLength(8)
                         .HasColumnType("character varying(8)");
+
+                    b.Property<int>("Interval")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -104,11 +113,22 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
                     b.Property<DateTime?>("PaidAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("PeriodEndUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("PeriodMonth")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("PeriodStartUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("PeriodYear")
                         .HasColumnType("integer");
+
+                    b.Property<int>("Purpose")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -132,9 +152,9 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("TenantId", "PeriodYear", "PeriodMonth")
+                    b.HasIndex("TenantId", "PeriodYear", "PeriodMonth", "Purpose")
                         .IsUnique()
-                        .HasDatabaseName("ux_invoices_tenant_period");
+                        .HasDatabaseName("ux_invoices_tenant_period_purpose");
 
                     b.ToTable("Invoices", "billing");
                 });

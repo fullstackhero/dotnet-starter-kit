@@ -18,7 +18,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("chat")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -43,6 +43,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -54,10 +58,13 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("UserId", "ChannelId")
-                        .IsUnique();
+                    b.HasIndex("UserId", "ChannelId", "TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ChannelMembers_UserId_ChannelId");
 
                     b.ToTable("ChannelMembers", "chat");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Chat.Domain.ChatChannel", b =>
@@ -105,6 +112,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                         .HasMaxLength(220)
                         .HasColumnType("character varying(220)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
@@ -113,17 +124,21 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DirectKey")
-                        .IsUnique()
-                        .HasFilter("\"Type\" = 0 AND \"IsDeleted\" = FALSE");
-
                     b.HasIndex("IsDeleted");
 
-                    b.HasIndex("Slug")
+                    b.HasIndex("DirectKey", "TenantId")
                         .IsUnique()
+                        .HasDatabaseName("IX_Channels_DirectKey")
+                        .HasFilter("\"Type\" = 0 AND \"IsDeleted\" = FALSE");
+
+                    b.HasIndex("Slug", "TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Channels_Slug")
                         .HasFilter("\"Slug\" IS NOT NULL AND \"IsDeleted\" = FALSE");
 
                     b.ToTable("Channels", "chat");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Chat.Domain.Message", b =>
@@ -167,6 +182,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                     b.Property<int>("ReplyCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ParentMessageId")
@@ -179,6 +198,8 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                         .HasFilter("\"IsPinned\" = true");
 
                     b.ToTable("Messages", "chat");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Chat.Domain.MessageAttachment", b =>
@@ -205,6 +226,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(2048)
@@ -215,6 +240,8 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                     b.HasIndex("MessageId");
 
                     b.ToTable("MessageAttachments", "chat");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Chat.Domain.MessageMention", b =>
@@ -236,6 +263,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                     b.Property<int>("StartIndex")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("MentionedUserId");
@@ -243,6 +274,8 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                     b.HasIndex("MessageId");
 
                     b.ToTable("MessageMentions", "chat");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Chat.Domain.MessageReaction", b =>
@@ -261,6 +294,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
                     b.Property<Guid>("MessageId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -268,11 +305,13 @@ namespace FSH.Starter.Migrations.PostgreSQL.Chat
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MessageId", "UserId", "Emoji")
+                    b.HasIndex("MessageId", "UserId", "Emoji", "TenantId")
                         .IsUnique()
                         .HasDatabaseName("UX_MessageReactions_Message_User_Emoji");
 
                     b.ToTable("MessageReactions", "chat");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Chat.Domain.ChannelMember", b =>

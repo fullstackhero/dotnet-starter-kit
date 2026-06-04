@@ -43,7 +43,6 @@ export function Combobox({
   variant = "field",
   align = "start",
   disabled,
-  required,
   id,
   className,
 }: {
@@ -59,6 +58,7 @@ export function Combobox({
   variant?: Variant;
   align?: "start" | "end" | "center";
   disabled?: boolean;
+  /** Accepted for API symmetry; the required indicator is rendered by the wrapping <Field>. */
   required?: boolean;
   id?: string;
   className?: string;
@@ -85,10 +85,12 @@ export function Combobox({
   const selected = options.find((o) => o.value === value) ?? null;
   const hasValue = value !== null && value !== "";
 
+  const showFieldClear = clearable && hasValue && !disabled;
+
   return (
     <DropdownMenu open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
-      <DropdownMenuTrigger asChild disabled={disabled}>
-        {variant === "filter" ? (
+      {variant === "filter" ? (
+        <DropdownMenuTrigger asChild disabled={disabled}>
           <FilterTrigger
             label={label}
             selected={selected}
@@ -98,20 +100,35 @@ export function Combobox({
             disabled={disabled}
             className={className}
           />
-        ) : (
-          <FieldTrigger
-            id={id}
-            placeholder={placeholder ?? `Select ${label.toLowerCase()}…`}
-            selected={selected}
-            hasValue={hasValue}
-            clearable={clearable}
-            onClear={() => onChange(null)}
-            disabled={disabled}
-            required={required}
-            className={className}
-          />
-        )}
-      </DropdownMenuTrigger>
+        </DropdownMenuTrigger>
+      ) : (
+        // The clear control is a sibling of the trigger (not nested inside it):
+        // an interactive element inside another interactive element is invalid
+        // and unreliable for keyboard/AT.
+        <div className="relative">
+          <DropdownMenuTrigger asChild disabled={disabled}>
+            <FieldTrigger
+              id={id}
+              placeholder={placeholder ?? `Select ${label.toLowerCase()}…`}
+              selected={selected}
+              hasValue={hasValue}
+              hasClear={showFieldClear}
+              disabled={disabled}
+              className={className}
+            />
+          </DropdownMenuTrigger>
+          {showFieldClear && (
+            <button
+              type="button"
+              aria-label={`Clear ${label.toLowerCase()}`}
+              onClick={() => onChange(null)}
+              className="absolute right-8 top-1/2 grid h-5 w-5 -translate-y-1/2 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      )}
 
       <DropdownMenuContent
         align={align}
@@ -136,7 +153,7 @@ export function Combobox({
               }}
               className={cn(
                 "h-6 w-full bg-transparent text-sm",
-                "placeholder:text-[var(--color-muted-foreground)]/70",
+                "placeholder:text-[var(--color-muted-foreground)]",
                 // The popover row is already a contained visual context — skip
                 // the global :focus-visible halo so it doesn't draw a hard
                 // rectangle + 6px outer bloom around the search input.
@@ -160,7 +177,7 @@ export function Combobox({
           </DropdownMenuRow>
         )}
 
-        <ul className="max-h-[300px] overflow-y-auto py-1">
+        <ul role="none" className="max-h-[300px] overflow-y-auto py-1">
           {emptyOptionLabel && (!filter || emptyOptionLabel.toLowerCase().includes(filter.toLowerCase())) && (
             <Option
               selected={value === null || value === ""}
@@ -192,7 +209,7 @@ export function Combobox({
                 {opt.prefix}
                 <span className="flex-1 truncate">{opt.label}</span>
                 {opt.hint && (
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/70">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]/70">
                     {opt.hint}
                   </span>
                 )}
@@ -215,12 +232,12 @@ function Option({
   children: React.ReactNode;
 }) {
   return (
-    <li>
+    <li role="none">
       <button
         type="button"
         onClick={onPick}
-        role="option"
-        aria-selected={selected}
+        role="menuitemradio"
+        aria-checked={selected}
         className={cn(
           "group/opt flex w-full cursor-pointer items-center gap-2.5 px-3 py-1.5 text-left text-sm",
           "transition-colors duration-[var(--duration-fast)]",
@@ -271,14 +288,14 @@ const FilterTrigger = ({
         aria-label={label}
         className={cn(
           "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full pl-3 pr-2.5",
-          "font-mono text-[10.5px] font-medium uppercase tracking-[0.14em]",
-          "transition-colors duration-[var(--duration-fast)]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-1",
+          "text-[11px] font-semibold uppercase tracking-wider",
+          "border transition-colors duration-[var(--duration-fast)]",
+          "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.18)]",
           "disabled:cursor-not-allowed disabled:opacity-50",
           hasValue
-            ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]"
-            : "bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)] ring-1 ring-inset ring-[var(--color-border)] hover:bg-[var(--color-surface-4)] hover:text-[var(--color-foreground)]",
-          "data-[state=open]:bg-[var(--color-surface-4)] data-[state=open]:text-[var(--color-foreground)]",
+            ? "border-[oklch(from_var(--color-primary)_l_c_h_/_0.25)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] text-[var(--color-primary)]"
+            : "border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
+          "data-[state=open]:bg-[var(--color-muted)] data-[state=open]:text-[var(--color-foreground)]",
         )}
         {...props}
       >
@@ -309,10 +326,8 @@ const FieldTrigger = ({
   placeholder,
   selected,
   hasValue,
-  clearable,
-  onClear,
+  hasClear,
   disabled,
-  required,
   className,
   ...props
 }: {
@@ -320,23 +335,20 @@ const FieldTrigger = ({
   placeholder: string;
   selected: ComboboxOption | null;
   hasValue: boolean;
-  clearable: boolean;
-  onClear: () => void;
+  /** Reserve a slot for the sibling clear button so the label doesn't underlap it. */
+  hasClear?: boolean;
   disabled?: boolean;
-  required?: boolean;
   className?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) => {
   return (
+    // A plain menu-button: Radix's DropdownMenuTrigger forwards
+    // aria-haspopup="menu" + aria-expanded via asChild, so no explicit
+    // role is needed (and role="combobox" without aria-controls/-expanded
+    // would be an invalid name/role/value pairing). `required` is conveyed
+    // by the wrapping <Field> label, not aria-required (unsupported on a button).
     <button
       id={id}
       type="button"
-      // role="combobox" requires aria-controls + aria-expanded. This
-      // component is intended as a Radix Popover.Trigger child via
-      // asChild, which sets both at runtime via prop forwarding —
-      // ESLint can't see that statically.
-      // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
-      role="combobox"
-      aria-required={required}
       disabled={disabled}
       className={cn(
         "group/field relative flex h-9 w-full cursor-pointer items-center justify-between gap-2",
@@ -365,27 +377,8 @@ const FieldTrigger = ({
         </span>
       </span>
       <span className="flex shrink-0 items-center gap-1">
-        {clearable && hasValue && (
-          <span
-            role="button"
-            tabIndex={0}
-            aria-label="Clear"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClear();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-                onClear();
-              }
-            }}
-            className="grid h-5 w-5 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
-          >
-            <X className="h-3 w-3" />
-          </span>
-        )}
+        {/* Reserve room for the sibling clear button so the label can't run under it. */}
+        {hasClear && <span aria-hidden className="h-5 w-5" />}
         <ChevronDown
           aria-hidden
           className={cn(

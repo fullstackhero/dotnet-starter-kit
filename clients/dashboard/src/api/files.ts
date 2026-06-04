@@ -1,19 +1,19 @@
 import { apiFetch } from "@/lib/api-client";
 import type { PagedResponse } from "@/api/catalog";
 
-// Mirrors FSH.Modules.Files.Domain.Visibility — Public/Private numeric codes
-// match the server's int? Visibility shape on the FileAssetDto.
+// Mirrors FSH.Modules.Files.Contracts.v1.DTOs.Visibility. The API serializes enums as
+// their string name (global JsonStringEnumConverter).
 export const Visibility = {
-  Public: 0,
-  Private: 1,
+  Public: "Public",
+  Private: "Private",
 } as const;
 export type VisibilityValue = (typeof Visibility)[keyof typeof Visibility];
 
 // Mirrors FSH.Modules.Files.Domain.FileAssetStatus.
 export const FileAssetStatus = {
-  PendingUpload: 0,
-  Available: 1,
-  Quarantined: 2,
+  PendingUpload: "PendingUpload",
+  Available: "Available",
+  Quarantined: "Quarantined",
 } as const;
 export type FileAssetStatusValue = (typeof FileAssetStatus)[keyof typeof FileAssetStatus];
 
@@ -30,6 +30,10 @@ export type FileAssetDto = {
   scanStatus: number;
   createdAtUtc: string;
   publicUrl?: string | null;
+  /** The user that uploaded the file. Use with useUserDisplay to resolve a name.
+   *  Older server versions before the field was added send "" — guard against it
+   *  when deciding whether to render an "uploaded by" attribution row. */
+  createdByUserId: string;
   deletedOnUtc?: string | null;
   deletedBy?: string | null;
 };
@@ -87,6 +91,27 @@ export function getFileDownloadUrl(
 export function listMyFiles(page = 1, pageSize = 20): Promise<FileAssetDto[]> {
   return apiFetch<FileAssetDto[]>(
     `/api/v1/files/mine?page=${page}&pageSize=${pageSize}`,
+  );
+}
+
+export function listSharedFiles(page = 1, pageSize = 20): Promise<FileAssetDto[]> {
+  return apiFetch<FileAssetDto[]>(
+    `/api/v1/files/shared?page=${page}&pageSize=${pageSize}`,
+  );
+}
+
+/** Flip a file's visibility. Server returns the refreshed DTO so the client can patch
+ *  its preview/list without a follow-up GET. */
+export function changeFileVisibility(
+  fileAssetId: string,
+  visibility: VisibilityValue,
+): Promise<FileAssetDto> {
+  return apiFetch<FileAssetDto>(
+    `/api/v1/files/${encodeURIComponent(fileAssetId)}/visibility`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ visibility }),
+    },
   );
 }
 

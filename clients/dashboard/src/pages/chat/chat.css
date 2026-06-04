@@ -1,0 +1,189 @@
+/*
+ * Chat surface — page-specific atmospherics, motion, and chrome that
+ * only ever paints inside /chat. Lives alongside chat-page.tsx so Vite
+ * extracts it into the per-route CSS chunk; the main shell stops
+ * shipping these rules for users who never open a channel.
+ *
+ * NB: `chat-status-pill` / `chat-status-dot` / `fsh-chat-status-pulse`
+ * stay in globals.css because the same primitive is used by the
+ * RealtimeStatusPill in the global notification-bell footer.
+ */
+
+/* Typing indicator — three dots that breathe. */
+@keyframes fsh-chat-typing {
+  0%   { transform: translateY(0);    opacity: 0.45; }
+  30%  { transform: translateY(-2px); opacity: 1; }
+  60%  { transform: translateY(0);    opacity: 0.45; }
+  100% { transform: translateY(0);    opacity: 0.45; }
+}
+
+.chat-typing-dot {
+  animation: fsh-chat-typing 1100ms infinite var(--ease-out-cubic);
+}
+.chat-typing-dot:nth-child(2) { animation-delay: 160ms; }
+.chat-typing-dot:nth-child(3) { animation-delay: 320ms; }
+
+/* Unread divider — a calm rose-tinted pill with hairline dividers. */
+.chat-unread-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+.chat-unread-divider::before,
+.chat-unread-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: oklch(from var(--color-primary) l c h / 0.35);
+}
+.chat-unread-divider > span {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+}
+
+.chat-day-rule {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+.chat-day-rule::before,
+.chat-day-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border);
+}
+.chat-day-rule > span {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+}
+
+.chat-reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 24px;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-card);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--color-foreground);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out-cubic),
+              background-color var(--duration-fast) var(--ease-out-cubic),
+              border-color var(--duration-fast) var(--ease-out-cubic);
+}
+.chat-reaction-chip:hover {
+  transform: translateY(-1px);
+  background-color: var(--color-muted);
+}
+.chat-reaction-chip[data-mine="true"] {
+  background-color: var(--color-primary-soft);
+  border-color: oklch(from var(--color-primary) l c h / 0.40);
+  color: var(--color-primary);
+}
+
+/* Channel header positioning anchor. */
+.chat-channel-header {
+  position: relative;
+}
+
+/* Jump-to-bottom pill — floats above the composer when scrolled up and
+   new messages have arrived. */
+@keyframes fsh-chat-jump-in {
+  0%   { transform: translateY(8px) scale(0.96); opacity: 0; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+.chat-jump-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 30px;
+  padding: 0 0.75rem 0 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-card);
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.06),
+    0 8px 18px -10px oklch(0 0 0 / 0.18);
+  color: var(--color-foreground);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  animation: fsh-chat-jump-in var(--duration-default) var(--ease-out-cubic) both;
+  transition: transform var(--duration-fast) var(--ease-out-cubic),
+              box-shadow var(--duration-fast) var(--ease-out-cubic),
+              border-color var(--duration-fast) var(--ease-out-cubic);
+}
+.chat-jump-pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.08),
+    0 10px 22px -10px oklch(0 0 0 / 0.22);
+}
+.chat-jump-pill:focus-visible {
+  outline: none;
+  border-color: var(--color-ring);
+  box-shadow:
+    0 0 0 3px oklch(from var(--color-ring) l c h / 0.5),
+    0 8px 18px -10px oklch(0 0 0 / 0.18);
+}
+.chat-jump-pill .chat-jump-pill-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Interactive mention pill — keyboard-focusable, brand-tinted hover. */
+.chat-mention {
+  display: inline;
+  padding: 0 0.25rem;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+button.chat-mention {
+  cursor: pointer;
+  font: inherit;
+  border: 1px solid transparent;
+  transition: background-color var(--duration-fast) var(--ease-out-cubic),
+              border-color var(--duration-fast) var(--ease-out-cubic);
+}
+button.chat-mention:hover {
+  background-color: oklch(from var(--color-primary) l c h / 0.22);
+  border-color: oklch(from var(--color-primary) l c h / 0.45);
+}
+button.chat-mention:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-ring);
+}

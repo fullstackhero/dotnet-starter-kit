@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Auditing.Contracts</RootNamespace>
 		<AssemblyName>FSH.Modules.Auditing.Contracts</AssemblyName>
-		<PackageId>FullStackHero.Modules.Auditing.Contracts</PackageId>
 		<NoWarn>$(NoWarn);S2094</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>

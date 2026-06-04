@@ -20,11 +20,10 @@ import { RealtimeStatusPill } from "@/components/realtime/realtime-status-pill";
 import { cn } from "@/lib/cn";
 
 /**
- * Bell icon + dropdown inbox. Mirrors the topbar's atmospheric brand-glow
- * panel from the profile dropdown — same visual family. Items live in a
- * scrollable list with a "Mark all read" affordance in the header. When
- * the inbox is open and a NotificationCreated event lands, we patch
- * cache so the badge updates without a refetch.
+ * Bell icon + dropdown inbox. Calm header + scrollable list with a
+ * "Mark all read" affordance. When the inbox is open and a
+ * NotificationCreated event lands, we patch cache so the badge updates
+ * without a refetch.
  */
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -90,6 +89,7 @@ export function NotificationBell() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
+          data-notification-bell
           aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
           title="Notifications"
           className={cn(
@@ -106,9 +106,9 @@ export function NotificationBell() {
               aria-hidden
               className={cn(
                 "absolute -right-0.5 -top-0.5 grid min-w-[16px] place-items-center rounded-full",
-                "h-4 px-1 font-mono text-[9.5px] font-semibold tabular-nums leading-none",
+                "h-4 px-1 text-[10px] font-semibold tabular-nums leading-none",
                 "bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)]",
-                "ring-2 ring-[var(--color-surface-1)]",
+                "ring-2 ring-[var(--color-background)]",
               )}
             >
               {unread > 99 ? "99+" : unread}
@@ -118,53 +118,42 @@ export function NotificationBell() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" sideOffset={10} className="w-[380px] p-0">
-        {/* Atmospheric hero — mirrors the profile dropdown's brand mesh. */}
-        <div className="relative overflow-hidden">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse 70% 60% at 0% 0%, oklch(from var(--color-primary) l c h / 0.16), transparent 65%)",
-            }}
-          />
-          <div className="relative flex items-start justify-between gap-3 px-4 pb-3 pt-4">
-            <div className="min-w-0">
-              <div className="text-display text-sm font-semibold tracking-tight">
-                Notifications
-              </div>
-              <div className="font-mono text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
-                {unread === 0
-                  ? "All caught up"
-                  : `${unread} unread · ${inbox.length} loaded`}
-              </div>
+        <div className="flex items-start justify-between gap-3 border-b border-border bg-card px-4 pb-3 pt-4">
+          <div className="min-w-0">
+            <div className="font-display text-sm font-semibold tracking-tight">
+              Notifications
             </div>
-            {unread > 0 && (
-              <button
-                type="button"
-                onClick={() => markAllMutation.mutate()}
-                disabled={markAllMutation.isPending}
-                className={cn(
-                  "inline-flex h-7 cursor-pointer items-center gap-1 rounded-md border px-2",
-                  "border-[var(--color-border)] bg-[var(--color-surface-2)]",
-                  "text-[11px] font-medium text-[var(--color-foreground)]",
-                  "hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]",
-                  "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
-                )}
-              >
-                <Check className="h-3 w-3" aria-hidden />
-                Mark all read
-              </button>
-            )}
+            <div className="text-[12px] text-[var(--color-muted-foreground)]">
+              {unread === 0
+                ? "All caught up"
+                : `${unread} unread · ${inbox.length} loaded`}
+            </div>
           </div>
+          {unread > 0 && (
+            <button
+              type="button"
+              onClick={() => markAllMutation.mutate()}
+              disabled={markAllMutation.isPending}
+              className={cn(
+                "inline-flex h-7 cursor-pointer items-center gap-1 rounded-md border px-2",
+                "border-border bg-card",
+                "text-[11px] font-medium text-[var(--color-foreground)]",
+                "hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]",
+                "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+              )}
+            >
+              <Check className="h-3 w-3" aria-hidden />
+              Mark all read
+            </button>
+          )}
         </div>
 
         <DropdownMenuLabel className="!my-0">Recent</DropdownMenuLabel>
 
         <div className="max-h-[400px] overflow-y-auto">
           {inboxQuery.isLoading ? (
-            <p className="px-4 py-6 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            <p className="px-4 py-6 text-center text-[12px] text-[var(--color-muted-foreground)]">
               Loading…
             </p>
           ) : inbox.length === 0 ? (
@@ -183,14 +172,14 @@ export function NotificationBell() {
         </div>
 
         <div className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2.5">
-          <RealtimeStatusPill />
+          <RealtimeStatusPill announce />
           <button
             type="button"
             onClick={() => {
               setOpen(false);
               navigate("/settings/notifications");
             }}
-            className="font-mono text-[10px] tracking-tight text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
+            className="text-[11px] text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
           >
             Settings ↗
           </button>
@@ -229,7 +218,7 @@ function NotificationRow({
           "grid h-7 w-7 shrink-0 place-items-center rounded-md",
           isUnread
             ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
-            : "bg-[var(--color-surface-2)] text-[var(--color-muted-foreground)]",
+            : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
         )}
       >
         <MessageCircle className="h-3.5 w-3.5" />
@@ -245,7 +234,7 @@ function NotificationRow({
           >
             {notification.title}
           </span>
-          <span className="shrink-0 font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
+          <span className="shrink-0 text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
             {time}
           </span>
         </div>

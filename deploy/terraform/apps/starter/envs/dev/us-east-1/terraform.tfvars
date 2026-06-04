@@ -36,6 +36,14 @@ app_s3_enable_public_read = false
 app_s3_enable_cloudfront  = true
 
 ################################################################################
+# Frontend SPAs (S3 + CloudFront) — bucket names must be globally unique
+################################################################################
+
+dashboard_s3_bucket_name = "dev-fsh-dashboard"
+admin_s3_bucket_name     = "dev-fsh-admin"
+dashboard_demo_mode      = true
+
+################################################################################
 # Database
 ################################################################################
 

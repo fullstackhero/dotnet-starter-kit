@@ -32,7 +32,7 @@ public sealed class TokenService : ITokenService
         string? tenant = null,
         CancellationToken ct = default)
     {
-        var (accessToken, accessTokenExpiry) = BuildAccessToken(subject, claims);
+        var (accessToken, accessTokenExpiry) = BuildAccessToken(subject, claims, lifetime: null);
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
@@ -50,19 +50,28 @@ public sealed class TokenService : ITokenService
     public Task<(string AccessToken, DateTime ExpiresAtUtc)> IssueAccessOnlyAsync(
         string subject,
         IEnumerable<Claim> claims,
+        TimeSpan? lifetime = null,
         CancellationToken ct = default)
     {
-        var result = BuildAccessToken(subject, claims);
+        var result = BuildAccessToken(subject, claims, lifetime);
         return Task.FromResult(result);
     }
 
-    private (string AccessToken, DateTime ExpiresAtUtc) BuildAccessToken(string subject, IEnumerable<Claim> claims)
+    private (string AccessToken, DateTime ExpiresAtUtc) BuildAccessToken(
+        string subject,
+        IEnumerable<Claim> claims,
+        TimeSpan? lifetime = null)
     {
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
-        var accessTokenExpiry = now.AddMinutes(_options.AccessTokenMinutes);
+        // Caller-supplied lifetime wins over the configured default. The caller
+        // (e.g. StartImpersonationCommandHandler) is responsible for capping
+        // to a safe upper bound before passing it in.
+        var accessTokenExpiry = lifetime is { } span
+            ? now.Add(span)
+            : now.AddMinutes(_options.AccessTokenMinutes);
         var jwtToken = new JwtSecurityToken(
             _options.Issuer,
             _options.Audience,

@@ -350,16 +350,6 @@ export async function setProductThumbnail(productId: string, imageId: string): P
   );
 }
 
-export async function reorderProductImages(productId: string, orderedImageIds: string[]): Promise<void> {
-  await apiFetch<void>(
-    `/api/v1/catalog/products/${encodeURIComponent(productId)}/images/order`,
-    {
-      method: "PUT",
-      body: JSON.stringify({ orderedImageIds }),
-    },
-  );
-}
-
 export async function changeProductPrice(input: ChangeProductPriceInput): Promise<string> {
   return apiFetch<string>(
     `/api/v1/catalog/products/${encodeURIComponent(input.productId)}/price`,

@@ -53,27 +53,39 @@
     <Project Path="Modules/Webhooks/Modules.Webhooks/Modules.Webhooks.csproj" />
   </Folder>
   <Folder Name="/Host/">
-    <Project Path="Host/FSH.Starter.AppHost/FSH.Starter.AppHost.csproj" Id="86bd02ee-f1b5-472c-b5bd-bc607fe084de" />
     <Project Path="Host/FSH.Starter.Api/FSH.Starter.Api.csproj" Id="187ce245-0a57-469c-96c2-a88902f2d40d" />
     <Project Path="Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj" />
   </Folder>
+  <!--#if (aspire) -->
+  <Folder Name="/Host/AppHost/">
+    <Project Path="Host/FSH.Starter.AppHost/FSH.Starter.AppHost.csproj" Id="86bd02ee-f1b5-472c-b5bd-bc607fe084de" />
+  </Folder>
+  <!--#endif -->
   <Folder Name="/Host/Migrations/">
     <Project Path="Host/FSH.Starter.Migrations.PostgreSQL/FSH.Starter.Migrations.PostgreSQL.csproj" Id="2c21903e-5dfa-47e0-82d9-1a0bd627fcbd" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/Architecture.Tests/Architecture.Tests.csproj" />
     <Project Path="Tests/Auditing.Tests/Auditing.Tests.csproj" />
+    <Project Path="Tests/Billing.Tests/Billing.Tests.csproj" />
+    <Project Path="Tests/Catalog.Tests/Catalog.Tests.csproj" />
     <Project Path="Tests/Chat.Tests/Chat.Tests.csproj" />
+    <Project Path="Tests/Webhooks.Tests/Webhooks.Tests.csproj" />
     <Project Path="Tests/Files.Tests/Files.Tests.csproj" />
+    <Project Path="Tests/Framework.Tests/Framework.Tests.csproj" />
     <Project Path="Tests/Caching.Tests/Caching.Tests.csproj" />
     <Project Path="Tests/Generic.Tests/Generic.Tests.csproj" />
     <Project Path="Tests/Identity.Tests/Identity.Tests.csproj" />
     <Project Path="Tests/Integration.Tests/Integration.Tests.csproj" />
+    <Project Path="Tests/Integration.Middleware.Tests/Integration.Middleware.Tests.csproj" />
     <Project Path="Tests/Multitenancy.Tests/Multitenancy.Tests.csproj" Id="985345a2-edb4-4ef9-9a1b-59b704f523b6" />
   </Folder>
+  <!--#if (includeTools) -->
   <Folder Name="/Tools/">
     <Project Path="Tools/CLI/FSH.CLI.csproj" />
   </Folder>
+  <!--#endif -->
+
   <Folder Name="/Solution Items/">
     <File Path="../.gitignore" />
     <File Path=".editorconfig" />

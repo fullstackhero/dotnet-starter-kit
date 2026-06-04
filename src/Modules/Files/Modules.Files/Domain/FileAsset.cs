@@ -1,6 +1,7 @@
 using System.Net;
 using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Exceptions;
+using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Domain.Events;
 
 namespace FSH.Modules.Files.Domain;
@@ -110,6 +111,25 @@ public sealed class FileAsset : AggregateRoot<Guid>, ISoftDeletable
         IsDeleted = false;
         DeletedOnUtc = null;
         DeletedBy = null;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Flip the file's <see cref="Visibility"/> after upload. Idempotent. Refuses to mutate
+    /// files that haven't finished uploading or are quarantined — those are not in a state
+    /// where the URL contract is well-defined.
+    /// </summary>
+    public void ChangeVisibility(Visibility next)
+    {
+        if (Status != FileAssetStatus.Available)
+        {
+            throw new CustomException(
+                $"Cannot change visibility while file is in status {Status}.",
+                errors: null,
+                HttpStatusCode.Conflict);
+        }
+        if (Visibility == next) return;
+        Visibility = next;
         UpdatedAtUtc = DateTime.UtcNow;
     }
 }

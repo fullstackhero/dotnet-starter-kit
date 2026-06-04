@@ -4,6 +4,7 @@ using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
@@ -16,9 +17,45 @@ namespace FSH.Modules.Identity.Features.v1.Roles;
 public sealed class RoleService(RoleManager<FshRole> roleManager,
     IdentityDbContext context,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    ICurrentUser currentUser) : IRoleService
+    ICurrentUser currentUser,
+    IUserPermissionService userPermissionService) : IRoleService
 {
-    public async Task<IEnumerable<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
+    // Invalidate every user whose effective permission set may have shifted as a
+    // result of a role-level mutation. "Direct" = AspNetUserRoles, "via groups"
+    // = members of groups that carry this role.
+    private async Task InvalidateAffectedUsersAsync(string roleId, CancellationToken cancellationToken)
+    {
+        var role = await roleManager.FindByIdAsync(roleId);
+        if (role?.Name is null)
+        {
+            return;
+        }
+
+        // Direct role holders via AspNetUserRoles join.
+        var directUserIds = await context.UserRoles
+            .Where(ur => ur.RoleId == roleId)
+            .Select(ur => ur.UserId)
+            .ToListAsync(cancellationToken);
+
+        // Group-derived role holders.
+        var groupUserIds = await context.GroupRoles
+            .Where(gr => gr.RoleId == roleId)
+            .SelectMany(gr => context.UserGroups
+                .Where(ug => ug.GroupId == gr.GroupId)
+                .Select(ug => ug.UserId))
+            .ToListAsync(cancellationToken);
+
+        foreach (var userId in directUserIds.Concat(groupUserIds).Distinct())
+        {
+            await userPermissionService.InvalidatePermissionCacheAsync(userId, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public async Task<PagedResponse<RoleDto>> GetRolesAsync(
+        int pageNumber = 1,
+        int pageSize = 20,
+        string? search = null,
+        CancellationToken cancellationToken = default)
     {
         if (roleManager is null)
             throw new NotFoundException("RoleManager<FshRole> not resolved. Check Identity registration.");
@@ -26,13 +63,35 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         if (roleManager.Roles is null)
             throw new NotFoundException("Role store not configured. Ensure .AddRoles<FshRole>() and EF stores.");
 
+        var page = Math.Max(1, pageNumber);
+        var size = Math.Clamp(pageSize, 1, 200);
 
-        var roles = await roleManager.Roles
-            .AsNoTracking()
-            .Select(role => new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description })
-            .ToListAsync(cancellationToken);
+        var query = roleManager.Roles.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var needle = search.Trim().ToLowerInvariant();
+            query = query.Where(r =>
+                (r.Name != null && r.Name.ToLower().Contains(needle))
+                || (r.Description != null && r.Description.ToLower().Contains(needle)));
+        }
 
-        return roles;
+        var total = await query.LongCountAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await query
+            .OrderBy(r => r.Name)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .Select(r => new RoleDto { Id = r.Id, Name = r.Name!, Description = r.Description })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResponse<RoleDto>
+        {
+            Items = rows,
+            PageNumber = page,
+            PageSize = size,
+            TotalCount = total,
+            TotalPages = (int)Math.Ceiling(total / (double)size),
+        };
     }
 
     public async Task<RoleDto?> GetRoleAsync(string id, CancellationToken cancellationToken = default)
@@ -81,6 +140,10 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
 
         EnsureNotSystemRole(role.Name, "System roles cannot be deleted.");
 
+        // Snapshot affected users BEFORE the cascade removes the role-mapping rows,
+        // otherwise the lookup returns an empty set after delete.
+        await InvalidateAffectedUsersAsync(id, cancellationToken).ConfigureAwait(false);
+
         await roleManager.DeleteAsync(role);
     }
 
@@ -112,6 +175,10 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         await RemoveRevokedPermissionsAsync(role, currentClaims, permissions, cancellationToken);
         await AddNewPermissionsAsync(role, currentClaims, permissions, cancellationToken);
 
+        // Permissions on the role just changed — every user reachable through this
+        // role (directly or via group membership) now has a stale cache entry.
+        await InvalidateAffectedUsersAsync(roleId, cancellationToken).ConfigureAwait(false);
+
         return "permissions updated";
     }
 
@@ -125,10 +192,18 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
 
     private void FilterRootPermissions(List<string> permissions)
     {
-        if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id != MultitenancyConstants.Root.Id)
+        if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == MultitenancyConstants.Root.Id)
         {
-            permissions.RemoveAll(u => u.StartsWith("Permissions.Root.", StringComparison.InvariantCultureIgnoreCase));
+            // The root operator may manage root-only permissions.
+            return;
         }
+
+        // Strip every permission flagged IsRoot in the registry. The previous check removed only names
+        // starting with "Permissions.Root." — but NO root permission uses that prefix (they are
+        // Permissions.Tenants.* / Permissions.Platform.*, flagged via IsRoot), so the filter was a
+        // no-op and a non-root tenant admin with Roles.Update could grant their role root permissions.
+        var rootOnly = PermissionConstants.Root.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+        permissions.RemoveAll(rootOnly.Contains);
     }
 
     private async Task RemoveRevokedPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions, CancellationToken cancellationToken = default)

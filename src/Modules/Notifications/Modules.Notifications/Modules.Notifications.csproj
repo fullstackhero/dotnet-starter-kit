@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Notifications</RootNamespace>
 		<AssemblyName>FSH.Modules.Notifications</AssemblyName>
-		<PackageId>FullStackHero.Modules.Notifications</PackageId>
 		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;CA1002;CA2227;S3267</NoWarn>
 	</PropertyGroup>
 
@@ -15,8 +14,11 @@
 		<ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
 		<ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
 		<ProjectReference Include="..\..\..\BuildingBlocks\Eventing\Eventing.csproj" />
+		<ProjectReference Include="..\..\..\BuildingBlocks\Mailing\Mailing.csproj" />
 		<ProjectReference Include="..\Modules.Notifications.Contracts\Modules.Notifications.Contracts.csproj" />
 		<ProjectReference Include="..\..\Chat\Modules.Chat.Contracts\Modules.Chat.Contracts.csproj" />
+		<ProjectReference Include="..\..\Multitenancy\Modules.Multitenancy.Contracts\Modules.Multitenancy.Contracts.csproj" />
+		<ProjectReference Include="..\..\Billing\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />
 	</ItemGroup>
 
 </Project>

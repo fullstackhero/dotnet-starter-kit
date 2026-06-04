@@ -16,11 +16,16 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.Property(x => x.Currency).IsRequired().HasMaxLength(8);
         builder.Property(x => x.SubtotalAmount).HasPrecision(18, 4);
         builder.Property(x => x.Status).HasConversion<int>();
+        builder.Property(x => x.Purpose).HasConversion<int>().HasDefaultValue(Contracts.InvoicePurpose.Usage);
+        builder.Property(x => x.PeriodStartUtc);
+        builder.Property(x => x.PeriodEndUtc);
         builder.Property(x => x.Notes).HasMaxLength(2048);
 
-        builder.HasIndex(x => new { x.TenantId, x.PeriodYear, x.PeriodMonth })
+        // One invoice per tenant per month *per purpose* — subscription (term base fee) and usage
+        // (metered overage) are separate streams that may both fall in the same calendar month.
+        builder.HasIndex(x => new { x.TenantId, x.PeriodYear, x.PeriodMonth, x.Purpose })
             .IsUnique()
-            .HasDatabaseName("ux_invoices_tenant_period");
+            .HasDatabaseName("ux_invoices_tenant_period_purpose");
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.InvoiceNumber).IsUnique();
 

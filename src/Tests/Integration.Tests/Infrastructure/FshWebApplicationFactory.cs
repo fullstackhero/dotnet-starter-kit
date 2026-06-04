@@ -139,6 +139,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 ["RateLimitingOptions:Enabled"] = "false",
                 ["PasswordPolicy:EnforcePasswordExpiry"] = "false",
                 ["Seed:DemoPassword"] = "Password123!",
+                ["Seed:DefaultAdminPassword"] = TestConstants.DefaultPassword,
                 ["SecurityHeadersOptions:Enabled"] = "false",
                 ["Storage:Provider"] = "s3",
                 ["Storage:S3:Bucket"] = MinioBucket,

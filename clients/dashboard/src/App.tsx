@@ -30,18 +30,14 @@ export function App() {
 }
 
 /**
- * FSH-native toaster — frosted "console card" treatment.
+ * FSH toaster — calm warm-paper card with per-type tone-tinted icon.
  *
- * Per-type Lucide icon rendered inside a tone-tinted disc (top-left), a
- * frosted gradient-bordered surface that matches the DropdownMenu /
- * Dialog vocabulary, a radial brand-tone glow behind the card, and a
- * refined drain bar tinted with the same tone. All chrome lives in
- * globals.css under the `.fsh-toast` family; the `closeButton` flag
- * makes sonner render the hairline X we re-style there.
- *
- * `theme` is sourced from the app's ThemeProvider (light/dark) rather
- * than sonner's "system" default — otherwise the toast follows the OS
- * prefers-color-scheme instead of the in-app theme toggle.
+ * Per-type Lucide icon, a tone-tinted disc on the left, a plain
+ * `bg-card border border-border` surface that matches the rest of the
+ * dos vocabulary. `theme` is sourced from the app's ThemeProvider
+ * (light/dark) rather than sonner's "system" default — otherwise the
+ * toast follows the OS prefers-color-scheme instead of the in-app
+ * theme toggle.
  */
 function FshToaster() {
   const { resolved } = useTheme();

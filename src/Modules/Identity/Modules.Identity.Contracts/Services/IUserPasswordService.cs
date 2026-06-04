@@ -18,5 +18,5 @@ public interface IUserPasswordService
     /// <summary>
     /// Changes the current user's password.
     /// </summary>
-    Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId);
+    Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId, CancellationToken cancellationToken = default);
 }

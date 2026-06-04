@@ -1,4 +1,6 @@
 ﻿using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Shared.Constants;
+using FSH.Modules.Identity.Contracts.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -148,6 +151,56 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                     return context.Response.WriteAsync(result);
                 }
                 return Task.CompletedTask;
+            },
+            // After JwtBearer validates signature/expiry/issuer/audience, check
+            // whether the token is an impersonation session AND whether the grant
+            // it represents has been revoked or explicitly ended. This is the
+            // server-side teeth behind /impersonation/revoke — without it,
+            // revocation would only stop NEW tokens being issued, not tokens
+            // already in flight.
+            OnTokenValidated = async context =>
+            {
+                var actSub = context.Principal?.FindFirstValue(ClaimConstants.ActorSubject);
+                if (string.IsNullOrEmpty(actSub))
+                {
+                    // Not an impersonation token — zero cost for normal sessions.
+                    return;
+                }
+
+                var jti = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Jti);
+                if (string.IsNullOrEmpty(jti))
+                {
+                    // Impersonation token without a jti shouldn't happen (Start
+                    // mints one explicitly) — reject defensively so a malformed
+                    // or stripped token can't bypass the revocation check.
+                    context.HttpContext.Items[FailureKey] = "Impersonation token missing jti claim";
+                    context.Fail("impersonation token missing jti claim");
+                    return;
+                }
+
+                // Resolve the grant service in a CHILD scope. This hook fires
+                // during JwtBearer's auth middleware, BEFORE Finbuckle's tenant
+                // resolution middleware. Resolving IImpersonationGrantService
+                // directly off `RequestServices` would construct an IdentityDbContext
+                // in the request scope while the tenant context is still null —
+                // and that null-tenant DbContext would then be cached for the rest
+                // of the request, causing later tenant-aware queries (e.g. /profile,
+                // user lookups) to NRE in their Finbuckle query filters. Using a
+                // child scope here isolates the hook's DbContext lifetime so the
+                // request scope can build a fresh, properly-tenanted DbContext
+                // later, once Finbuckle has resolved the tenant.
+                await using var hookScope = context.HttpContext.RequestServices.CreateAsyncScope();
+                var grants = hookScope.ServiceProvider
+                    .GetRequiredService<IImpersonationGrantService>();
+                var revoked = await grants
+                    .IsRevokedOrEndedAsync(jti, context.HttpContext.RequestAborted)
+                    .ConfigureAwait(false);
+
+                if (revoked)
+                {
+                    context.HttpContext.Items[FailureKey] = "Impersonation grant revoked or ended";
+                    context.Fail("impersonation grant revoked or ended");
+                }
             },
             OnForbidden = _ => throw new ForbiddenException(),
             OnMessageReceived = context =>

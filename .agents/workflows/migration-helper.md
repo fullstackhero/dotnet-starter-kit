@@ -1,126 +1,39 @@
 ---
-description: Handle EF Core migrations safely. Create, apply, and manage database migrations for the FSH multi-tenant setup. Use when adding entities or changing database schema.
+description: Safely manage EF Core migrations for FSH's central per-module Migrations project. Use when adding entities or changing schema. The create-migration skill holds the canonical add/apply recipe.
 ---
 
-You are a migration helper for FullStackHero .NET Starter Kit. Your job is to safely manage EF Core migrations.
+You help manage EF Core migrations safely. The canonical add/review/apply recipe is the **`create-migration`**
+skill — follow it. This playbook covers the surrounding facts and troubleshooting.
 
-## Project Paths
+## Facts (read before running commands)
+- All migrations live in **one** project, `src/Host/FSH.Starter.Migrations.PostgreSQL`, foldered **per module/context** (`Catalog/`, `Identity/`, …), each with its own `{X}DbContextModelSnapshot`.
+- Startup project is `src/Host/FSH.Starter.Api`. Always pass `--context {X}DbContext` and `--output-dir {X}`.
+- `dotnet-ef` is pinned — `dotnet tool restore` first.
+- **The DB is NOT migrated on API startup.** The `DbMigrator` host applies it: it migrates the tenant catalog (`TenantDbContext`) first, then each tenant's per-module schema, serialized by a Postgres advisory lock. (`UseHeroMultiTenantDatabases()` only registers Finbuckle's tenant resolution — it does not run migrations.)
+- **Build before `migrations add`** — it reads the snapshot, which regenerates from a build; a stale snapshot silently loses changes. `migrations remove` rewrites the snapshot, so only ever remove the latest and rebuild after.
 
-- **Migrations project:** `src/Host/FSH.Starter.Migrations.PostgreSQL`
-- **Startup project:** `src/Host/FSH.Starter.Api`
-- **DbContexts:** Each module has its own DbContext
+## Context names (real)
+`IdentityDbContext`, `TenantDbContext` (the tenant catalog — **not** "MultitenancyDbContext"), `AuditDbContext`, `BillingDbContext`, `CatalogDbContext`, `TicketsDbContext`, `FilesDbContext`, `ChatDbContext`, `NotificationsDbContext`, `WebhookDbContext`.
 
-## Common Operations
-
-### Add Migration
-
+## Apply (canonical path)
 ```bash
-dotnet ef migrations add {MigrationName} \
-  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api \
-  --context {DbContextName}
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending   # preview
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply [--seed]
 ```
+(`dotnet ef database update --context {X}DbContext …` works for a single context in local dev.)
 
-**Context names:**
-- `IdentityDbContext` - Identity module
-- `MultitenancyDbContext` - Multitenancy module
-- `AuditingDbContext` - Auditing module
-- `{Module}DbContext` - Custom modules
+## Naming
+`Add{Entity}`, `Add{Property}To{Entity}`, `Create{Index}Index`, `Rename{Old}To{New}`.
 
-### Apply Migrations
-
-```bash
-dotnet ef database update \
-  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api \
-  --context {DbContextName}
-```
-
-### List Migrations
-
-```bash
-dotnet ef migrations list \
-  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api \
-  --context {DbContextName}
-```
-
-### Remove Last Migration
-
-```bash
-dotnet ef migrations remove \
-  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api \
-  --context {DbContextName}
-```
-
-### Generate SQL Script
-
-```bash
-dotnet ef migrations script \
-  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api \
-  --context {DbContextName} \
-  --output migrations.sql
-```
-
-## Multi-Tenant Considerations
-
-FSH uses per-tenant databases. Migrations apply to:
-1. **Host database** - Tenant registry, shared data
-2. **Tenant databases** - Tenant-specific data
-
-The framework handles tenant database migrations automatically on startup via `UseHeroMultiTenantDatabases()`.
-
-## Migration Naming Conventions
-
-Use descriptive names:
-- `Add{Entity}` - Adding new entity
-- `Add{Property}To{Entity}` - Adding column
-- `Remove{Property}From{Entity}` - Removing column
-- `Create{Index}Index` - Adding index
-- `Rename{Old}To{New}` - Renaming
-
-## Pre-Migration Checklist
-
-- [ ] Entity configuration exists (`IEntityTypeConfiguration<T>`)
-- [ ] Entity added to DbContext (`DbSet<T>`)
-- [ ] Build succeeds with 0 warnings
-- [ ] Backup database if production
-
-## Post-Migration Checklist
-
-- [ ] Review generated migration file
-- [ ] Check Up() and Down() methods are correct
-- [ ] Test migration on development database
-- [ ] Verify rollback works (Down method)
+## Review the generated migration
+- `dotnet ef migrations script --idempotent --context {X}DbContext …` and scan for: dropped tables/columns, non-nullable columns added to existing tables without a default, renames surfacing as drop+add (data loss).
+- Check `Up()` **and** `Down()`.
 
 ## Troubleshooting
-
-### "No DbContext was found"
-Specify context explicitly with `--context {Name}DbContext`
-
-### "Build failed"
-Run `dotnet build src/FSH.Starter.slnx` first
-
-### "Pending migrations"
-Apply pending migrations or remove them if not needed
-
-### "Migration already applied"
-Check `__EFMigrationsHistory` table in database
-
-## Example: Adding a New Entity
-
-1. Create entity in `Domain/` folder
-2. Create configuration (`IEntityTypeConfiguration<T>`)
-3. Add `DbSet<T>` to DbContext
-4. Build: `dotnet build src/FSH.Starter.slnx`
-5. Add migration:
-   ```bash
-   dotnet ef migrations add Add{Entity} \
-     --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-     --startup-project src/Host/FSH.Starter.Api \
-     --context {Module}DbContext
-   ```
-6. Review migration file
-7. Apply: `dotnet ef database update ...`
+| Symptom | Cause → fix |
+|---|---|
+| "No DbContext was found" / multiple contexts | Always pass `--context {X}DbContext` |
+| "Build failed" | `dotnet build src/FSH.Starter.slnx` first |
+| Migration landed in the wrong folder | Add `--output-dir {X}` (match the context's existing folder) |
+| Changes missing from the migration | You didn't build before `migrations add` (stale snapshot) |
+| New module's context not found by ef | The Migrations project must reference the module's runtime project |

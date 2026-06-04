@@ -1,7 +1,6 @@
 ﻿using Asp.Versioning;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Eventing;
-using FSH.Framework.Eventing.Outbox;
 using FSH.Framework.Persistence;
 using FSH.Framework.Quota;
 using FSH.Framework.Storage;
@@ -22,7 +21,10 @@ using FSH.Modules.Identity.Features.v1.Groups.GetGroups;
 using FSH.Modules.Identity.Features.v1.Groups.RemoveUserFromGroup;
 using FSH.Modules.Identity.Features.v1.Groups.UpdateGroup;
 using FSH.Modules.Identity.Features.v1.Impersonation.EndImpersonation;
+using FSH.Modules.Identity.Features.v1.Impersonation.GetImpersonationGrants;
+using FSH.Modules.Identity.Features.v1.Impersonation.RevokeImpersonationGrant;
 using FSH.Modules.Identity.Features.v1.Impersonation.StartImpersonation;
+using FSH.Modules.Identity.Features.v1.Permissions.GetPermissionCatalog;
 using FSH.Modules.Identity.Features.v1.Roles;
 using FSH.Modules.Identity.Features.v1.Roles.DeleteRole;
 using FSH.Modules.Identity.Features.v1.Roles.GetRoleById;
@@ -61,8 +63,6 @@ using FSH.Modules.Identity.Features.v1.Users.SetProfileImage;
 using FSH.Modules.Identity.Features.v1.Users.ToggleUserStatus;
 using FSH.Modules.Identity.Features.v1.Users.UpdateUser;
 using FSH.Modules.Identity.Services;
-using Hangfire;
-using Hangfire.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -94,6 +94,7 @@ public class IdentityModule : IModule
         services.AddScoped<IRequestContextService, RequestContextService>();
         services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<IRequestContextService>());
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IImpersonationGrantService, ImpersonationGrantService>();
 
         // User services - focused single-responsibility services
         services.AddTransient<IUserRegistrationService, UserRegistrationService>();
@@ -121,6 +122,9 @@ public class IdentityModule : IModule
 
         // Configure password policy options
         services.Configure<PasswordPolicyOptions>(builder.Configuration.GetSection("PasswordPolicy"));
+
+        // Tenant subscription grace window (shared "Billing" section) — used by the login expiry check.
+        services.Configure<TenantGraceOptions>(builder.Configuration.GetSection(TenantGraceOptions.SectionName));
 
         // Register password history service
         services.AddScoped<IPasswordHistoryService, PasswordHistoryService>();
@@ -181,16 +185,11 @@ public class IdentityModule : IModule
         group.MapGenerateTokenEndpoint().AllowAnonymous().RequireRateLimiting("auth");
         group.MapRefreshTokenEndpoint().AllowAnonymous().RequireRateLimiting("auth");
 
-        // example Hangfire setup for Identity outbox dispatcher
-        var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
-        if (jobManager is not null)
-        {
-            jobManager.AddOrUpdate(
-                "identity-outbox-dispatcher",
-                Job.FromExpression<OutboxDispatcher>(d => d.DispatchAsync(CancellationToken.None)),
-                Cron.Minutely(),
-                new RecurringJobOptions());
-        }
+        // The outbox is dispatched by the framework's OutboxDispatcherHostedService
+        // (EventingOptions.UseHostedServiceDispatcher, on by default). A second
+        // dispatcher here would race the same rows (GetPendingBatchAsync has no
+        // row-level claim) — duplicate handler invocations and PK_InboxMessages
+        // collisions — so this module does NOT register its own recurring job.
 
         // roles
         group.MapGetRolesEndpoint();
@@ -199,6 +198,10 @@ public class IdentityModule : IModule
         group.MapGetRolePermissionsEndpoint();
         group.MapUpdateRolePermissionsEndpoint();
         group.MapCreateOrUpdateRoleEndpoint();
+
+        // permission catalog — every permission registered with the host,
+        // filtered to the caller's tenant context (root vs admin set)
+        group.MapGetPermissionCatalogEndpoint();
 
         // users
         group.MapAssignUserRolesEndpoint();
@@ -246,6 +249,8 @@ public class IdentityModule : IModule
         // impersonation
         group.MapStartImpersonationEndpoint();
         group.MapEndImpersonationEndpoint();
+        group.MapGetImpersonationGrantsEndpoint();
+        group.MapRevokeImpersonationGrantEndpoint();
 
         // two-factor authentication (TOTP)
         group.MapEnrollTwoFactorEndpoint();

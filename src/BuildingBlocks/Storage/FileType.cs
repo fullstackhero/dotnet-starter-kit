@@ -7,7 +7,7 @@ public enum FileType
     Pdf
 }
 
-public class FileValidationRules
+public sealed class FileValidationRules
 {
     public IReadOnlyList<string> AllowedExtensions { get; init; } = Array.Empty<string>();
     public int MaxSizeInMB { get; init; } = 5;

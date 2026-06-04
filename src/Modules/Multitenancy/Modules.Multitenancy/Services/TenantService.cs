@@ -1,4 +1,5 @@
 using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Stores;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Multitenancy;
@@ -11,6 +12,7 @@ using FSH.Modules.Multitenancy.Features.v1.GetTenants;
 using FSH.Modules.Multitenancy.Provisioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Multitenancy.Services;
@@ -22,20 +24,30 @@ public sealed class TenantService : ITenantService
     private readonly IServiceProvider _serviceProvider;
     private readonly TenantDbContext _dbContext;
     private readonly ITenantProvisioningService _provisioningService;
+    private readonly TimeProvider _timeProvider;
+    private readonly TenantBillingOptions _billingOptions;
+    private readonly ILogger<TenantService> _logger;
 
     public TenantService(
         IMultiTenantStore<AppTenantInfo> tenantStore,
         IOptions<DatabaseOptions> config,
         IServiceProvider serviceProvider,
         TenantDbContext dbContext,
-        ITenantProvisioningService provisioningService)
+        ITenantProvisioningService provisioningService,
+        TimeProvider timeProvider,
+        IOptions<TenantBillingOptions> billingOptions,
+        ILogger<TenantService> logger)
     {
         ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(billingOptions);
         _tenantStore = tenantStore;
         _config = config.Value;
         _serviceProvider = serviceProvider;
         _dbContext = dbContext;
         _provisioningService = provisioningService;
+        _timeProvider = timeProvider;
+        _billingOptions = billingOptions.Value;
+        _logger = logger;
     }
 
     public async Task<string> ActivateAsync(string id, CancellationToken cancellationToken)
@@ -52,6 +64,7 @@ public sealed class TenantService : ITenantService
         tenant.Activate();
 
         await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
 
         return $"tenant {id} is now activated";
     }
@@ -59,15 +72,23 @@ public sealed class TenantService : ITenantService
     public async Task<string> CreateAsync(string id,
         string name,
         string? connectionString,
-        string adminEmail, string? issuer, CancellationToken cancellationToken)
+        string adminEmail, string? issuer, string planKey, DateTime validUpto, CancellationToken cancellationToken)
     {
         if (connectionString?.Trim() == _config.ConnectionString.Trim())
         {
             connectionString = string.Empty;
         }
 
-        AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer);
+        AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer)
+        {
+            Plan = planKey,
+            // Set the initial validity directly to the plan term. SetValidity() guards against moving
+            // the date backward (correct for renewals), but the constructor seeds ValidUpto to now+1mo,
+            // so using it here would reject a term computed from an earlier 'now'.
+            ValidUpto = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc),
+        };
         await _tenantStore.AddAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
 
         return tenant.Id;
     }
@@ -119,6 +140,7 @@ public sealed class TenantService : ITenantService
 
         tenant.Deactivate();
         await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
         return $"tenant {id} is now deactivated";
     }
 
@@ -145,6 +167,22 @@ public sealed class TenantService : ITenantService
     {
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
 
+        var graceEnds = tenant.ValidUpto.AddDays(_billingOptions.GraceWindowDays);
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        string expiryState;
+        if (now <= tenant.ValidUpto)
+        {
+            expiryState = "Active";
+        }
+        else if (now <= graceEnds)
+        {
+            expiryState = "InGrace";
+        }
+        else
+        {
+            expiryState = "Expired";
+        }
+
         return new TenantStatusDto
         {
             Id = tenant.Id!,
@@ -153,25 +191,79 @@ public sealed class TenantService : ITenantService
             ValidUpto = tenant.ValidUpto,
             HasConnectionString = !string.IsNullOrWhiteSpace(tenant.ConnectionString),
             AdminEmail = tenant.AdminEmail!,
-            Issuer = tenant.Issuer
+            Issuer = tenant.Issuer,
+            Plan = tenant.Plan,
+            ExpiryState = expiryState,
+            GraceEndsUtc = graceEnds
         };
     }
 
-    public async Task<DateTime> UpgradeSubscriptionAsync(string id, DateTime extendedExpiryDate, CancellationToken cancellationToken = default)
+    public async Task<(DateTime PeriodStartUtc, DateTime ValidUpto, bool PlanChanged)> RenewAsync(
+        string id, string newPlanKey, int termMonths, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newPlanKey);
+
+        var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+        // Stack remaining time: renew from ValidUpto if still in the future, otherwise from now.
+        var periodStart = DateTime.SpecifyKind(tenant.ValidUpto > now ? tenant.ValidUpto : now, DateTimeKind.Utc);
+        var newValidUpto = DateTime.SpecifyKind(periodStart.AddMonths(termMonths), DateTimeKind.Utc);
+        var planChanged = !string.Equals(tenant.Plan, newPlanKey, StringComparison.OrdinalIgnoreCase);
+
+        tenant.SetValidity(newValidUpto);
+        if (planChanged)
+        {
+            tenant.Plan = newPlanKey;
+        }
+
+        await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
+
+        return (periodStart, newValidUpto, planChanged);
+    }
+
+    public async Task<DateTime> AdjustValidityAsync(string id, DateTime validUpto, CancellationToken cancellationToken = default)
     {
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
 
-        // Ensure the date is UTC for PostgreSQL compatibility
-        var utcExpiryDate = extendedExpiryDate.Kind == DateTimeKind.Utc
-            ? extendedExpiryDate
-            : DateTime.SpecifyKind(extendedExpiryDate, DateTimeKind.Utc);
+        // Set directly rather than via SetValidity: this operator override is allowed to move the date
+        // backward (e.g. immediate expiry / correcting a mistake), which SetValidity forbids.
+        var normalized = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc);
+        var previous = tenant.ValidUpto;
+        tenant.ValidUpto = normalized;
 
-        tenant.SetValidity(utcExpiryDate);
         await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
-        return tenant.ValidUpto;
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
+
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "[Multitenancy] operator adjusted tenant {TenantId} validity from {Previous:o} to {ValidUpto:o}",
+                id, previous, normalized);
+        }
+
+        return normalized;
     }
 
     private async Task<AppTenantInfo> GetTenantInfoAsync(string id, CancellationToken cancellationToken = default) =>
         await _tenantStore.GetAsync(id).ConfigureAwait(false)
             ?? throw new NotFoundException($"{typeof(AppTenantInfo).Name} {id} Not Found.");
+
+    // Finbuckle resolves tenants through the distributed-cache store first
+    // (60-min TTL), and the injected store above only writes to the EF store —
+    // so an IsActive flip wouldn't take effect until the cache expired, and the
+    // deactivated-tenant guard would keep seeing the stale "active" copy. Push
+    // the new state straight into the cache store so the guard (and tenant
+    // resolution everywhere) sees it on the very next request.
+    private async Task RefreshTenantCacheAsync(AppTenantInfo tenant)
+    {
+        var cacheStore = _serviceProvider
+            .GetServices<IMultiTenantStore<AppTenantInfo>>()
+            .FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<AppTenantInfo>));
+        if (cacheStore is not null)
+        {
+            await cacheStore.UpdateAsync(tenant).ConfigureAwait(false);
+        }
+    }
 }

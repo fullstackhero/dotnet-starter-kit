@@ -10,7 +10,8 @@ namespace FSH.Modules.Webhooks.Features.v1.TestWebhookSubscription;
 
 public sealed class TestWebhookSubscriptionCommandHandler(
     WebhookDbContext dbContext,
-    IWebhookDeliveryService deliveryService) : ICommandHandler<TestWebhookSubscriptionCommand, bool>
+    IWebhookDeliveryService deliveryService,
+    IWebhookSecretProtector secretProtector) : ICommandHandler<TestWebhookSubscriptionCommand, bool>
 {
     public async ValueTask<bool> Handle(TestWebhookSubscriptionCommand command, CancellationToken cancellationToken)
     {
@@ -32,7 +33,7 @@ public sealed class TestWebhookSubscriptionCommandHandler(
         await deliveryService.DeliverAsync(
             subscription.Id,
             subscription.Url,
-            subscription.SecretHash,
+            secretProtector.Unprotect(subscription.SecretHash),
             "webhook.test",
             testPayload,
             cancellationToken).ConfigureAwait(false);

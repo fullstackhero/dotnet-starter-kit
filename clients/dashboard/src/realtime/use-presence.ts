@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPresence } from "@/api/chat";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
@@ -41,14 +40,6 @@ export function usePresence(userId: string | null | undefined): boolean {
     },
     [userId, queryClient],
   );
-
-  // Belt: when the userId changes mid-component, invalidate the previous
-  // entry so a stale "offline" doesn't linger when switching DM partners.
-  useEffect(() => {
-    return () => {
-      // No-op cleanup; the queryClient handles staleness on its own.
-    };
-  }, [userId]);
 
   return userId ? (query.data ?? false) : false;
 }

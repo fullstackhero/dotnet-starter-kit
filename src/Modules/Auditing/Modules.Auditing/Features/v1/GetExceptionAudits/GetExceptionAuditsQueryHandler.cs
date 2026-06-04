@@ -4,6 +4,7 @@ using FSH.Modules.Auditing.Contracts.v1.GetExceptionAudits;
 using FSH.Modules.Auditing.Persistence;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using static FSH.Modules.Auditing.Persistence.AuditJsonbFunctions;
 
 namespace FSH.Modules.Auditing.Features.v1.GetExceptionAudits;
 
@@ -65,20 +66,22 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
         if (query.Area.HasValue && query.Area.Value != ExceptionArea.None)
         {
             string areaValue = query.Area.Value.ToString();
+            // PostgreSQL renders jsonb::text in canonical form with a space after the
+            // colon ({"area": "Value"}), so the patterns must include that space.
             audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(a.PayloadJson, $"%\"area\":\"{areaValue}\"%"));
+                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"area\": \"{areaValue}\"%"));
         }
 
         if (!string.IsNullOrWhiteSpace(query.ExceptionType))
         {
             audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(a.PayloadJson, $"%\"exceptionType\":\"{query.ExceptionType}%"));
+                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"exceptionType\": \"{query.ExceptionType}%"));
         }
 
         if (!string.IsNullOrWhiteSpace(query.RouteOrLocation))
         {
             audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(a.PayloadJson, $"%\"routeOrLocation\":\"{query.RouteOrLocation}%"));
+                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"routeOrLocation\": \"{query.RouteOrLocation}%"));
         }
 
         return audits;

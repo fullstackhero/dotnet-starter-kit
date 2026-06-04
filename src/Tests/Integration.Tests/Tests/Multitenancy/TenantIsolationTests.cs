@@ -115,6 +115,7 @@ public sealed class TenantIsolationTests
             name = $"Tenant {tenantId}",
             connectionString = (string?)null,
             adminEmail,
+            adminPassword = TestConstants.DefaultPassword,
             issuer = $"{tenantId}.issuer"
         });
         var body = await response.Content.ReadAsStringAsync();

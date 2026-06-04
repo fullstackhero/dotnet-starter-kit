@@ -536,7 +536,7 @@ export const MessageList = forwardRef<
   if (messagesQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center px-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <p className="text-[12px] text-[var(--color-muted-foreground)]">
           Loading messages…
         </p>
       </div>
@@ -546,10 +546,10 @@ export const MessageList = forwardRef<
   if (messages.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-        <p className="text-display text-base font-semibold tracking-tight">
+        <p className="font-display text-[17px] font-semibold tracking-tight text-[var(--color-foreground)]">
           No messages yet
         </p>
-        <p className="max-w-sm text-sm text-[var(--color-muted-foreground)]">
+        <p className="max-w-sm text-[13px] text-[var(--color-muted-foreground)]">
           This is the very beginning of the conversation. Send the first message to break the silence.
         </p>
       </div>
@@ -558,14 +558,30 @@ export const MessageList = forwardRef<
 
   return (
     <div className="relative h-full">
-      <div ref={parentRef} onScroll={onScroll} className="h-full overflow-y-auto">
+      <div
+        ref={parentRef}
+        onScroll={onScroll}
+        className="h-full overflow-y-auto"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label="Channel messages"
+      >
+        {/* aria-hidden so these status rows aren't announced as new messages
+            by the role="log" live region (it only relays additions). */}
         {loadingOlder && (
-          <div className="flex h-8 items-center justify-center font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          <div
+            aria-hidden
+            className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]"
+          >
             Loading older…
           </div>
         )}
         {!hasMoreOlder && messages.length >= 100 && (
-          <div className="flex h-8 items-center justify-center font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          <div
+            aria-hidden
+            className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]"
+          >
             Beginning of the conversation
           </div>
         )}

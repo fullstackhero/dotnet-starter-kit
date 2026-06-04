@@ -17,6 +17,7 @@ using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
 using FSH.Modules.Tickets;
 using FSH.Modules.Webhooks;
 using FSH.Starter.DbMigrator;
+using FSH.Starter.DbMigrator.DemoSeed;
 using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -46,8 +47,44 @@ if (cli.Help)
     await Console.Out.WriteLineAsync(MigratorCommand.HelpText).ConfigureAwait(false);
     return 0;
 }
-
 var builder = Host.CreateApplicationBuilder(args);
+
+// The migrator loads every module so DbInitializers/seeders resolve, but runs a
+// deliberately reduced service graph (Mailing, Realtime/SignalR, Jobs disabled
+// via AddHeroPlatform below). The default container's build-time validation —
+// auto-on in Development — walks ALL registered descriptors, including request
+// handlers this process never invokes (Chat handlers needing IHubContext,
+// Identity handlers needing IMailService) and throws at startup. Disable it: the
+// migrator only resolves migration/seed services, so full-graph validation is a
+// false positive here. No-op in Production, where it's already off.
+builder.ConfigureContainer(new DefaultServiceProviderFactory(
+    new ServiceProviderOptions { ValidateOnBuild = false, ValidateScopes = false }));
+
+// In local development (dotnet run), the working directory is the project folder,
+// but appsettings.json is linked and copied to the output directory.
+// We explicitly load it from AppContext.BaseDirectory so IdentityModule's JwtOptions validate.
+builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), optional: true);
+builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
+
+// Re-add environment variables and command line args so they maintain priority over the manually added JSON files.
+builder.Configuration.AddEnvironmentVariables();
+builder.Configuration.AddCommandLine(args);
+
+// The migrator loads the Identity module so its seed initializers can run, but
+// the migrator itself never mints JWTs. IdentityModule wires JwtOptions with
+// ValidateOnStart() (rightly so for the API), which trips on the empty
+// SigningKey now in the base appsettings.json. Inject a deterministic, clearly-
+// labelled placeholder ONLY when nothing real is configured — env vars and
+// JSON-supplied keys both win over this. Same treatment for Issuer/Audience.
+if (string.IsNullOrWhiteSpace(builder.Configuration["JwtOptions:SigningKey"]))
+{
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["JwtOptions:SigningKey"] = "fsh-dbmigrator-placeholder-never-mints-tokens-32+",
+        ["JwtOptions:Issuer"] = builder.Configuration["JwtOptions:Issuer"] ?? "fsh.local",
+        ["JwtOptions:Audience"] = builder.Configuration["JwtOptions:Audience"] ?? "fsh.clients",
+    });
+}
 
 // Fail-fast before option-validation runs at host build time: if the operator
 // forgot to set DatabaseOptions__ConnectionString, give them a single clear
@@ -127,26 +164,39 @@ builder.AddHeroPlatform(o =>
 builder.AddModules(moduleAssemblies);
 
 // The Multitenancy module's TenantProvisioningService depends on IJobService —
-// Hangfire's IJobService is only registered when EnableJobs is true, which we
+// Hangfire's IJobService is only registered when EnableJobs is true, which we 
 // don't want in the migrator (Hangfire needs its own schema bootstrap + workers).
 // Provide a throwing no-op so the DI graph resolves; the migration code paths
 // don't enqueue jobs.
 builder.Services.AddSingleton<FSH.Framework.Jobs.Services.IJobService, NoOpJobService>();
 
-// Surgically remove the only hosted service that would race with this
-// migrator — TenantStoreInitializerHostedService also calls MigrateAsync
-// on the tenant catalog. The advisory lock + EF's __EFMigrationsHistory
-// would make it eventually safe, but having two writers fight is ugly in
-// the logs. Hangfire, etc. are already disabled via EnableJobs=false on
-// AddHeroPlatform above. Serilog's flush-on-shutdown hosted service is
-// preserved so log output actually reaches stdout/stderr.
+// Strip every runtime background worker before host.StartAsync() boots them.
+// This is a one-shot migrator: it does all its work via explicit scopes in
+// Steps 0–3 below and depends on no hosted service. Left running, these
+// long-lived workers begin polling/writing the database the instant the host
+// starts — BEFORE Step 1/2 create the tables — and spew 42P01 "relation does
+// not exist" errors against a fresh DB (OutboxDispatcher → OutboxMessages,
+// AuditBackgroundWorker → AuditRecords, SessionCleanup/RolePermissionSync →
+// identity tables, each also resolving tenant.Tenants before it exists).
+// Removing every BackgroundService catches them all — and any future worker —
+// without an ever-growing name denylist; Hangfire's are already gone via
+// EnableJobs=false. We also drop TenantStoreInitializerHostedService (a plain
+// IHostedService, not a BackgroundService) which races the tenant-catalog
+// MigrateAsync. Non-DB framework IHostedServices are intentionally preserved:
+// the options StartupValidator (so ValidateOnStart still runs at StartAsync)
+// and Serilog's flush-on-shutdown service (so log output reaches stdout/stderr).
 foreach (var descriptor in builder.Services
     .Where(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService)
-        && d.ImplementationType?.Name == "TenantStoreInitializerHostedService")
+        && (typeof(Microsoft.Extensions.Hosting.BackgroundService).IsAssignableFrom(d.ImplementationType)
+            || d.ImplementationType?.Name == "TenantStoreInitializerHostedService"))
     .ToList())
 {
     builder.Services.Remove(descriptor);
 }
+
+// DemoSeeder is opt-in via the `seed-demo` verb. Register unconditionally so
+// the DI graph is satisfied; the verb dispatch below decides whether to call it.
+builder.Services.AddScoped<DemoSeeder>();
 
 using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<MigratorCommand>>();
@@ -239,7 +289,9 @@ try
     }
 
     // ── Step 2 — per-tenant migrations + (optional) seeds ────────────────
-    if (!cli.CatalogOnly)
+    // `seed-demo` short-circuits Step 2 because it provisions its own demo tenants
+    // (acme, globex) by running migrate + seed inline against each — handled below.
+    if (!cli.CatalogOnly && cli.Command != "seed-demo")
     {
         var tenantStore = host.Services.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var tenantService = host.Services.GetRequiredService<ITenantService>();
@@ -280,6 +332,31 @@ try
                 await tenantService.SeedTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
             }
         }
+    }
+
+    // ── Step 3 — demo seed (verb: `seed-demo`) ───────────────────────────
+    // Dev-only. Provisions acme + globex tenants with rich demo content
+    // (users, custom roles, catalog, tickets, chat) so a fresh dev DB
+    // comes up feeling lived-in. Hard-fails outside Development to keep
+    // demo data out of staging / prod by accident.
+    if (cli.Command == "seed-demo")
+    {
+        var env = host.Services.GetRequiredService<IHostEnvironment>();
+        if (!env.IsDevelopment())
+        {
+            await Console.Error.WriteLineAsync(
+                $"[demo-seed] REFUSING to run — ASPNETCORE_ENVIRONMENT is '{env.EnvironmentName}'. "
+                + "seed-demo is dev-only by design.")
+                .ConfigureAwait(false);
+            return 1;
+        }
+
+        await Console.Out.WriteLineAsync("[demo-seed] provisioning acme + globex with demo content…")
+            .ConfigureAwait(false);
+        using var scope = host.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DemoSeeder>();
+        await seeder.RunAsync(CancellationToken.None).ConfigureAwait(false);
+        await Console.Out.WriteLineAsync("[demo-seed] done").ConfigureAwait(false);
     }
 
     await Console.Out.WriteLineAsync("[migrator] finished successfully.").ConfigureAwait(false);

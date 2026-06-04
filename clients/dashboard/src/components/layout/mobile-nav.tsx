@@ -9,7 +9,12 @@ import {
 } from "react";
 import { useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { Sheet, SheetContent } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { SidebarNavBody } from "@/components/layout/sidebar";
 import { findSectionForPath } from "@/components/layout/nav-data";
 import { cn } from "@/lib/cn";
@@ -79,11 +84,13 @@ export function MobileNavRoot() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent
-        side="left"
-        aria-label="Primary navigation"
-        className="flex flex-col p-0"
-      >
+      <SheetContent side="left" className="flex flex-col p-0">
+        {/* Radix Dialog requires a Title for the accessible name; keep it
+            visually hidden so the drawer chrome is unchanged. */}
+        <DialogTitle className="sr-only">Primary navigation</DialogTitle>
+        <DialogDescription className="sr-only">
+          Site sections and account links.
+        </DialogDescription>
         {/* Brand row — matches Topbar height so the drawer top aligns
             with the rest of the chrome. */}
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-[var(--color-border)] px-4">
@@ -109,7 +116,7 @@ export function MobileNavRoot() {
 
         <div className="border-t border-[var(--color-border)] px-5 py-3">
           <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            v0.1 · console
+            v0.1 · dashboard
           </p>
         </div>
       </SheetContent>

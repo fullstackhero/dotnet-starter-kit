@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Domain;
 using FSH.Framework.Shared.Persistence;
+using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Domain.Events;
 
 namespace FSH.Modules.Chat.Domain;
@@ -34,6 +35,23 @@ public sealed class ChatChannel : AggregateRoot<Guid>, ISoftDeletable
 
     private readonly List<ChannelMember> _members = [];
     public IReadOnlyList<ChannelMember> Members => _members;
+
+    /// <summary>
+    /// Soft-deletes (archives) the channel as an explicit state change rather than an EF
+    /// <c>Remove()</c>. Removing the aggregate cascades <see cref="Microsoft.EntityFrameworkCore.EntityState.Deleted"/>
+    /// onto the <see cref="Members"/> collection; the audit interceptor only un-deletes <em>owned</em>
+    /// references, so FK children like <see cref="ChannelMember"/> would be hard-deleted and lost on
+    /// restore. Flipping the flag here leaves members untouched so restore is lossless.
+    /// </summary>
+    public void Archive(string deletedByUserId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(deletedByUserId);
+        if (IsDeleted) return;
+        IsDeleted = true;
+        DeletedOnUtc = DateTimeOffset.UtcNow;
+        DeletedBy = deletedByUserId;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 
     public void Restore()
     {

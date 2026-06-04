@@ -154,20 +154,20 @@ public sealed class TicketsEndpointTests
 
     // ─── comments ────────────────────────────────────────────────────
 
-    [Fact(Skip = "EF tracker raises DbUpdateConcurrencyException when adding a TicketComment via the aggregate's encapsulated method even after Include(t => t.Comments). Filed for follow-up — endpoint is wired and the AddComment domain rule is unit-testable; this is an EF integration quirk, not a domain bug.")]
+    [Fact]
     public async Task AddComment_Should_Persist_And_BumpCommentCount()
     {
+        // Previously skipped: adding a TicketComment via the aggregate's nav
+        // collection failed with DbUpdateConcurrencyException because
+        // TicketComment.Id lacked ValueGeneratedNever() in its EF config, so EF
+        // tracked the new child as Modified (UPDATE 0 rows) instead of Added.
+        // Fixed in TicketCommentConfiguration; this test now passes.
         using var client = await _auth.CreateRootAdminClientAsync();
         var ticketId = await CreateAsync(client, UniqueTitle("Commentable"));
 
         var commentResponse = await client.PostAsJsonAsync(
             $"{TestConstants.TicketsBasePath}/tickets/{ticketId}/comments",
             new { body = "First comment from integration test." });
-        if (!commentResponse.IsSuccessStatusCode)
-        {
-            var body = await commentResponse.Content.ReadAsStringAsync();
-            throw new InvalidOperationException($"AddComment {commentResponse.StatusCode}: {body}");
-        }
         commentResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var commentsResponse = await client.GetAsync(

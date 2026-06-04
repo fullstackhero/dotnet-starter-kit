@@ -26,7 +26,7 @@ public interface IUserProfileService
     /// <summary>
     /// Updates a user's profile.
     /// </summary>
-    Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage);
+    Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sets the profile image URL directly (no upload). Used by the presigned-upload flow:
@@ -38,15 +38,15 @@ public interface IUserProfileService
     /// <summary>
     /// Checks if a user exists with the given email.
     /// </summary>
-    Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null);
+    Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if a user exists with the given username.
     /// </summary>
-    Task<bool> ExistsWithNameAsync(string name);
+    Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if a user exists with the given phone number.
     /// </summary>
-    Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null);
+    Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null, CancellationToken cancellationToken = default);
 }

@@ -13,5 +13,5 @@ public interface IUserStatusService
     /// <summary>
     /// Soft-deletes a user by deactivating them.
     /// </summary>
-    Task DeleteAsync(string userId);
+    Task DeleteAsync(string userId, CancellationToken cancellationToken = default);
 }

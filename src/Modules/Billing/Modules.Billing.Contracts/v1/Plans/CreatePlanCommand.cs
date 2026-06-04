@@ -8,4 +8,6 @@ public sealed record CreatePlanCommand(
     string Name,
     string Currency,
     decimal MonthlyBasePrice,
-    IReadOnlyDictionary<QuotaResource, decimal>? OverageRates = null) : ICommand<Guid>;
+    IReadOnlyDictionary<QuotaResource, decimal>? OverageRates = null,
+    PlanInterval Interval = PlanInterval.Monthly,
+    decimal? AnnualPrice = null) : ICommand<Guid>;

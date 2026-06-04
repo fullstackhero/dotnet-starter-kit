@@ -16,7 +16,7 @@ public sealed class UpdatePlanCommandHandler(BillingDbContext dbContext)
         var plan = await dbContext.Plans.FirstOrDefaultAsync(p => p.Id == command.PlanId, cancellationToken).ConfigureAwait(false)
             ?? throw new NotFoundException($"Plan {command.PlanId} not found.");
 
-        plan.Update(command.Name, command.MonthlyBasePrice, command.OverageRates);
+        plan.Update(command.Name, command.MonthlyBasePrice, command.OverageRates, command.Interval, command.AnnualPrice);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return plan.Id;
     }

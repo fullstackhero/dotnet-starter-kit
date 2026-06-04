@@ -9,7 +9,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 
 		<!-- Code quality & analysis. Warnings are errors locally so the
-		     dev loop matches CI (.github/workflows/ci.yml passes
+		     dev loop matches CI (.github/workflows/backend.yml passes
 		     -warnaserror to dotnet build); previously the divergence
 		     let analyzer regressions slip through to CI. -->
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -24,7 +24,7 @@
 		<!-- Suppress warning about missing XML docs -->
 
 		<!-- Container tags (if using container builds) -->
-		<ContainerImageTags>10.0.0-rc;latest</ContainerImageTags>
+		<ContainerImageTags>10.0.0;latest</ContainerImageTags>
 
 		<!-- Prevent MSBuild from excluding common folders (optional) -->
 		<NoDefaultExcludes>true</NoDefaultExcludes>
@@ -42,19 +42,38 @@
 		<!-- Default NuGet metadata -->
 		<Authors>Mukesh Murugan</Authors>
 		<Company>FullStackHero</Company>
-		<Version>10.0.0-rc.1</Version>
+		<Version>10.0.0</Version>
 		<RepositoryUrl>https://github.com/fullstackhero/dotnet-starter-kit</RepositoryUrl>
 		<PackageTags>FSH;FullStackHero;Modular;CQRS;VerticalSlice;DotNet;CleanArchitecture</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageProjectUrl>https://fullstackhero.net</PackageProjectUrl>
 		<Description>FullStackHero .NET Starter Kit - A production-ready modular .NET framework for building enterprise applications</Description>
-		<!-- Enable NuGet pack globally (overridden in Host/Tests) -->
-		<IsPackable>true</IsPackable>
+		<!--
+		  Distribution model = SOURCE OWNERSHIP. Only TWO packages ship to NuGet.org:
+		  FullStackHero.NET.StarterKit (template, in templates/) and FullStackHero.CLI
+		  (src/Tools/CLI). The template scaffolds full, owned source; modules/framework
+		  are consumed via ProjectReference, never as binary NuGets. So pack is OFF by
+		  default here and explicitly re-enabled ONLY on the CLI. This prevents the 33
+		  module/framework projects from accidentally emitting orphan, mutually-
+		  unresolvable binary packages. CI (backend.yml) packs only those two projects.
+		-->
+		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
-	<!-- Include root README.md in NuGet packages -->
+	<!-- Reproducible, debuggable packages for the projects that DO ship (CLI). -->
+	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
 	<ItemGroup Condition="'$(IsPackable)' == 'true'">
+		<!-- Include root README.md in NuGet packages -->
 		<None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="/" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
 	</ItemGroup>
 </Project>

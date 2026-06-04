@@ -2,15 +2,17 @@ using Aspire.Hosting.ApplicationModel;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Infrastructure
-//
-// pgAdmin sidecar attaches to the same Postgres server resource. Aspire
-// auto-discovers every database registered against this server, so the
-// pgAdmin server-tree shows `fsh-db` (and any future databases) without
-// us authoring a `servers.json` by hand. Persistent so the saved query
-// state and folder layout survive `dotnet run` restarts.
+// Per-app prefix from the AppHost assembly name (FSH.Starter.AppHost -> fsh-starter); namespaces Docker volumes + resource names so multiple FSH apps don't clash.
+#pragma warning disable CA1308 // resource + volume names are conventionally lowercase
+var appPrefix = builder.Environment.ApplicationName
+    .Replace(".AppHost", string.Empty, StringComparison.OrdinalIgnoreCase)
+    .Replace('.', '-')
+    .ToLowerInvariant();
+#pragma warning restore CA1308
+
+// Postgres + pgAdmin sidecar (auto-discovers registered databases); persistent so volumes and saved state survive restarts.
 var postgresServer = builder.AddPostgres("postgres")
-    .WithDataVolume("postgres-data")
+    .WithDataVolume($"{appPrefix}-postgres-data")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithPgAdmin(pa => pa
         .WithHostPort(5050)
@@ -18,25 +20,27 @@ var postgresServer = builder.AddPostgres("postgres")
 
 var postgres = postgresServer.AddDatabase("fsh-db");
 
-var redis = builder.AddRedis("redis")
-    .WithDataVolume("fsh-redis-data")
+// Valkey (BSD-3 Redis fork) as a plain container: Aspire 13.4.0 AddRedis() forces TLS-by-default in run mode and never materializes the container, so we drop to plain RESP over TCP. Name stays "redis" so config keys don't churn.
+var redis = builder.AddContainer("redis", "valkey/valkey", "9.1.0")
+    .WithEndpoint(targetPort: 6379, scheme: "tcp", name: "tcp")
+    .WithVolume($"{appPrefix}-redis-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
-// Build a plain TCP (non-TLS) Redis connection string using the secondary endpoint.
-// Aspire 13.x enables TLS on the primary Redis port by default; the secondary endpoint is plain TCP.
-var redisPlainTcp = redis.GetEndpoint("secondary");
+var redisEndpoint = redis.GetEndpoint("tcp");
 var redisConnectionString = ReferenceExpression.Create(
-    $"{redisPlainTcp.Property(EndpointProperty.HostAndPort)},password={redis.Resource.PasswordParameter!}");
+    $"{redisEndpoint.Property(EndpointProperty.HostAndPort)}");
 
-// Object storage (MinIO, S3-compatible)
-//
-// CORS: we configure MinIO to accept browser PUTs from the admin (:5173) and
-// dashboard (:5174) dev origins so the Files module's presigned-URL upload
-// flow works end-to-end without proxying bytes through the API. Modern MinIO
-// (RELEASE.2024-*+) exposes this via the MINIO_API_CORS_ALLOW_ORIGIN server
-// env var rather than `mc admin config set cors_*` — the old subsystem names
-// were removed, and configuring it at server start also avoids the
-// `mc admin service restart` TTY-not-available error inside the init container.
+// RedisInsight cache browser (dev-only) sidecar; RI_REDIS_* pre-registers the Valkey connection via the container-network alias "redis".
+builder.AddContainer("redis-insight", "redis/redisinsight", "latest")
+    .WithHttpEndpoint(port: 5540, targetPort: 5540, name: "http")
+    .WithEnvironment("RI_REDIS_HOST0", "redis")
+    .WithEnvironment("RI_REDIS_PORT0", "6379")
+    .WithEnvironment("RI_REDIS_ALIAS0", "fsh-cache")
+    .WithEnvironment("RI_ACCEPT_TERMS_AND_CONDITIONS", "true")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WaitFor(redis);
+
+// Object storage (MinIO, S3-compatible). CORS via MINIO_API_CORS_ALLOW_ORIGIN so browser presigned PUTs from the admin (:5173)/dashboard (:5174) dev origins work without proxying through the API.
 const string MinioBucket = "fsh-uploads";
 const string AdminOrigin = "http://localhost:5173";
 const string DashboardOrigin = "http://localhost:5174";
@@ -51,16 +55,10 @@ var minio = builder.AddContainer("minio", "minio/minio")
     .WithEnvironment("MINIO_ROOT_USER", minioUser)
     .WithEnvironment("MINIO_ROOT_PASSWORD", minioPassword)
     .WithEnvironment("MINIO_API_CORS_ALLOW_ORIGIN", $"{AdminOrigin},{DashboardOrigin}")
-    .WithVolume("fsh-minio-data", "/data")
+    .WithVolume($"{appPrefix}-minio-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
-// Init container: just bucket bootstrap (creation + public-read policy). CORS
-// is handled by the env var above, so no `mc admin config set` / `service
-// restart` is needed.
-//
-// Normalize line endings to LF — on Windows the source file is CRLF, and
-// /bin/sh inside the minio/mc container chokes on \r appearing after `do`
-// and `done` ("syntax error near unexpected token `done'").
+// Init container: bucket bootstrap (create + public-read). Script normalized to LF so /bin/sh in minio/mc doesn't choke on Windows CRLF.
 var minioInitScript = ($$"""
 until mc alias set local http://minio:9000 "$MC_USER" "$MC_PASS"; do
   echo "waiting for minio...";
@@ -79,33 +77,45 @@ var minioInit = builder.AddContainer("minio-init", "minio/mc")
 
 var minioApiEndpoint = minio.GetEndpoint("api");
 
-// Database migrator — runs once on each AppHost launch, applies pending
-// migrations across the tenant catalog + every tenant's per-module
-// databases, then exits. The API depends on its completion below, so
-// the API never starts against an unmigrated database. Production
-// deployments use this same project as an explicit deploy step.
-var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-db-migrator")
+// DB migrator: applies pending migrations + seeds the root admin (admin@root.com), then exits; the API waits for its completion so it never starts against an unmigrated DB. Seed password is a dev-only default.
+var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>($"{appPrefix}-db-migrator")
     .WithReference(postgres)
     .WaitFor(postgres)
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
     .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
-    .WithArgs("apply");
+    .WithEnvironment("Seed__DefaultAdminPassword", "123Pa$$word!")
+    .WithArgs("apply", "--seed");
+
+// Demo seeder (dev-only): provisions the acme/globex tenants + demo-login users via seed-demo. DOTNET_ENVIRONMENT=Development is required (console host ignores ASPNETCORE_ENVIRONMENT) or seed-demo refuses to run.
+var demoSeeder = builder.AddProject<Projects.FSH_Starter_DbMigrator>($"{appPrefix}-demo-seeder")
+    .WithReference(postgres)
+    .WaitFor(postgres)
+    .WaitForCompletion(migrator)
+    .WithEnvironment("DOTNET_ENVIRONMENT", "Development")
+    .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
+    .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
+    .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
+    .WithEnvironment("Seed__DemoPassword", "Password123!")
+    .WithArgs("seed-demo");
 
 // API Service
-var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
+var api = builder.AddProject<Projects.FSH_Starter_Api>($"{appPrefix}-api")
     .WithReference(postgres)
-    .WithReference(redis)
     .WaitFor(postgres)
     .WaitFor(redis)
     .WaitForCompletion(minioInit)
     .WaitForCompletion(migrator)
+    .WaitForCompletion(demoSeeder)
     .WithExternalHttpEndpoints()
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
     .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
     .WithEnvironment("CachingOptions__Redis", redisConnectionString)
     .WithEnvironment("CachingOptions__EnableSsl", "false")
+    // Hangfire dashboard (/jobs) creds — [Required], Password [MinLength(12)], ValidateOnStart; API won't boot without them. Dev-only, mirrors appsettings.Development.json.
+    .WithEnvironment("HangfireOptions__UserName", "admin")
+    .WithEnvironment("HangfireOptions__Password", "Password123!")
     .WithEnvironment("Storage__Provider", "s3")
     .WithEnvironment("Storage__S3__Bucket", MinioBucket)
     .WithEnvironment("Storage__S3__Region", "us-east-1")
@@ -115,15 +125,9 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WithEnvironment("Storage__S3__ForcePathStyle", "true")
     .WithEnvironment("Storage__S3__PublicBaseUrl", ReferenceExpression.Create($"{minioApiEndpoint}/{MinioBucket}"));
 
-// Admin console (React + Vite).
-//
-// We target the API's HTTPS endpoint, not HTTP. The API has
-// UseHttpsRedirection(), so calls to the http endpoint bounce 307 to
-// https — and the browser strips the Authorization header on cross-
-// origin redirects (different scheme/port count as cross-origin per
-// the Fetch spec). Going straight to https avoids the redirect and
-// preserves the bearer token on every request.
-builder.AddJavaScriptApp("fsh-admin", "../../../clients/admin", "dev")
+//#if (frontend)
+// Admin console (React + Vite). Target the API's HTTPS endpoint directly — UseHttpsRedirection's 307 to https is cross-origin and strips the Authorization header.
+builder.AddJavaScriptApp($"{appPrefix}-admin", "../../../clients/admin", "dev")
     .WithNpm()
     .WithReference(api)
     .WaitFor(api)
@@ -132,12 +136,16 @@ builder.AddJavaScriptApp("fsh-admin", "../../../clients/admin", "dev")
     .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("https"));
 
 // Tenant-facing dashboard (React + Vite, with SSE live feed)
-builder.AddJavaScriptApp("fsh-dashboard", "../../../clients/dashboard", "dev")
+builder.AddJavaScriptApp($"{appPrefix}-dashboard", "../../../clients/dashboard", "dev")
     .WithNpm()
     .WithReference(api)
     .WaitFor(api)
     .WithHttpEndpoint(port: 5174, targetPort: 5174, isProxied: false)
     .WithExternalHttpEndpoints()
     .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("https"));
+//#else
+// React apps excluded: discard the unused api handle to keep the no-frontend scaffold warning-clean (S1481 under TreatWarningsAsErrors).
+_ = api;
+//#endif
 
 await builder.Build().RunAsync();

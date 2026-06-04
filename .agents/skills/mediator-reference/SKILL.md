@@ -1,129 +1,69 @@
 ---
 name: mediator-reference
-description: Mediator library patterns and interfaces for FSH. This project uses the Mediator source generator, NOT MediatR. Reference when implementing commands, queries, and handlers.
+description: CQRS interface reference for FSH. This project uses the Mediator source generator, NOT MediatR. Reference when implementing commands, queries, and handlers.
 user-invocable: false
 ---
 
 # Mediator Reference
 
-⚠️ **FSH uses the `Mediator` source generator library, NOT `MediatR`.**
+⚠️ **FSH uses the `Mediator` source-generator package (`using Mediator;`), NOT `MediatR`.** Different
+interfaces — MediatR types won't compile. The CQRS interfaces below are the library's own (no FSH wrapper).
 
-These are different libraries with different interfaces. Using MediatR interfaces will cause build errors.
+## Interfaces
 
-## Interface Comparison
-
-| Purpose | ✅ Mediator (Use This) | ❌ MediatR (Don't Use) |
-|---------|------------------------|------------------------|
+| Purpose | ✅ Mediator (use) | ❌ MediatR (don't) |
+|---|---|---|
 | Command | `ICommand<TResponse>` | `IRequest<TResponse>` |
 | Query | `IQuery<TResponse>` | `IRequest<TResponse>` |
-| Command Handler | `ICommandHandler<TCommand, TResponse>` | `IRequestHandler<TRequest, TResponse>` |
-| Query Handler | `IQueryHandler<TQuery, TResponse>` | `IRequestHandler<TRequest, TResponse>` |
-| Notification | `INotification` | `INotification` |
-| Notification Handler | `INotificationHandler<T>` | `INotificationHandler<T>` |
+| Command handler | `ICommandHandler<TCommand, TResponse>` | `IRequestHandler<…>` |
+| Query handler | `IQueryHandler<TQuery, TResponse>` | `IRequestHandler<…>` |
+| Notification / domain event | `INotification` (`IDomainEvent : INotification`) | `INotification` |
 
-## Command Pattern
+## Pattern
 
 ```csharp
-// ✅ Correct - Mediator
-public sealed record CreateUserCommand(string Email, string Name) : ICommand<Guid>;
+// Command/Query → the Contracts project (Modules.{X}.Contracts/v1/{Area}/)
+public sealed record Create{Entity}Command(string Name) : ICommand<Guid>;
 
-public sealed class CreateUserHandler : ICommandHandler<CreateUserCommand, Guid>
+// Handler → the runtime project (Modules.{X}/Features/v1/{Area}/{Feature}/), public sealed
+public sealed class Create{Entity}CommandHandler({X}DbContext db)
+    : ICommandHandler<Create{Entity}Command, Guid>
 {
-    public async ValueTask<Guid> Handle(CreateUserCommand command, CancellationToken ct)
+    public async ValueTask<Guid> Handle(Create{Entity}Command command, CancellationToken cancellationToken)
     {
-        // Implementation
-    }
-}
-
-// ❌ Wrong - MediatR
-public sealed record CreateUserCommand(string Email, string Name) : IRequest<Guid>;
-
-public sealed class CreateUserHandler : IRequestHandler<CreateUserCommand, Guid>
-{
-    public async Task<Guid> Handle(CreateUserCommand request, CancellationToken ct)
-    {
-        // This won't work!
+        // …
     }
 }
 ```
 
-## Query Pattern
+Rules: handlers return **`ValueTask<T>`** (not `Task<T>`); parameter named `command`/`query` (not `request`);
+`public sealed`; `.ConfigureAwait(false)` on awaits. Send via `mediator.Send(command, ct)` (the `IMediator`
+interface name matches MediatR's — that part is fine).
+
+## Registration — the four places
+
+The source generator only scans assemblies listed in `o.Assemblies`, and that list exists in **two host
+files**. A new module needs **two markers** (a Contracts type **and** the module type) added to the Mediator
+list **plus** an entry in the `moduleAssemblies` array — in **both** `FSH.Starter.Api/Program.cs` **and**
+`FSH.Starter.DbMigrator/Program.cs`:
 
 ```csharp
-// ✅ Correct - Mediator
-public sealed record GetUserQuery(Guid Id) : IQuery<UserDto>;
-
-public sealed class GetUserHandler : IQueryHandler<GetUserQuery, UserDto>
+builder.Services.AddMediator(o =>
 {
-    public async ValueTask<UserDto> Handle(GetUserQuery query, CancellationToken ct)
-    {
-        // Implementation
-    }
-}
-```
-
-## Key Differences
-
-| Aspect | Mediator | MediatR |
-|--------|----------|---------|
-| Return type | `ValueTask<T>` | `Task<T>` |
-| Parameter name | `command` / `query` | `request` |
-| Registration | Source generated | Runtime reflection |
-| Performance | Faster (compile-time) | Slower (runtime) |
-
-## Sending Commands/Queries
-
-```csharp
-// In endpoint
-public static async Task<IResult> Handle(
-    CreateUserCommand command,
-    IMediator mediator,  // Same interface name as MediatR
-    CancellationToken ct)
-{
-    var result = await mediator.Send(command, ct);
-    return TypedResults.Created($"/users/{result}");
-}
-```
-
-## Registration
-
-```csharp
-// In Program.cs
-builder.Services.AddMediator(options =>
-{
-    options.Assemblies =
-    [
-        typeof(IdentityModule).Assembly,
-        typeof(MultitenancyModule).Assembly,
-        // Add your module assemblies here
-    ];
+    o.ServiceLifetime = ServiceLifetime.Scoped;
+    o.Assemblies = [
+        /* … */
+        typeof(FSH.Modules.{X}.Contracts.{X}ContractsMarker),   // Contracts assembly
+        typeof(FSH.Modules.{X}.{X}Module)];                     // runtime assembly
 });
 ```
 
-## Common Errors
+See `add-module` for the full procedure.
 
-### Error: `IRequest<T>` not found
-**Cause:** Using MediatR interface  
-**Fix:** Change to `ICommand<T>` or `IQuery<T>`
+## Common errors
 
-### Error: `IRequestHandler<T,R>` not found
-**Cause:** Using MediatR interface  
-**Fix:** Change to `ICommandHandler<T,R>` or `IQueryHandler<T,R>`
-
-### Error: Handler not found at runtime
-**Cause:** Assembly not registered in AddMediator  
-**Fix:** Add assembly to `options.Assemblies` array
-
-### Error: `Task<T>` vs `ValueTask<T>`
-**Cause:** Using MediatR return type  
-**Fix:** Change handler return type to `ValueTask<T>`
-
-## Namespaces
-
-```csharp
-// ✅ Correct
-using Mediator;
-
-// ❌ Wrong
-using MediatR;
-```
+| Symptom | Cause → fix |
+|---|---|
+| `IRequest<T>` / `IRequestHandler<,>` not found | MediatR interface → use `ICommand`/`IQuery` + `ICommandHandler`/`IQueryHandler` |
+| `Task<T>` vs `ValueTask<T>` mismatch | Handler must return `ValueTask<T>` |
+| Handler not invoked at runtime | Assembly missing from `o.Assemblies` (in one or both Program.cs files) |

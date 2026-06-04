@@ -28,14 +28,13 @@ internal sealed class UserPasswordService(
         EnsureValidTenant();
 
         var user = await userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            throw new NotFoundException("user not found");
-        }
 
-        if (string.IsNullOrWhiteSpace(user.Email))
+        // Anti-enumeration: respond identically whether or not the address is registered, so an
+        // anonymous caller cannot distinguish real accounts from unknown ones. A real user gets
+        // the reset email; an unknown (or email-less) account silently no-ops with the same 200.
+        if (user is null || string.IsNullOrWhiteSpace(user.Email))
         {
-            throw new InvalidOperationException("user email cannot be null or empty");
+            return;
         }
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
@@ -75,7 +74,7 @@ internal sealed class UserPasswordService(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId)
+    public async Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId);
 
@@ -92,13 +91,13 @@ internal sealed class UserPasswordService(
         // Raise domain event for password change
         var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
         user.RecordPasswordChanged(wasReset: false, tenantId);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(cancellationToken);
 
         // Update password expiry date
-        await passwordExpiryService.UpdateLastPasswordChangeDateAsync(userId);
+        await passwordExpiryService.UpdateLastPasswordChangeDateAsync(userId, cancellationToken);
 
         // Save to history
-        await passwordHistoryService.SavePasswordHistoryAsync(userId);
+        await passwordHistoryService.SavePasswordHistoryAsync(userId, cancellationToken);
     }
 
     private void EnsureValidTenant()

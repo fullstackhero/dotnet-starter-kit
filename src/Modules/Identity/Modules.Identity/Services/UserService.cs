@@ -30,14 +30,14 @@ internal sealed class UserService(
         CancellationToken cancellationToken)
         => registrationService.RegisterAsync(firstName, lastName, email, userName, password, confirmPassword, phoneNumber, origin, cancellationToken);
 
-    public Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)
-        => registrationService.GetOrCreateFromPrincipalAsync(principal);
+    public Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
+        => registrationService.GetOrCreateFromPrincipalAsync(principal, cancellationToken);
 
     public Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
         => registrationService.ConfirmEmailAsync(userId, code, tenant, cancellationToken);
 
-    public Task<string> ConfirmPhoneNumberAsync(string userId, string code)
-        => registrationService.ConfirmPhoneNumberAsync(userId, code);
+    public Task<string> ConfirmPhoneNumberAsync(string userId, string code, CancellationToken cancellationToken = default)
+        => registrationService.ConfirmPhoneNumberAsync(userId, code, cancellationToken);
 
     // Profile operations (delegated to IUserProfileService)
     public Task<UserDto> GetAsync(string userId, CancellationToken cancellationToken)
@@ -49,24 +49,24 @@ internal sealed class UserService(
     public Task<int> GetCountAsync(CancellationToken cancellationToken)
         => profileService.GetCountAsync(cancellationToken);
 
-    public Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage)
-        => profileService.UpdateAsync(userId, firstName, lastName, phoneNumber, image, deleteCurrentImage);
+    public Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, CancellationToken cancellationToken = default)
+        => profileService.UpdateAsync(userId, firstName, lastName, phoneNumber, image, deleteCurrentImage, cancellationToken);
 
-    public Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
-        => profileService.ExistsWithEmailAsync(email, exceptId);
+    public Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null, CancellationToken cancellationToken = default)
+        => profileService.ExistsWithEmailAsync(email, exceptId, cancellationToken);
 
-    public Task<bool> ExistsWithNameAsync(string name)
-        => profileService.ExistsWithNameAsync(name);
+    public Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken = default)
+        => profileService.ExistsWithNameAsync(name, cancellationToken);
 
-    public Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
-        => profileService.ExistsWithPhoneNumberAsync(phoneNumber, exceptId);
+    public Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null, CancellationToken cancellationToken = default)
+        => profileService.ExistsWithPhoneNumberAsync(phoneNumber, exceptId, cancellationToken);
 
     // Status operations (delegated to IUserStatusService)
     public Task ToggleStatusAsync(bool activateUser, string userId, CancellationToken cancellationToken)
         => statusService.ToggleStatusAsync(activateUser, userId, cancellationToken);
 
-    public Task DeleteAsync(string userId)
-        => statusService.DeleteAsync(userId);
+    public Task DeleteAsync(string userId, CancellationToken cancellationToken = default)
+        => statusService.DeleteAsync(userId, cancellationToken);
 
     // Role operations (delegated to IUserRoleService)
     public Task<string> AssignRolesAsync(string userId, List<UserRoleDto> userRoles, CancellationToken cancellationToken)
@@ -82,8 +82,8 @@ internal sealed class UserService(
     public Task ResetPasswordAsync(string email, string password, string token, CancellationToken cancellationToken)
         => passwordService.ResetPasswordAsync(email, password, token, cancellationToken);
 
-    public Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId)
-        => passwordService.ChangePasswordAsync(password, newPassword, confirmNewPassword, userId);
+    public Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId, CancellationToken cancellationToken = default)
+        => passwordService.ChangePasswordAsync(password, newPassword, confirmNewPassword, userId, cancellationToken);
 
     // Permission operations (delegated to IUserPermissionService)
     public Task<List<string>?> GetPermissionsAsync(string userId, CancellationToken cancellationToken)

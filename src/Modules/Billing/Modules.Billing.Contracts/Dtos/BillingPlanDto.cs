@@ -9,4 +9,6 @@ public sealed record BillingPlanDto(
     string Currency,
     decimal MonthlyBasePrice,
     IReadOnlyDictionary<QuotaResource, decimal> OverageRates,
-    bool IsActive);
+    bool IsActive,
+    PlanInterval Interval,
+    decimal? AnnualPrice);

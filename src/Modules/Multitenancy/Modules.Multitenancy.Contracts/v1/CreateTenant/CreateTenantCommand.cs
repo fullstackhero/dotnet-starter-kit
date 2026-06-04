@@ -7,4 +7,6 @@ public sealed record CreateTenantCommand(
     string Name,
     string? ConnectionString,
     string AdminEmail,
-    string? Issuer) : ICommand<CreateTenantCommandResponse>;
+    string AdminPassword,
+    string? Issuer,
+    string? PlanKey = null) : ICommand<CreateTenantCommandResponse>;

@@ -18,9 +18,18 @@ export default defineConfig(({ mode }) => {
       port: 5174,
       strictPort: true,
       proxy: {
-        "/api": { target: apiBase, changeOrigin: true, secure: false },
+        // ws: true forwards the WebSocket upgrade used by SignalR's hub
+        // transport at /api/v1/realtime/hub. Without it the negotiate
+        // succeeds over HTTP but the WS upgrade falls into Vite's own
+        // dev server, so the chat status stalls on "CONNECTING" while
+        // SignalR retries forever.
+        "/api": { target: apiBase, changeOrigin: true, secure: false, ws: true },
         "/openapi": { target: apiBase, changeOrigin: true, secure: false },
         "/scalar": { target: apiBase, changeOrigin: true, secure: false },
+        // Health probes live at the root (not under /api). Without this the
+        // dashboard's /system/health page 404s in dev because Vite serves
+        // the request itself instead of proxying to the API.
+        "/health": { target: apiBase, changeOrigin: true, secure: false },
       },
     },
   };

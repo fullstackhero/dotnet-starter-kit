@@ -15,6 +15,7 @@ export type UserDto = {
   emailConfirmed: boolean;
   phoneNumber?: string;
   imageUrl?: string;
+  twoFactorEnabled?: boolean;
 };
 
 export type UserRoleDto = {
@@ -143,10 +144,6 @@ export async function listRoles(): Promise<RoleDto[]> {
   return result.items ?? [];
 }
 
-export async function getRoleById(id: string): Promise<RoleDto> {
-  return apiFetch<RoleDto>(`/api/v1/identity/roles/${encodeURIComponent(id)}`);
-}
-
 export async function getRoleWithPermissions(id: string): Promise<RoleDto> {
   return apiFetch<RoleDto>(`/api/v1/identity/${encodeURIComponent(id)}/permissions`);
 }
@@ -169,6 +166,24 @@ export async function deleteRole(id: string): Promise<void> {
   await apiFetch<void>(`/api/v1/identity/roles/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
+}
+
+// One row in the host's permission catalog. Mirrors
+// FSH.Modules.Identity.Contracts.DTOs.PermissionCatalogEntryDto. The catalog
+// endpoint is the single source of truth — every module's permissions land
+// here at startup, filtered to the caller's tenant context (Admin set for
+// regular tenants; Admin + Root set for the root tenant).
+export type PermissionCatalogEntryDto = {
+  name: string;
+  description: string;
+  resource: string;
+  action: string;
+  isBasic: boolean;
+  isRoot: boolean;
+};
+
+export async function getPermissionsCatalog(): Promise<PermissionCatalogEntryDto[]> {
+  return apiFetch<PermissionCatalogEntryDto[]>(`/api/v1/identity/permissions/catalog`);
 }
 
 // -----------------------------
@@ -345,5 +360,157 @@ export async function startImpersonation(input: {
 export async function endImpersonation(): Promise<EndImpersonationResponse> {
   return apiFetch<EndImpersonationResponse>(`/api/v1/identity/impersonation/end`, {
     method: "POST",
+  });
+}
+
+// -----------------------------
+// Profile update (PUT /identity/profile)
+// -----------------------------
+
+export type UpdateProfileInput = {
+  firstName?: string | null;
+  lastName?: string | null;
+  phoneNumber?: string | null;
+};
+
+/**
+ * Updates the authenticated user's profile. Maps to UpdateUserCommand
+ * server-side. Image and email changes go through their own dedicated
+ * endpoints — this is for the editable profile fields surfaced in
+ * settings/profile. Reads the current profile first so unset optional
+ * fields keep their existing values instead of being nulled.
+ */
+export async function updateMyProfile(input: UpdateProfileInput): Promise<void> {
+  const profile = await getMyProfile();
+  await apiFetch<unknown>(`/api/v1/identity/profile`, {
+    method: "PUT",
+    body: JSON.stringify({
+      id: profile.id,
+      firstName: input.firstName ?? profile.firstName ?? null,
+      lastName: input.lastName ?? profile.lastName ?? null,
+      phoneNumber: input.phoneNumber ?? profile.phoneNumber ?? null,
+      email: profile.email,
+      deleteCurrentImage: false,
+    }),
+  });
+}
+
+// -----------------------------
+// Password reset trio (anonymous; require explicit tenant header)
+// -----------------------------
+
+/**
+ * Step 1 of the forgot-password flow. The server resolves the user by
+ * (email, tenant), generates a reset token, and emails a link of the form
+ * `<host>/reset-password?token=...&email=...&tenant=...`. Server always
+ * returns 200 regardless of whether the email exists — never leak account
+ * presence to the caller.
+ */
+export async function requestPasswordReset(input: {
+  email: string;
+  tenant: string;
+}): Promise<void> {
+  await apiFetch<string>(`/api/v1/identity/forgot-password`, {
+    method: "POST",
+    skipAuth: true,
+    headers: { tenant: input.tenant },
+    body: JSON.stringify({ email: input.email }),
+  });
+}
+
+/**
+ * Step 2 of the forgot-password flow. The caller carries (token, email,
+ * tenant) from the emailed link plus a new password from the form. The
+ * server validates the token via UserManager.ResetPasswordAsync and
+ * persists the new hash. Existing JWTs remain valid until natural expiry —
+ * the UI should bounce the user to /login to acquire a fresh session.
+ */
+export async function resetPassword(input: {
+  email: string;
+  password: string;
+  token: string;
+  tenant: string;
+}): Promise<void> {
+  await apiFetch<string>(`/api/v1/identity/reset-password`, {
+    method: "POST",
+    skipAuth: true,
+    headers: { tenant: input.tenant },
+    body: JSON.stringify({
+      email: input.email,
+      password: input.password,
+      token: input.token,
+    }),
+  });
+}
+
+/**
+ * Confirm-email link landing. The server expects (userId, code, tenant)
+ * as query parameters — these come from the email-confirmation link
+ * produced by the registration flow. Returns the server's confirmation
+ * message on 2xx.
+ */
+export async function confirmEmail(input: {
+  userId: string;
+  code: string;
+  tenant: string;
+}): Promise<string> {
+  const qs = new URLSearchParams({
+    userId: input.userId,
+    code: input.code,
+    tenant: input.tenant,
+  }).toString();
+  return apiFetch<string>(`/api/v1/identity/confirm-email?${qs}`, {
+    method: "GET",
+    skipAuth: true,
+    headers: { tenant: input.tenant },
+  });
+}
+
+// -----------------------------
+// Password change (authenticated)
+// -----------------------------
+
+export async function changePassword(input: {
+  password: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}): Promise<void> {
+  await apiFetch<string>(`/api/v1/identity/change-password`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+// -----------------------------
+// Two-factor enrollment (TOTP)
+// -----------------------------
+
+export type TwoFactorEnrollmentResponse = {
+  sharedKey: string;
+  authenticatorUri: string;
+};
+
+/**
+ * Begin (or rotate) TOTP enrollment. 2FA is NOT enabled until the user
+ * confirms with a code via verifyEnrollTwoFactor — this just hands back
+ * the secret + otpauth:// URI so the QR can render.
+ */
+export async function enrollTwoFactor(): Promise<TwoFactorEnrollmentResponse> {
+  return apiFetch<TwoFactorEnrollmentResponse>(`/api/v1/identity/2fa/enroll`, {
+    method: "POST",
+  });
+}
+
+export async function verifyEnrollTwoFactor(code: string): Promise<{ success: boolean }> {
+  return apiFetch<{ success: boolean }>(`/api/v1/identity/2fa/verify`, {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+}
+
+export async function disableTwoFactor(currentPassword: string): Promise<{ success: boolean }> {
+  return apiFetch<{ success: boolean }>(`/api/v1/identity/2fa/disable`, {
+    method: "POST",
+    body: JSON.stringify({ currentPassword }),
   });
 }

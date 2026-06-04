@@ -1,0 +1,116 @@
+name: Template Smoke Test
+
+# Guards the distribution path: scaffolding a project from the template must
+# always produce a solution that builds (backend + both React apps) and passes
+# architecture tests. Catches regressions like the .slnx referencing an excluded
+# project, the Aspire `Projects.*` rename breaking, or clients/** dropping out.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.template.config/**'
+      - 'templates/**'
+      - 'clients/**'
+      - 'src/**'
+      - '.github/workflows/template-smoke.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.template.config/**'
+      - 'templates/**'
+      - 'clients/**'
+      - 'src/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  scaffold-full:
+    name: Scaffold (Aspire + React) and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      # Pack then install from the nupkg — exercises the exact artifact shipped to
+      # consumers, not just the in-repo folder.
+      - name: Pack template
+        run: dotnet pack templates/FullStackHero.NET.StarterKit.csproj -c Release -o "$RUNNER_TEMP/pkg"
+
+      - name: Install template
+        run: dotnet new install "$RUNNER_TEMP"/pkg/FullStackHero.NET.StarterKit.*.nupkg
+
+      - name: Scaffold project
+        run: dotnet new fsh -n Smoke.App -o "$RUNNER_TEMP/smoke" --aspire true --frontend true --skipRestore true
+
+      - name: Build backend (warnings as errors)
+        run: dotnet build "$RUNNER_TEMP/smoke/src/Smoke.App.slnx" -c Release -warnaserror
+
+      - name: Build admin app
+        working-directory: ${{ runner.temp }}/smoke/clients/admin
+        run: npm ci && npm run build
+
+      - name: Build dashboard app
+        working-directory: ${{ runner.temp }}/smoke/clients/dashboard
+        run: npm ci && npm run build
+
+      - name: Run Architecture tests on scaffolded output
+        run: dotnet test "$RUNNER_TEMP/smoke/src/Tests/Architecture.Tests" -c Release --no-build
+
+  scaffold-minimal:
+    name: Scaffold (no Aspire, no React) and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Install template
+        run: dotnet new install .
+
+      # Backend-only path must still compile — guards the //#if (frontend) and
+      # (!aspire) conditional gating in AppHost.cs and the solution.
+      - name: Scaffold backend-only project
+        run: dotnet new fsh -n Smoke.Api -o "$RUNNER_TEMP/min" --aspire false --frontend false --skipRestore true
+
+      - name: Build backend (warnings as errors)
+        run: dotnet build "$RUNNER_TEMP/min/src/Smoke.Api.slnx" -c Release -warnaserror

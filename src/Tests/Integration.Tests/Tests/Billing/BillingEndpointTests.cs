@@ -547,14 +547,21 @@ public sealed class BillingEndpointTests
         page.Items.Count.ShouldBe(1);
         var inv = page.Items.Single();
         inv.Status.ShouldBe(InvoiceStatus.Draft);
-        inv.SubtotalAmount.ShouldBeGreaterThanOrEqualTo(7m, "base fee from the assigned plan should be in the subtotal");
+        inv.Purpose.ShouldBe(InvoicePurpose.Usage, "invoices/generate produces usage invoices");
+        inv.SubtotalAmount.ShouldBe(0m,
+            "usage invoices bill metered overage only — the base fee moved to the subscription invoice, and root has no overage");
 
-        // Second call must be idempotent — no new invoices for the same period.
+        // Second call must be idempotent for root — it must not create a second invoice for the
+        // same (tenant, period). (Asserting the global Generated count is 0 is unreliable because
+        // other tests leave additional subscribed tenants in the shared host.)
         using var secondResp = await client.PostAsJsonAsync(
             $"{BillingBasePath}/invoices/generate", new { periodYear = year, periodMonth = month });
         secondResp.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var secondPayload = await ParseAsync<GeneratedPayload>(secondResp);
-        secondPayload.Generated.ShouldBe(0, "Re-running generate for the same period must skip already-invoiced tenants");
+
+        using var listAfter = await client.GetAsync(
+            $"{BillingBasePath}/invoices?tenantId={TestConstants.RootTenantId}&periodYear={year}&periodMonth={month}&pageNumber=1&pageSize=10");
+        var pageAfter = await ParseAsync<PagedResponse<InvoiceDto>>(listAfter);
+        pageAfter.Items.Count.ShouldBe(1, "re-running generate must not duplicate root's invoice for the period");
     }
 
     // ─── helpers ─────────────────────────────────────────────────────

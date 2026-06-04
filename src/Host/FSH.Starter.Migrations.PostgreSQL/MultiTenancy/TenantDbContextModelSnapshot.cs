@@ -17,7 +17,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.MultiTenancy
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -65,6 +65,37 @@ namespace FSH.Starter.Migrations.PostgreSQL.MultiTenancy
                         .IsUnique();
 
                     b.ToTable("Tenants", "tenant");
+                });
+
+            modelBuilder.Entity("FSH.Modules.Multitenancy.Domain.TenantExpiryNotice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NoticeType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("ValidUptoUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "NoticeType", "ValidUptoUtc")
+                        .IsUnique()
+                        .HasDatabaseName("ux_tenant_expiry_notices_tenant_type_validupto");
+
+                    b.ToTable("TenantExpiryNotices", "tenant");
                 });
 
             modelBuilder.Entity("FSH.Modules.Multitenancy.Domain.TenantTheme", b =>

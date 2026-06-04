@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Template pack project. Packs the repository (with its root .template.config)
+    into the `FullStackHero.NET.StarterKit` NuGet so consumers can:
+        dotnet new install FullStackHero.NET.StarterKit
+        dotnet new fsh -n MyApp
+    The package is only a delivery vehicle — the scaffolded OUTPUT is fully owned,
+    detached source with no dependency on this package.
+
+    Build/test locally:
+        dotnet pack templates/FullStackHero.NET.StarterKit.csproj -o ./nupkgs
+    This project is intentionally NOT part of FSH.Starter.slnx (it has no code to
+    build) and is excluded from scaffolded output via template.json (templates/**).
+  -->
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>FullStackHero.NET.StarterKit</PackageId>
+    <Title>FullStackHero .NET Starter Kit</Title>
+    <PackageVersion>10.0.0</PackageVersion>
+    <Authors>Mukesh Murugan</Authors>
+    <Company>FullStackHero</Company>
+    <Description>A production-ready full-stack starter: a modular .NET 10 monolith (Vertical Slice, CQRS, multitenancy, Identity, Aspire) plus two React 19 apps, Docker Compose, and Terraform. Scaffolds full, owned source — no per-module NuGet dependencies.</Description>
+    <PackageTags>dotnet-new;templates;template;webapi;modular-monolith;vertical-slice;multitenancy;aspire;react;fullstack;starter-kit</PackageTags>
+    <PackageProjectUrl>https://fullstackhero.net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/fullstackhero/dotnet-starter-kit</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+
+    <TargetFramework>net10.0</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- NU5128: template pack has content but no dependencies/lib (by design).
+         NU5110/NU5111: bundled deploy.ps1 scripts are template CONTENT, not NuGet install
+         scripts — they must not be moved to tools/ or renamed; the warnings are noise. -->
+    <NoWarn>$(NoWarn);NU5128;NU5110;NU5111</NoWarn>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Ship the whole repo (incl. the root .template.config) as template content,
+      minus build output, VCS/IDE/agent state, node_modules, and the docs site.
+      Excluding .claude/** is load-bearing: it holds agent worktrees, each with a
+      nested .template.config that would otherwise collide on `dotnet new install`.
+    -->
+    <Content Include="..\**\*"
+             Exclude="..\**\bin\**;..\**\obj\**;..\.git\**;..\.github\**;..\.claude\**;..\.agents\**;..\**\.vs\**;..\**\.idea\**;..\**\.vscode\**;..\.devcontainer\**;..\**\node_modules\**;..\**\dist\**;..\**\build\**;..\**\TestResults\**;..\**\playwright-report\**;..\**\test-results\**;..\coverage-report\**;..\nupkgs\**;..\nupkgs-test\**;..\docs\**;..\templates\**;..\**\*.user"
+             Pack="true"
+             PackagePath="content" />
+    <Compile Remove="**\*" />
+    <!-- Gallery icon at package root (separate from the .template.config content copy). -->
+    <None Include="..\.template.config\icon.png" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+</Project>

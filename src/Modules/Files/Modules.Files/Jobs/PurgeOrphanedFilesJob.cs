@@ -1,4 +1,5 @@
 using FSH.Framework.Storage.Services;
+using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
 using Hangfire;

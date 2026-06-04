@@ -181,19 +181,32 @@ public sealed class ProductImagesTests
 
     // ── helpers ────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Returns a fresh brand id + category id to use as foreign keys when
+    /// creating products. The framework no longer auto-seeds catalog data
+    /// per tenant (see CatalogDbInitializer notes), so each test creates
+    /// its own. Method name retained for grep compatibility, but it now
+    /// creates the rows rather than picking pre-existing ones.
+    /// </summary>
     private static async Task<(Guid BrandId, Guid CategoryId)> PickExistingBrandAndCategoryAsync(HttpClient client)
     {
-        using var brandsResp = await client.GetAsync(
-            $"{TestConstants.CatalogBasePath}/brands?pageNumber=1&pageSize=1");
-        var brands = await brandsResp.DeserializeAsync<PagedResult<Infrastructure.BrandDto>>();
-        brands.Items.Count.ShouldBeGreaterThan(0, "seed data should provide at least one brand");
+        var suffix = Guid.NewGuid().ToString("N")[..8];
 
-        using var categoriesResp = await client.GetAsync(
-            $"{TestConstants.CatalogBasePath}/categories?pageNumber=1&pageSize=1");
-        var categories = await categoriesResp.DeserializeAsync<PagedResult<CategoryRow>>();
-        categories.Items.Count.ShouldBeGreaterThan(0, "seed data should provide at least one category");
+        using var brandResp = await client.PostAsJsonAsync(
+            $"{TestConstants.CatalogBasePath}/brands",
+            new { name = $"img-brand-{suffix}", description = (string?)null, logoUrl = (string?)null });
+        brandResp.StatusCode.ShouldBe(HttpStatusCode.OK,
+            $"setup helper failed to create brand: {await brandResp.Content.ReadAsStringAsync()}");
+        var brandId = await brandResp.DeserializeAsync<Guid>();
 
-        return (brands.Items[0].Id, categories.Items[0].Id);
+        using var categoryResp = await client.PostAsJsonAsync(
+            $"{TestConstants.CatalogBasePath}/categories",
+            new { name = $"img-cat-{suffix}", description = (string?)null, parentCategoryId = (Guid?)null });
+        categoryResp.StatusCode.ShouldBe(HttpStatusCode.OK,
+            $"setup helper failed to create category: {await categoryResp.Content.ReadAsStringAsync()}");
+        var categoryId = await categoryResp.DeserializeAsync<Guid>();
+
+        return (brandId, categoryId);
     }
 
     private static async Task<Guid> CreateProductAsync(HttpClient client, Guid brandId, Guid categoryId)

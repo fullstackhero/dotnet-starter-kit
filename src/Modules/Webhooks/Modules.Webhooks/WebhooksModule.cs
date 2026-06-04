@@ -1,13 +1,16 @@
 using Asp.Versioning;
 using FSH.Framework.Persistence;
+using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.HttpResilience;
 using FSH.Framework.Web.Modules;
+using FSH.Modules.Webhooks.Contracts.Authorization;
 using FSH.Modules.Webhooks.Data;
 using FSH.Modules.Webhooks.Features.v1.CreateWebhookSubscription;
 using FSH.Modules.Webhooks.Features.v1.DeleteWebhookSubscription;
 using FSH.Modules.Webhooks.Features.v1.GetWebhookDeliveries;
 using FSH.Modules.Webhooks.Features.v1.GetWebhookSubscriptions;
 using FSH.Modules.Webhooks.Features.v1.TestWebhookSubscription;
+using FSH.Framework.Eventing.Abstractions;
 using FSH.Modules.Webhooks.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -27,11 +30,21 @@ public sealed class WebhooksModule : IModule
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        PermissionConstants.Register(WebhooksPermissions.All);
+
         builder.Services.AddHeroDbContext<WebhookDbContext>();
         builder.Services.AddScoped<IDbInitializer, WebhookDbInitializer>();
+        builder.Services.AddSingleton<IWebhookSecretProtector, WebhookSecretProtector>();
         builder.Services.AddScoped<IWebhookDeliveryService, WebhookDeliveryService>();
         builder.Services.AddScoped<IWebhookDispatcher, WebhookDispatcher>();
         builder.Services.AddScoped<WebhookDispatchJob>();
+
+        // Open-generic integration-event bridge — every IIntegrationEvent the bus
+        // publishes is fanned out to matching tenant webhook subscriptions. Closed
+        // handler types are materialized per event type by DI.
+        builder.Services.AddScoped(
+            typeof(IIntegrationEventHandler<>),
+            typeof(WebhookFanoutHandler<>));
 
         builder.Services.AddHttpClient("Webhooks")
             .AddHeroResilience(builder.Configuration);

@@ -18,7 +18,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("catalog")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -60,6 +60,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -67,11 +71,14 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
 
                     b.HasIndex("IsDeleted");
 
-                    b.HasIndex("Slug")
+                    b.HasIndex("Slug", "TenantId")
                         .IsUnique()
+                        .HasDatabaseName("IX_Brands_Slug")
                         .HasFilter("\"IsDeleted\" = FALSE");
 
                     b.ToTable("Brands", "catalog");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Catalog.Domain.Category", b =>
@@ -110,6 +117,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -119,11 +130,14 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.HasIndex("Slug")
+                    b.HasIndex("Slug", "TenantId")
                         .IsUnique()
+                        .HasDatabaseName("IX_Categories_Slug")
                         .HasFilter("\"IsDeleted\" = FALSE");
 
                     b.ToTable("Categories", "catalog");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Catalog.Domain.Product", b =>
@@ -176,6 +190,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
                     b.Property<int>("Stock")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -187,15 +205,19 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
 
                     b.HasIndex("IsDeleted");
 
-                    b.HasIndex("Sku")
+                    b.HasIndex("Sku", "TenantId")
                         .IsUnique()
+                        .HasDatabaseName("IX_Products_Sku")
                         .HasFilter("\"IsDeleted\" = FALSE");
 
-                    b.HasIndex("Slug")
+                    b.HasIndex("Slug", "TenantId")
                         .IsUnique()
+                        .HasDatabaseName("IX_Products_Slug")
                         .HasFilter("\"IsDeleted\" = FALSE");
 
                     b.ToTable("Products", "catalog");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Catalog.Domain.ProductImage", b =>
@@ -218,6 +240,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(2048)
@@ -228,6 +254,8 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductImages", "catalog");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Catalog.Domain.Product", b =>

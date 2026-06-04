@@ -1,0 +1,5 @@
+{
+  "apiBase": "",
+  "defaultTenant": "root",
+  "dashboardUrl": "http://localhost:5174"
+}

@@ -121,8 +121,8 @@ resource "aws_elasticache_replication_group" "this" {
   maintenance_window         = var.maintenance_window
 
   # Snapshots
-  snapshot_retention_limit = var.snapshot_retention_limit
-  snapshot_window          = var.snapshot_window
+  snapshot_retention_limit  = var.snapshot_retention_limit
+  snapshot_window           = var.snapshot_window
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.name}-final-snapshot"
 
   # Notifications

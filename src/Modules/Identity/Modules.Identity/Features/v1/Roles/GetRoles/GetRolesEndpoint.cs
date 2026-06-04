@@ -1,5 +1,6 @@
-using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Shared.Persistence;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Roles.GetRoles;
 using Mediator;
@@ -13,14 +14,15 @@ public static class GetRolesEndpoint
 {
     public static RouteHandlerBuilder MapGetRolesEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/roles", async (IMediator mediator, CancellationToken cancellationToken) =>
-            TypedResults.Ok(await mediator.Send(new GetRolesQuery(), cancellationToken)))
+        return endpoints.MapGet("/roles",
+            async ([AsParameters] GetRolesQuery query, IMediator mediator, CancellationToken cancellationToken) =>
+                TypedResults.Ok(await mediator.Send(query, cancellationToken)))
         .WithName("ListRoles")
-        .WithSummary("List all roles")
+        .WithSummary("List roles (paged)")
         .RequirePermission(IdentityPermissions.Roles.View)
-        .Produces<IEnumerable<RoleDto>>(StatusCodes.Status200OK)
+        .Produces<PagedResponse<RoleDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
-        .WithDescription("Retrieve all roles available for the current tenant.");
+        .WithDescription("Retrieve roles available for the current tenant. Pageable via PageNumber/PageSize; filterable via Search (case-insensitive substring against name + description).");
     }
 }

@@ -1,0 +1,12 @@
+node_modules
+dist
+.vite
+coverage
+playwright-report
+test-results
+tests
+*.log
+.env
+.env.*
+!.env.example
+public/config.json

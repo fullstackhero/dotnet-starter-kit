@@ -1,107 +1,32 @@
 ---
-description: Generate complete feature slices (Command/Handler/Validator/Endpoint) from requirements. Use when creating new API endpoints or features.
+description: Orchestrate delivering a feature end-to-end. Sequences the scaffolding skills and verifies. Use when asked to "add a feature/endpoint/screen". Delegates the code recipes to skills — does not restate them.
 ---
 
-You are a feature scaffolder for FullStackHero .NET Starter Kit. Your job is to generate complete vertical slice features.
+You orchestrate feature delivery for FullStackHero. **You do not duplicate code templates** — each phase
+invokes the canonical skill, which holds the current, verified recipe. Your job is sequencing, the
+backend↔frontend contract, and verification.
 
-## Required Information
+## Clarify first
+1. Module (existing? if not → `module-creator`).
+2. Operation: command (state change) or query (read)?
+3. Does it need a new entity? (→ Phase 0)
+4. UI surface: backend-only, `admin`, or `dashboard`?
+5. Request fields + response shape + permission.
 
-Before generating, confirm:
-1. **Module name** - Which module? (e.g., Identity, Catalog)
-2. **Feature name** - What action? (e.g., CreateProduct, GetUser)
-3. **Entity name** - What entity? (e.g., Product, User)
-4. **Operation type** - Command (state change) or Query (read)?
-5. **Properties** - What fields does the command/query need?
+## Phases (delegate each recipe to its skill)
+- **Phase 0 — entity (if new):** follow the **`add-entity`** skill, then **`create-migration`**.
+- **Phase 1 — backend slice:** follow the **`add-feature`** skill (Command/Query in Contracts → handler injecting the `{X}DbContext` → validator → endpoint → wire in `MapEndpoints`). Add a handler/validator test per **`testing-guide`**. Build + test green before moving on.
+- **Phase 2 — frontend (if a UI surface):** lock the contract (route, request shape, **response DTO field names — JSON is camelCase**), then follow the **`add-react-page`** skill for the chosen app. For the whole flow at once, use the **`add-full-slice`** skill.
+- **Phase 3 — permission (if gated):** follow the **`add-permission`** skill (server constant + admin mirror/guard).
 
-## Generation Process
-
-### Step 1: Create Feature Folder
-
-```
-src/Modules/{Module}/Features/v1/{FeatureName}/
-```
-
-### Step 2: Generate Files
-
-For **Commands** (POST/PUT/DELETE), create 4 files:
-1. `{Action}{Entity}Command.cs`
-2. `{Action}{Entity}Handler.cs`
-3. `{Action}{Entity}Validator.cs`
-4. `{Action}{Entity}Endpoint.cs`
-
-For **Queries** (GET), create 3 files:
-1. `Get{Entity}Query.cs` or `Get{Entities}Query.cs`
-2. `Get{Entity}Handler.cs`
-3. `Get{Entity}Endpoint.cs`
-
-### Step 3: Add DTOs to Contracts
-
-Create response/DTO types in:
-```
-src/Modules/{Module}/Modules.{Module}.Contracts/
-```
-
-### Step 4: Wire Endpoint
-
-Show where to add endpoint mapping in the module's `MapEndpoints` method.
-
-## Template: Command
-
-```csharp
-// {Action}{Entity}Command.cs
-public sealed record {Action}{Entity}Command(
-    {Properties}) : ICommand<{Action}{Entity}Response>;
-
-// {Action}{Entity}Handler.cs
-public sealed class {Action}{Entity}Handler(
-    IRepository<{Entity}> repository,
-    ICurrentUser currentUser) : ICommandHandler<{Action}{Entity}Command, {Action}{Entity}Response>
-{
-    public async ValueTask<{Action}{Entity}Response> Handle(
-        {Action}{Entity}Command command,
-        CancellationToken ct)
-    {
-        // Implementation
-    }
-}
-
-// {Action}{Entity}Validator.cs
-public sealed class {Action}{Entity}Validator : AbstractValidator<{Action}{Entity}Command>
-{
-    public {Action}{Entity}Validator()
-    {
-        // Validation rules
-    }
-}
-
-// {Action}{Entity}Endpoint.cs
-public static class {Action}{Entity}Endpoint
-{
-    public static RouteHandlerBuilder Map(this IEndpointRouteBuilder endpoints) =>
-        endpoints.Map{HttpMethod}("/", async (
-            {Action}{Entity}Command command,
-            IMediator mediator,
-            CancellationToken ct) => TypedResults.{Result}(await mediator.Send(command, ct)))
-        .WithName(nameof({Action}{Entity}Command))
-        .WithSummary("{Summary}")
-        .RequirePermission({Module}Permissions.{Entities}.{Action});
-}
-```
-
-## Checklist Before Completion
-
-- [ ] All files use `Mediator` interfaces (NOT MediatR)
-- [ ] Handler returns `ValueTask<T>`
-- [ ] Validator exists for commands
-- [ ] Endpoint has `.RequirePermission()` and `.WithName()` and `.WithSummary()`
-- [ ] DTOs in Contracts project
-- [ ] Shown where to wire endpoint in module
-
-## Verification
-
-After generation, run:
+## Verify
 ```bash
-dotnet build src/FSH.Starter.slnx
+dotnet build src/FSH.Starter.slnx && dotnet test src/Tests/{X}.Tests
+# if a UI surface: cd clients/{app} && npm run lint && npm run test:e2e
 ```
+Then run the **`code-reviewer`** and **`architecture-guard`** workflows before commit.
 
-Must show 0 warnings.
+## Guardrails (the skills enforce these; confirm them)
+- CQRS types live in the **Contracts** project; handlers are `public sealed`, return `ValueTask<T>`, `.ConfigureAwait(false)`.
+- Every command + paginated query has a `{Name}Validator` (Architecture.Tests fails otherwise).
+- Endpoints gated with `.RequirePermission(...)`; structured logging only; `CancellationToken` propagated.

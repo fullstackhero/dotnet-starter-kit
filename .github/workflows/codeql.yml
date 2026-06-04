@@ -1,7 +1,7 @@
 name: CodeQL Analysis
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'src/**'
   schedule:
@@ -21,7 +21,6 @@ jobs:
           languages: csharp
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
-          dotnet-quality: 'preview'
+          global-json-file: global.json
       - run: dotnet build src/FSH.Starter.slnx -c Release
       - uses: github/codeql-action/analyze@v3

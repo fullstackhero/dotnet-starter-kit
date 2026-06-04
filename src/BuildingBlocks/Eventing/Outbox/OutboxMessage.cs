@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -5,8 +6,13 @@ namespace FSH.Framework.Eventing.Outbox;
 
 /// <summary>
 /// Outbox message entity used to persist integration events alongside domain changes.
+///
+/// Implements <see cref="IGlobalEntity"/> to opt out of automatic tenant
+/// filtering: outbox processors run in background scopes without a tenant
+/// context and must scan rows across tenants. Per-row tenant association
+/// is kept in the explicit nullable <see cref="TenantId"/> column.
 /// </summary>
-public class OutboxMessage
+public class OutboxMessage : IGlobalEntity
 {
     public Guid Id { get; set; }
 
@@ -29,7 +35,7 @@ public class OutboxMessage
     public bool IsDead { get; set; }
 }
 
-public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
+public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
 {
     private readonly string _schema;
 

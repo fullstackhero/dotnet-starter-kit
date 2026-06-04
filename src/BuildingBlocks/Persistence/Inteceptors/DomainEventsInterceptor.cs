@@ -25,21 +25,6 @@ public sealed class DomainEventsInterceptor : SaveChangesInterceptor
     }
 
     /// <summary>
-    /// Called before changes are saved to the database.
-    /// </summary>
-    /// <param name="eventData">Contextual information about the DbContext being saved.</param>
-    /// <param name="result">The result to be returned from SaveChanges.</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
-        DbContextEventData eventData,
-        InterceptionResult<int> result,
-        CancellationToken cancellationToken = default)
-    {
-        return await base.SavingChangesAsync(eventData, result, cancellationToken);
-    }
-
-    /// <summary>
     /// Called after changes have been saved to the database. Publishes all domain events from tracked entities.
     /// </summary>
     /// <param name="eventData">Contextual information about the completed save operation.</param>
@@ -55,7 +40,7 @@ public sealed class DomainEventsInterceptor : SaveChangesInterceptor
         ArgumentNullException.ThrowIfNull(eventData);
         var context = eventData.Context;
         if (context == null)
-            return await base.SavedChangesAsync(eventData, result, cancellationToken);
+            return await base.SavedChangesAsync(eventData, result, cancellationToken).ConfigureAwait(false);
 
         var domainEvents = context.ChangeTracker
             .Entries<IHasDomainEvents>()
@@ -68,7 +53,7 @@ public sealed class DomainEventsInterceptor : SaveChangesInterceptor
             .ToArray();
 
         if (domainEvents.Length == 0)
-            return await base.SavedChangesAsync(eventData, result, cancellationToken);
+            return await base.SavedChangesAsync(eventData, result, cancellationToken).ConfigureAwait(false);
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
@@ -90,6 +75,6 @@ public sealed class DomainEventsInterceptor : SaveChangesInterceptor
             }
         }
 
-        return await base.SavedChangesAsync(eventData, result, cancellationToken);
+        return await base.SavedChangesAsync(eventData, result, cancellationToken).ConfigureAwait(false);
     }
 }

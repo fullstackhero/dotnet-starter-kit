@@ -1,176 +1,112 @@
 ---
 name: query-patterns
-description: Query patterns including pagination, search, filtering, and specifications for FSH. Use when implementing GET endpoints that return lists or need filtering.
+description: Implement read queries — paginated lists, search/filter/sort, and single-entity fetches — the FSH way (DbContext LINQ + PagedResponse). Use when adding GET endpoints. See also add-feature.
 ---
 
 # Query Patterns
 
-Reference for implementing queries with pagination, search, and filtering.
+The dominant pattern is **raw `IQueryable` on the module DbContext** (`AsNoTracking`) with manual
+pagination. There is **no generic repository** and **no `PaginatedListAsync`/`EntitiesByPaginationFilterSpec`/
+`PaginationFilter`**. Paged results are `PagedResponse<T>` (`FSH.Framework.Shared.Persistence`) — there is no `PagedList<T>`.
 
-## Basic Paginated Query
+## Paginated search query
 
 ```csharp
-// Query
-public sealed record Get{Entities}Query(
-    string? Search,
+// Contracts/v1/{Area}/
+public sealed record Search{Entities}Query(
+    string? Search = null,
+    bool? IsActive = null,
     int PageNumber = 1,
-    int PageSize = 10) : IQuery<PagedList<{Entity}Dto>>;
+    int PageSize = 20,
+    string? SortBy = null,
+    string? SortDir = null) : IQuery<PagedResponse<{Entity}Dto>>;
+```
 
-// Handler
-public sealed class Get{Entities}Handler(
-    IReadRepository<{Entity}> repository) : IQueryHandler<Get{Entities}Query, PagedList<{Entity}Dto>>
+```csharp
+// Features/v1/{Area}/Search{Entities}/
+public sealed class Search{Entities}QueryHandler({X}DbContext dbContext)
+    : IQueryHandler<Search{Entities}Query, PagedResponse<{Entity}Dto>>
 {
-    public async ValueTask<PagedList<{Entity}Dto>> Handle(
-        Get{Entities}Query query,
-        CancellationToken ct)
+    public async ValueTask<PagedResponse<{Entity}Dto>> Handle(
+        Search{Entities}Query query, CancellationToken cancellationToken)
     {
-        var spec = new {Entity}SearchSpec(query.Search, query.PageNumber, query.PageSize);
-        return await repository.PaginatedListAsync(spec, ct);
+        ArgumentNullException.ThrowIfNull(query);
+        int page = query.PageNumber < 1 ? 1 : query.PageNumber;
+        int size = Math.Clamp(query.PageSize, 1, 100);
+
+        var q = dbContext.{Entities}.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(query.Search))
+            q = q.Where(x => EF.Functions.ILike(x.Name, $"%{query.Search}%"));
+        if (query.IsActive is { } active)
+            q = q.Where(x => x.IsActive == active);
+
+        q = ApplySort(q, query.SortBy, query.SortDir);
+
+        long total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
+        var items = await q.Skip((page - 1) * size).Take(size)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        return new PagedResponse<{Entity}Dto>
+        {
+            Items = items.Select(x => x.ToDto()).ToList(),
+            PageNumber = page, PageSize = size,
+            TotalCount = total,
+            TotalPages = (int)Math.Ceiling(total / (double)size)
+        };
+    }
+
+    private static IQueryable<{Entity}> ApplySort(IQueryable<{Entity}> q, string? by, string? dir)
+    {
+        bool desc = string.Equals(dir, "desc", StringComparison.OrdinalIgnoreCase);
+        return by?.ToLowerInvariant() switch
+        {
+            "name" => desc ? q.OrderByDescending(x => x.Name) : q.OrderBy(x => x.Name),
+            _      => q.OrderByDescending(x => x.CreatedOnUtc)
+        };
     }
 }
 ```
 
-## Specification Pattern
+Tenant + soft-delete filters apply automatically — don't re-filter them. Project to a DTO (`.ToDto()` mapper); never return entities.
+
+## Single-entity query
 
 ```csharp
-public sealed class {Entity}SearchSpec : EntitiesByPaginationFilterSpec<{Entity}, {Entity}Dto>
-{
-    public {Entity}SearchSpec(string? search, int pageNumber, int pageSize)
-        : base(new PaginationFilter(pageNumber, pageSize))
-    {
-        Query
-            .OrderByDescending(x => x.CreatedAt)
-            .Where(x => string.IsNullOrEmpty(search) ||
-                        x.Name.Contains(search) ||
-                        x.Description!.Contains(search));
-    }
-}
-```
-
-## Get Single Entity
-
-```csharp
-// Query
 public sealed record Get{Entity}Query(Guid Id) : IQuery<{Entity}Dto>;
 
-// Handler
-public sealed class Get{Entity}Handler(
-    IReadRepository<{Entity}> repository) : IQueryHandler<Get{Entity}Query, {Entity}Dto>
+public sealed class Get{Entity}QueryHandler({X}DbContext dbContext)
+    : IQueryHandler<Get{Entity}Query, {Entity}Dto>
 {
-    public async ValueTask<{Entity}Dto> Handle(Get{Entity}Query query, CancellationToken ct)
+    public async ValueTask<{Entity}Dto> Handle(Get{Entity}Query query, CancellationToken cancellationToken)
     {
-        var spec = new {Entity}ByIdSpec(query.Id);
-        var entity = await repository.FirstOrDefaultAsync(spec, ct);
-
-        return entity ?? throw new NotFoundException($"{Entity} {query.Id} not found");
-    }
-}
-
-// Specification
-public sealed class {Entity}ByIdSpec : Specification<{Entity}, {Entity}Dto>, ISingleResultSpecification<{Entity}>
-{
-    public {Entity}ByIdSpec(Guid id)
-    {
-        Query.Where(x => x.Id == id);
+        ArgumentNullException.ThrowIfNull(query);
+        var entity = await dbContext.{Entities}.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == query.Id, cancellationToken).ConfigureAwait(false)
+            ?? throw new NotFoundException($"{Entity} {query.Id} not found");
+        return entity.ToDto();
     }
 }
 ```
 
-## Advanced Filtering
+## Endpoints
 
 ```csharp
-public sealed record Get{Entities}Query(
-    string? Search,
-    Guid? CategoryId,
-    decimal? MinPrice,
-    decimal? MaxPrice,
-    DateTimeOffset? CreatedAfter,
-    bool? IsActive,
-    string? SortBy,
-    bool SortDescending = false,
-    int PageNumber = 1,
-    int PageSize = 10) : IQuery<PagedList<{Entity}Dto>>;
+// list — bind the query with [AsParameters]
+endpoints.MapGet("/{entities}", async ([AsParameters] Search{Entities}Query query,
+        IMediator mediator, CancellationToken ct) => Results.Ok(await mediator.Send(query, ct)))
+    .WithName("Search{Entities}").RequirePermission({X}Permissions.{Entities}.View);
 
-public sealed class {Entity}FilterSpec : EntitiesByPaginationFilterSpec<{Entity}, {Entity}Dto>
-{
-    public {Entity}FilterSpec(Get{Entities}Query query)
-        : base(new PaginationFilter(query.PageNumber, query.PageSize))
-    {
-        Query
-            .Where(x => string.IsNullOrEmpty(query.Search) || x.Name.Contains(query.Search))
-            .Where(x => !query.CategoryId.HasValue || x.CategoryId == query.CategoryId)
-            .Where(x => !query.MinPrice.HasValue || x.Price >= query.MinPrice)
-            .Where(x => !query.MaxPrice.HasValue || x.Price <= query.MaxPrice)
-            .Where(x => !query.IsActive.HasValue || x.IsActive == query.IsActive);
-
-        ApplySorting(query.SortBy, query.SortDescending);
-    }
-
-    private void ApplySorting(string? sortBy, bool descending)
-    {
-        switch (sortBy?.ToLowerInvariant())
-        {
-            case "name":
-                if (descending) Query.OrderByDescending(x => x.Name);
-                else Query.OrderBy(x => x.Name);
-                break;
-            case "price":
-                if (descending) Query.OrderByDescending(x => x.Price);
-                else Query.OrderBy(x => x.Price);
-                break;
-            default:
-                Query.OrderByDescending(x => x.CreatedAt);
-                break;
-        }
-    }
-}
+// single
+endpoints.MapGet("/{entities}/{id:guid}", async (Guid id,
+        IMediator mediator, CancellationToken ct) => Results.Ok(await mediator.Send(new Get{Entity}Query(id), ct)))
+    .WithName("Get{Entity}").RequirePermission({X}Permissions.{Entities}.View);
 ```
 
-## Endpoint Patterns
+A paginated query **needs a validator** (`Search{Entities}QueryValidator`: `PageNumber >= 1`, `PageSize` in `[1,100]`) — enforced by `Architecture.Tests`.
 
-### List Endpoint
-```csharp
-public static RouteHandlerBuilder MapGet{Entities}Endpoint(this IEndpointRouteBuilder endpoints) =>
-    endpoints.MapGet("/", async (
-        [AsParameters] Get{Entities}Query query,
-        IMediator mediator,
-        CancellationToken ct) => TypedResults.Ok(await mediator.Send(query, ct)))
-    .WithName(nameof(Get{Entities}Query))
-    .WithSummary("Get paginated list of {entities}")
-    .RequirePermission({Module}Permissions.{Entities}.View);
-```
+## When to use a Specification instead
 
-### Single Entity Endpoint
-```csharp
-public static RouteHandlerBuilder MapGet{Entity}Endpoint(this IEndpointRouteBuilder endpoints) =>
-    endpoints.MapGet("/{id:guid}", async (
-        Guid id,
-        IMediator mediator,
-        CancellationToken ct) => TypedResults.Ok(await mediator.Send(new Get{Entity}Query(id), ct)))
-    .WithName(nameof(Get{Entity}Query))
-    .WithSummary("Get {entity} by ID")
-    .RequirePermission({Module}Permissions.{Entities}.View);
-```
-
-## Response Types
-
-```csharp
-// In Contracts project
-public sealed record {Entity}Dto(
-    Guid Id,
-    string Name,
-    decimal Price,
-    string? Description,
-    DateTimeOffset CreatedAt);
-
-// PagedList<T> is from BuildingBlocks
-// Returns: Items, PageNumber, PageSize, TotalCount, TotalPages
-```
-
-## Key Points
-
-1. **Use specifications** - Don't write raw LINQ in handlers
-2. **Tenant filtering is automatic** - Framework handles `IHasTenant`
-3. **Soft delete filtering is automatic** - DeletedAt != null filtered out
-4. **Use `[AsParameters]`** - For query parameters in endpoints
-5. **Project to DTOs** - Never return entities directly
+`Specification<T>` (`src/BuildingBlocks/Persistence/Specifications/`) is for **composing reusable query
+shapes** (`protected Where(...)`/`Include(...)`/`OrderBy(...)` in a derived spec's ctor; `AsNoTracking`
+defaults true; specs never paginate). Reach for it when the same filter/include set is shared across
+handlers; otherwise inline LINQ is the norm here.

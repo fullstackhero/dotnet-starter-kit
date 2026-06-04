@@ -1,8 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Multitenancy</RootNamespace>
 		<AssemblyName>FSH.Modules.Multitenancy</AssemblyName>
-		<PackageId>FullStackHero.Modules.Multitenancy</PackageId>
 		<NoWarn>$(NoWarn);CA1031;CA1056;CA1008;CA1716;CA1812;S1135;S2139;S6667;S3267;S1172</NoWarn>
 	</PropertyGroup>
   <ItemGroup>
@@ -14,11 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Eventing.Abstractions\Eventing.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Storage\Storage.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
     <ProjectReference Include="..\Modules.Multitenancy.Contracts\Modules.Multitenancy.Contracts.csproj" />
+    <ProjectReference Include="..\..\Billing\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

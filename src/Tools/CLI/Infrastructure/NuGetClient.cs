@@ -59,36 +59,43 @@ internal static class NuGetClient
     }
 
     /// <summary>
-    /// Gets the installed version of the FSH dotnet new template, or null.
+    /// Gets the installed version of the FSH dotnet new template, or null if it is not
+    /// installed. Returns "local" when installed from a folder (no package version).
     /// </summary>
     internal static async Task<string?> GetInstalledTemplateVersionAsync(
         CancellationToken cancellationToken = default)
     {
-        // dotnet new list outputs a table. We use --columns to get a parseable format.
+        // `dotnet new list` has no version column, so we read `dotnet new uninstall`
+        // (no args), which lists installed template packages with their versions:
+        //    FullStackHero.NET.StarterKit
+        //       Version: 10.0.0
         (bool ok, string output) = await ProcessRunner.CaptureAsync(
-            "dotnet", $"new list {FshConstants.TemplateShortName}",
-            cancellationToken).ConfigureAwait(false);
+            "dotnet", "new uninstall", cancellationToken).ConfigureAwait(false);
 
         if (!ok) return null;
 
-        foreach (string line in output.Split('\n'))
+        string[] lines = output.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
         {
-            if (!line.Contains(FshConstants.TemplateShortName, StringComparison.OrdinalIgnoreCase)
-                || !line.Contains("FullStackHero", StringComparison.OrdinalIgnoreCase))
+            // Match the package-block header: the package id on its own (indented) line.
+            if (!string.Equals(lines[i].Trim(), FshConstants.TemplatePackageId, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            // Version appears as a column in the dotnet new list table output.
-            // Columns are separated by 2+ spaces. Find the segment that looks like a version.
-            string[] segments = line.Split("  ", StringSplitOptions.RemoveEmptyEntries);
-            foreach (string segment in segments)
+            // The next indented line is "Version: x.y.z" for NuGet-installed packages.
+            for (int j = i + 1; j < Math.Min(i + 3, lines.Length); j++)
             {
-                string trimmed = segment.Trim();
-                if (trimmed.Length > 0 && char.IsDigit(trimmed[0]) && trimmed.Contains('.', StringComparison.Ordinal))
-                {
-                    return trimmed;
-                }
+                int idx = lines[j].IndexOf("Version:", StringComparison.OrdinalIgnoreCase);
+                if (idx >= 0)
+                    return lines[j][(idx + "Version:".Length)..].Trim();
             }
+
+            return "local"; // installed, but no package version reported
         }
+
+        // A folder install lists a path rather than the package id — detect via the template entry.
+        if (output.Contains("FullStackHero", StringComparison.OrdinalIgnoreCase)
+            && output.Contains($"({FshConstants.TemplateShortName})", StringComparison.OrdinalIgnoreCase))
+            return "local";
 
         return null;
     }

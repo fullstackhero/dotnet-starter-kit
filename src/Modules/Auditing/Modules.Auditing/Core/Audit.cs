@@ -11,7 +11,11 @@ public static class Audit
 {
     public static IAuditPublisher Publisher { get; private set; } = new NoopPublisher();
     public static IAuditSerializer Serializer { get; private set; } = new SystemTextJsonAuditSerializer();
-    private static readonly List<IAuditEnricher> _enrichers = new();
+
+    // Immutable snapshot swapped atomically by Configure(). Readers (WriteAsync) take a single
+    // volatile read of the reference and enumerate that — never the live, mutating collection —
+    // so reconfiguration can never throw "Collection was modified" mid-enrich.
+    private static volatile IAuditEnricher[] _enrichers = [];
 
     public static void Configure(
         IAuditPublisher publisher,
@@ -20,8 +24,7 @@ public static class Audit
     {
         Publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
         if (serializer is not null) Serializer = serializer;
-        _enrichers.Clear();
-        if (enrichers is not null) _enrichers.AddRange(enrichers);
+        _enrichers = enrichers is not null ? [.. enrichers] : [];
     }
 
     // --- Factory methods -------------------------------------------------------
@@ -187,8 +190,9 @@ public static class Audit
                 payload: _payload
             );
 
-            // Enrich prior to publish
-            foreach (var enricher in _enrichers)
+            // Enrich prior to publish — single volatile read, then iterate the immutable snapshot.
+            var enrichers = _enrichers;
+            foreach (var enricher in enrichers)
                 enricher.Enrich(env);
 
             await Publisher.PublishAsync(env, ct);

@@ -12,21 +12,22 @@ import {
 import {
   AlertOctagon,
   AlertTriangle,
-  ArrowLeft,
+  CalendarDays,
   CheckCircle2,
-  ChevronRight,
-  CircleDot,
   Clock,
+  Info,
   MessageCircle,
   RefreshCw,
   RotateCcw,
   Send,
   Sparkles,
   Ticket as TicketIcon,
+  User,
   UserCheck,
   UserX,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/auth/use-auth";
 import {
   addTicketComment,
   assignTicket,
@@ -36,9 +37,14 @@ import {
   resolveTicket,
   TICKET_PRIORITIES,
   type TicketDto,
-  type TicketPriority,
-  type TicketStatus,
 } from "@/api/tickets";
+import {
+  PRIORITY_LABEL,
+  PRIORITY_TONE,
+  STATUS_LABEL,
+  STATUS_TONE,
+} from "@/lib/ticket-enums";
+import { UserPicker } from "@/components/identity/user-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,14 +56,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorBand, Field } from "@/components/list";
+import {
+  EntityDetailAvatar,
+  EntityDetailBack,
+  EntityDetailHero,
+  EntityDetailMeta,
+  EntityDetailSection,
+  EntityDetailStat,
+  EntityStatusBadge,
+  ErrorBand,
+  Field,
+} from "@/components/list";
 import { cn } from "@/lib/cn";
+import { useUserDisplay } from "@/lib/use-user-display";
 import {
   describe,
   formatDate,
-  formatDateMono,
   formatRelative,
 } from "@/lib/list-helpers";
 
@@ -66,44 +81,6 @@ type DialogState =
   | { mode: "resolve" }
   | { mode: "assign" };
 
-// ─── Tone tables (mirror tickets.tsx) ─────────────────────────────────
-
-type Tone = "open" | "progress" | "resolved" | "closed";
-
-const STATUS_TONE: Record<TicketStatus, Tone> = {
-  Open: "open",
-  InProgress: "progress",
-  Resolved: "resolved",
-  Closed: "closed",
-};
-
-const STATUS_COLOR: Record<Tone, string> = {
-  open: "var(--color-primary)",
-  progress: "oklch(0.700 0.155 195)",
-  resolved: "var(--color-success)",
-  closed: "var(--color-muted-foreground)",
-};
-
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  Open: "Open",
-  InProgress: "In progress",
-  Resolved: "Resolved",
-  Closed: "Closed",
-};
-
-const STATUS_ICON: Record<TicketStatus, React.ComponentType<{ className?: string }>> = {
-  Open: CircleDot,
-  InProgress: Clock,
-  Resolved: CheckCircle2,
-  Closed: CheckCircle2,
-};
-
-const PRIORITY_LABEL: Record<TicketPriority, string> = {
-  Low: "Low",
-  Medium: "Medium",
-  High: "High",
-  Critical: "Critical",
-};
 
 // ───────────────────────────────────────────────────────────────────────
 //  Page
@@ -130,11 +107,8 @@ export function TicketDetailPage() {
   const ticket = ticketQuery.data;
 
   return (
-    <div className="space-y-6 pb-12">
-      <Breadcrumb
-        ticketNumber={ticket?.number}
-        onBack={() => navigate("/tickets")}
-      />
+    <div className="space-y-5 pb-12">
+      <EntityDetailBack to="/tickets" label="Back to tickets" />
 
       {ticketQuery.isError && <ErrorBand message={describe(ticketQuery.error)} />}
 
@@ -144,6 +118,7 @@ export function TicketDetailPage() {
         <>
           <Hero
             ticket={ticket}
+            commentCount={commentsQuery.data?.length ?? ticket.commentCount ?? 0}
             isFetching={ticketQuery.isFetching}
             onRefresh={() => void ticketQuery.refetch()}
             onResolve={() => setDialog({ mode: "resolve" })}
@@ -163,8 +138,8 @@ export function TicketDetailPage() {
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
             <div className="space-y-5">
-              <DescriptionPanel ticket={ticket} />
-              <CommentsPanel
+              <DescriptionSection ticket={ticket} />
+              <CommentsSection
                 ticketId={ticket.id}
                 comments={commentsQuery.data ?? []}
                 isLoading={commentsQuery.isLoading}
@@ -175,7 +150,7 @@ export function TicketDetailPage() {
                 disabled={ticket.status === "Closed"}
               />
             </div>
-            <MetadataPanel ticket={ticket} />
+            <PropertiesSection ticket={ticket} />
           </div>
 
           <ResolveDialog
@@ -190,62 +165,19 @@ export function TicketDetailPage() {
           />
         </>
       ) : (
-        <NotFoundPanel />
+        <NotFoundPanel onBack={() => navigate("/tickets")} />
       )}
     </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Breadcrumb
-// ───────────────────────────────────────────────────────────────────────
-
-function Breadcrumb({
-  ticketNumber,
-  onBack,
-}: {
-  ticketNumber: string | undefined;
-  onBack: () => void;
-}) {
-  return (
-    <div className="fsh-enter fsh-enter-1 flex items-center justify-between gap-3">
-      <nav
-        aria-label="Breadcrumb"
-        className="flex flex-wrap items-center gap-1.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]"
-      >
-        <Link
-          to="/tickets"
-          className="rounded px-1.5 py-0.5 transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
-        >
-          Helpdesk
-        </Link>
-        <ChevronRight className="h-3 w-3 opacity-60" />
-        <Link
-          to="/tickets"
-          className="rounded px-1.5 py-0.5 transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
-        >
-          Tickets
-        </Link>
-        <ChevronRight className="h-3 w-3 opacity-60" />
-        <span className="rounded px-1.5 py-0.5 text-[var(--color-foreground)]">
-          {ticketNumber ?? "…"}
-        </span>
-      </nav>
-
-      <Button variant="outline" size="sm" onClick={onBack} className="gap-1.5">
-        <ArrowLeft className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Back to tickets</span>
-      </Button>
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-//  Hero — status timeline + identity + actions
+//  Hero — identity row + status/priority badges + stats + meta
 // ───────────────────────────────────────────────────────────────────────
 
 function Hero({
   ticket,
+  commentCount,
   isFetching,
   onRefresh,
   onResolve,
@@ -253,233 +185,150 @@ function Hero({
   onAssign,
 }: {
   ticket: TicketDto;
+  commentCount: number;
   isFetching: boolean;
   onRefresh: () => void;
   onResolve: () => void;
   onReopen: () => void;
   onAssign: () => void;
 }) {
-  const tone = STATUS_TONE[ticket.status];
-  const StatusIcon = STATUS_ICON[ticket.status];
   const canResolve = ticket.status !== "Resolved" && ticket.status !== "Closed";
   const canReopen = ticket.status === "Resolved" || ticket.status === "Closed";
 
-  return (
-    <section
-      className={cn(
-        "fsh-enter fsh-enter-2 card-shell relative overflow-hidden rounded-[20px]",
-        "bg-[var(--color-surface-3)]",
-      )}
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          backgroundImage: `
-            radial-gradient(70% 70% at 0% 0%, oklch(from ${STATUS_COLOR[tone]} l c h / 0.16), transparent 60%),
-            radial-gradient(50% 60% at 100% 0%, oklch(from var(--color-primary) l c h / 0.06), transparent 65%),
-            radial-gradient(80% 80% at 100% 100%, oklch(from ${STATUS_COLOR[tone]} l c h / 0.04), transparent 70%)
-          `,
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-        }}
-      />
+  const reporter = useUserDisplay(ticket.reporterUserId);
+  const assignee = useUserDisplay(ticket.assignedToUserId);
 
-      <div className="relative p-6 md:p-8 lg:p-10">
-        {/* Eyebrow + actions */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Helpdesk · Item
+  return (
+    <EntityDetailHero
+      avatar={<EntityDetailAvatar icon={TicketIcon} name={ticket.title} />}
+      title={ticket.title}
+      badges={
+        <>
+          <EntityStatusBadge tone={STATUS_TONE[ticket.status]}>
+            {STATUS_LABEL[ticket.status]}
+          </EntityStatusBadge>
+          <EntityStatusBadge tone={PRIORITY_TONE[ticket.priority]}>
+            {ticket.priority === "Critical" && (
+              <AlertOctagon className="mr-1 size-2.5" />
+            )}
+            {ticket.priority === "High" && (
+              <AlertTriangle className="mr-1 size-2.5" />
+            )}
+            {PRIORITY_LABEL[ticket.priority]}
+          </EntityStatusBadge>
+        </>
+      }
+      subtitle={
+        <>
+          <span className="font-mono tabular-nums">{ticket.number}</span>
+          <span className="mx-1.5 text-[var(--color-border)]">·</span>
+          opened {formatRelative(ticket.createdAtUtc)} by {reporter.name}
+        </>
+      }
+      actions={
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isFetching}
+            onClick={onRefresh}
+            className="gap-1.5"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={onAssign} className="gap-1.5">
+            {ticket.assignedToUserId ? (
+              <UserCheck className="h-3.5 w-3.5" />
+            ) : (
+              <UserX className="h-3.5 w-3.5" />
+            )}
+            <span className="hidden sm:inline">
+              {ticket.assignedToUserId ? "Reassign" : "Assign"}
             </span>
-            <span aria-hidden className="h-px w-6 bg-[var(--color-border-strong)]" />
-            <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[11px] font-medium tracking-tight text-[var(--color-foreground)]">
-              {ticket.number}
-            </code>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={isFetching}
-              onClick={onRefresh}
-              className="gap-1.5"
-            >
-              <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
-              <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          {canResolve && (
+            <Button onClick={onResolve} size="sm" className="gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Resolve
             </Button>
-            <Button variant="outline" size="sm" onClick={onAssign} className="gap-1.5">
-              {ticket.assignedToUserId ? (
-                <UserCheck className="h-3.5 w-3.5" />
-              ) : (
-                <UserX className="h-3.5 w-3.5" />
-              )}
-              <span className="hidden sm:inline">
-                {ticket.assignedToUserId ? "Reassign" : "Assign"}
-              </span>
+          )}
+          {canReopen && (
+            <Button onClick={onReopen} size="sm" variant="outline" className="gap-1.5">
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reopen
             </Button>
-            {canResolve && (
-              <Button
-                onClick={onResolve}
-                size="sm"
-                className="brand-glow gradient-sheen gap-1.5"
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Resolve
-              </Button>
-            )}
-            {canReopen && (
-              <Button onClick={onReopen} size="sm" variant="outline" className="gap-1.5">
-                <RotateCcw className="h-3.5 w-3.5" />
-                Reopen
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Title + priority */}
-        <div className="mb-7">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-display text-[32px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[40px]">
-              {ticket.title}
-            </h1>
-            <PriorityBadge priority={ticket.priority} />
-          </div>
-        </div>
-
-        {/* Status timeline — the centerpiece. Visualizes the lifecycle as
-            a horizontal track with dots, with the current status lit up. */}
-        <StatusTimeline status={ticket.status} icon={StatusIcon} />
-      </div>
-    </section>
-  );
-}
-
-function StatusTimeline({
-  status,
-  icon: ActiveIcon,
-}: {
-  status: TicketStatus;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  const order: TicketStatus[] = ["Open", "InProgress", "Resolved", "Closed"];
-  const activeIdx = order.indexOf(status);
-
-  return (
-    <div className="flex flex-wrap items-center gap-x-1 gap-y-3">
-      {order.map((s, i) => {
-        const tone = STATUS_TONE[s];
-        const isActive = i === activeIdx;
-        const isPast = i < activeIdx;
-        const Icon = isActive ? ActiveIcon : STATUS_ICON[s];
-
-        return (
-          <div key={s} className="flex items-center gap-1">
-            <span
-              aria-current={isActive ? "step" : undefined}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
-                "font-mono text-[10.5px] font-medium uppercase tracking-[0.16em]",
-                "transition-colors duration-[var(--duration-default)]",
-              )}
-              style={{
-                backgroundColor: isActive
-                  ? `oklch(from ${STATUS_COLOR[tone]} l c h / 0.16)`
-                  : "var(--color-muted)",
-                color: isActive
-                  ? STATUS_COLOR[tone]
-                  : isPast
-                    ? "var(--color-foreground)"
-                    : "var(--color-muted-foreground)",
-                boxShadow: isActive
-                  ? `inset 0 0 0 1px oklch(from ${STATUS_COLOR[tone]} l c h / 0.30)`
-                  : undefined,
-              }}
-            >
-              <Icon className="h-3 w-3" />
-              {STATUS_LABEL[s]}
+          )}
+        </>
+      }
+      stats={
+        <>
+          <EntityDetailStat
+            icon={MessageCircle}
+            tone="primary"
+            value={commentCount}
+            label={commentCount === 1 ? "comment" : "comments"}
+          />
+          {ticket.updatedAtUtc && (
+            <EntityDetailStat
+              icon={Clock}
+              tone="default"
+              value={formatRelative(ticket.updatedAtUtc)}
+              label="updated"
+            />
+          )}
+          {ticket.resolvedAtUtc && (
+            <EntityDetailStat
+              icon={CheckCircle2}
+              tone="success"
+              value={formatRelative(ticket.resolvedAtUtc)}
+              label="resolved"
+            />
+          )}
+        </>
+      }
+      meta={
+        <>
+          <EntityDetailMeta icon={User}>
+            Assignee:&nbsp;
+            <span className="font-medium text-[var(--color-foreground)]">
+              {ticket.assignedToUserId ? assignee.name : "Unassigned"}
             </span>
-            {i < order.length - 1 && (
-              <span
-                aria-hidden
-                className="h-px w-4 sm:w-6"
-                style={{
-                  backgroundColor: isPast || (isActive && i < activeIdx)
-                    ? "var(--color-border-strong)"
-                    : "var(--color-border)",
-                }}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function PriorityBadge({ priority }: { priority: TicketPriority }) {
-  const map: Record<TicketPriority, { color: string }> = {
-    Low: { color: "var(--color-muted-foreground)" },
-    Medium: { color: "oklch(0.700 0.155 195)" },
-    High: { color: "var(--color-warning)" },
-    Critical: { color: "var(--color-destructive)" },
-  };
-  const m = map[priority];
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-        "font-mono text-[10px] font-medium uppercase tracking-[0.16em]",
-      )}
-      style={{
-        backgroundColor: `oklch(from ${m.color} l c h / 0.10)`,
-        color: m.color,
-      }}
-    >
-      {priority === "Critical" && <AlertOctagon className="h-3 w-3" />}
-      {priority === "High" && <AlertTriangle className="h-3 w-3" />}
-      {PRIORITY_LABEL[priority]}
-    </span>
+          </EntityDetailMeta>
+          <EntityDetailMeta icon={UserCheck}>
+            Reporter:&nbsp;
+            <span className="font-medium text-[var(--color-foreground)]">
+              {reporter.name}
+            </span>
+          </EntityDetailMeta>
+          <EntityDetailMeta icon={CalendarDays}>
+            Created:&nbsp;
+            <span className="font-medium text-[var(--color-foreground)]">
+              {formatDate(ticket.createdAtUtc)}
+            </span>
+          </EntityDetailMeta>
+        </>
+      }
+    />
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Description panel
+//  Description section
 // ───────────────────────────────────────────────────────────────────────
 
-function DescriptionPanel({ ticket }: { ticket: TicketDto }) {
+function DescriptionSection({ ticket }: { ticket: TicketDto }) {
   return (
-    <section
-      className={cn(
-        "fsh-enter fsh-enter-3 card-shell rounded-2xl",
-        "bg-[var(--color-surface-3)] p-6 md:p-7",
+    <EntityDetailSection title="Description" icon={Info}>
+      {ticket.description ? (
+        <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--color-foreground)]/90">
+          {ticket.description}
+        </p>
+      ) : (
+        <p className="italic text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
+          No description on file. Comments below carry the conversation.
+        </p>
       )}
-    >
-      <div className="flex items-baseline gap-2.5">
-        <h2 className="text-display text-[15px] font-semibold tracking-[-0.01em]">
-          Description
-        </h2>
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-          original report
-        </span>
-      </div>
-      <div className="mt-3">
-        {ticket.description ? (
-          <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--color-foreground)]/90">
-            {ticket.description}
-          </p>
-        ) : (
-          <p className="italic text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-            No description on file. Comments below carry the conversation.
-          </p>
-        )}
-      </div>
 
       {ticket.resolutionNote && (
         <div
@@ -489,7 +338,7 @@ function DescriptionPanel({ ticket }: { ticket: TicketDto }) {
             "bg-[oklch(from_var(--color-success)_l_c_h_/_0.06)]",
           )}
         >
-          <div className="mb-1 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-success)]">
+          <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-success)]">
             <CheckCircle2 className="h-3 w-3" />
             Resolution
           </div>
@@ -498,15 +347,15 @@ function DescriptionPanel({ ticket }: { ticket: TicketDto }) {
           </p>
         </div>
       )}
-    </section>
+    </EntityDetailSection>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Comments thread
+//  Comments section
 // ───────────────────────────────────────────────────────────────────────
 
-function CommentsPanel({
+function CommentsSection({
   ticketId,
   comments,
   isLoading,
@@ -519,6 +368,7 @@ function CommentsPanel({
   onPosted: () => void;
   disabled: boolean;
 }) {
+  const { user } = useAuth();
   const [body, setBody] = useState("");
 
   const mutation = useMutation({
@@ -531,26 +381,14 @@ function CommentsPanel({
     onError: (e) => toast.error(describe(e)),
   });
 
-  return (
-    <section
-      className={cn(
-        "fsh-enter fsh-enter-4 card-shell rounded-2xl",
-        "bg-[var(--color-surface-3)] p-6 md:p-7",
-      )}
-    >
-      <div className="flex items-baseline justify-between gap-2.5">
-        <div className="flex items-baseline gap-2.5">
-          <h2 className="text-display text-[15px] font-semibold tracking-[-0.01em]">
-            Conversation
-          </h2>
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-            {comments.length === 0 ? "no comments yet" : `${comments.length} comment${comments.length === 1 ? "" : "s"}`}
-          </span>
-        </div>
-        <MessageCircle className="h-4 w-4 text-[var(--color-muted-foreground)]" aria-hidden />
-      </div>
+  const countLabel =
+    comments.length === 0
+      ? "No comments yet"
+      : `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`;
 
-      <div className="mt-5 space-y-4">
+  return (
+    <EntityDetailSection title="Conversation" icon={MessageCircle} description={countLabel}>
+      <div className="space-y-4">
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-12 w-full rounded-xl" />
@@ -561,9 +399,13 @@ function CommentsPanel({
             No comments yet. Add the first note below — visible to anyone with View access.
           </p>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-3">
             {comments.map((c) => (
-              <CommentItem key={c.id} comment={c} />
+              <CommentItem
+                key={c.id}
+                comment={c}
+                isSelf={!!user && c.authorUserId === user.id}
+              />
             ))}
           </ul>
         )}
@@ -577,9 +419,9 @@ function CommentsPanel({
           mutation.mutate();
         }}
         className={cn(
-          "mt-6 rounded-xl border bg-[var(--color-surface-2)]",
+          "mt-5 rounded-xl border bg-[var(--color-card)]",
           "border-[var(--color-border)] p-3",
-          "focus-within:border-[var(--color-input)]",
+          "transition-colors focus-within:border-[oklch(from_var(--color-primary)_l_c_h_/_0.4)]",
         )}
       >
         <textarea
@@ -600,108 +442,142 @@ function CommentsPanel({
           maxLength={8192}
         />
         <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
             {body.length} / 8192
           </span>
           <Button
             type="submit"
             size="sm"
             disabled={!body.trim() || disabled || mutation.isPending}
-            className="brand-glow gradient-sheen gap-1.5"
+            className="gap-1.5"
           >
             <Send className="h-3.5 w-3.5" />
             {mutation.isPending ? "Posting…" : "Post comment"}
           </Button>
         </div>
       </form>
-    </section>
+    </EntityDetailSection>
   );
 }
 
 function CommentItem({
   comment,
+  isSelf,
 }: {
   comment: { authorUserId: string; body: string; createdAtUtc: string };
+  isSelf: boolean;
 }) {
   const initial =
     comment.authorUserId.replace(/[^a-z0-9]/gi, "").charAt(0).toUpperCase() || "?";
+
   return (
-    <li className="flex gap-3">
+    <li className={cn("flex gap-3", isSelf && "flex-row-reverse")}>
       <span
         aria-hidden
         className={cn(
           "grid h-8 w-8 shrink-0 place-items-center rounded-full",
-          "bg-[var(--color-primary-soft)] text-[var(--color-primary)]",
-          "font-mono text-[11px] font-semibold ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.30)]",
+          "text-[11px] font-semibold",
+          isSelf
+            ? "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.16)] text-[var(--color-primary)]"
+            : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
         )}
       >
         {initial}
       </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <code
-            title={comment.authorUserId}
-            className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-foreground)]"
-          >
-            {comment.authorUserId.slice(0, 8)}…
-          </code>
-          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-            {formatRelative(comment.createdAtUtc)}
-          </span>
+      <div className={cn("min-w-0 flex-1", isSelf && "text-right")}>
+        <div
+          className={cn(
+            "inline-block max-w-full rounded-xl border px-3.5 py-2.5 text-left",
+            isSelf
+              ? "border-[oklch(from_var(--color-primary)_l_c_h_/_0.22)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.06)]"
+              : "border-[var(--color-border)] bg-[var(--color-card)]",
+          )}
+        >
+          <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span
+              title={comment.authorUserId}
+              className="text-[11.5px] font-semibold text-[var(--color-foreground)]"
+            >
+              {isSelf ? "You" : `${comment.authorUserId.slice(0, 8)}…`}
+            </span>
+            <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
+              {formatRelative(comment.createdAtUtc)}
+            </span>
+          </div>
+          <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--color-foreground)]/90">
+            {comment.body}
+          </p>
         </div>
-        <p className="mt-1 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--color-foreground)]/90">
-          {comment.body}
-        </p>
       </div>
     </li>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Metadata sidebar
+//  Properties sidebar
 // ───────────────────────────────────────────────────────────────────────
 
-function MetadataPanel({ ticket }: { ticket: TicketDto }) {
+function PropertiesSection({ ticket }: { ticket: TicketDto }) {
+  const reporter = useUserDisplay(ticket.reporterUserId);
+  const assignee = useUserDisplay(ticket.assignedToUserId);
   return (
-    <aside
-      className={cn(
-        "fsh-enter fsh-enter-3 card-shell rounded-2xl",
-        "bg-[var(--color-surface-3)] p-6",
-      )}
-    >
-      <div className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-        Audit
-      </div>
-      <dl className="mt-3 space-y-3 text-[13px]">
-        <Meta label="Reporter">
-          <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[11px]">
-            {ticket.reporterUserId.slice(0, 8)}…
-          </code>
-        </Meta>
-        <Meta label="Assignee">
+    <EntityDetailSection title="Properties" icon={Info}>
+      <dl className="space-y-3 text-[13px]">
+        <Prop label="Reporter">
+          <span
+            title={reporter.handle ?? ticket.reporterUserId}
+            className="font-medium text-[var(--color-foreground)]"
+          >
+            {reporter.name}
+          </span>
+        </Prop>
+        <Prop label="Assignee">
           {ticket.assignedToUserId ? (
-            <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--color-primary)]">
-              {ticket.assignedToUserId.slice(0, 8)}…
-            </code>
-          ) : (
-            <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-              unassigned
+            <span
+              title={assignee.handle ?? ticket.assignedToUserId}
+              className="font-medium text-[var(--color-primary)]"
+            >
+              {assignee.name}
             </span>
+          ) : (
+            <span className="text-[var(--color-muted-foreground)]">Unassigned</span>
           )}
-        </Meta>
-        <Meta label="Created" value={formatDateMono(ticket.createdAtUtc)} hint={formatRelative(ticket.createdAtUtc)} />
+        </Prop>
+        <Prop label="Status">
+          <EntityStatusBadge tone={STATUS_TONE[ticket.status]}>
+            {STATUS_LABEL[ticket.status]}
+          </EntityStatusBadge>
+        </Prop>
+        <Prop label="Priority">
+          <EntityStatusBadge tone={PRIORITY_TONE[ticket.priority]}>
+            {PRIORITY_LABEL[ticket.priority]}
+          </EntityStatusBadge>
+        </Prop>
+        <Prop
+          label="Created"
+          value={formatDate(ticket.createdAtUtc)}
+          hint={formatRelative(ticket.createdAtUtc)}
+        />
         {ticket.updatedAtUtc && (
-          <Meta label="Updated" value={formatDateMono(ticket.updatedAtUtc)} hint={formatRelative(ticket.updatedAtUtc)} />
+          <Prop
+            label="Updated"
+            value={formatDate(ticket.updatedAtUtc)}
+            hint={formatRelative(ticket.updatedAtUtc)}
+          />
         )}
         {ticket.resolvedAtUtc && (
-          <Meta label="Resolved" value={formatDate(ticket.resolvedAtUtc)} hint={formatRelative(ticket.resolvedAtUtc)} />
+          <Prop
+            label="Resolved"
+            value={formatDate(ticket.resolvedAtUtc)}
+            hint={formatRelative(ticket.resolvedAtUtc)}
+          />
         )}
       </dl>
-    </aside>
+    </EntityDetailSection>
   );
 }
 
-function Meta({
+function Prop({
   label,
   value,
   hint,
@@ -714,13 +590,17 @@ function Meta({
 }) {
   return (
     <div>
-      <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+      <dt className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
         {label}
       </dt>
       <dd className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        {children ?? <span className="font-mono tabular-nums">{value}</span>}
+        {children ?? (
+          <span className="font-medium text-[var(--color-foreground)] tabular-nums">
+            {value}
+          </span>
+        )}
         {hint && (
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          <span className="text-[11px] text-[var(--color-muted-foreground)]">
             {hint}
           </span>
         )}
@@ -763,18 +643,15 @@ function ResolveDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <div className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2">
             <span
               aria-hidden
               className="grid h-6 w-6 place-items-center rounded-md bg-[oklch(from_var(--color-success)_l_c_h_/_0.16)] text-[var(--color-success)]"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
             </span>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Mark resolved
-            </span>
-          </div>
-          <DialogTitle>{ticket.number} — {ticket.title}</DialogTitle>
+            {ticket.number} — {ticket.title}
+          </DialogTitle>
           <DialogDescription>
             Resolution notes are kept on the ticket and shown in the description panel.
             Leave blank if there's nothing to add.
@@ -795,7 +672,7 @@ function ResolveDialog({
                 placeholder="What changed? Root cause? Anything reviewers should know."
                 rows={4}
                 className={cn(
-                  "block w-full rounded-md border border-[var(--color-input)] bg-[var(--color-surface-2)]",
+                  "block w-full rounded-md border border-[var(--color-input)] bg-[var(--color-card)]",
                   "px-3 py-2 text-sm shadow-[var(--shadow-xs)] placeholder:text-[var(--color-muted-foreground)]",
                   "focus-visible:border-[var(--color-input)]",
                 )}
@@ -810,7 +687,7 @@ function ResolveDialog({
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="brand-glow gradient-sheen gap-1.5"
+              className="gap-1.5"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               {mutation.isPending ? "Resolving…" : "Mark resolved"}
@@ -866,18 +743,15 @@ function AssignDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <div className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2">
             <span
               aria-hidden
-              className="grid h-6 w-6 place-items-center rounded-md bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+              className="grid h-6 w-6 place-items-center rounded-md bg-[oklch(from_var(--color-primary)_l_c_h_/_0.16)] text-[var(--color-primary)]"
             >
               <UserCheck className="h-3.5 w-3.5" />
             </span>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              {ticket.assignedToUserId ? "Reassign" : "Assign"}
-            </span>
-          </div>
-          <DialogTitle>{ticket.number} — {ticket.title}</DialogTitle>
+            {ticket.number} — {ticket.title}
+          </DialogTitle>
           <DialogDescription>
             Paste a user ID. Picking up the ticket transitions it to{" "}
             <code className="font-mono">In progress</code>; clearing the assignee on an
@@ -886,23 +760,22 @@ function AssignDialog({
         </DialogHeader>
         <form onSubmit={onSubmit}>
           <DialogBody className="space-y-4">
-            <Field id="assignee" label="Assignee user ID" hint="Leave blank to unassign.">
-              <Input
-                id="assignee"
-                value={assignee}
-                onChange={(e) => {
-                  setAssignee(e.target.value);
+            <Field
+              id="assignee"
+              label="Assignee"
+              hint="Search by name or email. Clear the selection to unassign."
+            >
+              <UserPicker
+                value={assignee || null}
+                onChange={(userId) => {
+                  setAssignee(userId ?? "");
                   setTouched(true);
                 }}
-                placeholder="00000000-0000-0000-0000-000000000000"
-                spellCheck={false}
-                autoComplete="off"
-                className="font-mono text-[12.5px]"
               />
             </Field>
             {touched && assignee.trim() === "" && (
               <p className="text-[12px] text-[var(--color-muted-foreground)]">
-                Leaving the field blank will <span className="font-medium text-[var(--color-foreground)]">unassign</span> the ticket.
+                Clearing the assignee will <span className="font-medium text-[var(--color-foreground)]">unassign</span> the ticket.
               </p>
             )}
           </DialogBody>
@@ -913,7 +786,7 @@ function AssignDialog({
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="brand-glow gradient-sheen gap-1.5"
+              className="gap-1.5"
             >
               <Sparkles className="h-3.5 w-3.5" />
               {mutation.isPending ? "Saving…" : "Save assignment"}
@@ -932,29 +805,36 @@ function AssignDialog({
 function DetailSkeleton() {
   return (
     <>
-      <div className="card-shell rounded-[20px] bg-[var(--color-surface-3)] p-6 md:p-8 lg:p-10">
-        <div className="space-y-5">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-10 w-3/4" />
-          <Skeleton className="h-7 w-2/3" />
+      <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs">
+        <div className="h-1 w-full bg-[var(--color-muted)]" />
+        <div className="space-y-4 p-5 sm:px-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="size-11 rounded-xl sm:size-14 sm:rounded-2xl" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-5 w-2/3" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          </div>
+          <Skeleton className="h-7 w-40" />
         </div>
       </div>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
-          <Skeleton className="h-32 rounded-2xl" />
-          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-32 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
         </div>
-        <Skeleton className="h-64 rounded-2xl" />
+        <Skeleton className="h-64 rounded-xl" />
       </div>
     </>
   );
 }
 
-function NotFoundPanel() {
+function NotFoundPanel({ onBack }: { onBack: () => void }) {
   return (
     <div
       className={cn(
-        "card-shell rounded-2xl bg-[var(--color-surface-3)]",
+        "rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
+        "shadow-xs",
         "flex flex-col items-center gap-4 px-8 py-16 text-center",
       )}
     >
@@ -962,28 +842,27 @@ function NotFoundPanel() {
         aria-hidden
         className={cn(
           "grid h-14 w-14 place-items-center rounded-2xl",
-          "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.18),oklch(from_var(--color-primary)_l_c_h_/_0.02))]",
+          "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)]",
           "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]",
         )}
       >
         <TicketIcon className="h-6 w-6 text-[var(--color-primary)]" />
       </span>
-      <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-        Not found
-      </span>
-      <h3 className="text-display text-xl font-semibold tracking-[-0.02em]">
+      <h3 className="font-display text-xl font-semibold tracking-tight text-[var(--color-foreground)]">
         This ticket no longer exists.
       </h3>
       <p className="max-w-md text-sm leading-relaxed text-[var(--color-muted-foreground)]">
         It may have been deleted. Check the trash, or head back to the tickets desk.
       </p>
-      <Link to="/tickets">
-        <Button>Back to tickets</Button>
-      </Link>
+      <div className="flex items-center gap-2">
+        <Button onClick={onBack} variant="outline">Back to tickets</Button>
+        <Link to="/tickets">
+          <Button>Tickets desk</Button>
+        </Link>
+      </div>
     </div>
   );
 }
 
-// Reserved for future "ChevronRight"-style suffix in the breadcrumb on
-// narrower viewports — suppress unused-import warnings if added later.
+// Reserved for future filtering — suppress unused-import warnings.
 void TICKET_PRIORITIES;

@@ -26,8 +26,10 @@ public sealed class CatalogDbContext : BaseDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-        base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly);
+        // base.OnModelCreating runs LAST so BaseDbContext's auto-apply sees
+        // fully-configured entities (including HasMany child types like ProductImage).
+        base.OnModelCreating(modelBuilder);
     }
 }

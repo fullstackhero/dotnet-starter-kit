@@ -1,0 +1,127 @@
+name: Frontend CI
+
+# Frontend pipeline for the two React apps (clients/admin, clients/dashboard).
+# Only does real work when clients/** changed; a backend-only PR still triggers
+# the workflow but the heavy jobs skip and the always-running "Frontend CI" gate
+# reports green so required status checks resolve. Playwright suites are
+# route-mocked (no backend needed) — the configs boot a Vite dev server.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ github.event_name != 'pull_request' || steps.filter.outputs.frontend == 'true' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'clients/**'
+              - '.github/workflows/frontend.yml'
+
+  lint-build:
+    name: Lint & Build (${{ matrix.app }})
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [admin, dashboard]
+    defaults:
+      run:
+        working-directory: clients/${{ matrix.app }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: clients/${{ matrix.app }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `build` is `tsc -b && vite build` — this is the typecheck + bundle gate.
+      - name: Build
+        run: npm run build
+
+  e2e:
+    name: E2E (${{ matrix.app }})
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [admin, dashboard]
+    defaults:
+      run:
+        working-directory: clients/${{ matrix.app }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: clients/${{ matrix.app }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # The Playwright config starts the Vite dev server itself and mocks all
+      # API calls via page.route(), so no backend is required.
+      - name: Run Playwright tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.app }}
+          path: clients/${{ matrix.app }}/playwright-report
+          retention-days: 7
+
+  # Single required status check — see backend.yml for the rationale.
+  frontend-ci:
+    name: Frontend CI
+    needs: [changes, lint-build, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if a required frontend job failed
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: |
+          echo "::error::A required frontend job failed or was cancelled."
+          exit 1
+      - name: Success
+        run: echo "Frontend CI passed."

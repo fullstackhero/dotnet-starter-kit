@@ -12,16 +12,19 @@ import {
 import {
   AlertTriangle,
   ArrowDown,
-  ArrowLeft,
-  ChevronRight,
   CircleDollarSign,
-  EyeOff,
+  FileText,
+  Hash,
+  Image as ImageIcon,
+  Info,
+  Layers,
   Minus,
   Package,
   PackageX,
   Pencil,
   Plus,
   RefreshCw,
+  Tag,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -58,6 +61,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
   Combobox,
+  EntityDetailAvatar,
+  EntityDetailBack,
+  EntityDetailHero,
+  EntityDetailMeta,
+  EntityDetailSection,
+  EntityDetailStat,
+  EntityStatusBadge,
   ErrorBand,
   Field,
 } from "@/components/list";
@@ -111,54 +121,97 @@ export function ProductDetailPage() {
     staleTime: 60_000,
   });
 
+  const brand = brandQuery.data;
+  const category = categoryQuery.data;
+
   return (
-    <div className="space-y-6 pb-12">
-      <Breadcrumb
-        productName={product?.name}
-        onBack={() => navigate("/catalog/products")}
-      />
+    <div className="pb-12">
+      <EntityDetailBack to="/catalog/products" label="Back to products" />
 
       {productQuery.isError && (
-        <ErrorBand message={describe(productQuery.error)} />
+        <div className="mb-5">
+          <ErrorBand message={describe(productQuery.error)} />
+        </div>
       )}
 
       {productQuery.isLoading ? (
         <DetailSkeleton />
       ) : product ? (
         <>
-          <Hero
+          <ProductHero
             product={product}
-            brand={brandQuery.data}
-            category={categoryQuery.data}
+            brand={brand}
+            category={category}
             isFetching={productQuery.isFetching}
             onRefresh={() => void productQuery.refetch()}
             onEdit={() => setDialog({ mode: "edit" })}
             onDelete={() => setDialog({ mode: "delete" })}
-            onPriceChange={() => setDialog({ mode: "price" })}
-            onStockAdjust={() => setDialog({ mode: "stock" })}
           />
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-            <DescriptionPanel product={product} />
-            <MetadataPanel product={product} brand={brandQuery.data} category={categoryQuery.data} />
-          </div>
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
+            {/* Left: sidebar with at-a-glance numbers + audit */}
+            <aside className="space-y-5">
+              <EntityDetailSection title="Pricing" icon={CircleDollarSign}>
+                <PricingPanel
+                  product={product}
+                  onPriceChange={() => setDialog({ mode: "price" })}
+                />
+              </EntityDetailSection>
 
-          <section
-            aria-label="Product images"
-            className="fsh-enter fsh-enter-3 card-shell space-y-4 rounded-2xl bg-[var(--color-surface-2)] p-5"
-          >
-            <header className="flex items-baseline justify-between gap-3">
-              <h2 className="text-display text-lg font-semibold tracking-tight">Images</h2>
-              <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                Drop more to add · star to set cover
-              </span>
-            </header>
-            <ProductImageManager
-              productId={product.id}
-              images={product.images}
-              invalidateKey={["catalog", "products", productId]}
-            />
-          </section>
+              <EntityDetailSection title="Inventory" icon={Package}>
+                <InventoryPanel
+                  product={product}
+                  onStockAdjust={() => setDialog({ mode: "stock" })}
+                />
+              </EntityDetailSection>
+
+              <EntityDetailSection title="Identifiers" icon={Hash}>
+                <IdentifiersPanel
+                  product={product}
+                  brand={brand}
+                  category={category}
+                />
+              </EntityDetailSection>
+            </aside>
+
+            {/* Right: masonry-ish content area */}
+            <div className="space-y-5">
+              <EntityDetailSection
+                title="Description"
+                icon={FileText}
+                description="Customer-facing copy shown on the product page."
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDialog({ mode: "edit" })}
+                    className="gap-1.5"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Edit
+                  </Button>
+                }
+              >
+                <DescriptionBody product={product} />
+              </EntityDetailSection>
+
+              <EntityDetailSection
+                title="Images"
+                icon={ImageIcon}
+                description="Drop more to add. Star one to make it the cover."
+              >
+                <ProductImageManager
+                  productId={product.id}
+                  images={product.images}
+                  invalidateKey={["catalog", "products", productId]}
+                />
+              </EntityDetailSection>
+
+              <EntityDetailSection title="Audit" icon={Info}>
+                <AuditPanel product={product} />
+              </EntityDetailSection>
+            </div>
+          </div>
 
           <ProductEditorDialog
             open={dialog.mode === "edit"}
@@ -190,54 +243,10 @@ export function ProductDetailPage() {
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Breadcrumb
+//  Hero
 // ───────────────────────────────────────────────────────────────────────
 
-function Breadcrumb({
-  productName,
-  onBack,
-}: {
-  productName: string | undefined;
-  onBack: () => void;
-}) {
-  return (
-    <div className="fsh-enter fsh-enter-1 flex items-center justify-between gap-3">
-      <nav
-        aria-label="Breadcrumb"
-        className="flex flex-wrap items-center gap-1.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]"
-      >
-        <Link
-          to="/catalog/products"
-          className="rounded px-1.5 py-0.5 transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
-        >
-          Catalog
-        </Link>
-        <ChevronRight className="h-3 w-3 opacity-60" />
-        <Link
-          to="/catalog/products"
-          className="rounded px-1.5 py-0.5 transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
-        >
-          Products
-        </Link>
-        <ChevronRight className="h-3 w-3 opacity-60" />
-        <span className="rounded px-1.5 py-0.5 text-[var(--color-foreground)]">
-          {productName ?? "…"}
-        </span>
-      </nav>
-
-      <Button variant="outline" size="sm" onClick={onBack} className="gap-1.5">
-        <ArrowLeft className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Back to products</span>
-      </Button>
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-//  Hero — atmospheric showroom with image left, identity right
-// ───────────────────────────────────────────────────────────────────────
-
-function Hero({
+function ProductHero({
   product,
   brand,
   category,
@@ -245,8 +254,6 @@ function Hero({
   onRefresh,
   onEdit,
   onDelete,
-  onPriceChange,
-  onStockAdjust,
 }: {
   product: ProductDto;
   brand: BrandDto | undefined;
@@ -255,345 +262,234 @@ function Hero({
   onRefresh: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onPriceChange: () => void;
-  onStockAdjust: () => void;
 }) {
-  const stockTone =
+  const stockTone: "default" | "warning" | "danger" =
     product.stock === 0 ? "danger" : product.stock < LOW_STOCK ? "warning" : "default";
 
-  return (
-    <section
-      className={cn(
-        "fsh-enter fsh-enter-2 card-shell relative overflow-hidden rounded-[20px]",
-        "bg-[var(--color-surface-3)]",
-      )}
+  const subtitleParts: React.ReactNode[] = [
+    <code
+      key="sku"
+      className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[11px] tracking-tight text-[var(--color-foreground)]"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          backgroundImage: `
-            radial-gradient(60% 70% at 0% 0%, oklch(from var(--color-primary) l c h / 0.18), transparent 60%),
-            radial-gradient(50% 60% at 100% 0%, oklch(0.700 0.155 195 / 0.10), transparent 65%),
-            radial-gradient(80% 80% at 100% 100%, oklch(from var(--color-primary) l c h / 0.05), transparent 70%)
-          `,
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.06] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-        }}
-      />
+      {product.sku}
+    </code>,
+  ];
+  if (brand) subtitleParts.push(<span key="brand">{brand.name}</span>);
+  if (category) subtitleParts.push(<span key="cat">{category.name}</span>);
 
-      <div className="relative grid grid-cols-1 gap-6 p-6 md:grid-cols-[minmax(260px,360px)_1fr] md:p-8 lg:p-10">
-        {/* Showroom image */}
-        <div className="relative">
-          <ProductShowcase
-            imageUrl={product.thumbnailUrl}
-            initial={product.name.trim().charAt(0).toUpperCase() || "·"}
-          />
-          {!product.isActive && (
-            <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[oklch(from_var(--color-foreground)_l_c_h_/_0.85)] px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-background)]">
-              <EyeOff className="h-3 w-3" />
-              hidden
+  const subtitle = (
+    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+      {subtitleParts.map((node, i) => (
+        <span key={i} className="inline-flex items-center gap-x-2">
+          {i > 0 && (
+            <span aria-hidden className="text-[var(--color-border)]">
+              ·
             </span>
           )}
-        </div>
-
-        {/* Identity stack */}
-        <div className="flex min-w-0 flex-col gap-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-              <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                Catalog · Item
-              </span>
-              <span aria-hidden className="h-px w-6 bg-[var(--color-border-strong)]" />
-              <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[11px] font-medium tracking-tight text-[var(--color-foreground)]">
-                {product.sku}
-              </code>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isFetching}
-                onClick={onRefresh}
-                className="gap-1.5"
-              >
-                <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
-                <span className="hidden sm:inline">Refresh</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5">
-                <Pencil className="h-3.5 w-3.5" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onDelete}
-                className="gap-1.5 hover:!text-[var(--color-destructive)] hover:!border-[var(--color-destructive)]"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Delete</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Display name */}
-          <div>
-            <h1 className="text-display text-[36px] font-semibold leading-[1.05] tracking-[-0.025em] sm:text-[40px]">
-              {product.name}
-            </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[12.5px] text-[var(--color-muted-foreground)]">
-              {brand && (
-                <ChipLink
-                  label="Brand"
-                  to={`/catalog/products?brand=${brand.id}`}
-                  value={brand.name}
-                  swatchUrl={brand.logoUrl}
-                />
-              )}
-              {category && (
-                <ChipLink
-                  label="In"
-                  to={`/catalog/products?category=${category.id}`}
-                  value={category.name}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Price + stock — the two click-to-mutate anchors. */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={onPriceChange}
-              title="Change price"
-              className={cn(
-                "group/p card-shell card-shell-interactive relative flex h-full min-h-[112px] cursor-pointer flex-col justify-between rounded-xl bg-[var(--color-surface-2)] p-4 text-left",
-                "transition-colors duration-[var(--duration-fast)]",
-                "hover:bg-[var(--color-surface-4)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2",
-              )}
-            >
-              <div className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                Price
-              </div>
-              <div className="text-display mt-1.5 text-[28px] font-semibold leading-none tracking-[-0.02em] tabular-nums">
-                {formatMoney(product.price.amount, product.price.currency)}
-              </div>
-              <div className="mt-1.5 flex items-center gap-1 text-[11px] text-[var(--color-muted-foreground)]">
-                <CircleDollarSign className="h-3 w-3" />
-                <span className="opacity-70 transition-colors group-hover/p:text-[var(--color-primary)] group-hover/p:opacity-100">
-                  Click to change
-                </span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={onStockAdjust}
-              title="Adjust stock"
-              className={cn(
-                "group/s card-shell card-shell-interactive relative flex h-full min-h-[112px] cursor-pointer flex-col justify-between rounded-xl bg-[var(--color-surface-2)] p-4 text-left",
-                "transition-colors duration-[var(--duration-fast)]",
-                "hover:bg-[var(--color-surface-4)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2",
-              )}
-            >
-              <div className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                Stock
-              </div>
-              <div
-                className={cn(
-                  "text-display mt-1.5 text-[28px] font-semibold leading-none tracking-[-0.02em] tabular-nums",
-                  stockTone === "danger" && "text-[var(--color-destructive)]",
-                  stockTone === "warning" && "text-[var(--color-warning)]",
-                )}
-              >
-                {product.stock}
-              </div>
-              <div className="mt-1.5 flex items-center gap-1 text-[11px] text-[var(--color-muted-foreground)]">
-                {stockTone === "danger" ? (
-                  <>
-                    <AlertTriangle className="h-3 w-3 text-[var(--color-destructive)]" />
-                    <span className="text-[var(--color-destructive)]">
-                      Out of stock
-                    </span>
-                  </>
-                ) : stockTone === "warning" ? (
-                  <>
-                    <AlertTriangle className="h-3 w-3 text-[var(--color-warning)]" />
-                    <span className="text-[var(--color-warning)]">
-                      Below {LOW_STOCK} units
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Package className="h-3 w-3" />
-                    <span className="opacity-70 transition-colors group-hover/s:text-[var(--color-primary)] group-hover/s:opacity-100">
-                      Click to adjust
-                    </span>
-                  </>
-                )}
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
+          {node}
+        </span>
+      ))}
+    </span>
   );
-}
 
-function ProductShowcase({
-  imageUrl,
-  initial,
-}: {
-  imageUrl: string | null | undefined;
-  initial: string;
-}) {
-  if (imageUrl) {
-    return (
-      <div
-        className={cn(
-          "card-shell relative aspect-square overflow-hidden rounded-2xl",
-          "bg-[var(--color-surface-2)]",
-        )}
-      >
-        <img
-          src={imageUrl}
-          alt=""
-          loading="eager"
-          referrerPolicy="no-referrer"
-          className="h-full w-full object-cover"
-          onError={(e) => {
-            const target = e.currentTarget;
-            target.style.display = "none";
-            target.parentElement
-              ?.querySelector<HTMLElement>("[data-fallback]")
-              ?.style.removeProperty("display");
-          }}
+  return (
+    <EntityDetailHero
+      avatar={
+        <EntityDetailAvatar
+          src={product.thumbnailUrl}
+          name={product.name}
+          icon={Package}
         />
-        <div
-          data-fallback
-          style={{ display: "none" }}
-          className="absolute inset-0 grid place-items-center"
-        >
-          <FallbackArtwork initial={initial} />
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div
-      className={cn(
-        "surface-edge gradient-border relative aspect-square overflow-hidden rounded-2xl",
-        "grid place-items-center",
-        "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.16),oklch(from_var(--color-primary)_l_c_h_/_0.02))]",
-      )}
-    >
-      <FallbackArtwork initial={initial} />
-    </div>
+      }
+      title={product.name}
+      badges={
+        <>
+          {product.isActive ? (
+            <EntityStatusBadge tone="success">Active</EntityStatusBadge>
+          ) : (
+            <EntityStatusBadge tone="danger">Hidden</EntityStatusBadge>
+          )}
+        </>
+      }
+      subtitle={subtitle}
+      actions={
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isFetching}
+            onClick={onRefresh}
+            className="gap-1.5"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5">
+            <Pencil className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Edit</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDelete}
+            className="gap-1.5 hover:!border-[var(--color-destructive)] hover:!text-[var(--color-destructive)]"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Delete</span>
+          </Button>
+        </>
+      }
+      stats={
+        <>
+          <EntityDetailStat
+            icon={CircleDollarSign}
+            value={formatMoney(product.price.amount, product.price.currency)}
+            label="price"
+            tone="primary"
+          />
+          <EntityDetailStat
+            icon={Package}
+            value={product.stock}
+            label={
+              stockTone === "danger"
+                ? "out of stock"
+                : stockTone === "warning"
+                  ? `low (< ${LOW_STOCK})`
+                  : "in stock"
+            }
+            tone={stockTone}
+          />
+          <EntityDetailStat
+            icon={Layers}
+            value={product.images?.length ?? 0}
+            label="images"
+          />
+        </>
+      }
+      meta={
+        <>
+          {brand && (
+            <EntityDetailMeta icon={Tag}>
+              <Link
+                to={`/catalog/products?brand=${brand.id}`}
+                className="transition-colors hover:text-[var(--color-foreground)]"
+              >
+                {brand.name}
+              </Link>
+            </EntityDetailMeta>
+          )}
+          {category && (
+            <EntityDetailMeta icon={Layers}>
+              <Link
+                to={`/catalog/products?category=${category.id}`}
+                className="transition-colors hover:text-[var(--color-foreground)]"
+              >
+                {category.name}
+              </Link>
+            </EntityDetailMeta>
+          )}
+          <EntityDetailMeta icon={Info} hideOnMobile>
+            Created {formatRelative(product.createdAtUtc)}
+          </EntityDetailMeta>
+          {product.updatedAtUtc && (
+            <EntityDetailMeta icon={Info} hideOnTablet>
+              Updated {formatRelative(product.updatedAtUtc)}
+            </EntityDetailMeta>
+          )}
+        </>
+      }
+    />
   );
 }
 
-function FallbackArtwork({ initial }: { initial: string }) {
-  return (
-    <div className="relative">
-      {/* Soft diffused glow behind the glyph. */}
-      <span
-        aria-hidden
-        className="absolute -inset-10 rounded-full bg-[oklch(from_var(--color-primary)_l_c_h_/_0.18)] blur-3xl"
-      />
-      <Package
-        className="relative h-20 w-20 text-[var(--color-primary)] opacity-50"
-        aria-hidden
-      />
-      <span
-        aria-hidden
-        className="absolute inset-0 grid place-items-center text-display text-[64px] font-semibold leading-none tracking-[-0.04em] text-[var(--color-primary)]"
-      >
-        {initial}
-      </span>
-    </div>
-  );
-}
+// ───────────────────────────────────────────────────────────────────────
+//  Sidebar panels
+// ───────────────────────────────────────────────────────────────────────
 
-function ChipLink({
-  label,
-  to,
-  value,
-  swatchUrl,
+function PricingPanel({
+  product,
+  onPriceChange,
 }: {
-  label: string;
-  to: string;
-  value: string;
-  swatchUrl?: string | null;
+  product: ProductDto;
+  onPriceChange: () => void;
 }) {
   return (
-    <Link
-      to={to}
-      className={cn(
-        "group/chip inline-flex items-center gap-1.5 rounded-full bg-[var(--color-surface-2)] px-2.5 py-1",
-        "ring-1 ring-inset ring-[var(--color-border)]",
-        "transition-colors duration-[var(--duration-fast)]",
-        "hover:bg-[var(--color-surface-4)] hover:ring-[var(--color-border-strong)]",
-      )}
-    >
-      <span className="font-mono text-[9.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]/80">
-        {label}
-      </span>
-      {swatchUrl && (
-        <span className="grid h-4 w-4 place-items-center overflow-hidden rounded-sm bg-[var(--color-surface-1)] ring-1 ring-inset ring-[var(--color-border)]">
-          <img src={swatchUrl} alt="" className="h-full w-full object-contain p-0.5" />
-        </span>
-      )}
-      <span className="text-[12px] font-medium text-[var(--color-foreground)]">{value}</span>
-      <ChevronRight className="h-3 w-3 opacity-50 transition-transform duration-[var(--duration-fast)] group-hover/chip:translate-x-0.5 group-hover/chip:opacity-90" />
-    </Link>
+    <div className="space-y-3">
+      <div>
+        <div className="font-display text-[24px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-[var(--color-foreground)]">
+          {formatMoney(product.price.amount, product.price.currency)}
+        </div>
+        <div className="mt-1 text-[11.5px] text-[var(--color-muted-foreground)]">
+          Listed price · {product.price.currency}
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onPriceChange}
+        className="w-full gap-1.5"
+      >
+        <CircleDollarSign className="h-3.5 w-3.5" />
+        Change price
+      </Button>
+    </div>
   );
 }
 
-// ───────────────────────────────────────────────────────────────────────
-//  Description + metadata panels
-// ───────────────────────────────────────────────────────────────────────
-
-function DescriptionPanel({ product }: { product: ProductDto }) {
+function InventoryPanel({
+  product,
+  onStockAdjust,
+}: {
+  product: ProductDto;
+  onStockAdjust: () => void;
+}) {
+  const tone: "default" | "warning" | "danger" =
+    product.stock === 0 ? "danger" : product.stock < LOW_STOCK ? "warning" : "default";
   return (
-    <section
-      className={cn(
-        "fsh-enter fsh-enter-3 card-shell rounded-2xl",
-        "bg-[var(--color-surface-3)] p-6 md:p-7",
-      )}
-    >
-      <div className="flex items-baseline gap-2.5">
-        <h2 className="text-display text-[15px] font-semibold tracking-[-0.01em]">
-          Description
-        </h2>
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-          customer-facing
-        </span>
+    <div className="space-y-3">
+      <div>
+        <div
+          className={cn(
+            "font-display text-[24px] font-semibold leading-none tracking-[-0.02em] tabular-nums",
+            tone === "danger" && "text-[var(--color-destructive)]",
+            tone === "warning" && "text-[var(--color-warning)]",
+            tone === "default" && "text-[var(--color-foreground)]",
+          )}
+        >
+          {product.stock}
+        </div>
+        <div className="mt-1 flex items-center gap-1 text-[11.5px] text-[var(--color-muted-foreground)]">
+          {tone === "danger" ? (
+            <>
+              <AlertTriangle className="h-3 w-3 text-[var(--color-destructive)]" />
+              <span className="text-[var(--color-destructive)]">Out of stock</span>
+            </>
+          ) : tone === "warning" ? (
+            <>
+              <AlertTriangle className="h-3 w-3 text-[var(--color-warning)]" />
+              <span className="text-[var(--color-warning)]">
+                Below {LOW_STOCK} units
+              </span>
+            </>
+          ) : (
+            <span>Units on hand</span>
+          )}
+        </div>
       </div>
-      <div className="mt-3">
-        {product.description ? (
-          <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--color-foreground)]/90">
-            {product.description}
-          </p>
-        ) : (
-          <p className="italic text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-            No description on file. Customers will see a blank description on the
-            product page until you add one.
-          </p>
-        )}
-      </div>
-    </section>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onStockAdjust}
+        className="w-full gap-1.5"
+      >
+        <Package className="h-3.5 w-3.5" />
+        Adjust stock
+      </Button>
+    </div>
   );
 }
 
-function MetadataPanel({
+function IdentifiersPanel({
   product,
   brand,
   category,
@@ -603,37 +499,65 @@ function MetadataPanel({
   category: CategoryDto | undefined;
 }) {
   return (
-    <aside
-      className={cn(
-        "fsh-enter fsh-enter-3 card-shell rounded-2xl",
-        "bg-[var(--color-surface-3)] p-6",
-      )}
-    >
-      <div className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-        Audit
-      </div>
-      <dl className="mt-3 space-y-3 text-[13px]">
-        <Meta label="Created" value={formatDateMono(product.createdAtUtc)} hint={formatRelative(product.createdAtUtc)} />
-        {product.updatedAtUtc ? (
-          <Meta label="Revised" value={formatDateMono(product.updatedAtUtc)} hint={formatRelative(product.updatedAtUtc)} />
-        ) : (
-          <Meta label="Revised" value="Never" hint="no edits since creation" />
-        )}
-        <Meta
-          label="Status"
-          value={product.isActive ? "Active" : "Hidden"}
-          tone={product.isActive ? "success" : "muted"}
-        />
-        <Meta label="Slug" value={<code className="font-mono text-[11.5px] tracking-tight">{product.slug}</code>} />
-        <Meta label="Brand ID" value={<IdCode value={brand?.id ?? product.brandId} />} />
-        <Meta label="Category ID" value={<IdCode value={category?.id ?? product.categoryId} />} />
-        <Meta label="Product ID" value={<IdCode value={product.id} />} />
-      </dl>
-    </aside>
+    <dl className="space-y-3 text-[13px]">
+      <MetaRow label="SKU" value={<IdCode value={product.sku} />} />
+      <MetaRow label="Slug" value={<IdCode value={product.slug} />} />
+      <MetaRow label="Product ID" value={<IdCode value={product.id} />} />
+      <MetaRow
+        label="Brand ID"
+        value={<IdCode value={brand?.id ?? product.brandId} />}
+      />
+      <MetaRow
+        label="Category ID"
+        value={<IdCode value={category?.id ?? product.categoryId} />}
+      />
+    </dl>
   );
 }
 
-function Meta({
+function AuditPanel({ product }: { product: ProductDto }) {
+  return (
+    <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2">
+      <MetaRow
+        label="Created"
+        value={formatDateMono(product.createdAtUtc)}
+        hint={formatRelative(product.createdAtUtc)}
+      />
+      {product.updatedAtUtc ? (
+        <MetaRow
+          label="Revised"
+          value={formatDateMono(product.updatedAtUtc)}
+          hint={formatRelative(product.updatedAtUtc)}
+        />
+      ) : (
+        <MetaRow label="Revised" value="Never" hint="no edits since creation" />
+      )}
+      <MetaRow
+        label="Status"
+        value={product.isActive ? "Active" : "Hidden"}
+        tone={product.isActive ? "success" : "muted"}
+      />
+    </dl>
+  );
+}
+
+function DescriptionBody({ product }: { product: ProductDto }) {
+  if (product.description) {
+    return (
+      <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--color-foreground)]/90">
+        {product.description}
+      </p>
+    );
+  }
+  return (
+    <p className="text-[13px] italic leading-relaxed text-[var(--color-muted-foreground)]">
+      No description on file. Customers will see a blank description on the
+      product page until you add one.
+    </p>
+  );
+}
+
+function MetaRow({
   label,
   value,
   hint,
@@ -645,8 +569,8 @@ function Meta({
   tone?: "default" | "success" | "muted";
 }) {
   return (
-    <div className="grid grid-cols-[88px_1fr] items-baseline gap-3">
-      <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+    <div className="grid grid-cols-[90px_1fr] items-baseline gap-3">
+      <dt className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
         {label}
       </dt>
       <dd
@@ -658,7 +582,7 @@ function Meta({
       >
         <div className="truncate">{value}</div>
         {hint && (
-          <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/70">
+          <div className="mt-0.5 text-[11px] text-[var(--color-muted-foreground)]/70">
             {hint}
           </div>
         )}
@@ -684,61 +608,55 @@ function IdCode({ value }: { value: string }) {
 
 function DetailSkeleton() {
   return (
-    <>
-      <div className="card-shell rounded-[20px] bg-[var(--color-surface-3)] p-6 md:p-8 lg:p-10">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(260px,360px)_1fr]">
-          <Skeleton className="aspect-square rounded-2xl" />
-          <div className="space-y-5">
-            <div className="flex justify-between gap-3">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-8 w-40" />
+    <div className="space-y-5">
+      <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+        <Skeleton className="h-1 w-full rounded-none" />
+        <div className="p-5 sm:px-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <Skeleton className="size-14 rounded-2xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-3 w-64" />
+              </div>
             </div>
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <div className="grid grid-cols-2 gap-3">
-              <Skeleton className="h-24 rounded-xl" />
-              <Skeleton className="h-24 rounded-xl" />
-            </div>
+            <Skeleton className="h-8 w-40" />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Skeleton className="h-7 w-24 rounded-lg" />
+            <Skeleton className="h-7 w-24 rounded-lg" />
+            <Skeleton className="h-7 w-24 rounded-lg" />
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-        <Skeleton className="h-32 rounded-2xl" />
-        <Skeleton className="h-64 rounded-2xl" />
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
+        <div className="space-y-5">
+          <Skeleton className="h-40 rounded-xl" />
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
+        <div className="space-y-5">
+          <Skeleton className="h-32 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
 function NotFoundPanel() {
   return (
-    <div
-      className={cn(
-        "card-shell rounded-2xl bg-[var(--color-surface-3)]",
-        "flex flex-col items-center gap-4 px-8 py-16 text-center",
-      )}
-    >
-      <span
-        aria-hidden
-        className="grid h-14 w-14 place-items-center rounded-2xl bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.18),oklch(from_var(--color-primary)_l_c_h_/_0.02))] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]"
-      >
-        <PackageX className="h-6 w-6 text-[var(--color-primary)]" />
-      </span>
-      <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-8 py-16 text-center">
+      <div className="mb-5 grid size-16 place-items-center rounded-2xl bg-[oklch(from_var(--color-primary)_l_c_h_/_0.08)]">
+        <PackageX className="size-7 text-[var(--color-primary)]" />
+      </div>
+      <h3 className="mb-1.5 text-[17px] font-semibold text-[var(--color-foreground)]">
         Product not found
-      </span>
-      <h3 className="text-display max-w-md text-xl font-semibold leading-tight tracking-[-0.02em]">
-        We couldn't find that product.
       </h3>
-      <p className="max-w-md text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-        It may have been deleted, or the link may be wrong. Head back to the list
-        and try again.
+      <p className="mb-6 text-[13px] text-[var(--color-muted-foreground)]">
+        It may have been deleted, or the link may be wrong.
       </p>
-      <Button asChild className="brand-glow gradient-sheen mt-2 gap-1.5">
-        <Link to="/catalog/products">
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to products
-        </Link>
+      <Button asChild variant="outline" size="sm">
+        <Link to="/catalog/products">Back to products</Link>
       </Button>
     </div>
   );
@@ -825,13 +743,10 @@ function ProductEditorDialog({
       <DialogContent className="!max-w-xl">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Edit entry
-            </span>
             <DialogTitle>Edit product</DialogTitle>
             <DialogDescription>
-              Update details for {product.name}. Use the price/stock chips on the
-              detail page to change those — they emit domain events.
+              Update details for {product.name}. Use the price/stock actions in
+              the sidebar to change those — they emit domain events.
             </DialogDescription>
           </DialogHeader>
 
@@ -897,12 +812,12 @@ function ProductEditorDialog({
               />
             </Field>
 
-            <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3">
+            <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3">
               <div>
-                <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+                <div className="text-[12px] font-medium text-[var(--color-foreground)]">
                   Visibility
                 </div>
-                <div className="mt-1 text-[12.5px] text-[var(--color-muted-foreground)]">
+                <div className="mt-0.5 text-[12px] text-[var(--color-muted-foreground)]">
                   {isActive ? "Listed for customers." : "Hidden from listings."}
                 </div>
               </div>
@@ -916,11 +831,7 @@ function ProductEditorDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={updateMutation.isPending || !valid}
-              className="brand-glow gradient-sheen"
-            >
+            <Button type="submit" disabled={updateMutation.isPending || !valid}>
               {updateMutation.isPending ? "Saving…" : "Save changes"}
             </Button>
           </DialogFooter>
@@ -957,9 +868,6 @@ function DeleteDialog({
     <Dialog open={open} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
-            Permanent action
-          </span>
           <DialogTitle>Delete product</DialogTitle>
           <DialogDescription>
             This permanently removes{" "}
@@ -1032,33 +940,30 @@ function PriceDialog({
           }}
         >
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              <CircleDollarSign className="mr-1 inline h-3 w-3" />
-              Price change
-            </span>
-            <DialogTitle>{product.name}</DialogTitle>
+            <DialogTitle>Change price</DialogTitle>
             <DialogDescription>
-              Emits a <code className="font-mono text-[11px]">ProductPriceChanged</code> domain event.
+              {product.name} — emits a{" "}
+              <code className="font-mono text-[11px]">ProductPriceChanged</code> domain event.
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="space-y-4">
-            <div className="surface-edge flex items-center justify-between rounded-xl bg-[var(--color-surface-2)] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+                <div className="text-[11px] uppercase tracking-wider text-[var(--color-muted-foreground)]">
                   was
                 </div>
-                <div className="text-display mt-1 text-[18px] font-semibold tabular-nums">
+                <div className="font-display mt-1 text-[18px] font-semibold tabular-nums">
                   {formatMoney(product.price.amount, product.price.currency)}
                 </div>
               </div>
               <ArrowDown className="h-4 w-4 -rotate-90 text-[var(--color-muted-foreground)]" />
               <div className="text-right">
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-primary)]">
+                <div className="text-[11px] uppercase tracking-wider text-[var(--color-primary)]">
                   becomes
                 </div>
                 <div
                   className={cn(
-                    "text-display mt-1 text-[18px] font-semibold tabular-nums",
+                    "font-display mt-1 text-[18px] font-semibold tabular-nums",
                     delta > 0
                       ? "text-[var(--color-success)]"
                       : delta < 0
@@ -1102,11 +1007,7 @@ function PriceDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={mutation.isPending || !valid}
-              className="brand-glow gradient-sheen"
-            >
+            <Button type="submit" disabled={mutation.isPending || !valid}>
               {mutation.isPending ? "Saving…" : "Change price"}
             </Button>
           </DialogFooter>
@@ -1158,32 +1059,28 @@ function StockDialog({
           }}
         >
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              <Package className="mr-1 inline h-3 w-3" />
-              Stock adjustment
-            </span>
-            <DialogTitle>{product.name}</DialogTitle>
+            <DialogTitle>Adjust stock</DialogTitle>
             <DialogDescription>
-              Add or remove units. Emits a{" "}
+              {product.name} — add or remove units. Emits a{" "}
               <code className="font-mono text-[11px]">ProductStockAdjusted</code> event.
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="space-y-4">
-            <div className="surface-edge flex items-center justify-between rounded-xl bg-[var(--color-surface-2)] px-4 py-3 tabular-nums">
+            <div className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3 tabular-nums">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+                <div className="text-[11px] uppercase tracking-wider text-[var(--color-muted-foreground)]">
                   current
                 </div>
-                <div className="text-display mt-1 text-[18px] font-semibold">{product.stock}</div>
+                <div className="font-display mt-1 text-[18px] font-semibold">{product.stock}</div>
               </div>
               <ArrowDown className="h-4 w-4 -rotate-90 text-[var(--color-muted-foreground)]" />
               <div className="text-right">
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-primary)]">
+                <div className="text-[11px] uppercase tracking-wider text-[var(--color-primary)]">
                   becomes
                 </div>
                 <div
                   className={cn(
-                    "text-display mt-1 text-[18px] font-semibold",
+                    "font-display mt-1 text-[18px] font-semibold",
                     willGoNegative
                       ? "text-[var(--color-destructive)]"
                       : deltaNum > 0
@@ -1244,7 +1141,6 @@ function StockDialog({
             <Button
               type="submit"
               disabled={mutation.isPending || !valid || willGoNegative}
-              className="brand-glow gradient-sheen"
             >
               {mutation.isPending ? "Adjusting…" : "Adjust stock"}
             </Button>

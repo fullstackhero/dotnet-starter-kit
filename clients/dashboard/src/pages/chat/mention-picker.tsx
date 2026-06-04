@@ -40,11 +40,11 @@ export function MentionPicker({
     >
       <div className="flex items-center gap-1.5 border-b border-[var(--color-border)] px-3 py-1.5">
         <AtSign className="h-3 w-3 text-[var(--color-muted-foreground)]" aria-hidden />
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
           Mention
         </span>
-        <span className="ml-auto font-mono text-[10px] tracking-[0.10em] text-[var(--color-muted-foreground)]">
-          ↑↓ Navigate · ↵ Select · Esc Cancel
+        <span className="ml-auto text-[11px] text-[var(--color-muted-foreground)]">
+          ↑↓ navigate · Enter select · Esc cancel
         </span>
       </div>
       <ul className="max-h-[240px] overflow-y-auto p-1">
@@ -77,13 +77,13 @@ export function MentionPicker({
                       {display}
                     </span>
                     {user.userName && (
-                      <span className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+                      <span className="truncate text-[11px] text-[var(--color-muted-foreground)]">
                         @{user.userName}
                       </span>
                     )}
                   </div>
                   {user.email && (
-                    <div className="truncate font-mono text-[10px] text-[var(--color-muted-foreground)]">
+                    <div className="truncate text-[11px] text-[var(--color-muted-foreground)]">
                       {user.email}
                     </div>
                   )}
@@ -95,7 +95,7 @@ export function MentionPicker({
       </ul>
       {loading && (
         <div className="border-t border-[var(--color-border)] px-3 py-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          <span className="text-[11px] text-[var(--color-muted-foreground)]">
             Searching…
           </span>
         </div>

@@ -20,8 +20,8 @@ internal sealed class UserStatusService(
 {
     // Soft-delete is functionally identical to deactivation — delegate so the same admin/self/last-admin
     // guards and audit pipeline apply uniformly to both DELETE /users/{id} and PATCH /users/{id}.
-    public Task DeleteAsync(string userId)
-        => ToggleStatusAsync(activateUser: false, userId, CancellationToken.None);
+    public Task DeleteAsync(string userId, CancellationToken cancellationToken = default)
+        => ToggleStatusAsync(activateUser: false, userId, cancellationToken);
 
     public async Task ToggleStatusAsync(bool activateUser, string userId, CancellationToken cancellationToken)
     {

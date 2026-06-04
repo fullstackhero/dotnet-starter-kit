@@ -1,10 +1,12 @@
 using Asp.Versioning;
+using FSH.Framework.Eventing;
 using FSH.Framework.Persistence;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Features.v1.Invoices.GenerateInvoices;
 using FSH.Modules.Billing.Features.v1.Invoices.GetInvoiceById;
 using FSH.Modules.Billing.Features.v1.Invoices.GetInvoices;
+using FSH.Modules.Billing.Features.v1.Invoices.GetInvoicePdf;
 using FSH.Modules.Billing.Features.v1.Invoices.GetMyInvoices;
 using FSH.Modules.Billing.Features.v1.Invoices.IssueInvoice;
 using FSH.Modules.Billing.Features.v1.Invoices.MarkInvoicePaid;
@@ -43,6 +45,10 @@ public sealed class BillingModule : IModule
         builder.Services.AddScoped<IDbInitializer, BillingDbInitializer>();
         builder.Services.AddScoped<IUsageReporter, UsageReporter>();
         builder.Services.AddScoped<IBillingService, BillingService>();
+        builder.Services.AddSingleton<IInvoicePdfRenderer, InvoicePdfRenderer>();
+
+        // React to tenant create/renew events (Multitenancy.Contracts) to drive subscriptions + invoices.
+        builder.Services.AddIntegrationEventHandlers(typeof(BillingModule).Assembly);
 
         builder.Services.AddHealthChecks()
             .AddDbContextCheck<BillingDbContext>(
@@ -81,6 +87,7 @@ public sealed class BillingModule : IModule
         group.MapGetInvoicesEndpoint();
         group.MapGetMyInvoicesEndpoint();
         group.MapGetInvoiceByIdEndpoint();
+        group.MapGetInvoicePdfEndpoint();
         group.MapGenerateInvoicesEndpoint();
         group.MapIssueInvoiceEndpoint();
         group.MapMarkInvoicePaidEndpoint();

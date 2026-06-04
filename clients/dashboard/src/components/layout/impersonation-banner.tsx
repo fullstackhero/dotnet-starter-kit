@@ -12,12 +12,17 @@ import { cn } from "@/lib/cn";
  * another user. Reads the act_* claims from the live access token via
  * AuthContext.impersonation.
  *
- * Two palettes:
- *   - same-tenant impersonation → amber, "Impersonating <name>"
- *   - cross-tenant impersonation → red/destructive, "CROSS-TENANT
- *     IMPERSONATION · {actorTenant} → {tenant}". Cross-tenant means a
- *     SuperAdmin acting *as* a member of a different tenant — much
- *     larger blast radius, deserves a louder warning.
+ * Design language matches the dashboard's editorial-console aesthetic:
+ * soft tone wash (radial gradient, no alarm stripes), gradient-ring icon
+ * square, mono small-caps meta label, display-font subject with gradient
+ * accent, code-chip tenants, hairline tone border.
+ *
+ * Tone scaling:
+ *   - same-tenant impersonation → warning (amber). Operator is acting
+ *     inside their own tenant boundary; lower blast radius.
+ *   - cross-tenant impersonation → destructive (red). A root/SuperAdmin
+ *     reached into a different tenant; tone intensifies (stronger wash,
+ *     left ribbon, slightly bolder copy).
  */
 export function ImpersonationBanner() {
   const { impersonation, user, stopImpersonation } = useAuth();
@@ -54,10 +59,12 @@ export function ImpersonationBanner() {
   const isCrossTenant =
     impersonation.actorTenant !== undefined && impersonation.actorTenant !== user?.tenant;
 
-  // Token name flips between two CSS variables so every styled child can use
-  // the same expression. Cross-tenant escalates to --color-destructive,
-  // same-tenant stays on --color-warning.
+  // One CSS variable drives every tone-derived color in the bar so we can
+  // flip between warning / destructive without scattering conditionals.
   const tone = isCrossTenant ? "var(--color-destructive)" : "var(--color-warning)";
+  const metaLabel = isCrossTenant
+    ? "Cross-tenant impersonation"
+    : "Impersonating";
 
   return (
     <div
@@ -65,86 +72,96 @@ export function ImpersonationBanner() {
       aria-live="polite"
       className={cn(
         "relative z-40 flex flex-wrap items-center justify-between gap-3 overflow-hidden",
-        "border-y px-4 py-2.5 sm:px-6",
+        "border-b px-4 py-3 sm:px-6",
       )}
       style={{
-        borderColor: `oklch(from ${tone} l c h / 0.50)`,
-        backgroundColor: isCrossTenant
-          ? `oklch(from ${tone} l c h / 0.16)`
-          : `oklch(from ${tone} l c h / 0.18)`,
+        borderColor: `oklch(from ${tone} l c h / 0.28)`,
+        backgroundColor: "var(--color-muted)",
       }}
     >
-      {/* Diagonal stripe pattern — pulses harder for cross-tenant */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          opacity: isCrossTenant ? 0.16 : 0.10,
-          backgroundImage: `repeating-linear-gradient(135deg, transparent 0 8px, oklch(from ${tone} l c h) 8px 9px)`,
-        }}
-      />
-
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
+      {/* Left ribbon — 2px tone strip only for cross-tenant. Subtle but
+          scannable for an operator skimming the chrome. */}
+      {isCrossTenant && (
         <span
           aria-hidden
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md ring-1 ring-inset"
+          className="pointer-events-none absolute inset-y-0 left-0 w-[2px]"
+          style={{ backgroundColor: tone }}
+        />
+      )}
+
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
+        {/* Gradient-ring icon square — matches the SetupTile / topbar icon
+            treatment elsewhere in the dashboard. */}
+        <span
+          aria-hidden
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-xl"
           style={{
-            backgroundColor: `oklch(from ${tone} l c h / 0.22)`,
+            backgroundColor: `oklch(from ${tone} l c h / 0.14)`,
             color: tone,
-            // ring color via inline since ring uses border-color hooks
-            // and we need to avoid hardcoding token names
-            ['--tw-ring-color' as string]: `oklch(from ${tone} l c h / 0.45)`,
+            boxShadow: `inset 0 0 0 1px oklch(from ${tone} l c h / 0.32)`,
           }}
         >
           <ShieldAlert className="h-3.5 w-3.5" />
         </span>
 
-        {isCrossTenant ? (
-          <>
-            <span
-              className="font-mono text-[10.5px] font-bold uppercase tracking-[0.20em]"
-              style={{ color: tone }}
-            >
-              Cross-tenant impersonation
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span
+            className="text-[11px] font-semibold uppercase tracking-wider"
+            style={{ color: tone }}
+          >
+            {metaLabel}
+          </span>
+
+          {/* Subject — the user being acted as. */}
+          <span
+            className={cn(
+              "font-display truncate text-[14px] font-semibold leading-tight tracking-tight",
+              "text-[var(--color-foreground)]",
+            )}
+          >
+            {subjectLabel}
+          </span>
+
+          {/* Tenant flow — for cross-tenant we show actorTenant → tenant
+              so the cross-boundary jump is the most obvious shape in the
+              bar. For same-tenant just the one chip. */}
+          <div className="flex items-center gap-1.5">
+            {isCrossTenant && (
+              <>
+                <TenantChip label={actorTenantLabel} tone={tone} />
+                <ArrowRight
+                  className="h-3 w-3 shrink-0 opacity-70"
+                  style={{ color: tone }}
+                  aria-hidden
+                />
+              </>
+            )}
+            <TenantChip label={tenantLabel} tone={tone} emphasis={isCrossTenant} />
+          </div>
+
+          {/* Operator attribution — hidden on small screens to keep the
+              bar to one line on mobile. The `acting as` phrasing covers
+              both variants. */}
+          <span className="hidden items-center gap-1 text-[12px] text-[var(--color-muted-foreground)] sm:inline-flex">
+            <span>· operator</span>
+            <UserCog className="h-3 w-3" aria-hidden />
+            <span className="text-[var(--color-foreground)]">
+              {actorLabel}
             </span>
-            <TenantChip label={actorTenantLabel} tone={tone} mono />
-            <ArrowRight className="h-3 w-3 shrink-0" style={{ color: tone }} aria-hidden />
-            <TenantChip label={tenantLabel} tone={tone} mono emphasis />
-            <span className="hidden truncate text-[12px] text-[var(--color-foreground)] sm:inline">
-              acting as <span className="font-semibold">{subjectLabel}</span>
-            </span>
-            <span className="hidden font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] sm:inline">
-              · operator <UserCog className="inline h-3 w-3 -translate-y-px" /> {actorLabel}
-            </span>
-          </>
-        ) : (
-          <>
-            <span
-              className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em]"
-              style={{ color: tone }}
-            >
-              Impersonating
-            </span>
-            <span className="text-display truncate text-[14px] font-semibold leading-tight tracking-tight text-[var(--color-foreground)]">
-              {subjectLabel}
-            </span>
-            <TenantChip label={tenantLabel} tone={tone} />
-            <span className="hidden font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] sm:inline">
-              · acting as your operator <UserCog className="inline h-3 w-3 -translate-y-px" /> {actorLabel}
-            </span>
-          </>
-        )}
+          </span>
+        </div>
       </div>
 
       <Button
         size="sm"
-        variant={isCrossTenant ? "destructive" : "outline"}
+        variant="outline"
         onClick={() => stop.mutate()}
         disabled={pending}
-        className={cn(
-          "shrink-0",
-          !isCrossTenant && "border-[oklch(from_var(--color-warning)_l_c_h_/_0.45)] hover:bg-[oklch(from_var(--color-warning)_l_c_h_/_0.20)]",
-        )}
+        className="shrink-0"
+        style={{
+          borderColor: `oklch(from ${tone} l c h / 0.45)`,
+          color: tone,
+        }}
       >
         <LogOut className="mr-1.5 h-3.5 w-3.5" />
         {pending ? "Ending…" : "End impersonation"}
@@ -153,27 +170,30 @@ export function ImpersonationBanner() {
   );
 }
 
+/**
+ * Tenant identifier chip — small code-style pill in the bar's tone color.
+ * `emphasis` bolds the target tenant in cross-tenant mode so the
+ * destination of the boundary jump reads first.
+ */
 function TenantChip({
   label,
   tone,
-  mono,
   emphasis,
 }: {
   label: string;
   tone: string;
-  mono?: boolean;
   emphasis?: boolean;
 }) {
   return (
     <code
       className={cn(
-        "rounded px-1.5 py-0.5 font-medium",
-        mono ? "font-mono text-[11px]" : "font-mono text-[11px]",
-        emphasis && "font-bold",
+        "rounded-md px-1.5 py-0.5 font-mono text-[11px] leading-tight",
+        emphasis ? "font-semibold" : "font-medium",
       )}
       style={{
-        backgroundColor: `oklch(from ${tone} l c h / 0.18)`,
+        backgroundColor: `oklch(from ${tone} l c h / 0.12)`,
         color: tone,
+        boxShadow: `inset 0 0 0 1px oklch(from ${tone} l c h / 0.22)`,
       }}
     >
       {label}

@@ -29,7 +29,7 @@ internal sealed class UserRegistrationService(
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
     IOutboxStore outboxStore) : IUserRegistrationService
 {
-    public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)
+    public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
         ArgumentNullException.ThrowIfNull(principal);
@@ -43,8 +43,8 @@ internal sealed class UserRegistrationService(
         }
 
         var user = await CreateUserFromPrincipalAsync(principal, email);
-        await AssignDefaultRoleAndGroupsAsync(user, "ExternalAuth");
-        await PublishUserRegisteredAsync(user, "Identity.ExternalAuth");
+        await AssignDefaultRoleAndGroupsAsync(user, "ExternalAuth", cancellationToken);
+        await PublishUserRegisteredAsync(user, "Identity.ExternalAuth", cancellationToken);
 
         return user.Id;
     }
@@ -88,13 +88,13 @@ internal sealed class UserRegistrationService(
             : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming {0}", user.Email));
     }
 
-    public async Task<string> ConfirmPhoneNumberAsync(string userId, string code)
+    public async Task<string> ConfirmPhoneNumberAsync(string userId, string code, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
 
         var user = await userManager.Users
             .Where(u => u.Id == userId && !u.PhoneNumberConfirmed)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         _ = user ?? throw new CustomException("An error occurred while confirming phone number.");
 

@@ -27,6 +27,8 @@ internal sealed class UserProfileService(
 
     public async Task<UserDto> GetAsync(string userId, CancellationToken cancellationToken)
     {
+        // Relies on Finbuckle's tenant filter — callers can only ever read
+        // their own user record, which is in the request's resolved tenant.
         var user = await userManager.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
@@ -42,7 +44,10 @@ internal sealed class UserProfileService(
             FirstName = user.FirstName,
             LastName = user.LastName,
             ImageUrl = ResolveImageUrl(user.ImageUrl),
-            IsActive = user.IsActive
+            IsActive = user.IsActive,
+            EmailConfirmed = user.EmailConfirmed,
+            PhoneNumber = user.PhoneNumber,
+            TwoFactorEnabled = user.TwoFactorEnabled,
         };
     }
 
@@ -70,21 +75,29 @@ internal sealed class UserProfileService(
         return result;
     }
 
-    public async Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage)
+    public async Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId);
 
         _ = user ?? throw new NotFoundException("user not found");
 
         Uri imageUri = user.ImageUrl ?? null!;
-        if (image.Data != null || deleteCurrentImage)
+        // image is optional: a profile update without an avatar passes a null FileUploadRequest
+        // (the endpoint forwards command.Image, which is null for text-only edits). Guard the
+        // null before dereferencing Data, otherwise the common no-image update path NREs.
+        if (image?.Data != null)
         {
-            var imageString = await storageService.UploadAsync<FshUser>(image, FileType.Image);
+            var imageString = await storageService.UploadAsync<FshUser>(image, FileType.Image, cancellationToken);
             user.ImageUrl = new Uri(imageString, UriKind.RelativeOrAbsolute);
             if (deleteCurrentImage && imageUri != null)
             {
-                await storageService.RemoveAsync(imageUri.ToString());
+                await storageService.RemoveAsync(imageUri.ToString(), cancellationToken);
             }
+        }
+        else if (deleteCurrentImage && imageUri != null)
+        {
+            await storageService.RemoveAsync(imageUri.ToString(), cancellationToken);
+            user.ImageUrl = null;
         }
 
         user.FirstName = firstName;
@@ -123,22 +136,22 @@ internal sealed class UserProfileService(
         await signInManager.RefreshSignInAsync(user);
     }
 
-    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
+    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
         return await userManager.FindByEmailAsync(email.Normalize()) is FshUser user && user.Id != exceptId;
     }
 
-    public async Task<bool> ExistsWithNameAsync(string name)
+    public async Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
         return await userManager.FindByNameAsync(name) is not null;
     }
 
-    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
+    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
-        return await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is FshUser user && user.Id != exceptId;
+        return await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber, cancellationToken) is FshUser user && user.Id != exceptId;
     }
 
     private void EnsureValidTenant()

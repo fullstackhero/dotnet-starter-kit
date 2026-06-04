@@ -7,11 +7,13 @@ using FSH.Modules.Files.Authorization;
 using FSH.Modules.Files.Contracts;
 using FSH.Modules.Files.Contracts.Authorization;
 using FSH.Modules.Files.Data;
+using FSH.Modules.Files.Features.v1.ChangeVisibility;
 using FSH.Modules.Files.Features.v1.DeleteFile;
 using FSH.Modules.Files.Features.v1.FinalizeUpload;
 using FSH.Modules.Files.Features.v1.GetFileDownloadUrl;
 using FSH.Modules.Files.Features.v1.GetFileMetadata;
 using FSH.Modules.Files.Features.v1.ListMyFiles;
+using FSH.Modules.Files.Features.v1.ListSharedFiles;
 using FSH.Modules.Files.Features.v1.ListTrashedFiles;
 using FSH.Modules.Files.Features.v1.RequestUploadUrl;
 using FSH.Modules.Files.Features.v1.RestoreFile;
@@ -78,15 +80,17 @@ public sealed class FilesModule : IModule
 
         // Literal routes first so they win over the /{id:guid} catch-all (matches the Catalog
         // pattern for /trash etc.).
-        group.MapRequestUploadUrlEndpoint();     // POST /upload-url
-        group.MapListMyFilesEndpoint();          // GET  /mine
-        group.MapListTrashedFilesEndpoint();     // GET  /trash
-        group.MapRestoreFileEndpoint();          // POST /{id}/restore  (literal verb path)
+        group.MapRequestUploadUrlEndpoint();         // POST  /upload-url
+        group.MapListMyFilesEndpoint();              // GET   /mine
+        group.MapListSharedFilesEndpoint();          // GET   /shared
+        group.MapListTrashedFilesEndpoint();         // GET   /trash
+        group.MapRestoreFileEndpoint();              // POST  /{id}/restore  (literal verb path)
 
-        group.MapFinalizeUploadEndpoint();       // POST /{id}/finalize
-        group.MapGetFileDownloadUrlEndpoint();   // GET  /{id}/url
-        group.MapGetFileMetadataEndpoint();      // GET  /{id}
-        group.MapDeleteFileEndpoint();           // DELETE /{id}
+        group.MapFinalizeUploadEndpoint();           // POST  /{id}/finalize
+        group.MapGetFileDownloadUrlEndpoint();       // GET   /{id}/url
+        group.MapChangeFileVisibilityEndpoint();     // PATCH /{id}/visibility
+        group.MapGetFileMetadataEndpoint();          // GET   /{id}
+        group.MapDeleteFileEndpoint();               // DELETE /{id}
 
         // Recurring Hangfire jobs (orphan + retention purges). Registration here matches the
         // pattern Billing uses for MonthlyInvoiceJob.

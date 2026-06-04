@@ -5,24 +5,49 @@ import { apiFetch } from "@/lib/api-client";
 // src/Modules/Auditing/Modules.Auditing.Contracts/AuditEnums.cs.
 // ────────────────────────────────────────────────────────────────────────
 
+// The API serializes single-value enums as their string name
+// (global JsonStringEnumConverter). Mirror them as string unions.
 export const AuditEventType = {
-  None: 0,
-  EntityChange: 1,
-  Security: 2,
-  Activity: 3,
-  Exception: 4,
+  None: "None",
+  EntityChange: "EntityChange",
+  Security: "Security",
+  Activity: "Activity",
+  Exception: "Exception",
 } as const;
 export type AuditEventType = (typeof AuditEventType)[keyof typeof AuditEventType];
 
-export const AUDIT_EVENT_TYPE_LABELS: Record<number, string> = {
-  0: "Unknown",
-  1: "Entity",
-  2: "Security",
-  3: "Activity",
-  4: "Exception",
+export const AUDIT_EVENT_TYPE_LABELS: Record<AuditEventType, string> = {
+  None: "Unknown",
+  EntityChange: "Entity",
+  Security: "Security",
+  Activity: "Activity",
+  Exception: "Exception",
 };
 
 export const AuditSeverity = {
+  None: "None",
+  Trace: "Trace",
+  Debug: "Debug",
+  Information: "Information",
+  Warning: "Warning",
+  Error: "Error",
+  Critical: "Critical",
+} as const;
+export type AuditSeverity = (typeof AuditSeverity)[keyof typeof AuditSeverity];
+
+export const AUDIT_SEVERITY_LABELS: Record<AuditSeverity, string> = {
+  None: "—",
+  Trace: "Trace",
+  Debug: "Debug",
+  Information: "Info",
+  Warning: "Warn",
+  Error: "Error",
+  Critical: "Critical",
+};
+
+/** Ordinal rank for severities — string severities are not ordered, so use
+ *  this for any threshold (`<`/`>`/`>=`/`<=`) comparison. */
+const SEVERITY_RANK: Record<AuditSeverity, number> = {
   None: 0,
   Trace: 1,
   Debug: 2,
@@ -30,18 +55,11 @@ export const AuditSeverity = {
   Warning: 4,
   Error: 5,
   Critical: 6,
-} as const;
-export type AuditSeverity = (typeof AuditSeverity)[keyof typeof AuditSeverity];
-
-export const AUDIT_SEVERITY_LABELS: Record<number, string> = {
-  0: "—",
-  1: "Trace",
-  2: "Debug",
-  3: "Info",
-  4: "Warn",
-  5: "Error",
-  6: "Critical",
 };
+
+export function severityRank(severity: AuditSeverity): number {
+  return SEVERITY_RANK[severity] ?? 0;
+}
 
 /** Bitwise flags — keep in sync with AuditTag enum on the backend. */
 export const AuditTag = {
@@ -77,8 +95,8 @@ export function decodeTags(mask: number): string[] {
 export type AuditSummaryDto = {
   id: string;
   occurredAtUtc: string;
-  eventType: number;
-  severity: number;
+  eventType: AuditEventType;
+  severity: AuditSeverity;
   tenantId?: string | null;
   userId?: string | null;
   userName?: string | null;
@@ -97,7 +115,7 @@ export type AuditDetailDto = AuditSummaryDto & {
 };
 
 export type AuditSummaryAggregateDto = {
-  /** keys are stringified AuditEventType integers */
+  /** keys are AuditEventType / AuditSeverity string names */
   eventsByType: Record<string, number>;
   eventsBySeverity: Record<string, number>;
   eventsBySource: Record<string, number>;
@@ -195,14 +213,3 @@ export async function getAuditsByCorrelation(
   );
 }
 
-export async function getAuditsByTrace(
-  traceId: string,
-  query: { fromUtc?: string; toUtc?: string } = {},
-  signal?: AbortSignal,
-): Promise<AuditSummaryDto[]> {
-  const qs = toQueryString(query);
-  return apiFetch<AuditSummaryDto[]>(
-    `/api/v1/audits/by-trace/${encodeURIComponent(traceId)}${qs ? `?${qs}` : ""}`,
-    { signal },
-  );
-}

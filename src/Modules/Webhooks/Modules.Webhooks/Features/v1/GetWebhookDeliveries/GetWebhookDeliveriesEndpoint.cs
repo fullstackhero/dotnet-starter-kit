@@ -1,3 +1,5 @@
+using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Modules.Webhooks.Contracts.Authorization;
 using FSH.Modules.Webhooks.Contracts.v1.GetWebhookDeliveries;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -21,6 +23,7 @@ public static class GetWebhookDeliveriesEndpoint
             return TypedResults.Ok(result);
         })
         .WithName("GetWebhookDeliveries")
-        .WithSummary("List webhook deliveries for a subscription");
+        .WithSummary("List webhook deliveries for a subscription")
+        .RequirePermission(WebhooksPermissions.Subscriptions.View);
     }
 }

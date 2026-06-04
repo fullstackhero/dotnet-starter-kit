@@ -17,7 +17,7 @@ public sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        await _userService.DeleteAsync(command.Id).ConfigureAwait(false);
+        await _userService.DeleteAsync(command.Id, cancellationToken).ConfigureAwait(false);
 
         return Unit.Value;
     }

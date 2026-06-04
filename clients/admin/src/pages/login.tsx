@@ -1,24 +1,35 @@
 import { useState, type FormEvent } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { ClipboardCheck, Copy, FlaskConical, ShieldAlert } from "lucide-react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import {
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { DemoAccountsDialog } from "@/components/auth/demo-accounts-dialog";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { env } from "@/env";
+import type { DemoAccount } from "@/pages/login.demo-accounts";
+
+// ────────────────────────────────────────────────────────────────────────
+// Login — FSH Admin operator sign-in.
+// Chrome mirrors the dashboard's AuthShell: atmospheric orbs, FSH logo
+// lockup, warm-paper card with backdrop blur.
+// The dev demo button ("Sign in with a demo account") opens the same
+// popup dialog UX the dashboard uses — pick an account → fills
+// tenant/email/password → instant sign-in. Gated on import.meta.env.DEV
+// (admin has no runtime demoMode flag).
+// ────────────────────────────────────────────────────────────────────────
 
 type LocationState = { from?: { pathname: string } };
-
-const DEMO_PASSWORD = "Password123!";
-const DEMO_SUPERADMIN = {
-  tenant: "root",
-  email: "superadmin@root.com",
-  label: "SuperAdmin",
-  persona: "Platform operator · cross-tenant control",
-} as const;
 
 export function LoginPage() {
   const { isAuthenticated, login } = useAuth();
@@ -31,18 +42,18 @@ export function LoginPage() {
   const [tenant, setTenant] = useState(env.defaultTenant);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
   }
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const performLogin = async (creds: { email: string; password: string; tenant: string }) => {
     setError(null);
     setSubmitting(true);
     try {
-      await login({ email, password, tenant });
+      await login(creds);
       navigate(from, { replace: true });
     } catch (err) {
       const message =
@@ -57,196 +68,225 @@ export function LoginPage() {
     }
   };
 
-  const onPickDemo = () => {
-    setError(null);
-    setEmail(DEMO_SUPERADMIN.email);
-    setPassword(DEMO_PASSWORD);
-    setTenant(DEMO_SUPERADMIN.tenant);
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await performLogin({ email, password, tenant });
   };
 
-  const onCopyPassword = async () => {
-    try {
-      await navigator.clipboard.writeText(DEMO_PASSWORD);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
-    } catch {
-      // ignore
-    }
+  // Demo picker → reflect the chosen creds in the form, then sign in instantly.
+  const onPickDemo = (account: DemoAccount) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    setTenant(account.tenant);
+    void performLogin({ email: account.email, password: account.password, tenant: account.tenant });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-6">
-      <div className="w-full max-w-sm space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign in</CardTitle>
-            <CardDescription>FullStackHero Admin · platform console</CardDescription>
-          </CardHeader>
-          <form onSubmit={onSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="tenant">Tenant</Label>
-                <Input
-                  id="tenant"
-                  value={tenant}
-                  onChange={(e) => setTenant(e.target.value)}
-                  required
-                  autoComplete="organization"
-                />
+    <>
+      {/* ── Outer shell — matches dashboard AuthShell exactly ─────────── */}
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--color-background)] px-5 py-8 sm:py-12">
+        {/* Atmospheric background orbs */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <div
+            className="absolute -top-[25%] -left-[15%] h-[70vw] w-[70vw] rounded-full blur-[140px]"
+            style={{ backgroundColor: "oklch(from var(--color-primary) l c h / 0.05)" }}
+          />
+          <div
+            className="absolute -bottom-[20%] -right-[10%] h-[55vw] w-[55vw] rounded-full blur-[120px]"
+            style={{ backgroundColor: "oklch(from var(--color-primary) l c h / 0.07)" }}
+          />
+          <div
+            className="absolute top-[10%] right-[5%] h-[30vw] w-[30vw] rounded-full blur-[80px]"
+            style={{ backgroundColor: "oklch(from var(--color-primary) l c h / 0.025)" }}
+          />
+        </div>
+
+        {/* Card column */}
+        <div className="relative z-10 w-full max-w-[420px] fsh-enter fsh-enter-1">
+          {/* ── Brand lockup — same as dashboard AuthShell ─────────────── */}
+          <div className="mb-8 flex flex-col items-center">
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/logo-fullstackhero.png"
+                alt="FullStackHero"
+                className="size-9 object-contain"
+              />
+              <span className="font-display text-[26px] font-semibold tracking-tight text-[var(--color-foreground)]">
+                fullstack<span className="text-[var(--color-primary)]">hero</span>
+              </span>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
+              <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
+              <span>Platform Admin</span>
+              <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
+            </div>
+          </div>
+
+          {/* Form card */}
+          <div className="rounded-xl border border-[var(--color-border)] bg-[oklch(from_var(--color-card)_l_c_h_/_0.85)] shadow-[0_1px_3px_oklch(0_0_0_/_0.04),0_8px_24px_oklch(0_0_0_/_0.06)] backdrop-blur-xl">
+            <div className="px-6 py-7 sm:px-8 sm:py-9">
+              <div className="mb-6 sm:mb-8">
+                <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
+                  Welcome back
+                </h1>
+                <p className="text-[13px] text-[var(--color-muted-foreground)]">
+                  Sign in to your operator account
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-              {error && (
-                <div className="rounded-md border border-[var(--color-destructive)]/40 bg-[var(--color-destructive)]/10 px-3 py-2 text-sm text-[var(--color-destructive)]">
-                  {error}
+
+              <form
+                onSubmit={onSubmit}
+                className="space-y-5"
+                noValidate
+                aria-describedby={error ? "login-error" : undefined}
+              >
+                {/* Tenant */}
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="tenant"
+                    className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
+                  >
+                    Tenant
+                  </Label>
+                  <Input
+                    id="tenant"
+                    value={tenant}
+                    onChange={(e) => setTenant(e.target.value)}
+                    autoComplete="organization"
+                    placeholder="root"
+                    required
+                    aria-invalid={error ? true : undefined}
+                    className="h-11 text-[14px]"
+                  />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="email"
+                    className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
+                  >
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    placeholder="operator@root.example"
+                    required
+                    aria-invalid={error ? true : undefined}
+                    className="h-11 text-[14px]"
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="password"
+                      className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
+                    >
+                      Password
+                    </Label>
+                    <Link
+                      to="/forgot-password"
+                      className="text-[11px] font-medium text-[var(--color-muted-foreground)] underline-offset-4 transition-colors hover:text-[var(--color-primary)] hover:underline"
+                    >
+                      Forgot?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      placeholder="Enter your password"
+                      required
+                      aria-invalid={error ? true : undefined}
+                      className="h-11 pr-11 text-[14px]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-3.5 top-1/2 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+                    >
+                      {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div
+                    id="login-error"
+                    role="alert"
+                    className={cn(
+                      "fsh-enter flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                      "border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)]",
+                      "bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)]",
+                      "text-[var(--color-destructive)]",
+                    )}
+                  >
+                    <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                    <span className="leading-snug">{error}</span>
+                  </div>
+                )}
+
+                <div className="pt-1.5">
+                  <Button
+                    type="submit"
+                    disabled={submitting || !email || !password || !tenant}
+                    className="group h-11 w-full text-[14px] font-semibold"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        <span>Signing in…</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Sign in</span>
+                        <ArrowRight className="size-[14px] opacity-60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+
+              {/* Demo accounts — dev-only, same dashed-button pattern as dashboard. */}
+              {import.meta.env.DEV && (
+                <div className="mt-7">
+                  <button
+                    type="button"
+                    onClick={() => setDemoOpen(true)}
+                    className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--color-primary)]/25 bg-transparent text-[12.5px] font-medium text-[var(--color-primary)]/70 transition-all duration-150 hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/[0.04] hover:text-[var(--color-primary)]"
+                  >
+                    <Sparkles className="size-[13px]" />
+                    <span>Sign in with a demo account</span>
+                  </button>
                 </div>
               )}
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? "Signing in…" : "Sign in"}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-
-        {import.meta.env.DEV && (
-          <DevDemoCallout
-            active={email === DEMO_SUPERADMIN.email && tenant === DEMO_SUPERADMIN.tenant}
-            copied={copied}
-            onPick={onPickDemo}
-            onCopy={onCopyPassword}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DevDemoCallout({
-  active,
-  copied,
-  onPick,
-  onCopy,
-}: {
-  active: boolean;
-  copied: boolean;
-  onPick: () => void;
-  onCopy: () => void;
-}) {
-  return (
-    <div
-      role="region"
-      aria-label="Development demo account"
-      className={cn(
-        "relative overflow-hidden rounded-xl border px-4 py-3.5",
-        "border-amber-500/40 bg-amber-500/5",
-      )}
-    >
-      <div className="flex items-start gap-2.5">
-        <span
-          aria-hidden
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-amber-500/15 text-amber-600 ring-1 ring-inset ring-amber-500/40 dark:text-amber-400"
-        >
-          <FlaskConical className="h-3.5 w-3.5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">
-              DEV · Demo account
-            </span>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={onPick}
-            aria-pressed={active}
-            className={cn(
-              "mt-2 flex w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-left",
-              "transition-colors",
-              active
-                ? "border-amber-500/50 bg-amber-500/15"
-                : "border-amber-500/30 bg-transparent hover:bg-amber-500/10",
-            )}
-          >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--color-primary)] text-[10px] font-bold text-[var(--color-primary-foreground)]">
-              SA
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1.5">
-                <span className="text-[12.5px] font-semibold tracking-tight">{DEMO_SUPERADMIN.label}</span>
-                <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400">
-                  root
-                </span>
-              </span>
-              <span className="mt-0.5 block truncate font-mono text-[11px] text-[var(--color-muted-foreground)]">
-                {DEMO_SUPERADMIN.email}
-              </span>
-              <span className="mt-0.5 block text-[11px] italic text-[var(--color-muted-foreground)]/80">
-                {DEMO_SUPERADMIN.persona}
-              </span>
-            </span>
-            <span
-              className={cn(
-                "shrink-0 font-mono text-[10px] uppercase tracking-[0.14em]",
-                active ? "text-amber-600 dark:text-amber-400" : "text-[var(--color-muted-foreground)]",
-              )}
-            >
-              {active ? "loaded" : "use →"}
-            </span>
-          </button>
 
-          <div className="mt-3 flex items-center justify-between text-[11px]">
-            <span className="flex items-center gap-1.5 text-[var(--color-muted-foreground)]">
-              <ShieldAlert className="h-3 w-3" />
-              <span className="font-mono uppercase tracking-[0.14em]">password</span>
-              <code className="rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-                {DEMO_PASSWORD}
-              </code>
-            </span>
-            <button
-              type="button"
-              onClick={onCopy}
-              className={cn(
-                "inline-flex h-6 cursor-pointer items-center gap-1 rounded-md px-2 font-mono text-[10px] uppercase tracking-[0.14em]",
-                "transition-colors",
-                copied
-                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                  : "text-[var(--color-muted-foreground)] hover:bg-amber-500/15 hover:text-amber-600 dark:hover:text-amber-400",
-              )}
-            >
-              {copied ? (
-                <>
-                  <ClipboardCheck className="h-3 w-3" /> copied
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3 w-3" /> copy
-                </>
-              )}
-            </button>
+          <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-[var(--color-muted-foreground)]">
+            <ShieldCheck className="size-3" />
+            <span>Encrypted in transit · JWT-secured session</span>
           </div>
+          <p className="mt-4 text-center text-[10px] font-medium uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]">
+            FullStackHero Administration
+          </p>
         </div>
       </div>
-    </div>
+
+      {/* Demo dialog — rendered outside the shell to escape any overflow clipping. */}
+      {import.meta.env.DEV && (
+        <DemoAccountsDialog open={demoOpen} onOpenChange={setDemoOpen} onPick={onPickDemo} />
+      )}
+    </>
   );
 }

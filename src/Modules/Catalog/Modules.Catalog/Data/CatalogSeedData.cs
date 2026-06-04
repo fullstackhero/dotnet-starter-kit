@@ -3,12 +3,18 @@ using FSH.Modules.Catalog.Domain;
 namespace FSH.Modules.Catalog.Data;
 
 /// <summary>
-/// Demo seed data for the Catalog module. Wired in by <see cref="CatalogDbInitializer"/>
-/// only when the host is running in the Development environment.
+/// Demo seed data for the Catalog module — a small "what a catalogue looks like"
+/// dataset (4 brands, 11 categories, 10 products). Called from the DbMigrator's
+/// <c>seed-demo</c> command for the demo tenants only; fresh tenants get an
+/// empty catalogue and populate via the API / admin UI.
 /// </summary>
-internal static class CatalogSeedData
+public static class CatalogSeedData
 {
-    public static IReadOnlyList<Brand> Brands { get; } =
+    // Method (not static property) so each tenant gets fresh Brand instances
+    // with new Ids — Brand.Create generates Guid.CreateVersion7() at construction
+    // time. A shared static list would have the same Ids across tenants and PK-
+    // violate on the second tenant's seed.
+    public static IReadOnlyList<Brand> BuildBrands() =>
     [
         Brand.Create("Acme Goods",      "Quality essentials for the modern home.",            null),
         Brand.Create("Northwind",       "Outdoor and adventure gear since 1985.",             null),
@@ -43,6 +49,9 @@ internal static class CatalogSeedData
         IReadOnlyDictionary<string, Brand> brandsByName,
         IReadOnlyDictionary<string, Category> categoriesByName)
     {
+        ArgumentNullException.ThrowIfNull(brandsByName);
+        ArgumentNullException.ThrowIfNull(categoriesByName);
+
         Brand B(string name) => brandsByName[name];
         Category C(string name) => categoriesByName[name];
 

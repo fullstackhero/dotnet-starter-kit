@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Hash, Lock, MessageCircle, Users2, X } from "lucide-react";
-import type { ChannelDto, MessageDto } from "@/api/chat";
+import { ChannelType, type ChannelDto, type MessageDto } from "@/api/chat";
 import { useAuth } from "@/auth/use-auth";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { useUserDisplay } from "@/lib/use-user-display";
@@ -93,14 +93,14 @@ function ChatToast({
 
   const channelLabel = !channel
     ? "a channel"
-    : channel.type === 2
+    : channel.type === ChannelType.Channel
       ? `#${channel.name ?? "channel"}`
-      : channel.type === 0
+      : channel.type === ChannelType.DirectMessage
         ? "direct message"
         : "group chat";
   const ChannelIcon = !channel
     ? MessageCircle
-    : channel.type === 2
+    : channel.type === ChannelType.Channel
       ? channel.isPrivate
         ? Lock
         : Hash
@@ -166,7 +166,7 @@ function ChatToast({
               aria-hidden
               className="h-1 w-1 shrink-0 rounded-full bg-[var(--color-primary)] opacity-70"
             />
-            <span className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            <span className="truncate text-[11px] text-[var(--color-muted-foreground)]">
               just now
             </span>
           </div>
@@ -174,7 +174,7 @@ function ChatToast({
           {/* Channel context */}
           <div className="mt-0.5 flex items-center gap-1.5 text-[var(--color-muted-foreground)]">
             <ChannelIcon className="h-3 w-3 shrink-0" aria-hidden />
-            <span className="truncate font-mono text-[10.5px] uppercase tracking-[0.12em]">
+            <span className="truncate text-[11.5px]">
               {channelLabel}
             </span>
           </div>
@@ -192,7 +192,7 @@ function ChatToast({
               {preview}
             </p>
           ) : (
-            <p className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            <p className="mt-2 text-[12px] italic text-[var(--color-muted-foreground)]">
               (attachment or empty body)
             </p>
           )}

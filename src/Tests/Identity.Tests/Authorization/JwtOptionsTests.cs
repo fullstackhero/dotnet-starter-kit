@@ -212,6 +212,31 @@ public sealed class JwtOptionsTests
     }
 
     [Theory]
+    [InlineData("replace-with-256-bit-secret-min-32-chars")]
+    [InlineData("REPLACE-WITH-something-long-enough-to-pass-32")]
+    [InlineData("prefixed-replace-with-something-suffixed-here")]
+    public void Validate_Should_Reject_Placeholder_SigningKey(string placeholder)
+    {
+        // Arrange — values that pass the length check but are clearly
+        // sample placeholders carried over from appsettings.json.
+        var options = new JwtOptions
+        {
+            SigningKey = placeholder,
+            Issuer = "https://example.com",
+            Audience = "https://api.example.com",
+        };
+        var context = new ValidationContext(options);
+
+        // Act
+        var results = options.Validate(context).ToList();
+
+        // Assert
+        results.ShouldContain(r =>
+            r.MemberNames.Contains(nameof(JwtOptions.SigningKey)) &&
+            r.ErrorMessage!.Contains("placeholder", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
     [InlineData(1)]
     [InlineData(16)]
     [InlineData(31)]

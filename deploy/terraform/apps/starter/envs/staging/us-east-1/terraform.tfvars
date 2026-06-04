@@ -52,6 +52,19 @@ app_s3_enable_public_read = false
 app_s3_enable_cloudfront  = true
 
 ################################################################################
+# Frontend SPAs (S3 + CloudFront) — bucket names must be globally unique
+################################################################################
+
+dashboard_s3_bucket_name = "staging-fsh-dashboard"
+admin_s3_bucket_name     = "staging-fsh-admin"
+
+# Custom domains (ACM cert must be in us-east-1 for CloudFront):
+# dashboard_cloudfront_aliases         = ["app.staging.example.com"]
+# admin_cloudfront_aliases             = ["admin.staging.example.com"]
+# dashboard_cloudfront_certificate_arn = "arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID"
+# admin_cloudfront_certificate_arn     = "arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID"
+
+################################################################################
 # Database
 ################################################################################
 

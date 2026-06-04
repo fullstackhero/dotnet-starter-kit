@@ -1,23 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Web</RootNamespace>
 		<AssemblyName>FSH.Framework.Web</AssemblyName>
-		<PackageId>FullStackHero.Framework.Web</PackageId>
 		<NoWarn>$(NoWarn);CA1805;CA1307;CA1308;S1854;CA1812;CA1305;CA2000</NoWarn>
 	</PropertyGroup>
-
-	<ItemGroup>
-	  <Compile Remove="Observability\Metrics\**" />
-	  <Compile Remove="Observability\Traces\**" />
-	  <Compile Remove="ProblemDetails\**" />
-	  <EmbeddedResource Remove="Observability\Metrics\**" />
-	  <EmbeddedResource Remove="Observability\Traces\**" />
-	  <EmbeddedResource Remove="ProblemDetails\**" />
-	  <None Remove="Observability\Metrics\**" />
-	  <None Remove="Observability\Traces\**" />
-	  <None Remove="ProblemDetails\**" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -50,10 +37,6 @@
 		<PackageReference Include="Serilog.Enrichers.Span" />
 		<PackageReference Include="Serilog.Enrichers.Thread" />
 		<PackageReference Include="Serilog.Sinks.OpenTelemetry" />
-	</ItemGroup>
-	
-	<ItemGroup>
-	  <Folder Include="RateLimiting\" />
 	</ItemGroup>
 	
 	<ItemGroup>

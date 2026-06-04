@@ -4,7 +4,7 @@ namespace FSH.Starter.DbMigrator;
 /// Lightweight command-line parser. Avoids dragging in System.CommandLine for
 /// a handful of flags — keep this honest and minimal.
 ///
-/// Verbs:   apply | seed | list-pending  (default: apply)
+/// Verbs:   apply | seed | seed-demo | list-pending  (default: apply)
 /// Flags:   --tenant &lt;id&gt;   scope to one tenant id
 ///          --catalog-only   skip per-tenant migrations
 ///          --seed           after apply, also run SeedAsync per tenant
@@ -17,7 +17,7 @@ internal sealed record MigratorCommand(
     bool SeedAfter,
     bool Help)
 {
-    private static readonly string[] KnownVerbs = ["apply", "seed", "list-pending"];
+    private static readonly string[] KnownVerbs = ["apply", "seed", "seed-demo", "list-pending"];
 
     public static MigratorCommand Parse(string[] args)
     {
@@ -65,6 +65,9 @@ internal sealed record MigratorCommand(
         Verbs:
           apply           Apply pending migrations (default). Use --seed to also run SeedAsync.
           seed            Run only the SeedAsync step per tenant.
+          seed-demo       Provision the demo tenants (acme, globex) with users, catalog,
+                          tickets, and chat. Dev-only — refuses to run unless
+                          ASPNETCORE_ENVIRONMENT=Development.
           list-pending    Print pending migrations without applying anything.
 
         Options:

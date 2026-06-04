@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Billing.Contracts</RootNamespace>
 		<AssemblyName>FSH.Modules.Billing.Contracts</AssemblyName>
-		<PackageId>FullStackHero.Modules.Billing.Contracts</PackageId>
 		<NoWarn>$(NoWarn);S2094</NoWarn>
 	</PropertyGroup>
 
@@ -13,6 +12,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
+		<ProjectReference Include="..\..\..\BuildingBlocks\Eventing.Abstractions\Eventing.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

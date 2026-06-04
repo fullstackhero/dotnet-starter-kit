@@ -2,6 +2,7 @@ using FSH.Framework.Eventing.Abstractions;
 using FSH.Framework.Eventing.Inbox;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace FSH.Framework.Eventing.InMemory;
@@ -14,12 +15,29 @@ public sealed partial class InMemoryEventBus : IEventBus
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<InMemoryEventBus> _logger;
+    private readonly IEventTenantScope _tenantScope;
 
-    public InMemoryEventBus(IServiceProvider serviceProvider, ILogger<InMemoryEventBus> logger)
+    // The closed handler interface type and its HandleAsync method are stable per event type, so
+    // they are resolved once and cached rather than recomputing reflection on every published event.
+    private static readonly ConcurrentDictionary<Type, HandlerDispatch> DispatchCache = new();
+
+    private readonly record struct HandlerDispatch(Type HandlerInterfaceType, MethodInfo HandleMethod);
+
+    public InMemoryEventBus(IServiceProvider serviceProvider, ILogger<InMemoryEventBus> logger, IEventTenantScope tenantScope)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _tenantScope = tenantScope;
     }
+
+    private static HandlerDispatch GetDispatch(Type eventType)
+        => DispatchCache.GetOrAdd(eventType, static et =>
+        {
+            var handlerInterfaceType = typeof(IIntegrationEventHandler<>).MakeGenericType(et);
+            var method = handlerInterfaceType.GetMethod(nameof(IIntegrationEventHandler<IIntegrationEvent>.HandleAsync))
+                ?? throw new InvalidOperationException($"IIntegrationEventHandler<{et.Name}> does not declare HandleAsync.");
+            return new HandlerDispatch(handlerInterfaceType, method);
+        });
 
     public Task PublishAsync(IIntegrationEvent @event, CancellationToken ct = default)
         => PublishAsync(new[] { @event }, ct);
@@ -39,34 +57,40 @@ public sealed partial class InMemoryEventBus : IEventBus
         var eventType = @event.GetType();
         LogPublishingEvent(eventType.FullName, @event.Id);
 
-        using var scope = _serviceProvider.CreateScope();
-        var provider = scope.ServiceProvider;
+        var dispatch = GetDispatch(eventType);
 
-        var handlers = ResolveHandlers(provider, eventType);
-        if (handlers.Length == 0)
+        // Establish the tenant context from the event BEFORE resolving handlers — a
+        // MultiTenantDbContext captures its TenantInfo at construction, so a tenant set
+        // after handler resolution would be too late and the tenant query filter would
+        // dereference a null tenant (NRE). Background publishers (outbox dispatcher,
+        // hosted services) carry no ambient tenant, so this is what makes them work.
+        using (_tenantScope.Begin(@event.TenantId))
         {
-            LogNoHandlers(eventType.FullName);
-            return;
-        }
+            using var scope = _serviceProvider.CreateScope();
+            var provider = scope.ServiceProvider;
 
-        var inbox = provider.GetService<IInboxStore>();
-        var handlerInterfaceType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
+            var handlers = ResolveHandlers(provider, dispatch.HandlerInterfaceType);
+            if (handlers.Length == 0)
+            {
+                LogNoHandlers(eventType.FullName);
+                return;
+            }
 
-        foreach (var handler in handlers)
-        {
-            await InvokeHandlerAsync(handler, handlerInterfaceType, eventType, @event, inbox, ct);
+            var inbox = provider.GetService<IInboxStore>();
+
+            foreach (var handler in handlers)
+            {
+                await InvokeHandlerAsync(handler, dispatch.HandleMethod, eventType, @event, inbox, ct).ConfigureAwait(false);
+            }
         }
     }
 
-    private static object[] ResolveHandlers(IServiceProvider provider, Type eventType)
-    {
-        var handlerInterfaceType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-        return provider.GetServices(handlerInterfaceType).Where(h => h is not null).ToArray()!;
-    }
+    private static object[] ResolveHandlers(IServiceProvider provider, Type handlerInterfaceType)
+        => provider.GetServices(handlerInterfaceType).Where(h => h is not null).ToArray()!;
 
     private async Task InvokeHandlerAsync(
         object handler,
-        Type handlerInterfaceType,
+        MethodInfo handleMethod,
         Type eventType,
         IIntegrationEvent @event,
         IInboxStore? inbox,
@@ -74,20 +98,13 @@ public sealed partial class InMemoryEventBus : IEventBus
     {
         var handlerName = handler.GetType().FullName ?? handler.GetType().Name;
 
-        if (await ShouldSkipProcessedEventAsync(inbox, @event.Id, handlerName, ct))
+        if (await ShouldSkipProcessedEventAsync(inbox, @event.Id, handlerName, ct).ConfigureAwait(false))
         {
             LogSkippingProcessed(@event.Id, handlerName);
             return;
         }
 
-        var method = handlerInterfaceType.GetMethod(nameof(IIntegrationEventHandler<IIntegrationEvent>.HandleAsync));
-        if (method == null)
-        {
-            _logger.LogWarning("Handler {Handler} does not implement HandleAsync correctly for {EventType}", handlerName, eventType.FullName);
-            return;
-        }
-
-        await ExecuteHandlerAsync(handler, method, @event, eventType, handlerName, inbox, ct);
+        await ExecuteHandlerAsync(handler, handleMethod, @event, eventType, handlerName, inbox, ct).ConfigureAwait(false);
     }
 
     private static async Task<bool> ShouldSkipProcessedEventAsync(IInboxStore? inbox, Guid eventId, string handlerName, CancellationToken ct)

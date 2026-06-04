@@ -68,6 +68,7 @@ public sealed class TenantSeedDataTests
             name = $"Tenant {tenantId}",
             connectionString = (string?)null,
             adminEmail,
+            adminPassword = TestConstants.DefaultPassword,
             issuer = $"{tenantId}.issuer"
         });
         var body = await response.Content.ReadAsStringAsync();

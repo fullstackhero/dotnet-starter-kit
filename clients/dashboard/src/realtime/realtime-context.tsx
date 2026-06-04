@@ -8,15 +8,21 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  HubConnection,
-  HubConnectionBuilder,
-  HubConnectionState,
-  HttpTransportType,
-  LogLevel,
-} from "@microsoft/signalr";
+import type { HubConnection } from "@microsoft/signalr";
 import { env } from "@/env";
 import { tokenStore } from "@/auth/token-store";
+
+// SignalR is the heaviest single dep in the main shell (~37 KB gzip).
+// We import it dynamically inside the connect() flow so the bundle is
+// pulled lazily only when an authenticated session actually opens the
+// hub — pages without a realtime consumer (settings/files/health/auth)
+// never download it.
+type SignalRModule = typeof import("@microsoft/signalr");
+let signalRPromise: Promise<SignalRModule> | null = null;
+function loadSignalR(): Promise<SignalRModule> {
+  if (!signalRPromise) signalRPromise = import("@microsoft/signalr");
+  return signalRPromise;
+}
 
 export type RealtimeStatus = "idle" | "connecting" | "connected" | "reconnecting" | "error";
 
@@ -61,10 +67,21 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     stoppedRef.current = false;
     const backoffs = [0, 2_000, 5_000, 10_000, 30_000];
+    // Recursive-retry state (outside SignalR's own auto-reconnect window).
+    // Grows on consecutive failures with jitter; caps at 60s so a long
+    // outage doesn't park the dashboard in "error" forever yet doesn't
+    // hammer the API either. Resets to 0 after a successful connect.
+    let consecutiveFailures = 0;
+    const nextRetryDelay = () => {
+      const base = Math.min(60_000, 2_000 * 2 ** consecutiveFailures);
+      const jitter = Math.random() * 0.3 * base; // ±15% randomization
+      return base + jitter - 0.15 * base;
+    };
 
-    const buildConnection = () => {
+    const buildConnection = async () => {
+      const sr = await loadSignalR();
       const url = `${env.apiBase || ""}/api/v1/realtime/hub`;
-      return new HubConnectionBuilder()
+      return new sr.HubConnectionBuilder()
         .withUrl(url, {
           // Returning null here tells SignalR's AccessTokenHttpClient to skip
           // adding the Authorization header rather than adding `Bearer ""` —
@@ -82,12 +99,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             return token;
           },
           transport:
-            HttpTransportType.WebSockets |
-            HttpTransportType.ServerSentEvents |
-            HttpTransportType.LongPolling,
+            sr.HttpTransportType.WebSockets |
+            sr.HttpTransportType.ServerSentEvents |
+            sr.HttpTransportType.LongPolling,
         })
         .withAutomaticReconnect(backoffs.slice(1))
-        .configureLogging(LogLevel.Warning)
+        .configureLogging(sr.LogLevel.Warning)
         .build();
     };
 
@@ -113,13 +130,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         "ChatMessageCreated",
         "ChatMessageEdited",
         "ChatMessageDeleted",
+        "ChatMessagePinned",
+        "ChatMessageUnpinned",
         "ChatChannelMemberAdded",
         "ChatChannelMemberRemoved",
+        "ChatChannelMemberRead",
         "ChatChannelAdded",
         "ChatChannelRemoved",
         "ChatChannelRead",
         "ChatReactionChanged",
         "ChatTypingStarted",
+        "PresenceChanged",
         "NotificationCreated",
       ]) {
         wire(event);
@@ -133,28 +154,34 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         return;
       }
       setStatus("connecting");
-      const conn = buildConnection();
+      const conn = await buildConnection();
       connectionRef.current = conn;
       wireListeners(conn);
 
       conn.onreconnecting(() => setStatus("reconnecting"));
-      conn.onreconnected(() => setStatus("connected"));
+      conn.onreconnected(() => {
+        consecutiveFailures = 0;
+        setStatus("connected");
+      });
       conn.onclose(async () => {
         if (stoppedRef.current) return;
         setStatus("error");
         // SignalR's automatic-reconnect gives up after the backoff array runs out.
-        // Wait a bit and rebuild — handles token rotation cleanly because the
-        // accessTokenFactory will pick up the new token from the store.
-        await new Promise((r) => setTimeout(r, 5_000));
+        // Wait with exponential backoff and rebuild — handles token rotation cleanly
+        // because the accessTokenFactory will pick up the new token from the store.
+        consecutiveFailures += 1;
+        await new Promise((r) => setTimeout(r, nextRetryDelay()));
         if (!stoppedRef.current) void connect();
       });
 
       try {
         await conn.start();
+        consecutiveFailures = 0;
         setStatus("connected");
       } catch {
         setStatus("error");
-        await new Promise((r) => setTimeout(r, 5_000));
+        consecutiveFailures += 1;
+        await new Promise((r) => setTimeout(r, nextRetryDelay()));
         if (!stoppedRef.current) void connect();
       }
     };
@@ -165,7 +192,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       stoppedRef.current = true;
       const conn = connectionRef.current;
       connectionRef.current = null;
-      if (conn && conn.state !== HubConnectionState.Disconnected) {
+      // Tear down without re-importing SignalR. HubConnectionState is a
+      // string enum ("Disconnected"|"Connecting"|"Connected"|"Disconnecting"|
+      // "Reconnecting") in SignalR 10 — comparing against the literal
+      // avoids referencing the lazy-loaded module here.
+      if (conn && (conn.state as string) !== "Disconnected") {
         void conn.stop();
       }
       setStatus("idle");
@@ -190,7 +221,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
   const invoke = useCallback(async (method: string, ...args: unknown[]) => {
     const conn = connectionRef.current;
-    if (!conn || conn.state !== HubConnectionState.Connected) return;
+    // String-literal comparison avoids touching the lazy-imported
+    // SignalR module (HubConnectionState is a string enum in v10).
+    if (!conn || (conn.state as string) !== "Connected") return;
     try {
       await conn.invoke(method, ...args);
     } catch {
