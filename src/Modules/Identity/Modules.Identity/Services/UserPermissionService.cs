@@ -15,7 +15,7 @@ internal sealed class UserPermissionService(
     UserManager<FshUser> userManager,
     RoleManager<FshRole> roleManager,
     IdentityDbContext db,
-    HybridCache cache) : IUserPermissionService
+    IGlobalCacheService cache) : IUserPermissionService
 {
     // Hoisted to avoid per-call allocations. Small payload (< 4 KB after base64), so compression
     // CPU beats the marginal network savings — disable it for this hot path.

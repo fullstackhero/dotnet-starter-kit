@@ -2,8 +2,9 @@ namespace FSH.Framework.Caching;
 
 /// <summary>
 /// Cache key conventions and tag constants used across the FullStackHero starter kit.
-/// Keys should be tenant-scoped where applicable; tags enable bulk invalidation via
-/// <see cref="Microsoft.Extensions.Caching.Hybrid.HybridCache.RemoveByTagAsync(string, System.Threading.CancellationToken)"/>.
+/// Tenant scoping is applied automatically by <see cref="ITenantCacheService"/> —
+/// keys returned by these methods are the <em>logical</em> (un-prefixed) key.
+/// Tags enable bulk invalidation via HybridCache's tag system.
 /// </summary>
 public static class CacheKeys
 {
@@ -35,8 +36,15 @@ public static class CacheKeys
     /// <summary>Key for the system-wide default theme.</summary>
     public const string DefaultTheme = "theme:default";
 
-    /// <summary>Key for an idempotency replay entry, scoped by tenant.</summary>
-    public static string IdempotencyEntry(string tenantId, string key) => $"idem:t:{tenantId}:{key}";
+    /// <summary>Logical key for an idempotency replay entry (no tenant prefix — applied by ITenantCacheService).</summary>
+    public static string IdempotencyEntry(string key) => $"idem:{key}";
+
+    /// <summary>
+    /// Fully-qualified idempotency key including the tenant segment, used when reading
+    /// directly from <see cref="Microsoft.Extensions.Caching.Distributed.IDistributedCache"/>
+    /// to match the key written by <see cref="ITenantCacheService"/> (which uses prefix <c>t:{tenantId}:</c>).
+    /// </summary>
+    public static string IdempotencyEntryFull(string tenantId, string key) => $"t:{tenantId}:idem:{key}";
 
     /// <summary>
     /// Key for the impersonation-grant revocation marker, indexed by JWT id.
