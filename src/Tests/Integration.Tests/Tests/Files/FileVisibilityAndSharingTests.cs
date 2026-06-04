@@ -87,7 +87,7 @@ public sealed class FileVisibilityAndSharingTests
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var dto = await response.DeserializeAsync<FileAssetDto>();
         dto.Id.ShouldBe(fileId);
-        dto.Visibility.ShouldBe(1);
+        dto.Visibility.ShouldBe(Visibility.Private);
     }
 
     #endregion
@@ -110,7 +110,7 @@ public sealed class FileVisibilityAndSharingTests
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var dto = await response.DeserializeAsync<FileAssetDto>();
         dto.Id.ShouldBe(fileId);
-        dto.Visibility.ShouldBe(0);
+        dto.Visibility.ShouldBe(Visibility.Public);
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public sealed class FileVisibilityAndSharingTests
         using var flip = await ownerClient.PatchAsJsonAsync($"{FilesBasePath}/{fileId}/visibility", new { visibility = 0 });
         flip.StatusCode.ShouldBe(HttpStatusCode.OK);
         var flipped = await flip.DeserializeAsync<FileAssetDto>();
-        flipped.Visibility.ShouldBe(0);
+        flipped.Visibility.ShouldBe(Visibility.Public);
 
         // Assert — the same non-owner can now read it.
         using var after = await granteeClient.GetAsync($"{FilesBasePath}/{fileId}");

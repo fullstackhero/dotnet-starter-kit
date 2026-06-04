@@ -12,6 +12,6 @@ public sealed class RequestUploadUrlCommandValidator : AbstractValidator<Request
         RuleFor(x => x.ContentType).NotEmpty().MaximumLength(128);
         RuleFor(x => x.SizeBytes).GreaterThan(0);
         RuleFor(x => x.Category).NotEmpty();
-        RuleFor(x => x.Visibility).InclusiveBetween(0, 1);
+        RuleFor(x => x.Visibility).IsInEnum();
     }
 }

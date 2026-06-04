@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Exceptions;
+using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Domain;
 
 namespace FSH.Modules.Chat.Features.v1.Internal;

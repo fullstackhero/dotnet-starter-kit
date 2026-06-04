@@ -40,7 +40,7 @@ public sealed class ChatChannelsTests
         var ch = await get.DeserializeAsync<ChannelDto>();
         ch.Name.ShouldBe(name);
         ch.Slug.ShouldNotBeNullOrWhiteSpace();
-        ch.Type.ShouldBe(2); // Channel
+        ch.Type.ShouldBe(ChannelType.Channel);
         ch.Members.ShouldHaveSingleItem();
         ch.UnreadCount.ShouldBe(0);
     }

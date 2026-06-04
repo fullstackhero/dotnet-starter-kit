@@ -1,7 +1,7 @@
 import { apiFetch } from "@/lib/api-client";
 import type { PagedResponse } from "@/api/catalog";
 
-// Mirrors FSH.Modules.Files.Domain.Visibility. The API serializes enums as
+// Mirrors FSH.Modules.Files.Contracts.v1.DTOs.Visibility. The API serializes enums as
 // their string name (global JsonStringEnumConverter).
 export const Visibility = {
   Public: "Public",

@@ -170,16 +170,25 @@ builder.AddModules(moduleAssemblies);
 // don't enqueue jobs.
 builder.Services.AddSingleton<FSH.Framework.Jobs.Services.IJobService, NoOpJobService>();
 
-// Surgically remove the only hosted service that would race with this
-// migrator — TenantStoreInitializerHostedService also calls MigrateAsync
-// on the tenant catalog. The advisory lock + EF's __EFMigrationsHistory
-// would make it eventually safe, but having two writers fight is ugly in
-// the logs. Hangfire, etc. are already disabled via EnableJobs=false on
-// AddHeroPlatform above. Serilog's flush-on-shutdown hosted service is
-// preserved so log output actually reaches stdout/stderr.
+// Strip every runtime background worker before host.StartAsync() boots them.
+// This is a one-shot migrator: it does all its work via explicit scopes in
+// Steps 0–3 below and depends on no hosted service. Left running, these
+// long-lived workers begin polling/writing the database the instant the host
+// starts — BEFORE Step 1/2 create the tables — and spew 42P01 "relation does
+// not exist" errors against a fresh DB (OutboxDispatcher → OutboxMessages,
+// AuditBackgroundWorker → AuditRecords, SessionCleanup/RolePermissionSync →
+// identity tables, each also resolving tenant.Tenants before it exists).
+// Removing every BackgroundService catches them all — and any future worker —
+// without an ever-growing name denylist; Hangfire's are already gone via
+// EnableJobs=false. We also drop TenantStoreInitializerHostedService (a plain
+// IHostedService, not a BackgroundService) which races the tenant-catalog
+// MigrateAsync. Non-DB framework IHostedServices are intentionally preserved:
+// the options StartupValidator (so ValidateOnStart still runs at StartAsync)
+// and Serilog's flush-on-shutdown service (so log output reaches stdout/stderr).
 foreach (var descriptor in builder.Services
     .Where(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService)
-        && d.ImplementationType?.Name == "TenantStoreInitializerHostedService")
+        && (typeof(Microsoft.Extensions.Hosting.BackgroundService).IsAssignableFrom(d.ImplementationType)
+            || d.ImplementationType?.Name == "TenantStoreInitializerHostedService"))
     .ToList())
 {
     builder.Services.Remove(descriptor);

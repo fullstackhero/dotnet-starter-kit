@@ -92,7 +92,7 @@ public sealed class RequestUploadUrlCommandHandler(
             contentType: cmd.ContentType,
             declaredSizeBytes: cmd.SizeBytes,
             storageKey: storageKey,
-            visibility: (Visibility)cmd.Visibility,
+            visibility: cmd.Visibility,
             createdByUserId: userId.ToString(),
             uploadDeadline: DateTimeOffset.UtcNow.Add(ttl));
 

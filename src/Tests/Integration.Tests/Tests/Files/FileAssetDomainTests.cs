@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Exceptions;
+using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Domain.Events;
 

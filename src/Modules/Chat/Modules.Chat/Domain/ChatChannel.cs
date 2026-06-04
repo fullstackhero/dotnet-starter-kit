@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Domain;
 using FSH.Framework.Shared.Persistence;
+using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Domain.Events;
 
 namespace FSH.Modules.Chat.Domain;

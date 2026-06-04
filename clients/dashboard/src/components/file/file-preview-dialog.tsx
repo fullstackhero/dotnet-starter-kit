@@ -145,7 +145,7 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose, onDeleted }: 
 
   return (
     <Dialog open={open} onOpenChange={(o) => (o ? undefined : onClose())}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 truncate">
             <MimeIcon contentType={metaQuery.data?.contentType ?? "application/octet-stream"} />
@@ -158,7 +158,7 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose, onDeleted }: 
           )}
         </DialogHeader>
 
-        <DialogBody className="space-y-4">
+        <DialogBody className="min-h-0 flex-1 space-y-4 overflow-y-auto">
           {metaQuery.isError ? (
             <ErrorBand
               message={
@@ -302,11 +302,11 @@ function Preview({
 
   if (file.contentType.startsWith("image/")) {
     return (
-      <div className="grid place-items-center overflow-hidden rounded-xl border border-border bg-[var(--color-muted)]">
+      <div className="grid min-h-[30vh] place-items-center overflow-hidden rounded-xl border border-border bg-[var(--color-muted)]">
         <img
           src={url}
           alt={file.originalFileName}
-          className="max-h-[60vh] w-auto object-contain"
+          className="max-h-[48vh] w-auto object-contain"
           onError={() => setErrored(true)}
         />
       </div>
@@ -509,7 +509,7 @@ function statusLabel(status: FileAssetStatusValue): string {
 
 function PreviewSkeleton() {
   return (
-    <div className="grid h-[40vh] place-items-center rounded-xl border border-dashed border-border bg-[var(--color-muted)]">
+    <div className="grid h-[30vh] place-items-center rounded-xl border border-dashed border-border bg-[var(--color-muted)]">
       <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted-foreground)]" />
     </div>
   );

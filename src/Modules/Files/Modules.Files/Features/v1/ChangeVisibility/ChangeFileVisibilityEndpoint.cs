@@ -30,4 +30,4 @@ public static class ChangeFileVisibilityEndpoint
             .Produces(StatusCodes.Status404NotFound);
 }
 
-public sealed record ChangeVisibilityRequest(int Visibility);
+public sealed record ChangeVisibilityRequest(Visibility Visibility);

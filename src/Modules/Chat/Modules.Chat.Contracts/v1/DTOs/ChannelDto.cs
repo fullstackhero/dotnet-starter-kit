@@ -2,7 +2,7 @@ namespace FSH.Modules.Chat.Contracts.v1.DTOs;
 
 public sealed record ChannelDto(
     Guid Id,
-    int Type,                            // 0=DM, 1=GroupDM, 2=Channel
+    ChannelType Type,
     string? Name,
     string? Slug,
     string? Description,
