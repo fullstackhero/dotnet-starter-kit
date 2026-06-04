@@ -36,6 +36,12 @@ internal sealed class UserService(
     public Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
         => registrationService.ConfirmEmailAsync(userId, code, tenant, cancellationToken);
 
+    public Task AdminConfirmEmailAsync(string userId, CancellationToken cancellationToken = default)
+        => registrationService.AdminConfirmEmailAsync(userId, cancellationToken);
+
+    public Task ResendConfirmationEmailAsync(string userId, string origin, CancellationToken cancellationToken = default)
+        => registrationService.ResendConfirmationEmailAsync(userId, origin, cancellationToken);
+
     public Task<string> ConfirmPhoneNumberAsync(string userId, string code, CancellationToken cancellationToken = default)
         => registrationService.ConfirmPhoneNumberAsync(userId, code, cancellationToken);
 

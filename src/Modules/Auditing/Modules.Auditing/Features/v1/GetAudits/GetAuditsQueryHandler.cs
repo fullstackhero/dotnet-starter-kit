@@ -66,6 +66,11 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
             audits = audits.Where(a => a.EventType == (int)query.EventType.Value);
         }
 
+        if (query.ExcludeEventType.HasValue)
+        {
+            audits = audits.Where(a => a.EventType != (int)query.ExcludeEventType.Value);
+        }
+
         if (query.Severity.HasValue)
         {
             audits = audits.Where(a => a.Severity == (byte)query.Severity.Value);

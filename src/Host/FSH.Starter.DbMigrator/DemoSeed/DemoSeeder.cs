@@ -4,6 +4,9 @@ using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Billing.Contracts;
+using FSH.Modules.Billing.Data;
+using FSH.Modules.Billing.Domain;
 using FSH.Modules.Catalog.Data;
 using FSH.Modules.Catalog.Domain;
 using FSH.Modules.Chat.Data;
@@ -49,13 +52,15 @@ internal sealed class DemoSeeder
         Id: "acme",
         Name: "Acme Corp",
         AdminEmail: "admin@acme.com",
-        Issuer: "fsh.demo.acme");
+        Issuer: "fsh.demo.acme",
+        PlanKey: "pro-annual");
 
     public static readonly DemoTenant Globex = new(
         Id: "globex",
         Name: "Globex",
         AdminEmail: "admin@globex.com",
-        Issuer: "fsh.demo.globex");
+        Issuer: "fsh.demo.globex",
+        PlanKey: "free");
 
     public DemoSeeder(IServiceProvider services, IConfiguration config, ILogger<DemoSeeder> logger)
     {
@@ -76,6 +81,7 @@ internal sealed class DemoSeeder
 
         foreach (var demo in new[] { Acme, Globex })
         {
+            await SeedTenantSubscriptionAsync(demo, cancellationToken).ConfigureAwait(false);
             await SeedTenantUsersAsync(demo, cancellationToken).ConfigureAwait(false);
             await SeedTenantCatalogAsync(demo, cancellationToken).ConfigureAwait(false);
             await SeedTenantTicketsAsync(demo, cancellationToken).ConfigureAwait(false);
@@ -161,6 +167,105 @@ internal sealed class DemoSeeder
 
         tenantDb.Add(provisioning);
         await tenantDb.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    // ─── Subscription ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Attaches an active billing <see cref="Subscription"/> to the demo tenant so the dashboard's
+    /// PLAN / subscription cards are populated out of the box. The real tenant-create path drives this
+    /// via <c>TenantSubscribedIntegrationEvent</c>, but demo tenants are provisioned inline (see
+    /// <see cref="EnsureDemoTenantsExistAsync"/>) and never publish it — so we write the row directly.
+    ///
+    /// Paid plans also get an issued term invoice, matching the real flow. It's written directly
+    /// rather than via <c>IBillingService</c> so we don't publish <c>InvoiceIssuedIntegrationEvent</c>
+    /// — the one-shot migrator has no outbox dispatcher and demo seeding shouldn't fire
+    /// notifications/emails. The subscription's term is aligned to the tenant's <c>ValidUpto</c> so the
+    /// dashboard's term matches the enforced validity window.
+    ///
+    /// Idempotent: skips when the tenant already has an active subscription.
+    /// </summary>
+    private async Task SeedTenantSubscriptionAsync(DemoTenant demo, CancellationToken cancellationToken)
+    {
+        using var scope = _services.CreateScope();
+        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
+        var tenant = await tenantStore.GetAsync(demo.Id).ConfigureAwait(false);
+        if (tenant is null) return;
+
+        // BillingDbContext is NOT tenant-filtered (TenantId is an explicit column), so no Finbuckle
+        // context juggling is required — we scope by TenantId directly.
+        var billingDb = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
+
+        var plan = await billingDb.Plans
+            .FirstOrDefaultAsync(p => p.Key == demo.PlanKey && p.IsActive, cancellationToken)
+            .ConfigureAwait(false);
+        if (plan is null)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(
+                    "[demo-seed] [{Tenant}] plan '{PlanKey}' not found — skipping subscription", demo.Id, demo.PlanKey);
+            }
+            return;
+        }
+
+        // Reuse the existing active subscription's term if there is one (so re-runs don't re-subscribe
+        // — but still backfill a missing invoice for it); otherwise start a fresh subscription aligned
+        // to the tenant's ValidUpto.
+        var existing = await billingDb.Subscriptions
+            .FirstOrDefaultAsync(s => s.TenantId == demo.Id && s.Status == SubscriptionStatus.Active, cancellationToken)
+            .ConfigureAwait(false);
+
+        var startUtc = existing?.StartUtc ?? DateTime.UtcNow;
+        var endUtc = existing?.EndUtc ?? DateTime.SpecifyKind(tenant.ValidUpto, DateTimeKind.Utc);
+
+        if (existing is null)
+        {
+            billingDb.Subscriptions.Add(Subscription.Create(demo.Id, plan.Id, startUtc, endUtc));
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation(
+                    "[demo-seed] [{Tenant}] subscribed to plan '{PlanKey}' (term ends {End:o})",
+                    demo.Id, plan.Key, endUtc);
+            }
+        }
+
+        // Paid plans get an issued term invoice, matching the real CreateTenant flow. Created directly
+        // (no IBillingService) so we don't publish InvoiceIssuedIntegrationEvent — the migrator has no
+        // outbox dispatcher and demo seeding shouldn't fire notifications/emails. Idempotent (keyed on
+        // the invoice number), so it also backfills an already-subscribed tenant. Free plans (term
+        // price 0) get none, exactly like production.
+        if (plan.TermPrice > 0m)
+        {
+            var invoiceNumber = string.Create(
+                CultureInfo.InvariantCulture, $"SUB-{startUtc:yyyyMM}-{demo.Id.ToUpperInvariant()}");
+            var invoiceExists = await billingDb.Invoices
+                .AnyAsync(i => i.TenantId == demo.Id && i.InvoiceNumber == invoiceNumber, cancellationToken)
+                .ConfigureAwait(false);
+            if (!invoiceExists)
+            {
+                var invoice = Invoice.CreateDraft(
+                    demo.Id, invoiceNumber, startUtc.Year, startUtc.Month, plan.Currency,
+                    InvoicePurpose.Subscription, startUtc, endUtc);
+                invoice.AddLineItem(
+                    InvoiceLineItemKind.BaseFee,
+                    string.Create(
+                        CultureInfo.InvariantCulture,
+                        $"{plan.Name} — {plan.Interval} subscription ({startUtc:yyyy-MM-dd} to {endUtc:yyyy-MM-dd})"),
+                    1m,
+                    plan.TermPrice);
+                invoice.Issue();
+                billingDb.Invoices.Add(invoice);
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation(
+                        "[demo-seed] [{Tenant}] issued term invoice {InvoiceNumber} ({Amount} {Currency})",
+                        demo.Id, invoiceNumber, plan.TermPrice, plan.Currency);
+                }
+            }
+        }
+
+        await billingDb.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     // ─── Users + roles ─────────────────────────────────────────────────
@@ -594,7 +699,7 @@ internal sealed class DemoSeeder
 
     // ─── Demo content shapes ───────────────────────────────────────────
 
-    internal sealed record DemoTenant(string Id, string Name, string AdminEmail, string Issuer);
+    internal sealed record DemoTenant(string Id, string Name, string AdminEmail, string Issuer, string PlanKey);
     internal sealed record DemoUser(
         string UserName,
         string Email,

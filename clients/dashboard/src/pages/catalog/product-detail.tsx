@@ -76,7 +76,7 @@ import { cn } from "@/lib/cn";
 import {
   describe,
   formatDate,
-  formatDateMono,
+  formatDateTimeMono,
   formatMoney,
   formatRelative,
 } from "@/lib/list-helpers";
@@ -520,13 +520,13 @@ function AuditPanel({ product }: { product: ProductDto }) {
     <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2">
       <MetaRow
         label="Created"
-        value={formatDateMono(product.createdAtUtc)}
+        value={formatDateTimeMono(product.createdAtUtc)}
         hint={formatRelative(product.createdAtUtc)}
       />
       {product.updatedAtUtc ? (
         <MetaRow
           label="Revised"
-          value={formatDateMono(product.updatedAtUtc)}
+          value={formatDateTimeMono(product.updatedAtUtc)}
           hint={formatRelative(product.updatedAtUtc)}
         />
       ) : (
@@ -858,6 +858,7 @@ function DeleteDialog({
     onSuccess: () => {
       toast.success("Product deleted");
       queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["trash", "products"] });
       onClose();
       onDeleted();
     },

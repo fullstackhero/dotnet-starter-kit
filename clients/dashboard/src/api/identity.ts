@@ -111,6 +111,20 @@ export async function deleteUser(userId: string): Promise<void> {
   });
 }
 
+export async function confirmUserEmail(userId: string): Promise<void> {
+  await apiFetch<void>(
+    `/api/v1/identity/users/${encodeURIComponent(userId)}/confirm-email`,
+    { method: "POST" },
+  );
+}
+
+export async function resendUserConfirmationEmail(userId: string): Promise<void> {
+  await apiFetch<void>(
+    `/api/v1/identity/users/${encodeURIComponent(userId)}/resend-confirmation-email`,
+    { method: "POST" },
+  );
+}
+
 /**
  * Persist a durable avatar URL on the authenticated user. Typically the publicUrl returned
  * by the Files module after a presigned upload; pass null/empty to clear.
@@ -123,6 +137,15 @@ export async function setProfileImage(imageUrl: string | null): Promise<void> {
 }
 
 /** Fetch the authenticated user's full profile (name, email, phone, imageUrl, etc.). */
+/**
+ * The signed-in user's effective permissions. The JWT carries only role names;
+ * permissions are resolved server-side per role here. The auth context calls
+ * this after login and on subject changes so gated UI reflects the live grants.
+ */
+export async function getMyPermissions(): Promise<string[]> {
+  return (await apiFetch<string[] | null>(`/api/v1/identity/permissions`)) ?? [];
+}
+
 export async function getMyProfile(): Promise<UserDto> {
   return apiFetch<UserDto>("/api/v1/identity/profile");
 }

@@ -24,6 +24,7 @@ import {
   AUDIT_EVENT_TYPE_LABELS,
   AUDIT_SEVERITY_LABELS,
   AUDIT_TAG_LABELS,
+  auditPredicate,
   severityRank,
   decodeTags,
   getAuditById,
@@ -38,6 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   EntityEmpty,
   EntityInitialsAvatar,
@@ -62,7 +64,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/cn";
 
 const PAGE_SIZE = 25;
-const DESKTOP_COLS = "grid-cols-[1.6fr_140px_1.2fr_180px]";
+const DESKTOP_COLS = "grid-cols-[minmax(0,1fr)_minmax(0,2fr)_96px_160px]";
 
 // ────────────────────────────────────────────────────────────────────────
 // Time-range presets — keep the SQL window predictable from the UI.
@@ -159,6 +161,8 @@ type FilterState = {
   correlation: string;
   trace: string;
   search: string;
+  /** Hide the firehose of system-level Activity (HTTP) events. On by default. */
+  hideSystem: boolean;
   page: number;
 };
 
@@ -172,6 +176,7 @@ const INITIAL_FILTERS: FilterState = {
   correlation: "",
   trace: "",
   search: "",
+  hideSystem: true,
   page: 1,
 };
 
@@ -204,6 +209,12 @@ export function AuditsPage() {
           fromUtc: window_.from,
           toUtc: window_.to,
           eventType: (filters.eventType ?? undefined) as AuditEventType | undefined,
+          // Hide system Activity unless the user has explicitly filtered TO Activity
+          // (in which case they clearly want to see it).
+          excludeEventType:
+            filters.hideSystem && filters.eventType !== AuditEventType.Activity
+              ? AuditEventType.Activity
+              : undefined,
           severity: (filters.severity ?? undefined) as AuditSeverity | undefined,
           tags: filters.tagsMask || undefined,
           source: filters.source || undefined,
@@ -368,8 +379,8 @@ export function AuditsPage() {
           <EntityListCard className="hidden md:block">
             <EntityListHeader className={DESKTOP_COLS}>
               <span>Actor</span>
-              <span>Action</span>
-              <span>Entity</span>
+              <span>Event</span>
+              <span>Severity</span>
               <span>Timestamp</span>
             </EntityListHeader>
             {items.map((row, i) => (
@@ -445,8 +456,9 @@ function AuditMobileCard({
           <EntityInitialsAvatar name={actor} size={40} />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
-                {actor}
+              <p className="truncate text-[14px] text-[var(--color-foreground)]">
+                <span className="font-semibold">{actor}</span>{" "}
+                {auditPredicate(row)}
               </p>
               <EntityStatusBadge
                 tone={tone === "danger" ? "danger" : tone === "warning" ? "warning" : tone === "info" ? "info" : "default"}
@@ -511,44 +523,43 @@ function AuditDesktopRow({
         </div>
       </div>
 
-      {/* Action (event type + severity) */}
-      <div className="flex min-w-0 items-center gap-1.5">
-        <Icon className="size-3.5 shrink-0" style={{ color: toneColor }} aria-hidden />
+      {/* Event — the plain-English summary is the hero; the raw source sits
+          beneath it, muted, for anyone who wants the exact endpoint. */}
+      <div className="flex min-w-0 items-start gap-2.5">
+        <Icon className="mt-[3px] size-4 shrink-0" style={{ color: toneColor }} aria-hidden />
         <div className="min-w-0">
-          <div className="truncate text-[12.5px] font-medium tracking-tight">
-            {AUDIT_EVENT_TYPE_LABELS[row.eventType]}
+          <div className="truncate text-[13px] font-medium leading-snug tracking-tight text-[var(--color-foreground)] first-letter:uppercase">
+            {auditPredicate(row)}
           </div>
-          <EntityStatusBadge
-            tone={tone === "danger" ? "danger" : tone === "warning" ? "warning" : tone === "info" ? "info" : "default"}
-          >
-            {AUDIT_SEVERITY_LABELS[row.severity]}
-          </EntityStatusBadge>
-        </div>
-      </div>
-
-      {/* Entity (source + tags) */}
-      <div className="min-w-0">
-        <code className="block truncate font-mono text-[12px] text-[var(--color-foreground)]">
-          {row.source ?? "—"}
-        </code>
-        {tags.length > 0 && (
-          <div className="mt-0.5 flex flex-wrap items-center gap-1">
+          <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
+            <code className="truncate font-mono text-[11px] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.8)]">
+              {row.source ?? "—"}
+            </code>
             {tags.slice(0, 2).map((name) => (
               <span
                 key={name}
-                className="inline-flex items-center gap-0.5 rounded-full bg-[var(--color-muted)] px-1.5 py-0 font-mono text-[10px]"
+                className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-[var(--color-muted)] px-1.5 py-0 font-mono text-[10px] text-[var(--color-muted-foreground)]"
               >
                 <Tag className="size-2.5" />
                 {name}
               </span>
             ))}
             {tags.length > 2 && (
-              <span className="font-mono text-[10px] text-[var(--color-muted-foreground)]">
+              <span className="shrink-0 font-mono text-[10px] text-[var(--color-muted-foreground)]">
                 +{tags.length - 2}
               </span>
             )}
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Severity */}
+      <div className="flex items-center">
+        <EntityStatusBadge
+          tone={tone === "danger" ? "danger" : tone === "warning" ? "warning" : tone === "info" ? "info" : "default"}
+        >
+          {AUDIT_SEVERITY_LABELS[row.severity]}
+        </EntityStatusBadge>
       </div>
 
       {/* Timestamp */}
@@ -767,6 +778,26 @@ function FilterBar({
               </Badge>
             )}
           </Button>
+
+          {/* Hide the system-level Activity firehose (HTTP request audits). On by
+              default so the trail reads as meaningful events, not infrastructure noise. */}
+          <div
+            className="flex shrink-0 items-center gap-2"
+            title="Hide the per-request system Activity events (api.*) so only meaningful audits show"
+          >
+            <Switch
+              aria-label="Hide system activity"
+              checked={filters.hideSystem}
+              onCheckedChange={(v) => onPatch({ hideSystem: v })}
+            />
+            <button
+              type="button"
+              onClick={() => onPatch({ hideSystem: !filters.hideSystem })}
+              className="select-none text-[12px] font-medium text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
+            >
+              Hide system activity
+            </button>
+          </div>
 
           {activeChipCount > 0 && (
             <button

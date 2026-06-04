@@ -12,7 +12,8 @@ namespace FSH.Modules.Chat.Features.v1.Messages.GetPinnedMessages;
 
 public sealed class GetPinnedMessagesQueryHandler(
     ChatDbContext db,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IMediator mediator)
     : IQueryHandler<GetPinnedMessagesQuery, ReadOnlyCollection<MessageDto>>
 {
     public async ValueTask<ReadOnlyCollection<MessageDto>> Handle(
@@ -38,6 +39,8 @@ public sealed class GetPinnedMessagesQueryHandler(
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return rows.Select(m => m.ToDto()).ToList().AsReadOnly();
+        var dtos = rows.Select(m => m.ToDto()).ToList();
+        var resolved = await ChatAttachmentUrls.ResolveAsync(dtos, mediator, cancellationToken).ConfigureAwait(false);
+        return resolved.AsReadOnly();
     }
 }

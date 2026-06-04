@@ -20,6 +20,10 @@ var postgresServer = builder.AddPostgres("postgres")
 
 var postgres = postgresServer.AddDatabase("fsh-db");
 
+// Warm pooled-connection floor for the long-running API — Npgsql's default Minimum Pool Size of 0 lets the pool drain to cold, so /health/ready's ~10 concurrent DbContext checks cold-open a cohort at once and intermittently stall the probe; a floor keeps connections warm for reuse.
+var apiPgConnection = ReferenceExpression.Create(
+    $"{postgres.Resource.ConnectionStringExpression};Minimum Pool Size=5");
+
 // Valkey (BSD-3 Redis fork) as a plain container: Aspire 13.4.0 AddRedis() forces TLS-by-default in run mode and never materializes the container, so we drop to plain RESP over TCP. Name stays "redis" so config keys don't churn.
 var redis = builder.AddContainer("redis", "valkey/valkey", "9.1.0")
     .WithEndpoint(targetPort: 6379, scheme: "tcp", name: "tcp")
@@ -109,13 +113,21 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>($"{appPrefix}-api")
     .WaitForCompletion(demoSeeder)
     .WithExternalHttpEndpoints()
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
-    .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
+    .WithEnvironment("DatabaseOptions__ConnectionString", apiPgConnection)
     .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
     .WithEnvironment("CachingOptions__Redis", redisConnectionString)
     .WithEnvironment("CachingOptions__EnableSsl", "false")
     // Hangfire dashboard (/jobs) creds — [Required], Password [MinLength(12)], ValidateOnStart; API won't boot without them. Dev-only, mirrors appsettings.Development.json.
     .WithEnvironment("HangfireOptions__UserName", "admin")
     .WithEnvironment("HangfireOptions__Password", "Password123!")
+    // SMTP via Ethereal (https://ethereal.email) — fake catch-all inbox for local dev (nothing delivered); mirrors appsettings.Development.json. Safe to commit: throwaway test creds.
+    .WithEnvironment("MailOptions__UseSendGrid", "false")
+    .WithEnvironment("MailOptions__From", "nicole.lueilwitz0@ethereal.email")
+    .WithEnvironment("MailOptions__DisplayName", "Mukesh Murugan")
+    .WithEnvironment("MailOptions__Smtp__Host", "smtp.ethereal.email")
+    .WithEnvironment("MailOptions__Smtp__Port", "587")
+    .WithEnvironment("MailOptions__Smtp__UserName", "nicole.lueilwitz0@ethereal.email")
+    .WithEnvironment("MailOptions__Smtp__Password", "x4VJz2r9x2NDss9KpC")
     .WithEnvironment("Storage__Provider", "s3")
     .WithEnvironment("Storage__S3__Bucket", MinioBucket)
     .WithEnvironment("Storage__S3__Region", "us-east-1")

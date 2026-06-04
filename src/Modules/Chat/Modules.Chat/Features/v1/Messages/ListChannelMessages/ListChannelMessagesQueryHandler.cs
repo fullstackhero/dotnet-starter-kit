@@ -12,7 +12,8 @@ namespace FSH.Modules.Chat.Features.v1.Messages.ListChannelMessages;
 
 public sealed class ListChannelMessagesQueryHandler(
     ChatDbContext db,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IMediator mediator)
     : IQueryHandler<ListChannelMessagesQuery, ReadOnlyCollection<MessageDto>>
 {
     public async ValueTask<ReadOnlyCollection<MessageDto>> Handle(
@@ -46,6 +47,8 @@ public sealed class ListChannelMessagesQueryHandler(
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return rows.Select(m => m.ToDto()).ToList().AsReadOnly();
+        var dtos = rows.Select(m => m.ToDto()).ToList();
+        var resolved = await ChatAttachmentUrls.ResolveAsync(dtos, mediator, cancellationToken).ConfigureAwait(false);
+        return resolved.AsReadOnly();
     }
 }

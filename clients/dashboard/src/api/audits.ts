@@ -142,6 +142,8 @@ export type ListAuditsQuery = {
   tenantId?: string;
   userId?: string;
   eventType?: AuditEventType;
+  /** Hide a single event type (e.g. "Activity" to drop system-level HTTP noise). */
+  excludeEventType?: AuditEventType;
   severity?: AuditSeverity;
   /** Bitmask of AuditTag values. */
   tags?: number;
@@ -166,6 +168,90 @@ function toQueryString(query: Record<string, unknown>): string {
 
 function toPascal(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Human-readable summaries — turn the terse `source` (e.g. "api.chat.ListMyChannels"
+// or "IdentityDbContext") into a plain-English predicate so rows read like an
+// activity feed ("Mukesh · viewed chat channels") without opening the details.
+// The list DTO carries no field-level before/after, so entity changes summarize
+// at the record level; the detail drawer still shows the full payload.
+// ────────────────────────────────────────────────────────────────────────
+
+// Past-tense verb for the leading word of a PascalCase action name.
+const ACTION_VERBS: Record<string, string> = {
+  list: "viewed", get: "viewed", fetch: "viewed", read: "viewed", search: "searched", export: "exported",
+  create: "created", add: "added", register: "registered", invite: "invited", upload: "uploaded", generate: "generated",
+  update: "updated", edit: "updated", set: "updated", change: "changed", adjust: "adjusted", rename: "renamed", reorder: "reordered", renew: "renewed",
+  delete: "deleted", remove: "removed", revoke: "revoked", void: "voided", purge: "purged",
+  assign: "assigned", toggle: "toggled", mark: "marked", confirm: "confirmed", resend: "re-sent",
+  issue: "issued", refresh: "refreshed", enroll: "enrolled in", disable: "disabled", enable: "enabled",
+  restore: "restored", pin: "pinned", unpin: "unpinned", join: "joined", leave: "left", react: "reacted to",
+  impersonate: "impersonated", start: "started", end: "ended", download: "downloaded", capture: "captured",
+};
+
+// Whole-action phrases that don't decompose into a clean verb + object.
+const ACTION_OVERRIDES: Record<string, string> = {
+  IssueJwtToken: "signed in",
+  RefreshToken: "refreshed their session",
+  SseToken: "connected to the live stream",
+  GetUnreadNotificationCount: "checked notifications",
+  ListMyChannels: "opened chat",
+};
+
+function splitPascal(value: string): string[] {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .split(/[\s._-]+/)
+    .filter(Boolean);
+}
+
+function pastTense(verb: string): string {
+  if (ACTION_VERBS[verb]) return ACTION_VERBS[verb];
+  if (verb.endsWith("e")) return `${verb}d`;
+  if (verb.endsWith("y")) return `${verb.slice(0, -1)}ied`;
+  return `${verb}ed`;
+}
+
+function humanizeAction(action: string, area?: string): string {
+  if (ACTION_OVERRIDES[action]) return ACTION_OVERRIDES[action];
+  const words = splitPascal(action);
+  if (words.length === 0) return area ? `accessed ${area}` : "performed an action";
+  const verb = pastTense(words[0].toLowerCase());
+  const object = words
+    .slice(1)
+    .filter((w) => w.toLowerCase() !== "my")
+    .join(" ")
+    .toLowerCase();
+  const target = object || area || "";
+  return target ? `${verb} ${target}` : verb;
+}
+
+/** Plain-English predicate for an audit row — pairs with the actor shown alongside
+ *  it: `${actor} ${auditPredicate(row)}` → "Mukesh signed in". */
+export function auditPredicate(row: Pick<AuditSummaryDto, "eventType" | "source">): string {
+  const src = (row.source ?? "").trim();
+
+  if (row.eventType === AuditEventType.Exception) {
+    const parts = src.replace(/^api\./i, "").split(".").filter(Boolean);
+    const where = parts.length ? splitPascal(parts[parts.length - 1]).join(" ").toLowerCase() : "";
+    return where ? `hit an error in ${where}` : "hit an error";
+  }
+
+  if (row.eventType === AuditEventType.EntityChange) {
+    const area = src.replace(/DbContext$/i, "").trim();
+    const label = area ? splitPascal(area).join(" ").toLowerCase() : "some";
+    return `changed ${label} records`;
+  }
+
+  // Activity / Security — "api.<area>.<Action>" (or a single segment).
+  const parts = src.replace(/^api\./i, "").split(".").filter(Boolean);
+  if (parts.length === 0) return "performed an action";
+  if (parts.length === 1) return `accessed ${splitPascal(parts[0]).join(" ").toLowerCase()}`;
+  const action = parts[parts.length - 1];
+  const area = parts[0];
+  return humanizeAction(action, area);
 }
 
 // ────────────────────────────────────────────────────────────────────────

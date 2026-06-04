@@ -19,7 +19,7 @@ public sealed class AuditHttpMiddleware
     {
         ArgumentNullException.ThrowIfNull(ctx);
 
-        if (ShouldSkip(ctx))
+        if (ShouldSkip(ctx) || IsStreamingResponse(ctx))
         {
             await _next(ctx).ConfigureAwait(false);
             return;
@@ -200,6 +200,16 @@ public sealed class AuditHttpMiddleware
         return _opts.ExcludePathStartsWith.Any(prefix =>
             path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
+
+    // Streaming responses (Server-Sent Events, and the SignalR SSE transport) must never be buffered.
+    // The audit path swaps Response.Body for a MemoryStream and only copies it to the real socket once
+    // the handler returns — but a long-lived stream's handler never returns until the client
+    // disconnects, so the browser would receive nothing (no headers, no events) and sit forever on
+    // "connecting". Detect the SSE handshake by its Accept header and pass the request straight
+    // through, untouched. The stream's token/auth requests are short-lived and still audited normally.
+    private static bool IsStreamingResponse(HttpContext ctx) =>
+        ctx.Request.Headers.Accept.Any(static v =>
+            v is not null && v.Contains("text/event-stream", StringComparison.OrdinalIgnoreCase));
 
     private readonly record struct RequestCaptureContext(object? Preview, int Size, int MaskedFields);
 }

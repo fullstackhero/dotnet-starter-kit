@@ -1,6 +1,7 @@
 const ACCESS_KEY = "fsh.dashboard.accessToken";
 const REFRESH_KEY = "fsh.dashboard.refreshToken";
 const TENANT_KEY = "fsh.dashboard.tenant";
+const PERMS_KEY = "fsh.dashboard.permissions";
 
 // Impersonation stash. While an operator is impersonating another user,
 // the live token store holds the impersonation tokens; the operator's
@@ -23,6 +24,28 @@ export const tokenStore = {
   getRefreshToken: () => localStorage.getItem(REFRESH_KEY),
   getTenant: () => localStorage.getItem(TENANT_KEY),
 
+  /**
+   * Permissions are fetched separately from the JWT (the token only carries
+   * role names — see GetCurrentUserPermissionsEndpoint server-side). Cached
+   * here so gated UI can read them synchronously; re-hydrated on each login
+   * and whenever the signed-in subject changes (incl. impersonation swaps).
+   */
+  getPermissions(): string[] {
+    try {
+      const raw = localStorage.getItem(PERMS_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as unknown;
+      return Array.isArray(parsed) ? parsed.filter((p): p is string => typeof p === "string") : [];
+    } catch {
+      return [];
+    }
+  },
+
+  setPermissions(permissions: string[]) {
+    localStorage.setItem(PERMS_KEY, JSON.stringify(permissions));
+    emit();
+  },
+
   setTokens(accessToken: string, refreshToken: string) {
     localStorage.setItem(ACCESS_KEY, accessToken);
     localStorage.setItem(REFRESH_KEY, refreshToken);
@@ -37,6 +60,7 @@ export const tokenStore = {
   clear() {
     localStorage.removeItem(ACCESS_KEY);
     localStorage.removeItem(REFRESH_KEY);
+    localStorage.removeItem(PERMS_KEY);
     // Also clear any impersonation stash so a fresh login doesn't
     // inherit half of a previous operator's session.
     localStorage.removeItem(STASH_ACCESS_KEY);
@@ -62,6 +86,9 @@ export const tokenStore = {
 
     localStorage.setItem(ACCESS_KEY, impersonationAccessToken);
     localStorage.removeItem(REFRESH_KEY);
+    // Drop the operator's permissions — the impersonated subject has its own;
+    // the auth context re-hydrates on the subject change.
+    localStorage.removeItem(PERMS_KEY);
     if (impersonatedTenant) localStorage.setItem(TENANT_KEY, impersonatedTenant);
     emit();
   },
@@ -74,6 +101,7 @@ export const tokenStore = {
     const stashTenant = localStorage.getItem(STASH_TENANT_KEY);
     localStorage.setItem(ACCESS_KEY, accessToken);
     localStorage.setItem(REFRESH_KEY, refreshToken);
+    localStorage.removeItem(PERMS_KEY);
     if (stashTenant) localStorage.setItem(TENANT_KEY, stashTenant);
     localStorage.removeItem(STASH_ACCESS_KEY);
     localStorage.removeItem(STASH_REFRESH_KEY);
@@ -94,6 +122,7 @@ export const tokenStore = {
     if (!access) return false;
     localStorage.setItem(ACCESS_KEY, access);
     if (refresh) localStorage.setItem(REFRESH_KEY, refresh);
+    localStorage.removeItem(PERMS_KEY);
     if (tenant) localStorage.setItem(TENANT_KEY, tenant);
     localStorage.removeItem(STASH_ACCESS_KEY);
     localStorage.removeItem(STASH_REFRESH_KEY);

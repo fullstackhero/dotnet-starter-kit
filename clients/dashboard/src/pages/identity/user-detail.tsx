@@ -28,10 +28,12 @@ import {
   adminRevokeAllUserSessions,
   adminRevokeUserSession,
   assignUserRoles,
+  confirmUserEmail,
   deleteUser,
   getUserById,
   getUserRoles,
   getUserSessionsAdmin,
+  resendUserConfirmationEmail,
   toggleUserStatus,
   type AdminUserSessionDto,
   type UserRoleDto,
@@ -91,6 +93,7 @@ export function UserDetailPage() {
   const canImpersonate = (actor?.permissions ?? []).includes("Permissions.Users.Impersonate");
   const canViewSessions = (actor?.permissions ?? []).includes("Permissions.Sessions.ViewAll");
   const canRevokeSessions = (actor?.permissions ?? []).includes("Permissions.Sessions.RevokeAll");
+  const canConfirmEmail = (actor?.permissions ?? []).includes("Permissions.Users.ConfirmEmail");
 
   const userQuery = useQuery({
     queryKey: ["identity", "users", userId],
@@ -177,6 +180,28 @@ export function UserDetailPage() {
       setDialog({ mode: "closed" });
     },
     onError: (err) => toast.error("Status change failed", { description: describe(err) }),
+  });
+
+  const confirmEmail = useMutation({
+    mutationFn: () => {
+      if (!user?.id) throw new Error("Missing user id");
+      return confirmUserEmail(user.id);
+    },
+    onSuccess: () => {
+      toast.success("Email confirmed");
+      void queryClient.invalidateQueries({ queryKey: ["identity", "users", userId] });
+      void queryClient.invalidateQueries({ queryKey: ["identity", "users"] });
+    },
+    onError: (err) => toast.error("Confirm email failed", { description: describe(err) }),
+  });
+
+  const resendConfirmation = useMutation({
+    mutationFn: () => {
+      if (!user?.id) throw new Error("Missing user id");
+      return resendUserConfirmationEmail(user.id);
+    },
+    onSuccess: () => toast.success("Confirmation email sent"),
+    onError: (err) => toast.error("Couldn't send confirmation email", { description: describe(err) }),
   });
 
   const removeUser = useMutation({
@@ -334,6 +359,30 @@ export function UserDetailPage() {
               >
                 <UserCog className="h-3.5 w-3.5" /> Impersonate
               </Button>
+            )}
+            {canConfirmEmail && !user.emailConfirmed && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => resendConfirmation.mutate()}
+                  disabled={resendConfirmation.isPending}
+                  className="gap-1.5"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  {resendConfirmation.isPending ? "Sending…" : "Resend confirmation"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => confirmEmail.mutate()}
+                  disabled={confirmEmail.isPending}
+                  className="gap-1.5"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {confirmEmail.isPending ? "Confirming…" : "Confirm email"}
+                </Button>
+              </>
             )}
             <Button
               variant="outline"

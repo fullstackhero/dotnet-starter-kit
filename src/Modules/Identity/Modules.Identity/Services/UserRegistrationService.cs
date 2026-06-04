@@ -88,6 +88,53 @@ internal sealed class UserRegistrationService(
             : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming {0}", user.Email));
     }
 
+    public async Task AdminConfirmEmailAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        EnsureValidTenant();
+
+        var user = await userManager.Users
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException($"User {userId} was not found.");
+
+        // Idempotent: a second confirm is a no-op rather than an error.
+        if (user.EmailConfirmed)
+        {
+            return;
+        }
+
+        user.EmailConfirmed = true;
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            throw new CustomException(string.Format(
+                CultureInfo.InvariantCulture,
+                "An error occurred while confirming the email for {0}: {1}",
+                user.Email,
+                string.Join("; ", result.Errors.Select(e => e.Description))));
+        }
+    }
+
+    public async Task ResendConfirmationEmailAsync(string userId, string origin, CancellationToken cancellationToken = default)
+    {
+        EnsureValidTenant();
+
+        var user = await userManager.Users
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException($"User {userId} was not found.");
+
+        if (user.EmailConfirmed)
+        {
+            throw new CustomException(string.Format(
+                CultureInfo.InvariantCulture,
+                "The email for {0} is already confirmed.",
+                user.Email));
+        }
+
+        await SendConfirmationEmailAsync(user, origin, cancellationToken);
+    }
+
     public async Task<string> ConfirmPhoneNumberAsync(string userId, string code, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();

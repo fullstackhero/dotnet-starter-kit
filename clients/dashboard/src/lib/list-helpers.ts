@@ -17,6 +17,18 @@ export function formatDateMono(iso: string | null | undefined) {
   return dateLong.format(new Date(iso)).toUpperCase().replace(",", "");
 }
 
+// "3:42 PM" — local wall-clock time. Intl renders in the browser's timezone.
+const timeShort = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+// "APR 30 2026 · 3:42 PM" — date + local time for audit/detail panels.
+export function formatDateTimeMono(iso: string | null | undefined) {
+  if (!iso) return "—";
+  return `${formatDateMono(iso)} · ${timeShort.format(new Date(iso))}`;
+}
+
 // "3d ago", "2mo ago" — terse relative time for the secondary line.
 export function formatRelative(iso: string | null | undefined) {
   if (!iso) return "";
