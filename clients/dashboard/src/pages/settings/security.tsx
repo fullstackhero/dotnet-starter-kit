@@ -328,7 +328,7 @@ function PasswordField({
         <button
           type="button"
           tabIndex={-1}
-          aria-label={show ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          aria-label={show ? "Hide password" : "Show password"}
           onClick={() => setShow((s) => !s)}
           className="absolute right-1.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-md text-[var(--color-muted-foreground)] outline-none transition-colors hover:text-[var(--color-foreground)] focus-visible:ring-2 focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
         >

@@ -56,7 +56,9 @@ test.describe("settings/security — change password (Dialog)", () => {
     await dialog.getByLabel("New password", { exact: true }).fill("longenough123");
     await dialog.getByLabel("Confirm new password").fill("differentpw123");
     await dialog.getByRole("button", { name: /update password/i }).click();
-    await expect(dialog.getByText(/passwords don't match/i)).toBeVisible();
+    // Scope to the submit-error alert — the live "…don't match yet" hint under
+    // the confirm field also contains this phrase.
+    await expect(dialog.getByRole("alert")).toContainText(/passwords don't match/i);
 
     // Current === new is blocked — keeps users from "rotating" to the
     // same value just to reset a forgotten password.

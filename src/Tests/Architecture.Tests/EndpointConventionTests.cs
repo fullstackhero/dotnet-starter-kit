@@ -235,6 +235,7 @@ public class EndpointConventionTests
                                name.StartsWith("Register", StringComparison.Ordinal) ||
                                name.StartsWith("Generate", StringComparison.Ordinal) ||
                                name.StartsWith("Refresh", StringComparison.Ordinal) ||
+                               name.StartsWith("Resend", StringComparison.Ordinal) ||
                                name.StartsWith("Confirm", StringComparison.Ordinal) ||
                                name.StartsWith("Reset", StringComparison.Ordinal) ||
                                name.StartsWith("Forgot", StringComparison.Ordinal) ||
