@@ -6,6 +6,7 @@ using Finbuckle.MultiTenant.EntityFrameworkCore.Stores;
 using Finbuckle.MultiTenant.Extensions;
 using Finbuckle.MultiTenant.Stores;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Eventing.Abstractions;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
@@ -33,6 +34,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -66,6 +68,13 @@ public sealed class MultitenancyModule : IModule
             Services.TenantInitialPasswordBuffer>();
 
         builder.Services.AddHeroDbContext<TenantDbContext>();
+
+        // Override the no-op event tenant scope (registered by AddEventingCore) with a
+        // Finbuckle-backed one so background event dispatch (outbox / hosted services)
+        // establishes the tenant before tenant-filtered handler DbContexts are built.
+        // Replace (not Add) so it wins regardless of module registration order.
+        builder.Services.Replace(
+            ServiceDescriptor.Singleton<IEventTenantScope, FinbuckleEventTenantScope>());
 
         builder.Services
             .AddMultiTenant<AppTenantInfo>(options =>

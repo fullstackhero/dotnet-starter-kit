@@ -7,6 +7,7 @@ using FSH.Framework.Eventing.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace FSH.Framework.Eventing;
@@ -26,6 +27,12 @@ public static class ServiceCollectionExtensions
         services.AddOptions<EventingOptions>().BindConfiguration(nameof(EventingOptions));
 
         services.AddSingleton<IEventSerializer, JsonEventSerializer>();
+
+        // Tenant context for event dispatch. Default is a no-op; the multitenancy
+        // composition replaces this with a Finbuckle-backed scope so background
+        // publishers (outbox dispatcher, hosted services) establish the tenant before
+        // tenant-filtered handler DbContexts are constructed.
+        services.TryAddSingleton<IEventTenantScope, NullEventTenantScope>();
 
         // Register event bus based on configured provider
         var options = configuration.GetSection(nameof(EventingOptions)).Get<EventingOptions>() ?? new EventingOptions();

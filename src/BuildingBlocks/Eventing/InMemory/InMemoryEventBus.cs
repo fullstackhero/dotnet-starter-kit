@@ -15,6 +15,7 @@ public sealed partial class InMemoryEventBus : IEventBus
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<InMemoryEventBus> _logger;
+    private readonly IEventTenantScope _tenantScope;
 
     // The closed handler interface type and its HandleAsync method are stable per event type, so
     // they are resolved once and cached rather than recomputing reflection on every published event.
@@ -22,10 +23,11 @@ public sealed partial class InMemoryEventBus : IEventBus
 
     private readonly record struct HandlerDispatch(Type HandlerInterfaceType, MethodInfo HandleMethod);
 
-    public InMemoryEventBus(IServiceProvider serviceProvider, ILogger<InMemoryEventBus> logger)
+    public InMemoryEventBus(IServiceProvider serviceProvider, ILogger<InMemoryEventBus> logger, IEventTenantScope tenantScope)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _tenantScope = tenantScope;
     }
 
     private static HandlerDispatch GetDispatch(Type eventType)
@@ -57,21 +59,29 @@ public sealed partial class InMemoryEventBus : IEventBus
 
         var dispatch = GetDispatch(eventType);
 
-        using var scope = _serviceProvider.CreateScope();
-        var provider = scope.ServiceProvider;
-
-        var handlers = ResolveHandlers(provider, dispatch.HandlerInterfaceType);
-        if (handlers.Length == 0)
+        // Establish the tenant context from the event BEFORE resolving handlers — a
+        // MultiTenantDbContext captures its TenantInfo at construction, so a tenant set
+        // after handler resolution would be too late and the tenant query filter would
+        // dereference a null tenant (NRE). Background publishers (outbox dispatcher,
+        // hosted services) carry no ambient tenant, so this is what makes them work.
+        using (_tenantScope.Begin(@event.TenantId))
         {
-            LogNoHandlers(eventType.FullName);
-            return;
-        }
+            using var scope = _serviceProvider.CreateScope();
+            var provider = scope.ServiceProvider;
 
-        var inbox = provider.GetService<IInboxStore>();
+            var handlers = ResolveHandlers(provider, dispatch.HandlerInterfaceType);
+            if (handlers.Length == 0)
+            {
+                LogNoHandlers(eventType.FullName);
+                return;
+            }
 
-        foreach (var handler in handlers)
-        {
-            await InvokeHandlerAsync(handler, dispatch.HandleMethod, eventType, @event, inbox, ct).ConfigureAwait(false);
+            var inbox = provider.GetService<IInboxStore>();
+
+            foreach (var handler in handlers)
+            {
+                await InvokeHandlerAsync(handler, dispatch.HandleMethod, eventType, @event, inbox, ct).ConfigureAwait(false);
+            }
         }
     }
 
