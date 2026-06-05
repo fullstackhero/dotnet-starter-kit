@@ -317,6 +317,14 @@ jobs:
             -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-api \
             -p:ContainerImageTags='"dev-${{ github.sha }};dev-latest"'
 
+      - name: Publish DbMigrator container image
+        run: |
+          dotnet publish src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj \
+            -c Release -r linux-x64 \
+            /t:PublishContainer \
+            -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-db-migrator \
+            -p:ContainerImageTags='"dev-${{ github.sha }};dev-latest"'
+
   publish-release:
     name: Publish Release (NuGet + Containers)
     needs: [changes, test, integration-test]
@@ -389,6 +397,14 @@ jobs:
             -c Release -r linux-x64 \
             /t:PublishContainer \
             -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-api \
+            -p:ContainerImageTags='"${{ steps.version.outputs.version }};latest"'
+
+      - name: Build and push DbMigrator container
+        run: |
+          dotnet publish src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj \
+            -c Release -r linux-x64 \
+            /t:PublishContainer \
+            -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-db-migrator \
             -p:ContainerImageTags='"${{ steps.version.outputs.version }};latest"'
 
   # Single required status check. Always runs (even when the heavy jobs are
