@@ -68,6 +68,14 @@ if ($tfVersion -lt $MinTfVersion) {
   Die "Terraform >= $MinTfVersion required (found $tfVersion). Upgrade with e.g. 'choco upgrade terraform'."
 }
 
+# Ask up front (before the long apply) whether to seed the acme/globex demo
+# tenants. Skipped when already chosen (-SeedDemo), not migrating (-SkipMigrate),
+# or running unattended (-AutoApprove / non-interactive) so CI never blocks.
+if (-not $SeedDemo -and -not $SkipMigrate -and -not $AutoApprove -and [Environment]::UserInteractive) {
+  $ans = Read-Host 'Seed demo tenants (acme/globex) after migrating? [y/N]'
+  if ($ans -match '^[Yy]') { $SeedDemo = $true }
+}
+
 Write-Host "==> Deploying '$Environment' in $Region"
 
 # ---- 1. optional API image build/push --------------------------------------

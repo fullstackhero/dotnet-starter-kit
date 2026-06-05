@@ -95,6 +95,14 @@ if [[ "$(printf '%s\n%s\n' "$MIN_TF_VERSION" "$TF_VERSION" | sort -V | head -1)"
   die "Terraform >= $MIN_TF_VERSION required (found $TF_VERSION). Upgrade with e.g. 'choco upgrade terraform'."
 fi
 
+# Ask up front (before the long apply) whether to seed the acme/globex demo
+# tenants. Skipped when already chosen (--seed-demo), not migrating
+# (--skip-migrate), or running unattended (--auto-approve / no TTY) so CI never blocks.
+if [[ "$SEED_DEMO" != true && "$SKIP_MIGRATE" != true && "$AUTO_APPROVE" != true && -t 0 ]]; then
+  read -rp "Seed demo tenants (acme/globex) after migrating? [y/N]: " ans
+  [[ "$ans" =~ ^[Yy] ]] && SEED_DEMO=true
+fi
+
 echo "==> Deploying '$ENVIRONMENT' in $REGION"
 
 # ---- 1. optional API image build/push --------------------------------------
