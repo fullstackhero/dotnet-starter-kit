@@ -88,9 +88,12 @@ export const sections: NavSection[] = [
     caption: "Identity",
     icon: Users,
     items: [
-      { to: "/identity/users", label: "Users", icon: Users },
-      { to: "/identity/roles", label: "Roles", icon: ShieldCheck },
-      { to: "/identity/groups", label: "Groups", icon: UsersRound },
+      // Gate the identity-management pages on a manage permission (not View): View Users/Roles/Groups
+      // are IsBasic so every member holds them (the chat/user picker relies on Users.View), but only
+      // managers should see these admin pages. Basic lacks the *.Update perms, so the items hide for them.
+      { to: "/identity/users", label: "Users", icon: Users, perm: "Permissions.Users.Update" },
+      { to: "/identity/roles", label: "Roles", icon: ShieldCheck, perm: "Permissions.Roles.Update" },
+      { to: "/identity/groups", label: "Groups", icon: UsersRound, perm: "Permissions.Groups.Update" },
     ],
   },
   {
