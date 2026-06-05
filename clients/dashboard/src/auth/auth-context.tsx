@@ -51,8 +51,14 @@ export type AuthContextValue = {
     targetTenantId: string;
     reason?: string;
   }) => Promise<void>;
-  /** Stop impersonating and restore the operator session. */
-  stopImpersonation: () => Promise<void>;
+  /**
+   * Stop impersonating. Restores the operator's dashboard session for an
+   * intra-app impersonation, or signs out (→ /login) when there is no dashboard
+   * session to return to — e.g. a root operator who handed off from the admin
+   * app, since a SuperAdmin must never hold a tenant-dashboard session.
+   * Resolves with `{ signedOut }` so the caller can route accordingly.
+   */
+  stopImpersonation: () => Promise<{ signedOut: boolean }>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -259,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
-  const stopImpersonation = useCallback(async () => {
+  const stopImpersonation = useCallback(async (): Promise<{ signedOut: boolean }> => {
     // No stash ⇒ the operator arrived via a cross-app handoff (e.g. a root
     // SuperAdmin started impersonation from the admin app), so there is no
     // dashboard session to return to. The local impersonation token is
@@ -274,14 +280,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         /* best-effort: token expires shortly, nothing to recover here */
       });
       logout();
-      return;
+      return { signedOut: true };
     }
 
     // Intra-app impersonation: we genuinely need the server-minted operator
     // tokens to restore the original dashboard session, so await the call.
     try {
       const fresh = await endImpersonation();
+      // Defence-in-depth: the End endpoint mints fresh tokens for the *original
+      // operator*. If that operator is a root SuperAdmin (e.g. a cross-app
+      // handoff that nonetheless left a stash), installing them would drop a
+      // root account into the tenant dashboard — exactly what `login` forbids.
+      // Sign out and route to /login instead of restoring.
+      const claims = decodeJwt(fresh.accessToken);
+      if (claims?.tenant === "root") {
+        logout();
+        return { signedOut: true };
+      }
       tokenStore.endImpersonationWithFreshTokens(fresh.accessToken, fresh.refreshToken);
+      return { signedOut: false };
     } catch {
       // End endpoint failed (server unreachable / token invalid). Fall
       // back to whatever we stashed locally; the operator may need to

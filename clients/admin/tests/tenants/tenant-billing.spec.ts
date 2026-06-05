@@ -82,11 +82,12 @@ test.describe("create tenant — plan selector", () => {
     await planSelect.click();
     await page.getByRole("menuitem", { name: "Pro" }).first().click();
 
-    await dialog.getByLabel(/^Identifier/).fill("acme-corp");
+    // Identifier (and JWT issuer) auto-derive from the display name — no need to
+    // type the slug by hand.
     await dialog.getByLabel(/^Display name/).fill("Acme Corp");
+    await expect(dialog.getByLabel(/^Identifier/)).toHaveValue("acme-corp");
     await dialog.getByLabel(/^Admin email/).fill("admin@acme.example");
     await dialog.getByLabel(/^Initial admin password/).fill("Sup3rSecret!");
-    await dialog.getByLabel(/^JWT issuer/).fill("acme-corp.issuer");
 
     const reqPromise = page.waitForRequest(
       (r) => r.url().endsWith("/api/v1/tenants/") && r.method() === "POST",

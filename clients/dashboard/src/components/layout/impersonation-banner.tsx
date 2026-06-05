@@ -33,14 +33,22 @@ export function ImpersonationBanner() {
     mutationFn: async () => {
       setPending(true);
       try {
-        await stopImpersonation();
+        return await stopImpersonation();
       } finally {
         setPending(false);
       }
     },
-    onSuccess: () => {
-      toast.success("Returned to your session");
-      navigate("/", { replace: true });
+    onSuccess: (result) => {
+      // No dashboard session to return to (root operator handed off from the
+      // admin app) → land on /login. Otherwise the operator's own session was
+      // restored → back to the dashboard home.
+      if (result.signedOut) {
+        toast.success("Impersonation ended");
+        navigate("/login", { replace: true });
+      } else {
+        toast.success("Returned to your session");
+        navigate("/", { replace: true });
+      }
     },
     onError: (err) => {
       toast.error("Could not end impersonation cleanly", {

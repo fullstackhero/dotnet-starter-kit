@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +7,8 @@ import {
   AlertCircle,
   ClipboardCheck,
   Copy,
+  Eye,
+  EyeOff,
   KeyRound,
   ShieldCheck,
   ShieldOff,
@@ -20,10 +22,11 @@ import {
   type TwoFactorEnrollmentResponse,
 } from "@/api/two-factor";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, type InputProps } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -90,6 +93,37 @@ const passwordSchema = z
   });
 
 type PasswordValues = z.infer<typeof passwordSchema>;
+
+/**
+ * RevealInput — password Input with a first-class show/hide eye toggle
+ * (mirrors the login screen). Forwards the ref so react-hook-form can
+ * register the field for `reset()` and validation focus.
+ */
+const RevealInput = forwardRef<HTMLInputElement, InputProps>(
+  ({ className, ...props }, ref) => {
+    const [show, setShow] = useState(false);
+    return (
+      <div className="relative">
+        <Input
+          ref={ref}
+          type={show ? "text" : "password"}
+          className={cn("pr-10", className)}
+          {...props}
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => setShow((s) => !s)}
+          aria-label={show ? "Hide password" : "Show password"}
+          className="absolute right-1.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-md text-[var(--color-muted-foreground)] outline-none transition-colors hover:text-[var(--color-foreground)] focus-visible:ring-2 focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
+        >
+          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+    );
+  },
+);
+RevealInput.displayName = "RevealInput";
 
 function PasswordSection() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -168,56 +202,60 @@ function ChangePasswordDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change password</DialogTitle>
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.20)]">
+              <KeyRound className="size-4 text-[var(--color-primary)]" />
+            </span>
+            <DialogTitle>Change password</DialogTitle>
+          </div>
           <DialogDescription>
             Sign-out events for other devices aren't fired automatically — visit the Sessions tab
             below to end them after rotating your password.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="space-y-3" noValidate>
-          <Field id="pw-current" label="Current password" required error={errors.current?.message}>
-            <Input
-              id="pw-current"
-              type="password"
-              autoComplete="current-password"
-              className="font-mono"
-              aria-invalid={errors.current ? true : undefined}
-              autoFocus
-              {...register("current")}
-            />
-          </Field>
-          <Field
-            id="pw-next"
-            label="New password"
-            required
-            hint="At least 8 characters."
-            error={errors.next?.message}
-          >
-            <Input
+        <form onSubmit={onSubmit} className="contents" noValidate>
+          <DialogBody className="space-y-4">
+            <Field id="pw-current" label="Current password" required error={errors.current?.message}>
+              <RevealInput
+                id="pw-current"
+                autoComplete="current-password"
+                className="font-mono"
+                aria-invalid={errors.current ? true : undefined}
+                autoFocus
+                {...register("current")}
+              />
+            </Field>
+            <Field
               id="pw-next"
-              type="password"
-              autoComplete="new-password"
-              className="font-mono"
-              aria-invalid={errors.next ? true : undefined}
-              {...register("next")}
-            />
-          </Field>
-          <Field
-            id="pw-confirm"
-            label="Confirm new password"
-            required
-            error={errors.confirm?.message}
-          >
-            <Input
+              label="New password"
+              required
+              hint="At least 8 characters."
+              error={errors.next?.message}
+            >
+              <RevealInput
+                id="pw-next"
+                autoComplete="new-password"
+                className="font-mono"
+                aria-invalid={errors.next ? true : undefined}
+                {...register("next")}
+              />
+            </Field>
+            <Field
               id="pw-confirm"
-              type="password"
-              autoComplete="new-password"
-              className="font-mono"
-              aria-invalid={errors.confirm ? true : undefined}
-              {...register("confirm")}
-            />
-          </Field>
+              label="Confirm new password"
+              required
+              error={errors.confirm?.message}
+            >
+              <RevealInput
+                id="pw-confirm"
+                autoComplete="new-password"
+                className="font-mono"
+                aria-invalid={errors.confirm ? true : undefined}
+                {...register("confirm")}
+              />
+            </Field>
+          </DialogBody>
 
           <DialogFooter>
             <Button
