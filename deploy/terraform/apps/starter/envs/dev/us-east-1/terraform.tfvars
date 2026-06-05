@@ -53,9 +53,28 @@ db_manage_master_user_password = true
 
 ################################################################################
 # Container Images
+#
+# Final image refs are "<registry>/<image_name>:<tag>", e.g.
+#   ghcr.io/fullstackhero/fsh-api:<tag>
+#   ghcr.io/fullstackhero/fsh-db-migrator:<tag>
+# The tag is SHARED by both images (built together from the same commit) and must
+# be immutable. CI publishes "dev-<full-sha>"; `deploy.sh --build-api` publishes a
+# bare 12-char short SHA. Set the tag to whichever was actually pushed to GHCR.
 ################################################################################
 
+container_registry  = "ghcr.io/fullstackhero"
+api_image_name      = "fsh-api"
+migrator_image_name = "fsh-db-migrator"
 container_image_tag = "1d2c9f9d3b85bb86229f1bc1b9cd8196054f2166"
+
+################################################################################
+# DbMigrator — dev migrates AND seeds (admin + default tenant) on every deploy.
+# Seeding is idempotent; Seed:* / JwtOptions config comes from the image's
+# appsettings.Development.json (ASPNETCORE_ENVIRONMENT=Development on dev).
+# Demo tenants (acme/globex) are opt-in: run deploy with --seed-demo / -SeedDemo.
+################################################################################
+
+migrator_command = ["apply", "--seed"]
 
 ################################################################################
 # Services (Fargate Spot for cost savings)

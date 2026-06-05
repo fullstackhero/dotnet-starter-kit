@@ -482,6 +482,46 @@ variable "api_image_name" {
   default     = "fsh-api"
 }
 
+variable "migrator_image_name" {
+  type        = string
+  description = "DbMigrator container image name (without registry or tag)."
+  default     = "fsh-db-migrator"
+}
+
+################################################################################
+# DbMigrator (one-shot ECS task) Variables
+################################################################################
+
+variable "enable_migrator" {
+  type        = bool
+  description = "Register the DbMigrator one-shot ECS task definition."
+  default     = true
+}
+
+variable "migrator_command" {
+  type        = list(string)
+  description = "Migrator container command. Dev typically [\"apply\", \"--seed\"]; prod [\"apply\"] (migrate only)."
+  default     = ["apply"]
+}
+
+variable "migrator_cpu" {
+  type        = number
+  description = "DbMigrator task CPU units."
+  default     = 512
+}
+
+variable "migrator_memory" {
+  type        = number
+  description = "DbMigrator task memory (MiB)."
+  default     = 1024
+}
+
+variable "migrator_extra_environment_variables" {
+  type        = map(string)
+  description = "Extra env vars for the migrator (e.g. Seed__DefaultAdminPassword / JwtOptions__SigningKey when seeding outside the dev Development profile)."
+  default     = {}
+}
+
 ################################################################################
 # API Service Variables
 ################################################################################

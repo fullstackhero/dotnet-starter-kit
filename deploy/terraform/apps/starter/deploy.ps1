@@ -9,8 +9,9 @@
 .DESCRIPTION
   Runs, in order:
     1. terraform init + apply (VPC, ALB+WAF, ECS API, RDS, Redis, S3, the two SPA CloudFront sites)
-    2. (optional) build & push the API container image
-    3. build the React apps, publish to their S3 buckets, invalidate CloudFront
+    2. (optional) build & push the API + DbMigrator container images
+    3. run the DbMigrator one-shot ECS task (apply / apply --seed) and wait for exit 0
+    4. build the React apps, publish to their S3 buckets, invalidate CloudFront
 
   Requires: terraform >= 1.15.4, aws cli (configured), jq, node/npm, and
   (with -BuildApi) the .NET SDK + a registry login.
@@ -22,6 +23,8 @@ param(
   [switch]$BuildApi,
   [string]$ImageTag,
   [string]$Registry = 'ghcr.io/fullstackhero',
+  [switch]$SkipMigrate,
+  [switch]$SeedDemo,
   [switch]$SkipFrontend,
   [switch]$AutoApprove
 )
@@ -29,6 +32,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $MinTfVersion = [version]'1.15.4'
 $ApiImageName = 'fsh-api'
+$MigratorImageName = 'fsh-db-migrator'
 
 $ScriptDir = $PSScriptRoot
 $RepoRoot = (Resolve-Path "$ScriptDir/../../../..").Path
@@ -55,14 +59,29 @@ Write-Host "==> Deploying '$Environment' in $Region"
 $tfImageArgs = @()
 if ($BuildApi) {
   if (-not $ImageTag) { $ImageTag = (git -C $RepoRoot rev-parse --short=12 HEAD).Trim() }
-  Write-Host "==> Building & pushing API image $Registry/$ApiImageName`:$ImageTag"
   if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { Die 'dotnet SDK required for -BuildApi' }
+  # The SDK pushes to a REMOTE registry only when ContainerRegistry is set; the
+  # registry host must be split out of the repository name (folding it into
+  # ContainerRepository silently loads to the local Docker daemon instead).
+  $registryHost = $Registry.Split('/')[0]                                   # e.g. ghcr.io
+  $registryPath = $Registry.Substring($registryHost.Length).TrimStart('/')  # e.g. fullstackhero
+  $apiRepo = if ($registryPath) { "$registryPath/$ApiImageName" } else { $ApiImageName }
+  $migratorRepo = if ($registryPath) { "$registryPath/$MigratorImageName" } else { $MigratorImageName }
+  Write-Host "==> Building & pushing API image $registryHost/$apiRepo`:$ImageTag"
   dotnet publish "$RepoRoot/src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj" `
     -c Release -r linux-x64 `
     /t:PublishContainer `
-    -p:ContainerRepository="$Registry/$ApiImageName" `
+    -p:ContainerRegistry="$registryHost" `
+    -p:ContainerRepository="$apiRepo" `
     -p:ContainerImageTags="$ImageTag"
-  $tfImageArgs = @('-var', "container_registry=$Registry", '-var', "api_image_name=$ApiImageName", '-var', "container_image_tag=$ImageTag")
+  Write-Host "==> Building & pushing migrator image $registryHost/$migratorRepo`:$ImageTag"
+  dotnet publish "$RepoRoot/src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj" `
+    -c Release -r linux-x64 `
+    /t:PublishContainer `
+    -p:ContainerRegistry="$registryHost" `
+    -p:ContainerRepository="$migratorRepo" `
+    -p:ContainerImageTags="$ImageTag"
+  $tfImageArgs = @('-var', "container_registry=$Registry", '-var', "api_image_name=$ApiImageName", '-var', "migrator_image_name=$MigratorImageName", '-var', "container_image_tag=$ImageTag")
 }
 elseif ($ImageTag) {
   $tfImageArgs = @('-var', "container_image_tag=$ImageTag")
@@ -77,6 +96,58 @@ if ($AutoApprove) { $applyArgs += '-auto-approve' }
 
 Write-Host '==> terraform apply'
 terraform -chdir="$AppStackDir" apply @applyArgs
+
+# ---- 2.5 db migrator (one-shot ECS task) ------------------------------------
+function Invoke-EcsTask($label, $overridesJson) {
+  Write-Host "==> Running DbMigrator task ($label)"
+  $runArgs = @(
+    'ecs', 'run-task',
+    '--cluster', $migCluster,
+    '--task-definition', $migTaskDef,
+    '--launch-type', 'FARGATE',
+    '--network-configuration', "awsvpcConfiguration={subnets=[$migSubnets],securityGroups=[$migSg],assignPublicIp=DISABLED}",
+    '--query', 'tasks[0].taskArn', '--output', 'text'
+  )
+  if ($overridesJson) {
+    $tmp = New-TemporaryFile
+    Set-Content -Path $tmp.FullName -Value $overridesJson -Encoding utf8
+    $runArgs += @('--overrides', "file://$($tmp.FullName)")
+  }
+  $taskArn = (aws @runArgs).Trim()
+  if (-not $taskArn -or $taskArn -eq 'None') { Die "run-task failed to start ($label)" }
+  Write-Host "    task: $taskArn — waiting for it to stop..."
+  aws ecs wait tasks-stopped --cluster $migCluster --tasks $taskArn
+  $exitCode = (aws ecs describe-tasks --cluster $migCluster --tasks $taskArn --query 'tasks[0].containers[0].exitCode' --output text).Trim()
+  if ($exitCode -ne '0') {
+    $reason = (aws ecs describe-tasks --cluster $migCluster --tasks $taskArn --query 'tasks[0].stoppedReason' --output text).Trim()
+    Die "migrator ($label) exited $exitCode — $reason (logs: CloudWatch $migLogGroup)"
+  }
+  Write-Host "    migrator ($label) succeeded."
+}
+
+if ($SkipMigrate) {
+  Write-Host '==> Skipping DB migration (-SkipMigrate)'
+}
+else {
+  $migJson = terraform -chdir="$AppStackDir" output -json migrator 2>$null
+  if (-not $migJson -or $migJson -eq 'null') {
+    Write-Host '==> Migrator not provisioned (enable_migrator=false) — skipping'
+  }
+  else {
+    $mig = $migJson | ConvertFrom-Json
+    $migCluster = $mig.cluster_arn
+    $migTaskDef = $mig.task_definition_family
+    $migCName = $mig.container_name
+    $migSg = $mig.security_group_id
+    $migSubnets = ($mig.subnet_ids -join ',')
+    $migLogGroup = $mig.log_group_name
+    Invoke-EcsTask 'migrate' $null
+    if ($SeedDemo) {
+      $ov = "{`"containerOverrides`":[{`"name`":`"$migCName`",`"command`":[`"seed-demo`"]}]}"
+      Invoke-EcsTask 'seed-demo' $ov
+    }
+  }
+}
 
 # ---- 3. frontends -----------------------------------------------------------
 function Publish-Spa($outputName, $clientDir) {
