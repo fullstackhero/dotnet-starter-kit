@@ -92,8 +92,15 @@ export function useInactivityTimeout({ enabled, idleMs, warningMs, onExpire }: O
       return;
     }
 
-    // Seed the shared stamp on first enable so a fresh login isn't instantly idle.
-    if (activityStore.get() <= 0) activityStore.set(Date.now());
+    // Seed the shared stamp on enable so a fresh login isn't instantly idle.
+    // The stamp lives in localStorage and survives logout, so a value left over
+    // from a previous (possibly expired) session would otherwise make the next
+    // login evaluate as "warning"/"expired" on the first tick and sign the user
+    // straight back out. Refresh it when it's missing OR already past the idle
+    // threshold; a still-fresh stamp from an active sibling tab is preserved.
+    const seeded = activityStore.get();
+    const stale = seeded <= 0 || Date.now() - seeded >= idleRef.current;
+    if (stale) activityStore.set(Date.now());
     expiredRef.current = false;
 
     for (const evt of ACTIVITY_EVENTS) {
