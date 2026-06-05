@@ -59,11 +59,8 @@ public sealed partial class InMemoryEventBus : IEventBus
 
         var dispatch = GetDispatch(eventType);
 
-        // Establish the tenant context from the event BEFORE resolving handlers — a
-        // MultiTenantDbContext captures its TenantInfo at construction, so a tenant set
-        // after handler resolution would be too late and the tenant query filter would
-        // dereference a null tenant (NRE). Background publishers (outbox dispatcher,
-        // hosted services) carry no ambient tenant, so this is what makes them work.
+        // Set tenant context BEFORE resolving handlers — MultiTenantDbContext captures TenantInfo at
+        // construction, so a late tenant NREs the query filter. This is what makes background publishers work.
         using (_tenantScope.Begin(@event.TenantId))
         {
             using var scope = _serviceProvider.CreateScope();

@@ -30,9 +30,8 @@ public sealed class FileAssetConfiguration : IEntityTypeConfiguration<FileAsset>
         builder.Property(x => x.DeletedOnUtc);
         builder.Property(x => x.DeletedBy).HasMaxLength(64);
 
-        // (TenantId, OwnerType, OwnerId) would be the natural index in a row-level multitenancy
-        // model. Here we use schema-per-tenant via the framework's BaseDbContext, so the per-tenant
-        // narrowing is implicit and we only need an Owner index.
+        // Schema-per-tenant (BaseDbContext) makes per-tenant narrowing implicit, so only an
+        // Owner index is needed (not the row-level (TenantId, OwnerType, OwnerId)).
         builder.HasIndex(x => new { x.OwnerType, x.OwnerId })
             .HasDatabaseName("IX_FileAsset_Owner");
         builder.HasIndex(x => x.Status)

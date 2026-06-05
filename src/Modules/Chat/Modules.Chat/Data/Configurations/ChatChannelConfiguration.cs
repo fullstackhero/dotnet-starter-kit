@@ -11,9 +11,8 @@ public sealed class ChatChannelConfiguration : IEntityTypeConfiguration<ChatChan
         ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("Channels");
         builder.HasKey(x => x.Id);
-        // App-generated Guid v7 — per project_ef_value_generation_for_nav_children, the
-        // child Members nav collection requires this on its own Id; doing it on the
-        // aggregate too is harmless and consistent.
+        // App-generated Guid v7. The child Members nav collection requires ValueGeneratedNever on its
+        // own Id; setting it on the aggregate too is harmless and consistent.
         builder.Property(x => x.Id).ValueGeneratedNever();
 
         builder.Property(x => x.Type).IsRequired().HasConversion<int>();

@@ -31,9 +31,8 @@ public sealed class RemoveUserFromGroupCommandHandler : ICommandHandler<RemoveUs
             throw new NotFoundException($"User '{command.UserId}' is not a member of group '{command.GroupId}'.");
         }
 
-        // Default groups (e.g. the seeded "All Users") hold the invariant that
-        // every user in the tenant is a member. Removing breaks that contract —
-        // the next user to register would join a half-populated group.
+        // Default groups (e.g. seeded "All Users") require every tenant user to be a member, so
+        // removing one breaks that invariant and leaves later registrants in a half-populated group.
         if (membership.Group is not null && membership.Group.IsDefault)
         {
             throw new ForbiddenException("Users cannot be removed from a default group.");

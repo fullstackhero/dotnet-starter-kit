@@ -37,11 +37,8 @@ internal sealed class ImpersonationGrantService(
         db.ImpersonationGrants.Add(grant);
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        // Prime the revocation cache with status=Active so the JWT validation
-        // hook's GetOrCreate gets a hit on the very first request without a
-        // DB round-trip. TTL matches the token lifetime so the entry self-
-        // evicts after expiry — and the hook treats expired tokens as
-        // implicitly ended anyway, so a cache miss after expiry is harmless.
+        // Prime the cache with status=Active so the JWT hook hits on the first request without a DB round-trip.
+        // Entry self-evicts after the token lifetime; a miss after expiry is harmless since the hook treats expired tokens as ended.
         await SetCachedStatusAsync(grant, GrantState.Active, ct).ConfigureAwait(false);
 
         return ToDto(grant);
@@ -167,9 +164,8 @@ internal sealed class ImpersonationGrantService(
 
     private static readonly HybridCacheEntryOptions CacheEntryOptions = new()
     {
-        // 5-minute TTL is plenty — impersonation sessions are 60 min max, and
-        // the entry is re-primed on every revoke/end. After natural expiry the
-        // jti is meaningless anyway (JwtBearer rejects on lifetime).
+        // 5-min TTL suffices: sessions are 60 min max and the entry is re-primed on every revoke/end.
+        // After expiry the jti is meaningless anyway (JwtBearer rejects on lifetime).
         Expiration = TimeSpan.FromMinutes(5),
         LocalCacheExpiration = TimeSpan.FromMinutes(1),
         Flags = HybridCacheEntryFlags.DisableCompression,

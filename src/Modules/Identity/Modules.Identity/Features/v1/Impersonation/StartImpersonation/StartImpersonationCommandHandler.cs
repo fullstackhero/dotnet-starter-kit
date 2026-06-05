@@ -69,9 +69,8 @@ public sealed class StartImpersonationCommandHandler
             throw new ForbiddenException("cross-tenant impersonation is restricted to platform operators");
         }
 
-        // Prevent self-impersonation (nothing to gain, confuses audit trail). This
-        // is a caller error → must be a 4xx, not the default 500 that CustomException
-        // assumes.
+        // Prevent self-impersonation (pointless, confuses the audit trail). Caller error → explicit 4xx,
+        // not the 500 CustomException defaults to.
         if (string.Equals(actorUserId, request.TargetUserId, StringComparison.Ordinal)
             && string.Equals(actorTenantId, request.TargetTenantId, StringComparison.Ordinal))
         {
@@ -101,10 +100,8 @@ public sealed class StartImpersonationCommandHandler
         var targetUserName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
             ?? claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value;
 
-        // We need to know the jti of the issued token so we can persist a
-        // matching ImpersonationGrant. BuildClaimsForUserAsync hands us claims
-        // that already include an auto-generated jti — strip it and inject our
-        // own deterministic value so the grant row + JWT agree on it.
+        // Strip the auto-generated jti from BuildClaimsForUserAsync and inject our own, so the persisted
+        // ImpersonationGrant row and the issued JWT share the same jti.
         var jti = Guid.NewGuid().ToString("N");
         var impersonationClaims = claims
             .Where(c => c.Type != JwtRegisteredClaimNames.Jti)
@@ -117,9 +114,8 @@ public sealed class StartImpersonationCommandHandler
             ])
             .ToList();
 
-        // Caller-supplied duration is capped server-side (defense in depth — the
-        // validator already rejects out-of-range, but a future caller bypassing
-        // validation shouldn't escape the cap).
+        // Cap the caller-supplied duration server-side (defense in depth: the validator already rejects
+        // out-of-range, but a future caller bypassing it must not escape the cap).
         var lifetime = request.DurationMinutes is { } minutes
             ? TimeSpan.FromMinutes(Math.Clamp(minutes, 1, StartImpersonationCommandValidator.MaxImpersonationMinutes))
             : (TimeSpan?)null;
@@ -128,10 +124,8 @@ public sealed class StartImpersonationCommandHandler
         var (accessToken, expiresAt) = await _tokenService.IssueAccessOnlyAsync(
             subject, impersonationClaims, lifetime, cancellationToken);
 
-        // Persist the grant AFTER the token issues — if issuance fails we don't
-        // leave an orphan grant row claiming to track a session that never was.
-        // Cache priming inside CreateAsync ensures the JWT validation hook sees
-        // status=Active on the very next request without a DB hit.
+        // Persist the grant AFTER issuance so a failed issue leaves no orphan grant. CreateAsync primes the
+        // cache so the JWT validation hook sees status=Active on the next request without a DB hit.
         await _grantService.CreateAsync(new CreateGrantInput(
             Jti: jti,
             ActorUserId: actorUserId,

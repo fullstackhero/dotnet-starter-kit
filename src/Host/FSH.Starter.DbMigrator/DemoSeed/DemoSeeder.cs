@@ -128,9 +128,8 @@ internal sealed class DemoSeeder
                 existing = tenant;
             }
 
-            // Same code path the migrator's `apply` verb already uses per tenant.
-            // Identity initializer creates the tenant admin user; Catalog/Tickets/Chat
-            // initializers are no-ops in the current design.
+            // Same per-tenant path the migrator's apply verb uses. The Identity initializer creates
+            // the tenant admin, while Catalog/Tickets/Chat initializers are no-ops today.
             await tenantService.MigrateTenantAsync(existing, cancellationToken).ConfigureAwait(false);
             await tenantService.SeedTenantAsync(existing, cancellationToken).ConfigureAwait(false);
 
@@ -209,9 +208,8 @@ internal sealed class DemoSeeder
             return;
         }
 
-        // Reuse the existing active subscription's term if there is one (so re-runs don't re-subscribe
-        // — but still backfill a missing invoice for it); otherwise start a fresh subscription aligned
-        // to the tenant's ValidUpto.
+        // Reuse the existing active subscription's term if present so re-runs don't re-subscribe but
+        // still backfill a missing invoice, otherwise start fresh aligned to the tenant's ValidUpto.
         var existing = await billingDb.Subscriptions
             .FirstOrDefaultAsync(s => s.TenantId == demo.Id && s.Status == SubscriptionStatus.Active, cancellationToken)
             .ConfigureAwait(false);
@@ -230,11 +228,8 @@ internal sealed class DemoSeeder
             }
         }
 
-        // Paid plans get an issued term invoice, matching the real CreateTenant flow. Created directly
-        // (no IBillingService) so we don't publish InvoiceIssuedIntegrationEvent — the migrator has no
-        // outbox dispatcher and demo seeding shouldn't fire notifications/emails. Idempotent (keyed on
-        // the invoice number), so it also backfills an already-subscribed tenant. Free plans (term
-        // price 0) get none, exactly like production.
+        // Paid plans get an issued term invoice (like real CreateTenant), written directly so no InvoiceIssuedIntegrationEvent fires
+        // (no outbox dispatcher; seeding mustn't email). Idempotent on invoice number; free plans (term price 0) get none, as in production.
         if (plan.TermPrice > 0m)
         {
             var invoiceNumber = string.Create(
@@ -388,10 +383,8 @@ internal sealed class DemoSeeder
             }
         }
 
-        // Tenant admin (admin@<tenant>.com) was created by IdentityDbInitializer
-        // with the framework default password. Realign so the dev login panel's
-        // advertised credential is truthful for both the tenant admin AND every
-        // demo user.
+        // Tenant admin (admin@<tenant>.com) was created by IdentityDbInitializer with the framework default password.
+        // Realign it to the shared password so the dev login panel's advertised credential is truthful.
         if (!string.IsNullOrWhiteSpace(tenant.AdminEmail))
         {
             var admin = await userManager.FindByEmailAsync(tenant.AdminEmail).ConfigureAwait(false);

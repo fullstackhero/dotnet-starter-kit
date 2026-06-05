@@ -181,9 +181,8 @@ public sealed class WebhookFanoutHandlerTests
 
     private async Task<Guid> SeedSubscriptionAsync(WebhookDbContext db, string[] events, bool isActive)
     {
-        // Install the tenant context so Finbuckle stamps the seeded row with the
-        // target tenant (BaseDbContext saves in Overwrite mode) and the handler's
-        // tenant-filtered read can see it.
+        // Install tenant context so Finbuckle stamps the seeded row (Overwrite mode)
+        // and the handler's tenant-filtered read can see it.
         SetTenant(TenantId);
 
         WebhookSubscription sub = WebhookSubscription.Create("https://example.com/hook", events, "hash");

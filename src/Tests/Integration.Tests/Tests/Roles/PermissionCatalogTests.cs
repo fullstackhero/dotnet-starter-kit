@@ -44,9 +44,8 @@ public sealed class PermissionCatalogTests
 
         catalog.ShouldNotBeNull();
 
-        // Root tenant sees the full Admin set plus the platform Root set. This is the
-        // same union RolePermissionSyncer applies, so if the two diverge the editor and
-        // the syncer would disagree on what's grantable.
+        // Root tenant sees Admin ∪ Root — the same union RolePermissionSyncer applies,
+        // so any divergence means editor and syncer disagree on what's grantable.
         var expected = PermissionConstants.Admin
             .Concat(PermissionConstants.Root)
             .DistinctBy(p => p.Name)
@@ -55,9 +54,8 @@ public sealed class PermissionCatalogTests
         var actual = catalog.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
         actual.ShouldBe(expected, ignoreOrder: true);
 
-        // The drift bug we're guarding against: prior to the endpoint, the SPA had only
-        // ~25 Identity permissions while the server held 70+. A canary count check catches
-        // a regression that quietly returns just one module's slice.
+        // Drift bug guard: the SPA once saw ~25 Identity permissions while the server held 70+.
+        // This canary count catches a regression that returns just one module's slice.
         catalog.Count.ShouldBeGreaterThan(25);
     }
 

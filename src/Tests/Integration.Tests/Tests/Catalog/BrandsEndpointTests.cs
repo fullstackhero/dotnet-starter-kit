@@ -148,9 +148,8 @@ public sealed class BrandsEndpointTests
     [Fact]
     public async Task CreateBrand_Should_Succeed_When_NameMatchesSoftDeletedBrand()
     {
-        // The filtered unique index on Slug excludes soft-deleted rows so the
-        // same name can be reused after a delete — admins shouldn't get a 409
-        // unless there's a *live* brand with the conflicting slug.
+        // Filtered unique index on Slug excludes soft-deleted rows, so a name can be reused after
+        // a delete — a 409 should only fire when a *live* brand holds the conflicting slug.
         using var client = await _auth.CreateRootAdminClientAsync();
         var name = UniqueName("Reusable");
         var firstId = await CreateAsync(client, name);
@@ -259,9 +258,8 @@ public sealed class BrandsEndpointTests
     [Fact]
     public async Task CreateBrand_Should_NotMarkReplayed_When_NoIdempotencyKey()
     {
-        // Same-key replay is verified globally in IdempotencyFilterTests — same filter,
-        // same wiring. Here we just verify Brands' POST without a key behaves normally
-        // (no spurious replay header), which catches accidental opt-in regressions.
+        // Same-key replay is verified globally in IdempotencyFilterTests; here we just confirm
+        // Brands' POST without a key behaves normally, catching accidental opt-in regressions.
         const string ReplayedHeader = "Idempotency-Replayed";
 
         using var client = await _auth.CreateRootAdminClientAsync();

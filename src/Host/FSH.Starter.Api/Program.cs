@@ -16,12 +16,8 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Serialize all enums as their string names on the HTTP API (e.g. "Active" not 0).
-// Reading still accepts both names and integers (allowIntegerValues default = true),
-// so request payloads sending either form keep working. Single-value enums become
-// strings; [Flags] enums (AuditTag, BodyCapture) opt back to numeric via their own
-// [JsonConverter(NumericEnumConverter<>)] attribute, since a comma-joined flag string
-// breaks bitwise consumers. Frontends mirror this contract (string unions).
+// Serialize enums as string names (reads still accept names or integers). [Flags] enums (AuditTag, BodyCapture)
+// opt back to numeric via their own NumericEnumConverter since comma-joined flag strings break bitwise consumers. Frontends mirror this as string unions.
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -95,9 +91,8 @@ builder.AddHeroPlatform(o =>
 
 builder.AddModules(moduleAssemblies);
 
-// Demo data (acme, globex, demo users, sample catalog/tickets/chat) is provisioned
-// by the DbMigrator's `seed-demo` verb — not by the API. The API never mutates data
-// on startup. See src/Host/FSH.Starter.DbMigrator/README.md.
+// Demo data is provisioned by the DbMigrator's `seed-demo` verb, not the API — the API never mutates data on startup.
+// See src/Host/FSH.Starter.DbMigrator/README.md.
 
 var app = builder.Build();
 

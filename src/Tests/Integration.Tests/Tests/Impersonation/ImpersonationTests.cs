@@ -60,9 +60,8 @@ public sealed class ImpersonationTests : IAsyncLifetime
         await CreateTenantAsync(rootClient, _tenantId, _tenantAdminEmail);
         await WaitForProvisioningAsync(rootClient, _tenantId);
 
-        // Sign in as the freshly seeded tenant admin to capture their userId from
-        // the JWT — using the search endpoint would couple these tests to the
-        // (currently buggy) cross-tenant search header override.
+        // Sign in as the seeded tenant admin to capture their userId from the JWT — the search
+        // endpoint would couple these tests to the (currently buggy) cross-tenant search override.
         var tenantToken = await GetTokenWithRetryAsync(_tenantAdminEmail, TestConstants.DefaultPassword, _tenantId);
         _tenantAdminUserId = ReadSubject(tenantToken.AccessToken);
 
@@ -233,10 +232,8 @@ public sealed class ImpersonationTests : IAsyncLifetime
     [Fact]
     public async Task Start_Should_Return404_When_TargetUserDoesNotExistInTenant()
     {
-        // Arrange — root admin's userId is NOT in the test tenant, so passing it
-        // with targetTenantId=<test tenant> must 404. This is the same shape as
-        // the bug we hit in the admin app (search returned the wrong tenant's
-        // user, then start-impersonation rejected it).
+        // Arrange — root admin's userId is NOT in the test tenant, so passing it with
+        // targetTenantId=<test tenant> must 404 (same shape as the admin-app wrong-tenant-user bug).
         using var rootClient = await _auth.CreateRootAdminClientAsync();
 
         // Act
@@ -289,9 +286,7 @@ public sealed class ImpersonationTests : IAsyncLifetime
         var response = await endClient.PostAsync($"{ImpersonationBasePath}/end", content: null);
 
         // Assert — returns a fresh access+refresh pair for the original actor.
-        // On failure dump the problem-detail body so the underlying server
-        // exception (DetailedTestExceptionHandler emits it) is visible in the
-        // test output instead of a bare status code mismatch.
+        // On failure the problem-detail body surfaces the underlying server exception in the test output.
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<TokenResult>(Json);
         body.ShouldNotBeNull();
@@ -300,8 +295,7 @@ public sealed class ImpersonationTests : IAsyncLifetime
 
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(body.AccessToken);
         jwt.Subject.ShouldBe(_rootAdminUserId);
-        // Restored actor token must NOT carry act_sub anymore — otherwise the
-        // user would still appear impersonated to permission checks.
+        // Restored actor token must NOT carry act_sub, else the user still appears impersonated to perms.
         jwt.Claims.ShouldNotContain(c => c.Type == "act_sub");
     }
 
@@ -628,9 +622,8 @@ public sealed class ImpersonationTests : IAsyncLifetime
         var grants = await rootClient.GetFromJsonAsync<List<ImpersonationGrantPayload>>(
             $"{ImpersonationBasePath}/grants?Status=Active", Json);
 
-        // Assert — exactly one grant should match this jti, proving the token's
-        // jti is the same value persisted in the grant row (the revocation
-        // hook keys off this).
+        // Assert — exactly one grant matches this jti, proving the token's jti equals the value
+        // persisted in the grant row (the revocation hook keys off this).
         grants.ShouldNotBeNull();
         grants.Count(g => g.Jti == jtiClaim).ShouldBe(1);
     }

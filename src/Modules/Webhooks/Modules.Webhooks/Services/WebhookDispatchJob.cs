@@ -59,9 +59,8 @@ public sealed class WebhookDispatchJob
         ArgumentException.ThrowIfNullOrWhiteSpace(eventType);
         ArgumentException.ThrowIfNullOrWhiteSpace(payloadJson);
 
-        // Mirror SqlAuditSink's pattern: create a fresh scope, set tenant context first,
-        // then resolve the DbContext so its Finbuckle filter reads a real TenantInfo
-        // instead of a null one from the outer scope.
+        // Like SqlAuditSink: fresh scope, set tenant context first, then resolve the DbContext so its
+        // Finbuckle filter reads a real TenantInfo instead of a null one from the outer scope.
         using var scope = _scopeFactory.CreateScope();
         var store = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var tenant = await store.GetAsync(tenantId).ConfigureAwait(false);

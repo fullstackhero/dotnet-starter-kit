@@ -34,10 +34,8 @@ public sealed class RevokeImpersonationGrantCommandHandler(
             ?? throw new UnauthorizedException("missing tenant context");
         var isRoot = string.Equals(callerTenantId, MultitenancyConstants.Root.Id, StringComparison.Ordinal);
 
-        // Load before revoking so we can enforce visibility: tenant admins can
-        // only revoke grants targeting their own tenant. Returning 404 (not
-        // 403) for cross-tenant grants avoids confirming existence to callers
-        // outside the grant's scope.
+        // Enforce visibility before revoking: tenant admins may only revoke grants in their own
+        // tenant. Cross-tenant grants return 404 (not 403) so existence isn't confirmed out of scope.
         var grant = await grantService.GetByIdAsync(request.GrantId, cancellationToken).ConfigureAwait(false)
             ?? throw new NotFoundException("impersonation grant not found");
 
@@ -56,9 +54,8 @@ public sealed class RevokeImpersonationGrantCommandHandler(
             reason: request.Reason,
             ct: cancellationToken).ConfigureAwait(false);
 
-        // Surface revoke as a first-class security event so it's queryable
-        // alongside the Start/End audit entries. The Reason field on the audit
-        // is the revocation reason, not the original impersonation reason.
+        // Surface revoke as a first-class security event, queryable alongside Start/End entries.
+        // The audit Reason is the revocation reason, not the original impersonation reason.
         await securityAudit.ImpersonationEndedAsync(
             actorUserId: grant.ActorUserId,
             actorTenantId: grant.ActorTenantId,

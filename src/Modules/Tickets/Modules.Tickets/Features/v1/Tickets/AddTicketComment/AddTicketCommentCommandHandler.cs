@@ -26,10 +26,8 @@ public sealed class AddTicketCommentCommandHandler(
                 HttpStatusCode.Unauthorized);
         }
 
-        // Loading the Comments collection up front gives EF's change tracker
-        // a populated nav property to compare against, so adding a new
-        // TicketComment via the aggregate's encapsulated method is detected
-        // as an INSERT rather than slipping through change detection.
+        // Load the Comments collection up front so EF's change tracker detects the new TicketComment
+        // (added via the aggregate) as an INSERT rather than missing it during change detection.
         var ticket = await dbContext.Tickets
             .Include(t => t.Comments)
             .FirstOrDefaultAsync(t => t.Id == command.TicketId, cancellationToken)

@@ -10,10 +10,8 @@ namespace FSH.Modules.Catalog.Data;
 /// </summary>
 public static class CatalogSeedData
 {
-    // Method (not static property) so each tenant gets fresh Brand instances
-    // with new Ids — Brand.Create generates Guid.CreateVersion7() at construction
-    // time. A shared static list would have the same Ids across tenants and PK-
-    // violate on the second tenant's seed.
+    // Method (not static property) so each tenant gets fresh Brands with new Ids (Brand.Create mints
+    // a Guid per call); a shared static list would reuse Ids and PK-violate on the second tenant's seed.
     public static IReadOnlyList<Brand> BuildBrands() =>
     [
         Brand.Create("Acme Goods",      "Quality essentials for the modern home.",            null),

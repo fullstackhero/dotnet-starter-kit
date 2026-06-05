@@ -133,9 +133,8 @@ public sealed class RenewTenantTests
     [Fact]
     public async Task RenewTenant_Should_Advance_SubscriptionEndUtc_On_SamePlanRenewal()
     {
-        // Regression for billing/tenant drift: a SAME-PLAN renewal advanced tenant.ValidUpto (which
-        // enforcement uses) but left Subscription.EndUtc (which the dashboard term reads) untouched —
-        // so the two diverged after every renewal. Both must move together.
+        // Regression for billing/tenant drift: a same-plan renewal advanced tenant.ValidUpto but left
+        // Subscription.EndUtc untouched, so the two diverged each renewal. Both must move together.
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var unique = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"renew-drift-{unique}";

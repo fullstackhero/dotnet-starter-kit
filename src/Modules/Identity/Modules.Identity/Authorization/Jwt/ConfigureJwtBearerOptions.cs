@@ -110,9 +110,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                         Instance = context.HttpContext.Request.Path,
                     };
 
-                    // In Development surface the actual JwtBearer rejection reason
-                    // (token expired / signing key invalid / issuer mismatch / etc).
-                    // In Production keep the body opaque to avoid leaking validation internals.
+                    // In Development surface the actual JwtBearer rejection reason; in Production keep the
+                    // body opaque to avoid leaking validation internals.
                     if (isDev)
                     {
                         if (context.HttpContext.Items[FailureKey] is string reason)
@@ -152,12 +151,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                 }
                 return Task.CompletedTask;
             },
-            // After JwtBearer validates signature/expiry/issuer/audience, check
-            // whether the token is an impersonation session AND whether the grant
-            // it represents has been revoked or explicitly ended. This is the
-            // server-side teeth behind /impersonation/revoke — without it,
-            // revocation would only stop NEW tokens being issued, not tokens
-            // already in flight.
+            // Server-side teeth behind /impersonation/revoke: for an impersonation token, reject if its
+            // grant is revoked/ended — otherwise revocation wouldn't stop tokens already in flight.
             OnTokenValidated = async context =>
             {
                 var actSub = context.Principal?.FindFirstValue(ClaimConstants.ActorSubject);
@@ -170,25 +165,15 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                 var jti = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Jti);
                 if (string.IsNullOrEmpty(jti))
                 {
-                    // Impersonation token without a jti shouldn't happen (Start
-                    // mints one explicitly) — reject defensively so a malformed
-                    // or stripped token can't bypass the revocation check.
+                    // jti is always minted by Start; reject defensively so a malformed/stripped token
+                    // can't bypass the revocation check.
                     context.HttpContext.Items[FailureKey] = "Impersonation token missing jti claim";
                     context.Fail("impersonation token missing jti claim");
                     return;
                 }
 
-                // Resolve the grant service in a CHILD scope. This hook fires
-                // during JwtBearer's auth middleware, BEFORE Finbuckle's tenant
-                // resolution middleware. Resolving IImpersonationGrantService
-                // directly off `RequestServices` would construct an IdentityDbContext
-                // in the request scope while the tenant context is still null —
-                // and that null-tenant DbContext would then be cached for the rest
-                // of the request, causing later tenant-aware queries (e.g. /profile,
-                // user lookups) to NRE in their Finbuckle query filters. Using a
-                // child scope here isolates the hook's DbContext lifetime so the
-                // request scope can build a fresh, properly-tenanted DbContext
-                // later, once Finbuckle has resolved the tenant.
+                // Resolve in a CHILD scope: this hook runs before Finbuckle resolves the tenant, so a request-
+                // scoped IdentityDbContext would cache a null-tenant context and NRE later tenant query filters.
                 await using var hookScope = context.HttpContext.RequestServices.CreateAsyncScope();
                 var grants = hookScope.ServiceProvider
                     .GetRequiredService<IImpersonationGrantService>();
@@ -212,10 +197,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                 }
 
                 var path = context.HttpContext.Request.Path;
-                // Browser EventSource / SignalR cannot send an Authorization header from the
-                // browser context — they authenticate via ?access_token=. The path allow-list
-                // keeps that exemption narrow so cookie-style query-string tokens can't leak
-                // into other endpoints via referrer logs.
+                // Browser EventSource/SignalR can't send an Authorization header, so they use
+                // ?access_token=. The narrow path allow-list keeps query-string tokens from leaking elsewhere.
                 if (path.StartsWithSegments("/notifications", StringComparison.OrdinalIgnoreCase)
                     || path.StartsWithSegments("/api/v1/realtime/hub", StringComparison.OrdinalIgnoreCase))
                 {
@@ -226,9 +209,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
         };
     }
 
-    // Strip CR/LF and other control characters so attacker-controlled request data
-    // cannot forge log lines (CodeQL cs/log-injection). Kestrel already rejects
-    // truly malformed URIs, but defending in depth keeps console-rendered output safe.
+    // Strip control chars so attacker-controlled request data can't forge log lines
+    // (CodeQL cs/log-injection); defence in depth on top of Kestrel's URI validation.
     private static string SanitizeForLog(string? value)
     {
         if (string.IsNullOrEmpty(value))

@@ -15,9 +15,8 @@ public sealed class JsonEventSerializer : IEventSerializer
         WriteIndented = false
     };
 
-    // Resolving an event type from its name repeats constantly on the outbox and inbox path, and the
-    // underlying reflection lookup parses the assembly qualified name and scans loaded assemblies each
-    // time, so the resolved result for each distinct name is cached here.
+    // Resolving an event type by name (hot on outbox/inbox) reflectively parses the assembly-qualified
+    // name and scans loaded assemblies each time, so the result per distinct name is cached here.
     private static readonly ConcurrentDictionary<string, Type?> TypeCache = new(StringComparer.Ordinal);
 
     public string Serialize(IIntegrationEvent @event)

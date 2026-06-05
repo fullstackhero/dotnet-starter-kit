@@ -49,9 +49,8 @@ public sealed class SearchBrandsQueryHandler(CatalogDbContext dbContext)
         };
     }
 
-    // Whitelist + safe default. Unknown columns or directions fall back to
-    // (name asc) so callers can never trigger a server error or leak the
-    // entity shape via reflection-style sort keys.
+    // Whitelist + safe default: unknown columns/directions fall back to (name asc) so callers
+    // can't trigger a server error or probe the entity shape via reflection-style sort keys.
     private static IQueryable<Brand> ApplySort(IQueryable<Brand> q, string? sortBy, string? sortDir)
     {
         bool desc = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);

@@ -82,9 +82,8 @@ internal sealed class UserProfileService(
         _ = user ?? throw new NotFoundException("user not found");
 
         Uri imageUri = user.ImageUrl ?? null!;
-        // image is optional: a profile update without an avatar passes a null FileUploadRequest
-        // (the endpoint forwards command.Image, which is null for text-only edits). Guard the
-        // null before dereferencing Data, otherwise the common no-image update path NREs.
+        // image is optional: text-only edits forward a null FileUploadRequest, so guard before
+        // dereferencing Data or the common no-image update path NREs.
         if (image?.Data != null)
         {
             var imageString = await storageService.UploadAsync<FshUser>(image, FileType.Image, cancellationToken);

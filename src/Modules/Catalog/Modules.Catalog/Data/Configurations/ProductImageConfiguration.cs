@@ -12,10 +12,8 @@ public sealed class ProductImageConfiguration : IEntityTypeConfiguration<Product
         builder.ToTable("ProductImages");
         builder.HasKey(x => x.Id);
 
-        // The application sets Id via Guid.CreateVersion7() in ProductImage.Create. Without this,
-        // EF's default ValueGeneratedOnAdd treats the non-default Guid as "already persisted"
-        // when the entity is reached through a tracked parent's nav collection, so SaveChanges
-        // emits an UPDATE that affects 0 rows → DbUpdateConcurrencyException.
+        // Id is app-assigned (Guid.CreateVersion7). Without ValueGeneratedNever, EF treats the non-default
+        // Guid reached via a tracked parent's nav collection as persisted → UPDATE-0-rows → concurrency ex.
         builder.Property(x => x.Id).ValueGeneratedNever();
 
         builder.Property(x => x.ProductId).IsRequired();
@@ -27,18 +25,8 @@ public sealed class ProductImageConfiguration : IEntityTypeConfiguration<Product
         builder.Property(x => x.SortOrder).IsRequired();
         builder.Property(x => x.CreatedAtUtc).IsRequired();
 
-        // Non-unique index for cheap product-scoped lookups (e.g. cascade delete, queries that
-        // pull all images for a product).
-        //
-        // We intentionally do NOT add a partial UNIQUE INDEX on (ProductId) WHERE IsThumbnail=TRUE
-        // to enforce "single thumbnail per product". Such an index check is per-statement in
-        // Postgres (partial unique indexes can't be DEFERRABLE), and Product.SetThumbnail emits
-        // two UPDATEs in a single SaveChanges — demote-old + promote-new — whose order EF can
-        // pick freely. If EF emits promote-first, the intermediate state has two thumbnails and
-        // the constraint fires. The single-thumbnail invariant is enforced by the aggregate
-        // itself: AddImage promotes only when no images exist, SetThumbnail clears the flag on
-        // every other image via a foreach, RemoveImage auto-promotes the next lowest-sorted
-        // image when the cover is removed.
+        // Non-unique index for cheap product-scoped lookups. No partial UNIQUE on (ProductId) WHERE IsThumbnail:
+        // it can't be DEFERRABLE and fires mid-statement on SetThumbnail; the aggregate enforces single-thumbnail.
         builder.HasIndex(x => x.ProductId);
     }
 }

@@ -24,9 +24,8 @@ public sealed class CreateTenantCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        // Resolve the plan (falling back to the configured trial plan) and read its term so we can
-        // set the tenant's validity window up front. GetPlanTerm throws NotFound for a bad key,
-        // surfacing as a 400 before any tenant is created.
+        // Resolve the plan (falls back to trial) and read its term to set the tenant validity
+        // window. A bad plan key throws NotFound (400) before any tenant is created.
         var planKey = string.IsNullOrWhiteSpace(command.PlanKey)
             ? billingOptions.Value.DefaultPlanKey
             : command.PlanKey!;
@@ -45,9 +44,8 @@ public sealed class CreateTenantCommandHandler(
             periodEnd,
             cancellationToken).ConfigureAwait(false);
 
-        // Buffer the admin password so IdentityDbInitializer can consume it during
-        // the background provisioning seed step. Stored before StartAsync to avoid
-        // a race where the seed runs before the buffer is populated.
+        // Buffer the admin password for IdentityDbInitializer's background seed step,
+        // storing it before StartAsync so the seed never runs ahead of the buffer.
         passwordBuffer.Store(tenantId, command.AdminPassword);
 
         var provisioning = await provisioningService.StartAsync(tenantId, cancellationToken).ConfigureAwait(false);

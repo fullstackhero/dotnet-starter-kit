@@ -13,7 +13,7 @@
          legacy "DefaultContainer" profile auto-populates ContainerImageTag
          from $(Version), colliding with ContainerImageTags). -->
     <ContainerUser>1654</ContainerUser>
-    <ContainerFamily>noble-chiseled</ContainerFamily>
+    <ContainerFamily>noble</ContainerFamily>
     <ContainerRepository>fsh-db-migrator</ContainerRepository>
 
     <!-- This is an internal operator-facing CLI — no localization, all

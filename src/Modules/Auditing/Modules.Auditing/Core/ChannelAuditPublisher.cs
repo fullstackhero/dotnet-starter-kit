@@ -82,10 +82,8 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
             return;
         }
 
-        // Default-lane drop detection: DropOldest never returns false from
-        // TryWrite, so we approximate the drop signal by comparing reader
-        // depth to capacity *before* writing. Slightly racy under multi-
-        // writer load, but the rate is what matters for alarming.
+        // DropOldest never returns false from TryWrite, so approximate drops by comparing
+        // reader depth to capacity before writing — racy under multi-writer, but rate is what matters.
         if (_default.Reader.Count >= _defaultCapacity)
         {
             AuditingTelemetry.Dropped.Add(1, typeTag);

@@ -57,9 +57,8 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
         var cacheKey = CacheKeys.IdempotencyEntry(tenantId, idempotencyKey);
         var tags = new[] { CacheKeys.Tags.Idempotency, CacheKeys.Tags.Tenant(tenantId) };
 
-        // Probe-only read: IDistributedCache has a real GetAsync that returns null on miss,
-        // unlike HybridCache which requires a factory. We bypass L1 here because idempotency
-        // replays are rare relative to first-calls and L1 warmth has little value.
+        // Probe-only read via IDistributedCache (real GetAsync, null on miss — unlike HybridCache's
+        // factory). Bypasses L1: replays are rare vs first-calls, so L1 warmth has little value.
         var cachedBytes = await distributedCache.GetAsync(cacheKey, httpContext.RequestAborted).ConfigureAwait(false);
         if (cachedBytes is not null && cachedBytes.Length > 0)
         {

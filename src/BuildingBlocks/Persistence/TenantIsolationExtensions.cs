@@ -35,10 +35,8 @@ public static class TenantIsolationExtensions
         {
             if (entityType.IsOwned()) continue;
             if (entityType.ClrType is null) continue;
-            // Skip value-typed sub-models (e.g. ASP.NET 10's IdentityPasskeyData)
-            // that ride along in the EF model but aren't first-class persisted
-            // entities — calling Entity().IsMultiTenant() on them surfaces
-            // "missing primary key" validation errors at design time.
+            // Skip keyless value-typed sub-models (e.g. IdentityPasskeyData) that ride in the EF
+            // model but aren't persisted entities; IsMultiTenant() on them throws "missing primary key".
             if (entityType.FindPrimaryKey() is null) continue;
             if (typeof(IGlobalEntity).IsAssignableFrom(entityType.ClrType)) continue;
             if (entityType.FindAnnotation(FinbuckleMultiTenantAnnotation) is not null) continue;

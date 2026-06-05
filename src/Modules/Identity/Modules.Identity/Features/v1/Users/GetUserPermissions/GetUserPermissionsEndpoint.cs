@@ -11,14 +11,8 @@ namespace FSH.Modules.Identity.Features.v1.Users.GetUserPermissions;
 
 public static class GetUserPermissionsEndpoint
 {
-    // No RequirePermission here on purpose: this endpoint returns the *caller's*
-    // own permissions, which the SPA needs to render permission-gated routes.
-    // Gating it behind Users.View locked out every role that doesn't manage
-    // users (e.g. a Billing-only tenant operator), which would have meant
-    // their client-side route guards never received any permissions and the
-    // admin would stall on "Resolving permissions" forever. The fallback
-    // policy still enforces RequireAuthenticatedUser, so anonymous callers
-    // get 401 as expected.
+    // No RequirePermission on purpose: returns the *caller's* own permissions (the SPA needs them to render
+    // gated routes); gating behind Users.View would lock out non-user-managing roles. Fallback policy → 401.
     internal static RouteHandlerBuilder MapGetCurrentUserPermissionsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapGet("/permissions", async (ClaimsPrincipal user, IMediator mediator, CancellationToken cancellationToken) =>

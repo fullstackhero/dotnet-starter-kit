@@ -19,9 +19,8 @@ public sealed class GetInvoicesQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        // BillingDbContext is not tenant-filtered. Only the root operator gets the cross-tenant view
-        // (optionally narrowed to one tenant via query.TenantId); any other caller — even with the
-        // IsBasic Billing.View permission — is forced to its own tenant, so it can't list across tenants.
+        // BillingDbContext is not tenant-filtered: only root gets the cross-tenant view (optionally
+        // narrowed via query.TenantId); every other caller is forced to its own tenant.
         var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
             ?? throw new UnauthorizedException("Tenant context is required.");
         var isRoot = callerTenantId == MultitenancyConstants.Root.Id;

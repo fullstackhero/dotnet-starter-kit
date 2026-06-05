@@ -69,10 +69,8 @@ public sealed class MultitenancyModule : IModule
 
         builder.Services.AddHeroDbContext<TenantDbContext>();
 
-        // Override the no-op event tenant scope (registered by AddEventingCore) with a
-        // Finbuckle-backed one so background event dispatch (outbox / hosted services)
-        // establishes the tenant before tenant-filtered handler DbContexts are built.
-        // Replace (not Add) so it wins regardless of module registration order.
+        // Replace (not Add) the no-op event tenant scope with a Finbuckle-backed one so background
+        // event dispatch establishes the tenant before tenant-filtered handler DbContexts are built.
         builder.Services.Replace(
             ServiceDescriptor.Singleton<IEventTenantScope, FinbuckleEventTenantScope>());
 
@@ -94,16 +92,9 @@ public sealed class MultitenancyModule : IModule
                     await Task.CompletedTask;
                 };
             })
-            // ── Strategy chain — first hit wins ────────────────────────
-            // Finbuckle runs strategies in registration order, first non-null
-            // identifier wins. ClaimStrategy reads HttpContext.User.Claims, so
-            // it only works when auth has already populated User. In FSH the
-            // app pipeline runs UseMultiTenant() BEFORE UseAuthentication(),
-            // so at strategy-resolution time User is still anonymous and
-            // ClaimStrategy effectively no-ops. That's intentional: tenant
-            // resolution stays header-driven, and the root-operator header
-            // override is implemented as a post-auth middleware below
-            // (see ConfigureMiddleware) where User claims are available.
+            // ── Strategy chain — first non-null identifier wins (registration order) ──
+            // ClaimStrategy no-ops here: UseMultiTenant() runs BEFORE UseAuthentication(), so User is
+            // anonymous at resolution. Tenant stays header-driven; root override is post-auth middleware below.
             .WithClaimStrategy(ClaimConstants.Tenant)
             .WithHeaderStrategy(MultitenancyConstants.Identifier)
             .WithDelegateStrategy(async context =>
@@ -133,20 +124,8 @@ public sealed class MultitenancyModule : IModule
         ArgumentNullException.ThrowIfNull(app);
 
         // ── Root-operator header override ──────────────────────────────
-        // Lets a SuperAdmin (caller whose JWT tenant claim is "root") scope
-        // a single request to another tenant by sending the `tenant` header
-        // (e.g. admin app searching users in tenant X before impersonation).
-        //
-        // Implemented as a post-auth middleware (registered via
-        // UseModuleMiddlewares, which runs AFTER UseAuthentication) because
-        // Finbuckle's strategy chain runs BEFORE auth — User.Claims is empty
-        // at strategy-resolution time. By the time this middleware runs,
-        // Finbuckle has already resolved a tenant (root, from the matching
-        // header sent by the admin app) and JWT bearer has populated User.
-        // We re-resolve only when the override conditions are satisfied:
-        //   - caller's claim tenant == "root"  (gate: prevents cross-tenant escape)
-        //   - request `tenant` header is set and != "root"
-        //   - the requested tenant exists in the store
+        // A "root"-claim caller scopes one request to another tenant via the `tenant` header (post-auth, since
+        // Finbuckle's pre-auth chain has no User). Gated on claim==root + header set != root + target exists.
         app.Use(async (ctx, next) =>
         {
             var callerTenant = ctx.User?.FindFirstValue(ClaimConstants.Tenant);
@@ -169,16 +148,8 @@ public sealed class MultitenancyModule : IModule
         });
 
         // ── Deactivated-tenant guard ───────────────────────────────────
-        // Deactivation was previously a data-only flag with no enforcement:
-        // a deactivated tenant's users could still log in and call the API
-        // (the token handler never checked it, and Finbuckle resolves inactive
-        // tenants like any other). This post-auth guard — running before every
-        // endpoint, so it also covers the anonymous login/refresh requests —
-        // rejects any request whose resolved tenant is non-root and inactive.
-        //
-        // Operators (callers whose JWT tenant claim is "root") are exempt so
-        // they can still manage/reactivate or inspect a deactivated tenant
-        // cross-tenant (incl. via the root-operator override above).
+        // Finbuckle resolves inactive tenants normally, so this post-auth guard rejects any request (incl.
+        // anonymous login/refresh) with a non-root inactive tenant; root operators are exempt.
         app.Use(async (ctx, next) =>
         {
             var callerTenant = ctx.User?.FindFirstValue(ClaimConstants.Tenant);
@@ -188,9 +159,8 @@ public sealed class MultitenancyModule : IModule
                 var accessor = ctx.RequestServices.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>();
                 var tenant = accessor.MultiTenantContext?.TenantInfo;
 
-                // Finbuckle's claim strategy no-ops pre-auth, so an authenticated
-                // request carrying its tenant only in the JWT (no header) may have
-                // no resolved tenant here — fall back to the caller's claim.
+                // Claim strategy no-ops pre-auth, so a JWT-only (no header) request may have no resolved
+                // tenant here — fall back to the caller's claim.
                 if (tenant is null && !string.IsNullOrEmpty(callerTenant))
                 {
                     var store = ctx.RequestServices.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
@@ -216,9 +186,8 @@ public sealed class MultitenancyModule : IModule
                         throw new ForbiddenException("This tenant's subscription has expired. Please renew to continue.");
                     }
 
-                    // Inside the grace window (past ValidUpto, before grace ends): surface the days left
-                    // so clients can warn the tenant. Set via OnStarting so the header survives even when
-                    // an exception handler rewrites the response (e.g. a failed login still in grace).
+                    // Inside the grace window: surface days-left so clients can warn. Set via OnStarting so
+                    // the header survives even when an exception handler rewrites the response.
                     if (nowUtc > tenant.ValidUpto)
                     {
                         var daysLeft = (int)Math.Ceiling((graceEndsUtc - nowUtc).TotalDays);

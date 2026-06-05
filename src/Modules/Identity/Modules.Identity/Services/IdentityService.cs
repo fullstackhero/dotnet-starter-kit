@@ -103,11 +103,8 @@ public sealed class IdentityService : IIdentityService
 
     public async Task StoreRefreshTokenAsync(string subject, string refreshToken, DateTime expiresAtUtc, CancellationToken ct = default)
     {
-        // ExecuteUpdateAsync issues a single targeted UPDATE bypassing both
-        // entity tracking and Finbuckle's MultiTenant interceptors (which NRE
-        // on cross-tenant `IgnoreQueryFilters` use in MultiTenantIdentityDbContext).
-        // Safe because user IDs are globally unique GUIDs — there is exactly
-        // one row matching `Id == subject` regardless of tenant scope.
+        // Targeted UPDATE bypasses tracking + Finbuckle interceptors (which NRE on cross-tenant IgnoreQueryFilters).
+        // Safe: user IDs are globally unique GUIDs, so exactly one row matches Id == subject regardless of tenant.
         var hashedToken = HashToken(refreshToken);
         var updated = await _dbContext.Users
             .IgnoreQueryFilters()
@@ -310,12 +307,8 @@ public sealed class IdentityService : IIdentityService
         return
         [
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            // RFC 7519 standard short-form claims — emitted alongside the legacy
-            // ClaimTypes.* entries so JWT consumers (including the dashboard's
-            // claimsToUser) can read `sub` / `name` / `email` per the spec.
-            // JwtSecurityTokenHandler's default outbound map turns ClaimTypes.Name
-            // into `unique_name`, which is *not* the standard `name` claim, so
-            // we publish `name` explicitly here.
+            // RFC 7519 short-form sub/name/email emitted alongside legacy ClaimTypes.* so JWT consumers read them per spec.
+            // `name` is published explicitly because the default outbound map turns ClaimTypes.Name into `unique_name`, not `name`.
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Name, fullName.Length > 0 ? fullName : (user.Email ?? string.Empty)),

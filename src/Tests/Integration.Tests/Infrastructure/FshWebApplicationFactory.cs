@@ -56,9 +56,8 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         // Force host creation via the Server property (no leaked HttpClient)
         _ = Server;
 
-        // Run migrations and seed data for the root tenant.
-        // We use a semaphore to prevent multiple test classes (which might share the same DB)
-        // from attempting to migrate simultaneously.
+        // Migrate + seed the root tenant. The semaphore stops test classes sharing the DB
+        // from migrating simultaneously.
         await _migrationLock.WaitAsync();
         try
         {
@@ -154,10 +153,8 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
 
         builder.ConfigureServices(services =>
         {
-            // Remove hosted services that depend on infrastructure not available in tests or cause race conditions:
-            // - RolePermissionSyncHostedService (queries identity schema before migrations run)
-            // - Hangfire server + stale lock cleanup (we register our own InMemory server below)
-            // - OutboxDispatcherHostedService (queries OutboxMessages table before migrations run)
+            // Remove hosted services that need unavailable infra or race migrations (RolePermissionSync,
+            // Hangfire server + stale-lock cleanup, OutboxDispatcher); we register our own InMemory server below.
             var hostedServicesToRemove = services
                 .Where(d => d.ServiceType == typeof(IHostedService) &&
                     (d.ImplementationType?.Name == "RolePermissionSyncHostedService" ||
@@ -193,10 +190,8 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
             foreach (var h in existingHandlers) services.Remove(h);
             services.AddExceptionHandler<DetailedTestExceptionHandler>();
 
-            // AddHeroStorage reads `Storage:Provider` eagerly at registration time, before the test
-            // factory's in-memory configuration overlay is applied — so the production registration
-            // wires up LocalStorageService. Replace it with the S3 stack pointed at the MinIO
-            // testcontainer here, after all module registrations have run.
+            // AddHeroStorage reads `Storage:Provider` eagerly (before the test config overlay applies), so it
+            // wires LocalStorageService. Replace it here with the S3 stack pointed at the MinIO testcontainer.
             RewireStorageForS3(services);
         });
     }

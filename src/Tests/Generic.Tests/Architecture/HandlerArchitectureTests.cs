@@ -197,9 +197,8 @@ public sealed class HandlerArchitectureTests
 
     private static bool IsPartialClass(Type type)
     {
-        // Partial classes that use source generators (like GeneratedRegex) will have
-        // compiler-generated nested types or methods. We check for the presence of
-        // GeneratedRegex attribute on any method as an indicator.
+        // Source-generator partials (e.g. GeneratedRegex) emit compiler-generated members; detect
+        // them via a GeneratedRegexAttribute on any method.
         return type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
             .Any(m => m.GetCustomAttributes()
                 .Any(a => a.GetType().Name == "GeneratedRegexAttribute"));

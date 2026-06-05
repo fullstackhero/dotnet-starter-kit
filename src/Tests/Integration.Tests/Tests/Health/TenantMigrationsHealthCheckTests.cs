@@ -42,8 +42,7 @@ public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
         };
 
         // ── Before migrations ────────────────────────────────────────────
-        // Every migration in the assembly is pending. The check must surface
-        // that as Unhealthy so /health/ready returns 503.
+        // Every migration is pending → check must be Unhealthy so /health/ready returns 503.
         var beforeResult = await check.CheckHealthAsync(context, CancellationToken.None);
         beforeResult.Status.ShouldBe(HealthStatus.Unhealthy);
         beforeResult.Description.ShouldNotBeNull();

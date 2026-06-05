@@ -65,9 +65,8 @@ public sealed class AddUsersToGroupCommandHandler : ICommandHandler<AddUsersToGr
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        // Joining a group can grant new roles (via GroupRoles) which feed the user's
-        // effective role claims at JWT mint time. Invalidate the cached permission set
-        // for each newly-added user so their next request reflects the change.
+        // Joining a group can grant new roles (via GroupRoles) feeding JWT claims; invalidate
+        // each newly-added user's cached permission set so their next request reflects it.
         foreach (var userId in usersToAdd)
         {
             await _userPermissionService.InvalidatePermissionCacheAsync(userId, cancellationToken).ConfigureAwait(false);

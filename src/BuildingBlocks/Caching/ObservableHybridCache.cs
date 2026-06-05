@@ -141,10 +141,8 @@ internal sealed class ObservableHybridCache : HybridCache
         return _inner.RemoveByTagAsync(tags, cancellationToken);
     }
 
-    // State flows through TState so we avoid a per-call closure capturing the surrounding
-    // ObservableHybridCache instance. The StrongBox is a single-field heap allocation used
-    // to observe the "factory invoked?" flag after the inner call returns — unavoidable
-    // because HybridCache does not surface hit/miss directly.
+    // State flows through TState to avoid a per-call closure; the StrongBox observes the
+    // "factory invoked?" flag after the inner call (HybridCache doesn't surface hit/miss).
     private struct FactoryWrapperState<TState, T>
     {
         public FactoryWrapperState(TState state, Func<TState, CancellationToken, ValueTask<T>> factory, bool Invoked)

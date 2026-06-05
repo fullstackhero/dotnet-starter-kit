@@ -300,9 +300,8 @@ public sealed class AuditExceptionAndFilterTests
     [Fact]
     public async Task GetAudits_Should_ClampWindow_When_OnlyFromSuppliedAndOld()
     {
-        // Arrange — supplying only fromUtc (well beyond MaxWindow) bypasses the
-        // validator's both-endpoints rule and exercises the handler's clamp to
-        // the 90-day MaxWindow. A both-endpoints range >90d would 400 instead.
+        // Only fromUtc (well beyond MaxWindow) bypasses the validator's both-endpoints rule and exercises
+        // the handler's clamp to the 90-day MaxWindow. A both-endpoints range >90d would 400 instead.
         using var client = await _auth.CreateRootAdminClientAsync();
         await AuditTestHelper.GenerateActivityAuditAsync(client);
         string from = DateTime.UtcNow.AddDays(-400).ToString("o");
@@ -407,11 +406,8 @@ public sealed class AuditExceptionAndFilterTests
 
     private static async Task TriggerApiExceptionAsync(HttpClient client)
     {
-        // GET /audits/{guid} for a non-existent record throws KeyNotFoundException
-        // inside the audited request, producing an Api-area Exception audit event.
-        // The AuditHttpMiddleware writes the exception audit before the exception
-        // propagates to the exception handler, so the audit is recorded regardless
-        // of the final HTTP status the handler renders.
+        // GET /audits/{guid} for a missing record throws KeyNotFoundException inside the audited request, producing an Api-area Exception audit.
+        // AuditHttpMiddleware writes it before the exception reaches the handler, so it's recorded regardless of the final HTTP status.
         var response = await client.GetAsync($"{TestConstants.AuditsBasePath}/{Guid.NewGuid()}");
         (await AuditTestHelper.IsNotFoundAsync(response)).ShouldBeTrue();
     }

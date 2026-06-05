@@ -83,10 +83,8 @@ public sealed class AccountLockoutTests
             });
         registerResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-        // Admin-registered users aren't auto-confirmed; force-confirm via UserManager
-        // so the login flow reaches the password + lockout check instead of the
-        // EmailConfirmed guard. Need to set tenant context before UserManager queries
-        // so Finbuckle's multi-tenant filter has a real TenantInfo.
+        // Admin-registered users aren't auto-confirmed; force-confirm via UserManager so login reaches the
+        // password/lockout check. Set tenant context first so Finbuckle's filter has a real TenantInfo.
         using var scope = _factory.Services.CreateScope();
         var tenant = await scope.ServiceProvider
             .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()

@@ -55,10 +55,8 @@ public sealed class SendMessageCommandHandler(
             }
         }
 
-        // Parse @username tokens and resolve to user ids. Self-mentions and unresolved tokens are
-        // dropped silently — the body text still shows the @ as written. Only mentions that resolve
-        // to a real *other* user attach as MessageMention rows + trigger an integration event.
-        // Body may be null/empty for attachment-only sends.
+        // Parse @username tokens to user ids; self-mentions and unresolved tokens are dropped silently.
+        // Only resolved *other* users attach as MessageMention rows + fire an event. Body may be empty.
         var rawMatches = MentionParser.Parse(cmd.Body ?? string.Empty);
         var distinctNames = rawMatches.Select(m => m.Username)
             .Distinct(StringComparer.OrdinalIgnoreCase)

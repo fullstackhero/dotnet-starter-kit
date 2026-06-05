@@ -82,9 +82,8 @@ public sealed class TenantService : ITenantService
         AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer)
         {
             Plan = planKey,
-            // Set the initial validity directly to the plan term. SetValidity() guards against moving
-            // the date backward (correct for renewals), but the constructor seeds ValidUpto to now+1mo,
-            // so using it here would reject a term computed from an earlier 'now'.
+            // Set ValidUpto directly to the plan term: SetValidity() forbids moving the date backward, and
+            // the ctor seeds now+1mo, so it would reject a term computed from an earlier 'now'.
             ValidUpto = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc),
         };
         await _tenantStore.AddAsync(tenant).ConfigureAwait(false);
@@ -250,12 +249,8 @@ public sealed class TenantService : ITenantService
         await _tenantStore.GetAsync(id).ConfigureAwait(false)
             ?? throw new NotFoundException($"{typeof(AppTenantInfo).Name} {id} Not Found.");
 
-    // Finbuckle resolves tenants through the distributed-cache store first
-    // (60-min TTL), and the injected store above only writes to the EF store —
-    // so an IsActive flip wouldn't take effect until the cache expired, and the
-    // deactivated-tenant guard would keep seeing the stale "active" copy. Push
-    // the new state straight into the cache store so the guard (and tenant
-    // resolution everywhere) sees it on the very next request.
+    // Finbuckle resolves via the distributed-cache store first (60-min TTL) while the injected store only
+    // writes EF, so push the new state into the cache store too — otherwise flips lag until cache expiry.
     private async Task RefreshTenantCacheAsync(AppTenantInfo tenant)
     {
         var cacheStore = _serviceProvider

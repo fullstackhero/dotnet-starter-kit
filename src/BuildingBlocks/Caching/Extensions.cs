@@ -33,18 +33,16 @@ public static class Extensions
 
         var cacheOptions = configuration.GetSection(nameof(CachingOptions)).Get<CachingOptions>() ?? new CachingOptions();
 
-        // L2: Redis if configured, in-memory distributed cache otherwise.
-        // Note: Microsoft.Extensions.Caching.StackExchangeRedis 9.0+ implements
-        // IBufferDistributedCache, which HybridCache uses for zero-copy reads.
+        // L2: Redis if configured, in-memory distributed cache otherwise. StackExchangeRedis 9.0+
+        // implements IBufferDistributedCache, which HybridCache uses for zero-copy reads.
         if (string.IsNullOrEmpty(cacheOptions.Redis))
         {
             services.AddDistributedMemoryCache();
         }
         else
         {
-            // Connect once at registration time and share the multiplexer across the
-            // Redis cache, Data Protection key persistence, and any future Redis-backed
-            // consumers — one connection pool per host instead of one per feature.
+            // Connect once and share the multiplexer across the Redis cache, Data Protection key
+            // persistence, and future consumers — one connection pool per host, not per feature.
             var redisConfig = ConfigurationOptions.Parse(cacheOptions.Redis);
             redisConfig.AbortOnConnectFail = false;
             if (cacheOptions.EnableSsl.HasValue)
@@ -60,9 +58,8 @@ public static class Extensions
                     Task.FromResult<IConnectionMultiplexer>(sharedMultiplexer);
             });
 
-            // Persist Data Protection keys (auth cookies, password-reset tokens, email-
-            // confirmation tokens, antiforgery) to Redis so multi-instance hosts share a
-            // key ring and tokens survive after a rolling restart on any node.
+            // Persist Data Protection keys (auth cookies, reset/confirmation tokens, antiforgery) to
+            // Redis so multi-instance hosts share a key ring and tokens survive rolling restarts.
             services.AddDataProtection()
                 .PersistKeysToStackExchangeRedis(sharedMultiplexer, "DataProtection-Keys")
                 .SetApplicationName("FSH.Starter");
@@ -80,9 +77,8 @@ public static class Extensions
             options.MaximumPayloadBytes = cacheOptions.MaximumPayloadBytes;
         });
 
-        // Wrap HybridCache with the OTel-emitting decorator. We capture the existing descriptor
-        // (a DefaultHybridCache factory installed by AddHybridCache), remove it, and register a
-        // factory that builds the inner via the original descriptor and returns our wrapper.
+        // Wrap HybridCache with the OTel-emitting decorator: capture the descriptor AddHybridCache
+        // installed, remove it, and register a factory that builds the inner and returns our wrapper.
         DecorateHybridCache(services);
 
         return services;

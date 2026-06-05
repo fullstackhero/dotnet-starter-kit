@@ -78,9 +78,8 @@ public sealed class AuditBackgroundWorker : BackgroundService
         Task delayTask,
         CancellationToken stoppingToken)
     {
-        // Security lane is drained first so back-pressured publishers
-        // unblock as quickly as possible. Default lane fills the rest of
-        // the batch so a single flush amortizes both lanes' I/O.
+        // Security lane drained first so back-pressured publishers unblock fast, then the
+        // default lane fills the rest so one flush amortizes both lanes' I/O.
         DrainAvailableItems(_publisher.SecurityReader, batch);
         DrainAvailableItems(_publisher.Reader, batch);
 
@@ -90,10 +89,8 @@ public sealed class AuditBackgroundWorker : BackgroundService
             return (true, Task.Delay(_flushInterval, stoppingToken));
         }
 
-        // Wait until either lane has data or the flush interval elapses.
-        // Neither channel is ever closed by the publisher (the only signal
-        // is stoppingToken cancellation, which we catch in ExecuteAsync),
-        // so any non-delay completion means "more data is ready".
+        // Wait until either lane has data or the flush interval elapses. Channels are never
+        // closed (only stoppingToken signals), so any non-delay completion means data is ready.
         var securityWait = _publisher.SecurityReader.WaitToReadAsync(stoppingToken).AsTask();
         var defaultWait = _publisher.Reader.WaitToReadAsync(stoppingToken).AsTask();
         var winner = await Task.WhenAny(securityWait, defaultWait, delayTask);

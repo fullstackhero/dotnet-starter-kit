@@ -100,10 +100,8 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search;
-            // ILIKE on PayloadJson is sequential without a GIN/trigram index.
-            // The composite (TenantId, OccurredAtUtc) index keeps the planner
-            // honest by scoping the scan; pair this with a GIN index on
-            // PayloadJson in production for sub-second search.
+            // ILIKE on PayloadJson is sequential; the (TenantId, OccurredAtUtc) index
+            // scopes the scan — add a GIN index on PayloadJson in prod for fast search.
             audits = audits.Where(a =>
                 (a.PayloadJson != null && EF.Functions.ILike(AsText(a.PayloadJson), $"%{term}%")) ||
                 (a.Source != null && EF.Functions.ILike(a.Source, $"%{term}%")) ||

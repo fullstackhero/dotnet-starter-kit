@@ -49,6 +49,11 @@ foreach ($tool in 'terraform', 'aws') {
   if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { Die "$tool is required but not installed" }
 }
 
+# Pin the region for every `aws` CLI call (else it falls back to ~/.aws/config →
+# "Invalid Region in ARN" when that default differs from $Region).
+$env:AWS_REGION = $Region
+$env:AWS_DEFAULT_REGION = $Region
+
 $tfVersion = [version](terraform version -json | ConvertFrom-Json).terraform_version
 if ($tfVersion -lt $MinTfVersion) {
   Die "Terraform >= $MinTfVersion required (found $tfVersion). Upgrade with e.g. 'choco upgrade terraform'."
@@ -119,7 +124,9 @@ function Invoke-EcsTask($label, $overridesJson) {
     Set-Content -Path $tmp.FullName -Value $overridesJson -Encoding utf8
     $runArgs += @('--overrides', "file://$($tmp.FullName)")
   }
-  $taskArn = (aws @runArgs).Trim()
+  $taskArn = (aws @runArgs)
+  if ($LASTEXITCODE -ne 0 -or -not $taskArn) { Die "run-task failed to start ($label) — see aws error above (region: $env:AWS_REGION)" }
+  $taskArn = "$taskArn".Trim()
   if (-not $taskArn -or $taskArn -eq 'None') { Die "run-task failed to start ($label)" }
   Write-Host "    task: $taskArn — waiting for it to stop..."
   aws ecs wait tasks-stopped --cluster $migCluster --tasks $taskArn

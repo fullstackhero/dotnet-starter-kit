@@ -27,10 +27,8 @@ public sealed class CreateTenantCommandValidator : AbstractValidator<CreateTenan
             .NotEmpty()
             .EmailAddress();
 
-        // Admin password is now operator-supplied rather than a hardcoded default.
-        // The minimum 8-char rule matches the Identity password policy floor; the
-        // mixed-character requirements (digit / upper / non-alpha) are enforced
-        // later by ASP.NET Identity's PasswordValidators when the seed runs.
+        // Admin password is operator-supplied. The 8-char floor matches the Identity policy; mixed-character
+        // rules (digit/upper/non-alpha) are enforced later by Identity's PasswordValidators at seed time.
         RuleFor(t => t.AdminPassword).Cascade(CascadeMode.Stop)
             .NotEmpty()
             .MinimumLength(8)

@@ -412,9 +412,8 @@ public sealed class NotificationsEndpointTests
         string type = "test.poke",
         int spaceCreationByMs = 0)
     {
-        // userId comes from /register as the raw Guid string Identity assigned; the handler reads
-        // currentUser.GetUserId().ToString() against the same column, so the canonical Guid format
-        // is what we need to match. Normalize through Guid.Parse to be sure.
+        // The handler reads currentUser.GetUserId().ToString() against the same column, so normalize
+        // the registered userId through Guid.Parse to the canonical Guid format to match.
         var canonical = Guid.Parse(userId).ToString();
         var ids = new List<Guid>(count);
 

@@ -13,9 +13,8 @@ public static class Extensions
             .BindConfiguration(nameof(MailOptions))
             .ValidateOnStart();
 
-        // One SendGrid client (and its underlying HttpClient) shared process-wide.
-        // Constructing it per-send leaks sockets / exhausts ephemeral ports under load.
-        // The factory is lazy, so the client is only built when SendGrid is actually used.
+        // One SendGrid client (and its HttpClient) shared process-wide — per-send construction leaks
+        // sockets under load. The factory is lazy, so it's only built when SendGrid is actually used.
         services.AddSingleton<ISendGridClient>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<MailOptions>>().Value;

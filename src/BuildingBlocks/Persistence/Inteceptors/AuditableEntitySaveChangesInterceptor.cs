@@ -101,13 +101,8 @@ public sealed class AuditableEntitySaveChangesInterceptor : SaveChangesIntercept
                 entry.Property(nameof(ISoftDeletable.DeletedOnUtc)).CurrentValue = now;
                 entry.Property(nameof(ISoftDeletable.DeletedBy)).CurrentValue = userId;
 
-                // When EF marks the parent for deletion it cascades the
-                // EntityState.Deleted onto every owned reference. Flipping
-                // the parent back to Modified isn't enough — without
-                // restoring the owned references they'd be NULLed out in
-                // the generated UPDATE (we saw this on Product.Price /
-                // Money, where the soft delete produced a NOT NULL
-                // violation on PriceAmount).
+                // A soft-delete cascades Deleted onto owned references; restore them to Unchanged or the
+                // generated UPDATE NULLs their columns (broke Product.Price/Money with a NOT NULL violation).
                 foreach (var reference in entry.References)
                 {
                     if (reference.TargetEntry is { } target

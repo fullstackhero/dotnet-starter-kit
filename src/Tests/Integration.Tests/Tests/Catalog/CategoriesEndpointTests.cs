@@ -257,9 +257,8 @@ public sealed class CategoriesEndpointTests
     [Fact]
     public async Task CreateCategory_Should_Succeed_When_NameMatchesSoftDeletedCategory()
     {
-        // Filtered unique index on Slug excludes soft-deleted rows, so the same name can be
-        // reused after a delete — admins shouldn't get a 409 unless there's a *live* category
-        // with the conflicting slug.
+        // Filtered unique index on Slug excludes soft-deleted rows, so a name can be reused after
+        // a delete — a 409 should only fire when a *live* category holds the conflicting slug.
         using var client = await _auth.CreateRootAdminClientAsync();
         var name = UniqueName("Reusable");
         var firstId = await CreateAsync(client, name);

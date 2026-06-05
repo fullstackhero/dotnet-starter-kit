@@ -2,10 +2,8 @@ using Integration.Tests.Infrastructure;
 
 namespace Integration.Tests.Tests.Multitenancy;
 
-// Regression for #1245: anonymous, tenant-scoped endpoints bind a required
-// `tenant` header. When it's missing, ASP.NET Core throws BadHttpRequestException
-// (StatusCode 400) during parameter binding. GlobalExceptionHandler used to let
-// that fall through to a generic 500; it must now surface the framework's 400.
+// Regression for #1245: a missing required `tenant` header on anonymous tenant-scoped endpoints throws
+// BadHttpRequestException (400) during binding — must surface as 400, not fall through to a generic 500.
 [Collection(FshCollectionDefinition.Name)]
 public sealed class MissingTenantTests
 {

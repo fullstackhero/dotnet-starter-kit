@@ -24,9 +24,8 @@ internal sealed record MigratorCommand(
         ArgumentNullException.ThrowIfNull(args);
 
         var rawVerb = args.FirstOrDefault(a => !a.StartsWith('-')) ?? "apply";
-        // Canonicalise to one of the known verbs via case-insensitive match.
-        // Using OrdinalIgnoreCase here (CA1308 forbids ToLowerInvariant for
-        // security-sensitive normalisation) keeps the lookup explicit.
+        // Canonicalise to a known verb via OrdinalIgnoreCase match (CA1308 forbids
+        // ToLowerInvariant for security-sensitive normalisation).
         var verb = KnownVerbs.FirstOrDefault(v => string.Equals(v, rawVerb, StringComparison.OrdinalIgnoreCase))
             ?? rawVerb;
 

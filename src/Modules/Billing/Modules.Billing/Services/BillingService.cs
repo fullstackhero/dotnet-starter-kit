@@ -48,10 +48,8 @@ public sealed class BillingService : IBillingService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        // Scope idempotency to the Usage invoice only. The unique index is
-        // (TenantId, PeriodYear, PeriodMonth, Purpose), so a Subscription invoice can legitimately
-        // share the month — without the Purpose filter the existence check would find that
-        // subscription invoice and skip generating the usage/overage invoice (unbilled overage).
+        // Scope the idempotency check to Purpose==Usage: a Subscription invoice may legitimately share
+        // the month, and without this filter we'd match it and skip the usage/overage invoice (unbilled overage).
         var existing = await _db.Invoices
             .FirstOrDefaultAsync(i => i.TenantId == tenantId && i.PeriodYear == periodYear && i.PeriodMonth == periodMonth
                 && i.Purpose == InvoicePurpose.Usage, cancellationToken)
@@ -180,9 +178,8 @@ public sealed class BillingService : IBillingService
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    // Issue/MarkPaid/Void load through here. BillingDbContext is not tenant-filtered, so scope to the
-    // caller: the root operator may mutate any tenant's invoice; a tenant caller is pinned to its own,
-    // so a cross-tenant id resolves to 404 (mirrors GetInvoiceByIdQueryHandler) and can't be mutated.
+    // Issue/MarkPaid/Void load here. BillingDbContext isn't tenant-filtered, so scope to caller: root
+    // mutates any invoice; a tenant caller is pinned to its own (cross-tenant id → 404, can't mutate).
     private async Task<Invoice> LoadInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken)
     {
         var callerTenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id
@@ -273,9 +270,8 @@ public sealed class BillingService : IBillingService
     private static string BuildSubscriptionInvoiceNumber(string tenantId, DateTime periodStartUtc) =>
         $"SUB-{periodStartUtc:yyyyMM}-{TenantToken(tenantId)}";
 
-    // A stable, collision-resistant token from the full tenant id. A naive prefix truncation collides
-    // for tenants sharing a prefix (e.g. "billing-a", "billing-b"), which would clash on the unique
-    // InvoiceNumber index when the monthly job invoices many tenants for the same period.
+    // Stable, collision-resistant token from the full tenant id; a naive prefix truncation would
+    // collide for shared-prefix tenants and clash on the unique InvoiceNumber index.
     private static string TenantToken(string tenantId)
     {
         var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(tenantId));

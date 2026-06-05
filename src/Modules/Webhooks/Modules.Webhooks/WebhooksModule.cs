@@ -39,9 +39,8 @@ public sealed class WebhooksModule : IModule
         builder.Services.AddScoped<IWebhookDispatcher, WebhookDispatcher>();
         builder.Services.AddScoped<WebhookDispatchJob>();
 
-        // Open-generic integration-event bridge — every IIntegrationEvent the bus
-        // publishes is fanned out to matching tenant webhook subscriptions. Closed
-        // handler types are materialized per event type by DI.
+        // Open-generic integration-event bridge — every published IIntegrationEvent fans out to
+        // matching tenant webhook subscriptions; DI materializes closed handler types per event.
         builder.Services.AddScoped(
             typeof(IIntegrationEventHandler<>),
             typeof(WebhookFanoutHandler<>));

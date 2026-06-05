@@ -92,9 +92,8 @@ public class AuditingModule : IModule
         group.MapGetExceptionAuditsEndpoint();
         group.MapGetAuditSummaryEndpoint();
 
-        // Schedule the retention purge. The job is a no-op when
-        // AuditRetentionOptions.Enabled is false, so registering
-        // unconditionally is safe — operators flip the switch in config.
+        // Schedule the retention purge. Registering unconditionally is safe — the job is a no-op
+        // when AuditRetentionOptions.Enabled is false; operators flip the switch in config.
         var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
         var retentionOpts = endpoints.ServiceProvider.GetService<AuditRetentionOptions>();
         if (jobManager is not null && retentionOpts is not null)

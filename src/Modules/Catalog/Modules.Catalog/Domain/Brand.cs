@@ -11,10 +11,8 @@ public sealed class Brand : AggregateRoot<Guid>, ISoftDeletable
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? UpdatedAtUtc { get; private set; }
 
-    // Soft-delete metadata. Populated by AuditableEntitySaveChangesInterceptor
-    // when the row is removed via dbContext.Remove(); a global query filter
-    // on BaseDbContext hides deleted rows from normal queries (use
-    // IgnoreQueryFilters() to include them in trash views).
+    // Soft-delete metadata, set by AuditableEntitySaveChangesInterceptor on dbContext.Remove(). A
+    // BaseDbContext global query filter hides deleted rows; use IgnoreQueryFilters() for trash views.
     public bool IsDeleted { get; private set; }
     public DateTimeOffset? DeletedOnUtc { get; private set; }
     public string? DeletedBy { get; private set; }

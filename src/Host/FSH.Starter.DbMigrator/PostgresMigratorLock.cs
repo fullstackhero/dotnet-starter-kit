@@ -14,16 +14,12 @@ namespace FSH.Starter.DbMigrator;
 /// </summary>
 internal static partial class PostgresMigratorLock
 {
-    // Arbitrary 64-bit key — distinct enough to spot in pg_locks views, no
-    // semantic meaning beyond "this is the fsh-db-migrator session lock".
-    // Held at the server level, so the database it's issued against doesn't
-    // affect coordination across the whole instance.
+    // Arbitrary 64-bit key (spottable in pg_locks) for the fsh-db-migrator session lock.
+    // Held at server level, so the target database doesn't affect instance-wide coordination.
     private const long MigratorAdvisoryLockKey = unchecked((long)0xFE514EC0_DEB1ADE4UL);
 
-    // Parameterised SQL — pg_advisory_lock / pg_advisory_unlock take a bigint,
-    // and even though the key is a compile-time constant, using a parameter
-    // satisfies CA2100 (review SQL strings for injection risk) without an
-    // analyzer suppression.
+    // Parameterised SQL: the bigint key is constant, but a parameter satisfies
+    // CA2100 (SQL injection review) without an analyzer suppression.
     private const string AcquireSql = "SELECT pg_advisory_lock(@key)";
     private const string ReleaseSql = "SELECT pg_advisory_unlock(@key)";
 
@@ -159,9 +155,8 @@ internal static partial class PostgresMigratorLock
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
-    // LoggerMessage source-gen — compile-time message templates avoid
-    // CA1873 (eager argument evaluation) and pair cleanly with S6667
-    // (logging in a catch block passes the exception explicitly).
+    // LoggerMessage source-gen: compile-time templates avoid CA1873 (eager arg eval)
+    // and pair cleanly with S6667 (catch-block logging passes the exception explicitly).
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Information,
         Message = "Postgres ready (attempt {Attempt}).")]

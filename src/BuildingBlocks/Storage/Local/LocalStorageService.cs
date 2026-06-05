@@ -147,9 +147,8 @@ public sealed partial class LocalStorageService : IStorageService
         return FileNameSanitizer().Replace(fileName, "_");
     }
 
-    // Local presigning is a development fallback when Storage:Provider != s3. Production deployments
-    // use S3StorageService. The token store is process-static so the dev middleware (registered in
-    // the host when Provider=local) can consume the token without re-resolving DI scope.
+    // Dev-only presigning fallback when Storage:Provider != s3 (prod uses S3StorageService). Token
+    // store is process-static so the dev middleware can consume the token without re-resolving DI.
     private static LocalPresignTokenStore? _staticTokenStore;
     public static LocalPresignTokenStore SharedTokenStore => LazyInitializer.EnsureInitialized(ref _staticTokenStore);
 
@@ -182,9 +181,8 @@ public sealed partial class LocalStorageService : IStorageService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
         var normalized = storageKey.TrimStart('/').Replace("\\", "/", StringComparison.Ordinal);
-        // Resolved later by the dashboard's API origin (UserProfileService already does this for
-        // legacy avatar paths). Keeping the leading slash lets clients distinguish absolute URLs
-        // from server-relative ones.
+        // Resolved later against the dashboard's API origin (as UserProfileService does for legacy
+        // avatars). The leading slash lets clients distinguish absolute from server-relative URLs.
         return $"/{normalized}";
     }
 

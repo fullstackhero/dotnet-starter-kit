@@ -142,9 +142,8 @@ public sealed class BillingTenantIsolationTests
 
     #region Cross-tenant mutation isolation (P0 security regressions)
 
-    // A non-root tenant must never be able to MUTATE another tenant's billing resources by id —
-    // the read-side isolation above is necessary but not sufficient. Each test below encodes the
-    // exact attack: tenant B (fresh, non-root) targets root's resource. Pre-fix these succeeded.
+    // A non-root tenant must never MUTATE another tenant's billing resources by id (read isolation
+    // alone is insufficient). Each test below has tenant B target root's resource; pre-fix these succeeded.
 
     [Fact]
     public async Task VoidInvoice_Should_Return404_When_OwnedByDifferentTenant()
@@ -274,10 +273,8 @@ public sealed class BillingTenantIsolationTests
     [Fact]
     public async Task GenerateInvoiceForPeriod_Should_CreateUsageInvoice_EvenWhen_SubscriptionInvoiceSharesThePeriod()
     {
-        // Reproduces the revenue bug: the idempotency check used to match ANY invoice for the period
-        // (no Purpose), so when a Subscription invoice already existed for the month the Usage/overage
-        // invoice was silently skipped. Seed an active subscription + a Subscription invoice, then
-        // generate — a Usage invoice must still be produced.
+        // Reproduces the revenue bug: the idempotency check matched ANY invoice for the period (ignoring
+        // Purpose), silently skipping the Usage invoice when a Subscription invoice already existed.
         var (year, month) = NextPeriod();
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var key = UniqueKey("usgskip");
@@ -295,9 +292,8 @@ public sealed class BillingTenantIsolationTests
             await db.SaveChangesAsync();
         });
 
-        // Invoke the generator directly for this exact period (tenant context = root). Pre-fix the
-        // idempotency check matched the seeded SUBSCRIPTION invoice and returned it (Purpose=Subscription),
-        // skipping usage billing. Post-fix it must produce a USAGE invoice.
+        // Invoke the generator directly for this period (tenant context = root). Pre-fix it returned the
+        // seeded Subscription invoice and skipped usage billing; post-fix it must produce a Usage invoice.
         var generated = await InvokeGenerateInvoiceForPeriodAsync(TestConstants.RootTenantId, year, month);
 
         generated.ShouldNotBeNull("the generator must produce an invoice when an active subscription exists");
@@ -390,9 +386,8 @@ public sealed class BillingTenantIsolationTests
         return id;
     }
 
-    // The Finbuckle tenant context is an AsyncLocal; it MUST be set inline in the same method body
-    // that resolves and uses the DbContext, otherwise it is lost across the await boundary and the
-    // tenant query filter throws a NullReferenceException.
+    // The Finbuckle tenant context is an AsyncLocal: set it inline in the same method that resolves the
+    // DbContext, else it's lost across the await boundary and the tenant query filter NREs.
     private async Task SeedDirectAsync(string tenantId, Func<BillingDbContext, Task> action)
     {
         using var scope = _factory.Services.CreateScope();

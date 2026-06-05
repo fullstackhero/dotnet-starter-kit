@@ -98,9 +98,8 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
         AssignedToUserId = assigneeUserId;
         UpdatedAtUtc = DateTime.UtcNow;
 
-        // Picking up a ticket implicitly starts it. Unassigning a ticket
-        // that's currently InProgress sends it back to Open — it has no
-        // owner pushing it forward.
+        // Picking up a ticket implicitly starts it (Open → InProgress); unassigning an InProgress
+        // ticket sends it back to Open since no owner is pushing it forward.
         if (assigneeUserId is not null && Status == TicketStatus.Open)
         {
             TransitionStatus(TicketStatus.InProgress);

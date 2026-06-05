@@ -13,12 +13,8 @@ public sealed class DeleteProductCommandHandler(CatalogDbContext dbContext)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        // IgnoreAutoIncludes is load-bearing: Product.Images is AutoInclude'd and cascade-deleted.
-        // If we let the images load here, Remove() cascades EntityState.Deleted onto them, and the
-        // soft-delete interceptor only rescues owned references (Price/Money) — not this non-owned
-        // child collection — so EF would HARD-delete the image rows while the product is merely
-        // soft-deleted. Restoring the product would then come back with no images. Leaving the images
-        // untracked means the soft delete is a pure UPDATE and the image rows survive for restore.
+        // IgnoreAutoIncludes is load-bearing: if Product.Images (AutoInclude'd) load here, Remove() cascades Deleted onto them
+        // and the soft-delete interceptor (rescues only owned refs) HARD-deletes them. Untracked keeps the delete a pure UPDATE so rows survive restore.
         var product = await dbContext.Products
             .IgnoreAutoIncludes()
             .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken)

@@ -11,10 +11,8 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("Products");
         builder.HasKey(x => x.Id);
-        // Tenant isolation: applied automatically by BaseDbContext.OnModelCreating
-        // → ApplyTenantIsolationByDefault. The shadow TenantId column makes Sku/Slug
-        // unique-per-tenant (via AdjustUniqueIndexes), so two tenants can each have
-        // SKU "ABC-001" without colliding. Opt out by implementing IGlobalEntity.
+        // Tenant isolation auto-applied by BaseDbContext; the shadow TenantId column makes Sku/Slug
+        // unique-per-tenant, so two tenants can share "ABC-001". Opt out via IGlobalEntity.
 
         builder.Property(x => x.Sku).IsRequired().HasMaxLength(64);
         builder.HasIndex(x => x.Sku).IsUnique().HasFilter("\"IsDeleted\" = FALSE");

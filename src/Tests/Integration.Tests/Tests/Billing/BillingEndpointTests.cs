@@ -31,9 +31,8 @@ public sealed class BillingEndpointTests
         Converters = { new JsonStringEnumConverter() }
     };
 
-    // Tests in this class need unique billing periods to avoid colliding on the
-    // (TenantId, PeriodYear, PeriodMonth) unique index. The shared factory is reused across the
-    // collection, so a process-wide counter keeps every test's period distinct.
+    // Tests need unique billing periods to avoid colliding on the (TenantId, PeriodYear, PeriodMonth)
+    // unique index; the factory is collection-shared, so a process-wide counter keeps periods distinct.
     private static int s_periodCounter;
 
     private readonly FshWebApplicationFactory _factory;
@@ -381,9 +380,8 @@ public sealed class BillingEndpointTests
     [Fact]
     public async Task IssueInvoice_Should_Reject_NonDraft_Invoice()
     {
-        // The Invoice aggregate's RequireStatus(Draft) guard surfaces as InvalidOperationException
-        // which the global handler converts to 5xx. We don't pin the exact status — just that the
-        // call did not succeed AND the invoice state is unchanged.
+        // The aggregate's RequireStatus(Draft) guard surfaces as InvalidOperationException (5xx);
+        // we don't pin the status — just that the call failed AND the invoice state is unchanged.
         var (year, month) = NextPeriod();
         var invoiceId = await SeedDraftInvoiceAsync(TestConstants.RootTenantId, year, month);
         await SeedDirectAsync(async db =>
@@ -551,9 +549,8 @@ public sealed class BillingEndpointTests
         inv.SubtotalAmount.ShouldBe(0m,
             "usage invoices bill metered overage only — the base fee moved to the subscription invoice, and root has no overage");
 
-        // Second call must be idempotent for root — it must not create a second invoice for the
-        // same (tenant, period). (Asserting the global Generated count is 0 is unreliable because
-        // other tests leave additional subscribed tenants in the shared host.)
+        // Second call must be idempotent for root (no duplicate invoice for the same tenant+period);
+        // asserting a global Generated count of 0 is unreliable since other tests leave subscribed tenants.
         using var secondResp = await client.PostAsJsonAsync(
             $"{BillingBasePath}/invoices/generate", new { periodYear = year, periodMonth = month });
         secondResp.StatusCode.ShouldBe(HttpStatusCode.OK);

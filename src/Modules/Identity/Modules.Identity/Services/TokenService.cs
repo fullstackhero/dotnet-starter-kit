@@ -66,9 +66,8 @@ public sealed class TokenService : ITokenService
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
-        // Caller-supplied lifetime wins over the configured default. The caller
-        // (e.g. StartImpersonationCommandHandler) is responsible for capping
-        // to a safe upper bound before passing it in.
+        // Caller-supplied lifetime wins over the configured default; the caller
+        // (e.g. StartImpersonationCommandHandler) must cap it to a safe upper bound.
         var accessTokenExpiry = lifetime is { } span
             ? now.Add(span)
             : now.AddMinutes(_options.AccessTokenMinutes);

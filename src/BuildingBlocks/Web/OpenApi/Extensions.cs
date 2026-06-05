@@ -29,9 +29,8 @@ public static class Extensions
 
         var fshOptions = configuration.GetSection(nameof(OpenApiOptions)).Get<OpenApiOptions>();
 
-        // Register a separate OpenAPI document per API version.
-        // The GroupNameFormat "'v'VVV" in Asp.Versioning causes endpoints to be grouped as "v1", "v2", etc.
-        // Each AddOpenApi(groupName) call creates a document that only includes endpoints from that group.
+        // One OpenAPI document per API version. Asp.Versioning's GroupNameFormat "'v'VVV" groups
+        // endpoints as "v1", "v2", …; each AddOpenApi(groupName) includes only that group's endpoints.
         var versions = fshOptions?.Versions is { Length: > 0 } ? fshOptions.Versions : ["v1"];
         foreach (var version in versions)
         {

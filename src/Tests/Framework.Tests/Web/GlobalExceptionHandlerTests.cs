@@ -19,9 +19,8 @@ public sealed class GlobalExceptionHandlerTests
         return context;
     }
 
-    // Regression for #1245: a missing required `tenant` header surfaces as a
-    // BadHttpRequestException during parameter binding. It must be rendered with
-    // the framework's own status (400), not the generic 500 fallback.
+    // Regression for #1245: a missing required `tenant` header surfaces as a BadHttpRequestException
+    // during binding and must render with its own status (400), not the generic 500 fallback.
     [Fact]
     public async Task TryHandleAsync_Should_Map_BadHttpRequestException_To_ItsStatusCode()
     {

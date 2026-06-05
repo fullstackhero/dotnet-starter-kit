@@ -21,13 +21,8 @@ public sealed class RequiredPermissionAuthorizationHandler(IUserService userServ
             _ => null,
         };
 
-        // IMPORTANT: this MUST resolve the IRequiredPermissionMetadata from
-        // FSH.Framework.Shared.Identity.Authorization — the SAME interface that
-        // RequiredPermissionAttribute implements. There was previously a duplicate
-        // interface in FSH.Modules.Identity which C# name resolution preferred
-        // (closer namespace), causing every `.RequirePermission()` call to silently
-        // fail-open. The explicit `using FSH.Framework.Shared.Identity.Authorization`
-        // above pins the right one. The orphan duplicate has been removed.
+        // IMPORTANT: resolve IRequiredPermissionMetadata from FSH.Framework.Shared.Identity.Authorization (the
+        // interface the attribute implements) — a duplicate would silently fail-open every .RequirePermission().
         var requiredPermissions = endpoint?.Metadata.GetMetadata<IRequiredPermissionMetadata>()?.RequiredPermissions;
         if (requiredPermissions == null)
         {

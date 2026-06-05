@@ -578,7 +578,8 @@ module "migrator" {
 
   environment_variables = merge(
     {
-      ASPNETCORE_ENVIRONMENT              = local.aspnetcore_environment
+      # Generic-host migrator selects its env from DOTNET_ENVIRONMENT, not ASPNETCORE_ENVIRONMENT.
+      DOTNET_ENVIRONMENT                  = local.aspnetcore_environment
       DatabaseOptions__Provider           = "POSTGRESQL"
       DatabaseOptions__MigrationsAssembly = "FSH.Starter.Migrations.PostgreSQL"
       HangfireOptions__Username           = var.hangfire_username

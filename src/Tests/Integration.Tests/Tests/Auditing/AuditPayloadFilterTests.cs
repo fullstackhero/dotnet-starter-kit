@@ -151,9 +151,8 @@ public sealed class AuditPayloadFilterTests
     [Fact]
     public async Task GetAudits_Should_DriveSearchOverRealAsyncWrittenAudit_When_LoggingIn()
     {
-        // Arrange — exercises the full async write path: a login produces a Security audit
-        // written by the background channel worker, then GetAudits?search= filters over the
-        // jsonb payload of that real row. Proves the fix end-to-end (no 500, correct match).
+        // Arrange — full async write path: a login produces a Security audit via the background
+        // channel worker, then GetAudits?search= filters its jsonb payload (end-to-end fix proof).
         await _auth.GetRootAdminTokenAsync();
         using var client = await _auth.CreateRootAdminClientAsync();
 

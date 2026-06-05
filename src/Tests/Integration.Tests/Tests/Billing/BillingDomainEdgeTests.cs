@@ -181,12 +181,8 @@ public sealed class BillingDomainEdgeTests
     [Fact]
     public async Task AddLineItem_Overage_Should_Round_Amount_AwayFromZero_And_Recompute_Subtotal()
     {
-        // Build the invoice graph fresh (BaseFee + Overage) then Add it — this mirrors how
-        // BillingService.GenerateInvoiceForPeriodAsync composes an invoice and is the production add
-        // pattern for line items. The overage line's Quantity*UnitPrice is exactly a .x25 midpoint:
-        // 2.5 * 0.01 = 0.025, which rounds AwayFromZero to 0.03 (banker's rounding would give 0.02),
-        // pinning the MidpointRounding.AwayFromZero behaviour in InvoiceLineItem.Create. Subtotal must
-        // recompute across both lines.
+        // Build the invoice fresh (BaseFee + Overage). Overage 2.5*0.01=0.025 must round AwayFromZero to
+        // 0.03 (not banker's 0.02), and the subtotal must recompute across both lines.
         // Arrange / Act
         var (year, month) = NextPeriod();
         Guid invoiceId = Guid.Empty;
@@ -257,10 +253,8 @@ public sealed class BillingDomainEdgeTests
 
     private async Task<Guid> SeedActiveSubscriptionAsync()
     {
-        // Use a throwaway tenant id, NOT root: there is a partial unique index
-        // (ux_subscriptions_tenantid_active) allowing at most one Active subscription per tenant, and
-        // root already has one from sibling tests in this collection. The billing DbContext is not
-        // tenant-filtered, so seeding an arbitrary tenant id is fine for status-transition coverage.
+        // Throwaway tenant id, NOT root: a partial unique index allows one Active subscription per tenant
+        // and root already has one. Billing's DbContext isn't tenant-filtered, so any tenant id works here.
         var tenantId = $"sub-edge-{Guid.NewGuid().ToString("N")[..8]}";
         Guid id = Guid.Empty;
         await SeedDirectAsync(async db =>

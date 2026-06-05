@@ -18,9 +18,8 @@ namespace FSH.Modules.Files.Features.v1.ListSharedFiles;
 public sealed class ListSharedFilesQueryHandler(FilesDbContext db, IStorageService storage)
     : IQueryHandler<ListSharedFilesQuery, ReadOnlyCollection<FileAssetDto>>
 {
-    // Owner types that represent "free-standing" tenant files (not bound to a domain entity).
-    // Catalog/Tickets/Chat attachments are intentionally excluded — their visibility is a
-    // function of their owning entity's access policy, not a free-standing share decision.
+    // Free-standing tenant files (not bound to a domain entity). Catalog/Tickets/Chat attachments
+    // are excluded — their visibility follows the owning entity's access policy, not a share decision.
     private static readonly string[] SharedOwnerTypes = ["MyFiles", "User"];
 
     public async ValueTask<ReadOnlyCollection<FileAssetDto>> Handle(ListSharedFilesQuery q, CancellationToken cancellationToken)

@@ -21,10 +21,8 @@ public sealed record ImpersonationGrantDto(
     string? RevokeReason,
     ImpersonationGrantStatus Status);
 
-// Serialize/deserialize as a string ("Active"/"Ended"/...) rather than the
-// underlying int so API consumers (admin client TS types, test deserializers,
-// CLI tools) get readable, reorder-safe values. Pattern matches TicketStatus
-// elsewhere in the codebase.
+// Serialize as a string ("Active"/"Ended"/...) not the int, so consumers get readable, reorder-safe
+// values. Mirrors TicketStatus elsewhere.
 [JsonConverter(typeof(JsonStringEnumConverter<ImpersonationGrantStatus>))]
 public enum ImpersonationGrantStatus
 {

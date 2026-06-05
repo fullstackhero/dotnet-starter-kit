@@ -33,9 +33,8 @@ public sealed class ListMyChannelsQueryHandler(
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        // Single round-trip: for each channel in the page, count this user's unread messages with a
-        // correlated subquery instead of issuing one CountAsync per channel (was N+1, up to 200 round-trips).
-        // Same shape as SearchTicketsQueryHandler's CommentCount subquery.
+        // Single round-trip: count each channel's unread messages via a correlated subquery instead of
+        // one CountAsync per channel (was N+1, up to 200 round-trips).
         var channelIds = channels.Select(c => c.Id).ToList();
         var unread = await db.Channels.AsNoTracking()
             .Where(c => channelIds.Contains(c.Id))

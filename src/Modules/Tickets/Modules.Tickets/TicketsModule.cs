@@ -65,9 +65,8 @@ public sealed class TicketsModule : IModule
             .WithApiVersionSet(versionSet)
             .RequireAuthorization();
 
-        // Trash + comment routes registered before the catch-all
-        // `{ticketId:guid}` GET so the literal segments win. Minimal APIs
-        // match the first compatible pattern, so order matters.
+        // Trash + comment routes register before the catch-all `{ticketId:guid}` GET so literal
+        // segments win — minimal APIs match the first compatible pattern, so order matters.
         group.MapListTrashedTicketsEndpoint();
         group.MapAddTicketCommentEndpoint();
         group.MapListTicketCommentsEndpoint();
