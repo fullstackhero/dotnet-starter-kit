@@ -588,6 +588,20 @@ module "api_service" {
   health_check_healthy_threshold = var.api_health_check_healthy_threshold
   deregistration_delay           = var.api_deregistration_delay
 
+  # Container-level liveness so ECS reports Healthy/Unhealthy instead of "Unknown"
+  # and restarts a wedged task. The `noble` image ships no curl/wget, so we use
+  # bash's built-in /dev/tcp to confirm Kestrel is accepting connections on the
+  # container port; app-level health is already covered by the ALB probing
+  # /health/live above. REQUIRES the full `noble` image — the chiseled image has
+  # no shell, so rebuild the API image (deploy --build-api) before applying this.
+  container_health_check = {
+    command      = ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/${var.api_container_port}"]
+    interval     = 30
+    timeout      = 5
+    retries      = 3
+    start_period = 60
+  }
+
   task_role_arn = aws_iam_role.api_task.arn
 
   enable_circuit_breaker = var.api_enable_circuit_breaker
