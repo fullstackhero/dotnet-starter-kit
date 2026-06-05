@@ -155,6 +155,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }
       setStatus("connecting");
       const conn = await buildConnection();
+      // Torn down while SignalR's chunk / the connection was still building —
+      // abort before any start() so we never open a socket we have to stop.
+      if (stoppedRef.current) return;
       connectionRef.current = conn;
       wireListeners(conn);
 
@@ -176,6 +179,15 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
       try {
         await conn.start();
+        // Cleanup ran while start() was negotiating: it deliberately left this
+        // still-"Connecting" socket alone (calling stop() mid-start makes SignalR
+        // reject with "Failed to start the HttpConnection before stop() was
+        // called", logged at Error level). Now that start() has resolved, stop
+        // it cleanly — no race, no error log.
+        if (stoppedRef.current) {
+          void conn.stop();
+          return;
+        }
         consecutiveFailures = 0;
         setStatus("connected");
       } catch {
@@ -196,8 +208,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       // string enum ("Disconnected"|"Connecting"|"Connected"|"Disconnecting"|
       // "Reconnecting") in SignalR 10 — comparing against the literal
       // avoids referencing the lazy-loaded module here.
-      if (conn && (conn.state as string) !== "Disconnected") {
-        void conn.stop();
+      //
+      // Only stop a settled connection. A still-"Connecting" socket is mid
+      // initial start(): stopping it here makes SignalR reject start() with
+      // "Failed to start the HttpConnection before stop() was called" (Error
+      // level). We've set stoppedRef, so connect()'s post-start guard stops it
+      // cleanly once start() resolves — start() holds its own `conn` reference.
+      if (conn) {
+        const state = conn.state as string;
+        if (state === "Connected" || state === "Reconnecting") {
+          void conn.stop();
+        }
       }
       setStatus("idle");
     };
