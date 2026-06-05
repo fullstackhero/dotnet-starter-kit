@@ -11,6 +11,7 @@ import { SseProvider } from "@/sse/sse-context";
 import { RealtimeProvider } from "@/realtime/realtime-context";
 import { ChatGlobalNotifier } from "@/components/notifications/chat-global-notifier";
 import { CommandPaletteRoot } from "@/components/command-palette/command-palette";
+import { InactivityGuard } from "@/components/auth/inactivity-guard";
 import { cn } from "@/lib/cn";
 
 export function AppShell() {
@@ -66,6 +67,9 @@ export function AppShell() {
       {/* Mounted inside the router subtree so useNavigate inside the
           palette resolves correctly. */}
       <CommandPaletteRoot />
+
+      {/* Inactivity auto-logout — warning modal + countdown, signed-in only. */}
+      <InactivityGuard />
       </RealtimeProvider>
     </SseProvider>
   );

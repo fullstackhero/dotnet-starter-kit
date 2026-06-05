@@ -6,7 +6,20 @@ type RuntimeConfig = {
   apiBase: string;
   defaultTenant: string;
   dashboardUrl: string;
+  /** Idle time (ms) before the inactivity warning appears. Admin = sensitive operator console. */
+  inactivityIdleMs: number;
+  /** Warning-countdown length (ms) before auto sign-out. */
+  inactivityWarningMs: number;
 };
+
+// Admin defaults: 10 minutes idle, then a 60-second warning.
+const DEFAULT_INACTIVITY_IDLE_MS = 10 * 60_000;
+const DEFAULT_INACTIVITY_WARNING_MS = 60_000;
+
+/** Accept a positive finite number from config, else fall back. */
+function positiveOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
 let cached: RuntimeConfig | null = null;
 
@@ -23,6 +36,8 @@ export async function loadRuntimeConfig(): Promise<void> {
     // Dashboard origin used by the impersonation handoff. Dev default
     // mirrors clients/dashboard/package.json's vite port.
     dashboardUrl: (cfg.dashboardUrl ?? "http://localhost:5174").replace(/\/$/, ""),
+    inactivityIdleMs: positiveOr(cfg.inactivityIdleMs, DEFAULT_INACTIVITY_IDLE_MS),
+    inactivityWarningMs: positiveOr(cfg.inactivityWarningMs, DEFAULT_INACTIVITY_WARNING_MS),
   };
 }
 
@@ -39,4 +54,6 @@ export const env = {
   get apiBase(): string { return get().apiBase; },
   get defaultTenant(): string { return get().defaultTenant; },
   get dashboardUrl(): string { return get().dashboardUrl; },
+  get inactivityIdleMs(): number { return get().inactivityIdleMs; },
+  get inactivityWarningMs(): number { return get().inactivityWarningMs; },
 };

@@ -141,6 +141,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Cross-tab auth sync. tokenStore.subscribe only fires for in-app mutations;
+  // a `storage` event fires when ANOTHER tab logs in/out (e.g. inactivity
+  // sign-out). Rebuild from the (now changed) tokens so a logout in one tab
+  // drops every tab to /login. Scoped to the token keys so the inactivity
+  // heartbeat ("fsh.lastActivity") doesn't trigger a rebuild every second.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (
+        e.key !== null &&
+        e.key !== "fsh.admin.accessToken" &&
+        e.key !== "fsh.admin.refreshToken"
+      ) {
+        return;
+      }
+      setUser(claimsToUser(decodeJwt(tokenStore.getAccessToken()), tokenStore.getPermissions()));
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const login = useCallback(
     async (input: { email: string; password: string; tenant: string }) => {
       tokenStore.setTenant(input.tenant);

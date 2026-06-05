@@ -11,7 +11,20 @@ type RuntimeConfig = {
    * staging config.json and false (or omit it) in production.
    */
   demoMode: boolean;
+  /** Idle time (ms) before the inactivity warning appears. */
+  inactivityIdleMs: number;
+  /** Warning-countdown length (ms) before auto sign-out. */
+  inactivityWarningMs: number;
 };
+
+// Dashboard defaults: 20 minutes idle, then a 60-second warning.
+const DEFAULT_INACTIVITY_IDLE_MS = 20 * 60_000;
+const DEFAULT_INACTIVITY_WARNING_MS = 60_000;
+
+/** Accept a positive finite number from config, else fall back. */
+function positiveOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
 let cached: RuntimeConfig | null = null;
 
@@ -26,6 +39,8 @@ export async function loadRuntimeConfig(): Promise<void> {
     apiBase: (cfg.apiBase ?? "").replace(/\/$/, ""),
     defaultTenant: cfg.defaultTenant ?? "root",
     demoMode: cfg.demoMode ?? false,
+    inactivityIdleMs: positiveOr(cfg.inactivityIdleMs, DEFAULT_INACTIVITY_IDLE_MS),
+    inactivityWarningMs: positiveOr(cfg.inactivityWarningMs, DEFAULT_INACTIVITY_WARNING_MS),
   };
 }
 
@@ -42,4 +57,6 @@ export const env = {
   get apiBase(): string { return get().apiBase; },
   get defaultTenant(): string { return get().defaultTenant; },
   get demoMode(): boolean { return get().demoMode; },
+  get inactivityIdleMs(): number { return get().inactivityIdleMs; },
+  get inactivityWarningMs(): number { return get().inactivityWarningMs; },
 };
