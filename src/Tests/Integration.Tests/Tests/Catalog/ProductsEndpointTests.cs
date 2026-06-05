@@ -1,6 +1,11 @@
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Catalog.Contracts.Dtos;
+using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
 using Integration.Tests.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Identity;
 
 namespace Integration.Tests.Tests.Catalog;
 
@@ -467,6 +472,68 @@ public sealed class ProductsEndpointTests
             $"{TestConstants.CatalogBasePath}/products/trash?pageNumber=1&pageSize=20");
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task CreateProduct_Should_Return403_When_AuthenticatedUserLacksPermission()
+    {
+        // Regression (broken access control): catalog endpoints sit behind a group-level
+        // .RequireAuthorization(), whose default policy only required authentication. That
+        // shadowed the permission FallbackPolicy, so .RequirePermission(Products.Create) was
+        // never evaluated — ANY authenticated tenant member could create products. A seeded
+        // user holding no catalog-write permission MUST be Forbidden, not fail open.
+        var (email, password) = await CreateActiveNoPermissionUserAsync($"noperm{Guid.NewGuid():N}"[..14]);
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(email, password);
+
+        using var response = await userClient.PostAsJsonAsync(
+            $"{TestConstants.CatalogBasePath}/products",
+            new
+            {
+                sku = UniqueSku("Forbidden"),
+                name = "no-permission user must not create products",
+                description = (string?)null,
+                brandId = Guid.NewGuid(),
+                categoryId = Guid.NewGuid(),
+                priceAmount = 1m,
+                priceCurrency = "USD",
+                stock = 1,
+            });
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden,
+            "Catalog permission gates must not fail open: a user without Permissions.Products.Create must be rejected.");
+    }
+
+    /// <summary>
+    /// Seeds a confirmed + active root-tenant user with NO roles (hence no catalog
+    /// permissions) via UserManager. Tenant context is set INLINE because it is AsyncLocal —
+    /// an awaited-helper set would be lost and the tenant query filter would throw.
+    /// </summary>
+    private async Task<(string Email, string Password)> CreateActiveNoPermissionUserAsync(string handle)
+    {
+        const string password = TestConstants.DefaultPassword;
+        var email = $"{handle}@example.com";
+
+        using var scope = _factory.Services.CreateScope();
+        var tenant = await scope.ServiceProvider
+            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
+            .GetAsync(TestConstants.RootTenantId);
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
+
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
+        var user = new FshUser
+        {
+            FirstName = "No",
+            LastName = "Perm",
+            Email = email,
+            UserName = handle,
+            EmailConfirmed = true,
+            IsActive = true,
+        };
+        var result = await userManager.CreateAsync(user, password);
+        result.Succeeded.ShouldBeTrue(
+            $"Seeding active user failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        return (email, password);
     }
 
     // ─── idempotency ─────────────────────────────────────────────────

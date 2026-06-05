@@ -5,7 +5,8 @@
     <IsPublishable>false</IsPublishable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA1515;CA1861;CA1707;CA1307</NoWarn>
+    <!-- S125: SonarAnalyzer false-positives on descriptive comments with code-like tokens (not dead code). -->
+    <NoWarn>$(NoWarn);CA1515;CA1861;CA1707;CA1307;S125</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector">
