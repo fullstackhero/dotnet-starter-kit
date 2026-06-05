@@ -16,11 +16,8 @@ public sealed class IdempotencyFilterTests
         _auth = new AuthHelper(factory);
     }
 
-    // NOTE: full replay-with-matching-body coverage is not yet possible — the filter
-    // currently captures the raw IResult instead of the serialized response body
-    // (tracked via dotnet/aspnetcore#57191 and backlog item 2.4b). The two tests below
-    // verify only the wiring (presence vs absence of the Idempotency-Replayed header
-    // and that a distinct key forces a fresh execution).
+    // Full replay-with-matching-body coverage isn't possible yet (filter captures the raw IResult, not the body — dotnet/aspnetcore#57191, backlog 2.4b).
+    // These tests verify only the wiring: Idempotency-Replayed header presence/absence and that a distinct key forces fresh execution.
 
     [Fact]
     public async Task CreateBillingPlan_Should_ExecuteNormally_When_NoIdempotencyKey()

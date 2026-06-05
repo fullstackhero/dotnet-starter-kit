@@ -42,10 +42,8 @@ public sealed class GetAuditSummaryQueryHandler : IQueryHandler<GetAuditSummaryQ
 
         var scoped = baseQuery.Where(a => a.OccurredAtUtc >= fromUtc && a.OccurredAtUtc <= toUtc);
 
-        // Four GROUP BYs against the same filtered set. Each one is pushed to
-        // SQL — no in-memory materialization of the audit table. Sequential
-        // because we share the DbContext; switching to parallel needs four
-        // independent contexts (the marginal latency win is rarely worth it).
+        // Four GROUP BYs pushed to SQL against the same filtered set (no materialization).
+        // Sequential because they share the DbContext; parallel would need four contexts.
         var byType = await scoped
             .GroupBy(a => a.EventType)
             .Select(g => new { Key = g.Key, Count = (long)g.Count() })

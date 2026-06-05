@@ -54,10 +54,8 @@ public sealed class WebhookFanoutHandler<TEvent> : IIntegrationEventHandler<TEve
             return;
         }
 
-        // Restore the tenant context for the subscription read — the WebhookDbContext
-        // Finbuckle query filter relies on multiTenantContextAccessor seeing the right
-        // tenant. The OutboxDispatcher / event bus background pumps don't carry HTTP
-        // context, so we need to install it explicitly here.
+        // Install the tenant context for the subscription read — the WebhookDbContext Finbuckle filter needs
+        // it, and the background event pumps (OutboxDispatcher / event bus) carry no HTTP context.
         var prev = _tenantContextAccessor.MultiTenantContext;
         try
         {
@@ -67,9 +65,8 @@ public sealed class WebhookFanoutHandler<TEvent> : IIntegrationEventHandler<TEve
 
             var eventType = typeof(TEvent).Name;
 
-            // Pull active subscriptions for this tenant; filter by event type in memory
-            // because EventsCsv stores a CSV blob, not a join table — there are typically
-            // 0–20 subscriptions per tenant so in-memory matching is fine.
+            // Pull active subscriptions, then match event type in memory: EventsCsv is a CSV blob (no join
+            // table), and there are typically 0–20 subscriptions per tenant so in-memory matching is fine.
             var subscriptions = await _db.Subscriptions
                 .AsNoTracking()
                 .Where(s => s.IsActive)
@@ -93,9 +90,8 @@ public sealed class WebhookFanoutHandler<TEvent> : IIntegrationEventHandler<TEve
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    // One bad subscription must not abort fan-out to others — the dispatcher
-                    // job itself has its own retry policy, this catch is for synchronous
-                    // enqueue-side failures (Hangfire transient errors etc).
+                    // One bad subscription must not abort fan-out to others; this catches synchronous
+                    // enqueue-side failures (Hangfire transient errors etc), not delivery (the job retries).
                     _logger.LogWarning(
                         ex,
                         "Failed to enqueue webhook delivery for subscription {SubscriptionId} (tenant {TenantId}, event {EventType})",

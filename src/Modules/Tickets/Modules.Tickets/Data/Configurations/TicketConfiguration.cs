@@ -13,8 +13,7 @@ public sealed class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Number).IsRequired().HasMaxLength(32);
-        // Unique per tenant — Finbuckle adds a TenantId to the row, so the
-        // index ends up being effectively (TenantId, Number). Filter on
+        // Effectively unique per (TenantId, Number) since Finbuckle adds TenantId; filtered on
         // IsDeleted so soft-deleted ticket numbers don't conflict with new ones.
         builder.HasIndex(x => x.Number).IsUnique().HasFilter("\"IsDeleted\" = FALSE");
 

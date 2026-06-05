@@ -82,9 +82,8 @@ public sealed class FileAuditDlqSink : IAuditDlqSink, IDisposable
         }
         catch (Exception ex)
         {
-            // The DLQ is the last line of defence — if it fails too, all we
-            // can do is shout into the logs. Don't rethrow; the worker has
-            // nowhere to escalate.
+            // DLQ is the last line of defence. If it fails too, just log and do not rethrow —
+            // the worker has nowhere to escalate.
             _log.LogError(ex, "Audit DLQ write failed; {Count} events lost.", batch.Count);
         }
     }

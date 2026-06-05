@@ -8,10 +8,8 @@ public sealed class SendMessageCommandValidator : AbstractValidator<SendMessageC
     public SendMessageCommandValidator()
     {
         RuleFor(x => x.ChannelId).NotEmpty();
-        // Body is optional when at least one attachment is present (Slack /
-        // Teams parity — users frequently send "here's the file" with no
-        // accompanying text). Length cap still applies whenever body is
-        // populated.
+        // Body is optional when an attachment is present (Slack/Teams parity — "here's the file" with
+        // no text). Length cap still applies whenever body is populated.
         RuleFor(x => x.Body)
             .NotEmpty()
             .When(x => x.Attachments is null || x.Attachments.Count == 0)

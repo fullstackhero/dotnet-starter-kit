@@ -86,9 +86,8 @@ public sealed class AppHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}", Context.ConnectionAborted)
             .ConfigureAwait(false);
 
-        // Join the tenant group — used for cross-tenant scoped broadcasts
-        // (presence) so a 1000-user tenant doesn't broadcast every connect
-        // to other tenants.
+        // Join the tenant group — scopes cross-tenant broadcasts (presence) so a 1000-user
+        // tenant doesn't broadcast every connect to other tenants.
         var tenantId = GetTenantId();
         if (!string.IsNullOrEmpty(tenantId))
         {
@@ -108,8 +107,7 @@ public sealed class AppHub : Hub
 
         AppHubLog.Connected(_logger, Context.ConnectionId, userId, channelIds.Count);
 
-        // Track presence — if this is the user's first open connection,
-        // broadcast PresenceChanged so any interested clients flip the dot.
+        // On the user's first open connection, broadcast PresenceChanged so clients flip the dot.
         // Scoped to the tenant group, not Clients.All, to avoid global fan-out.
         if (_presence.Connect(userId))
         {

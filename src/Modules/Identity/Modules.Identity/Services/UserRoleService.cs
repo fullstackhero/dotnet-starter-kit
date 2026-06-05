@@ -34,9 +34,8 @@ internal sealed class UserRoleService(
 
         await RaiseRolesAssignedEventAsync(user, assignedRoles, cancellationToken);
 
-        // Any role mutation invalidates the cached permission set for this user —
-        // both additions and removals, so flush unconditionally rather than
-        // gating on assignedRoles (which only tracks additions).
+        // Any role mutation (add or remove) invalidates the cached permission set; flush
+        // unconditionally rather than gating on assignedRoles, which only tracks additions.
         await userPermissionService.InvalidatePermissionCacheAsync(userId, cancellationToken).ConfigureAwait(false);
 
         return "User Roles Updated Successfully.";

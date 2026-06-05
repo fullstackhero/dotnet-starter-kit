@@ -35,9 +35,8 @@ public sealed class PurgeDeletedFilesJob(
             return;
         }
 
-        // Best-effort byte removal + quota refund per file. Use the tenant id from the connection
-        // context — since we use schema-per-tenant, all rows in this DbContext share the same tenant.
-        // For multi-tenant deployments the job is wired per-tenant by Hangfire.
+        // Best-effort byte removal per file. Schema-per-tenant means all rows share one tenant,
+        // and Hangfire wires the job per-tenant for multi-tenant deployments.
         foreach (var f in candidates)
         {
             try
@@ -55,9 +54,8 @@ public sealed class PurgeDeletedFilesJob(
         var totalBytes = candidates.Sum(f => f.SizeBytes);
         if (totalBytes > 0)
         {
-            // Empty string tenant id: quota service is scoped via DI; we still call with an empty
-            // string to satisfy the contract — the service resolves the tenant from DI context.
-            // (Falls back gracefully if no tenant; we just lose the refund in that case.)
+            // Empty tenant id satisfies the contract; QuotaService resolves the tenant from DI.
+            // Falls back gracefully with no tenant (the refund is simply lost).
             try
             {
                 await quotas.RecordAsync("", QuotaResource.StorageBytes, -totalBytes, cancellationToken).ConfigureAwait(false);

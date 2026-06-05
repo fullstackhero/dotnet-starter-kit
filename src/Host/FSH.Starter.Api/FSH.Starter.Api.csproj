@@ -10,7 +10,7 @@
 		     ContainerImageTag from $(Version), which collides with ContainerImageTags). -->
 		<ContainerPort>8080</ContainerPort>
 		<ContainerUser>1654</ContainerUser>
-		<ContainerFamily>noble-chiseled</ContainerFamily>
+		<ContainerFamily>noble</ContainerFamily>
 		<ContainerRepository>fsh-api</ContainerRepository>
 	</PropertyGroup>
 

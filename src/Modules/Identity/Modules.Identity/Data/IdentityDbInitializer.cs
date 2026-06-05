@@ -210,10 +210,8 @@ internal sealed class IdentityDbInitializer(
             var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id!);
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, initialPassword);
-            // The IdentityResult MUST be checked: a silent failure here (e.g. a password-policy
-            // rejection or a transient DB error) would otherwise mark provisioning "Completed" with no
-            // admin user — an unrecoverable tenant with no login. Throwing surfaces it as a Failed
-            // provisioning step that the operator can retry.
+            // MUST check IdentityResult: a silent failure (password-policy reject, transient DB error)
+            // would mark provisioning "Completed" with no admin user; throwing makes it a retryable Failed.
             var createResult = await userManager.CreateAsync(adminUser);
             if (!createResult.Succeeded)
             {

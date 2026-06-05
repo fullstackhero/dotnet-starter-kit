@@ -21,9 +21,8 @@ namespace Integration.Tests.Tests.Roles;
 [Collection(FshCollectionDefinition.Name)]
 public sealed class PermissionCacheInvalidationTests
 {
-    // Non-basic permission: a freshly-created user with only a custom role (no Basic role)
-    // will NOT have this unless the custom role grants it — so its presence/absence in the
-    // user's effective set is an unambiguous signal of what the cache returned.
+    // Non-basic permission: a user with only a custom role won't have this unless the role grants it,
+    // so its presence/absence is an unambiguous signal of what the cache returned.
     private const string ProbePermission = IdentityPermissions.Groups.Create;
     private const string SecondaryPermission = IdentityPermissions.Groups.Delete;
 
@@ -58,14 +57,12 @@ public sealed class PermissionCacheInvalidationTests
         warmed.ShouldContain(ProbePermission,
             "Pre-condition: the user must hold the probe permission via the custom role before the mutation.");
 
-        // Act — remove the probe permission from the role through the live admin API.
-        // RoleService.UpdatePermissionsAsync must call InvalidatePermissionCacheAsync for
-        // every user reachable through this role.
+        // Act — remove the probe permission via the live admin API. UpdatePermissionsAsync
+        // must call InvalidatePermissionCacheAsync for every user reachable through this role.
         await SetRolePermissionsAsync(adminClient, role.Id /* no permissions */);
 
-        // Assert — the very next read must reflect the new (empty) state. If the cache
-        // entry were not evicted, the warmed entry (still inside its 1h expiration) would
-        // be returned and this would still contain ProbePermission.
+        // Assert — the next read must reflect the empty state. If not evicted, the warmed entry
+        // (still within its 1h expiration) would be served and still contain ProbePermission.
         var afterRevoke = await GetOwnPermissionsAsync(userClient);
         afterRevoke.ShouldNotContain(ProbePermission,
             "Cache was NOT invalidated: a removed role permission is still being served from the stale cache entry.");

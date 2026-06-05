@@ -32,9 +32,8 @@ internal sealed class UserPermissionService(
     {
         var set = await GetOrLoadAsync(userId, cancellationToken).ConfigureAwait(false);
 
-        // Materialize a new List<string> on the way out to preserve the existing public contract.
-        // The copy is ~50 ns for a typical permission set — negligible vs the JSON deserialization
-        // we'd otherwise pay on every L1 hit without the [ImmutableObject] optimization.
+        // Copy to a new List<string> to preserve the public contract; ~50 ns is negligible vs the
+        // JSON deserialization we'd otherwise pay per L1 hit without the [ImmutableObject] optimization.
         return [.. set.Values];
     }
 

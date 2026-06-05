@@ -33,9 +33,8 @@ public sealed class DeleteFileCommandHandler(
             throw new ForbiddenException("not allowed to delete this file");
         }
 
-        // Soft-delete: the framework's AuditableEntitySaveChangesInterceptor sets IsDeleted +
-        // DeletedOnUtc + DeletedBy on Remove() calls for ISoftDeletable entities. The byte purge
-        // happens later via PurgeDeletedFilesJob after the retention window.
+        // Soft-delete: AuditableEntitySaveChangesInterceptor sets IsDeleted/DeletedOnUtc/DeletedBy on
+        // Remove() for ISoftDeletable; byte purge runs later via PurgeDeletedFilesJob post-retention.
         db.FileAssets.Remove(f);
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return Unit.Value;

@@ -340,9 +340,8 @@ internal sealed partial class S3StorageService : IStorageService
         }
     }
 
-    // MinIO and other S3-compatible services commonly serve over plain HTTP. The SDK defaults
-    // presigned URLs to HTTPS regardless of ServiceURL scheme, which makes them un-PUTable in
-    // those environments. Infer the protocol from the configured ServiceURL.
+    // MinIO and other S3-compatibles often serve plain HTTP, but the SDK defaults presigned URLs to
+    // HTTPS regardless of ServiceURL scheme (un-PUTable there). Infer protocol from ServiceURL.
     private Protocol ResolvePresignProtocol()
     {
         if (!string.IsNullOrWhiteSpace(_options.ServiceUrl)

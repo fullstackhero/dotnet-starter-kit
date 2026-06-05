@@ -13,7 +13,7 @@
     3. run the DbMigrator one-shot ECS task (apply / apply --seed) and wait for exit 0
     4. build the React apps, publish to their S3 buckets, invalidate CloudFront
 
-  Requires: terraform >= 1.15.4, aws cli (configured), jq, node/npm, and
+  Requires: terraform >= 1.15.4, aws cli (configured), node/npm, and
   (with -BuildApi) the .NET SDK + a registry login.
 #>
 [CmdletBinding()]
@@ -44,9 +44,15 @@ function Die($msg) { Write-Error $msg; exit 1 }
 if (-not (Test-Path "$EnvDir/backend.hcl")) { Die "no backend.hcl for $Environment/$Region at $EnvDir" }
 if (-not (Test-Path "$EnvDir/terraform.tfvars")) { Die "no terraform.tfvars for $Environment/$Region at $EnvDir" }
 
-foreach ($tool in 'terraform', 'aws', 'jq') {
+# Note: no jq — PowerShell parses Terraform's JSON output with ConvertFrom-Json.
+foreach ($tool in 'terraform', 'aws') {
   if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { Die "$tool is required but not installed" }
 }
+
+# Pin the region for every `aws` CLI call (else it falls back to ~/.aws/config →
+# "Invalid Region in ARN" when that default differs from $Region).
+$env:AWS_REGION = $Region
+$env:AWS_DEFAULT_REGION = $Region
 
 $tfVersion = [version](terraform version -json | ConvertFrom-Json).terraform_version
 if ($tfVersion -lt $MinTfVersion) {
@@ -88,14 +94,19 @@ elseif ($ImageTag) {
 }
 
 # ---- 2. terraform -----------------------------------------------------------
+# Native exes don't trip $ErrorActionPreference, so check $LASTEXITCODE
+# explicitly — otherwise a failed apply silently falls through to the
+# migrator/frontend steps (which then find no state and emit confusing errors).
 Write-Host '==> terraform init'
 terraform -chdir="$AppStackDir" init -reconfigure -input=false -backend-config="$EnvDir/backend.hcl"
+if ($LASTEXITCODE -ne 0) { Die "terraform init failed (exit $LASTEXITCODE)" }
 
 $applyArgs = @("-var-file=$EnvDir/terraform.tfvars") + $tfImageArgs + @('-input=false')
 if ($AutoApprove) { $applyArgs += '-auto-approve' }
 
 Write-Host '==> terraform apply'
 terraform -chdir="$AppStackDir" apply @applyArgs
+if ($LASTEXITCODE -ne 0) { Die "terraform apply failed (exit $LASTEXITCODE)" }
 
 # ---- 2.5 db migrator (one-shot ECS task) ------------------------------------
 function Invoke-EcsTask($label, $overridesJson) {
@@ -113,7 +124,9 @@ function Invoke-EcsTask($label, $overridesJson) {
     Set-Content -Path $tmp.FullName -Value $overridesJson -Encoding utf8
     $runArgs += @('--overrides', "file://$($tmp.FullName)")
   }
-  $taskArn = (aws @runArgs).Trim()
+  $taskArn = (aws @runArgs)
+  if ($LASTEXITCODE -ne 0 -or -not $taskArn) { Die "run-task failed to start ($label) — see aws error above (region: $env:AWS_REGION)" }
+  $taskArn = "$taskArn".Trim()
   if (-not $taskArn -or $taskArn -eq 'None') { Die "run-task failed to start ($label)" }
   Write-Host "    task: $taskArn — waiting for it to stop..."
   aws ecs wait tasks-stopped --cluster $migCluster --tasks $taskArn

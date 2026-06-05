@@ -115,9 +115,8 @@ public sealed class TenantProvisioningFailureTests
         var status = await PollUntilTerminalAsync(rootClient, tenantId);
         status.Status.ShouldBe("Failed");
 
-        // Act + Assert — drive the production activation guard directly. The Finbuckle tenant
-        // context for TenantDbContext access is set inline in this method (AsyncLocal — must not
-        // cross an awaited helper) to satisfy the named tenant query filter.
+        // Act + Assert — drive the production activation guard directly. Tenant context is set
+        // inline here (AsyncLocal must not cross an awaited helper) for the tenant query filter.
         using var scope = _factory.Services.CreateScope();
         var provisioningService = scope.ServiceProvider.GetRequiredService<ITenantProvisioningService>();
 

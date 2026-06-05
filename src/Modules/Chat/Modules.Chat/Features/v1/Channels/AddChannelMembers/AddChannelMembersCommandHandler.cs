@@ -48,9 +48,8 @@ public sealed class AddChannelMembersCommandHandler(
 
         foreach (var uid in newlyAdded)
         {
-            // Notify existing members. The new member doesn't have any active connections in
-            // the channel:{id} group yet — they'll pick the channel up on their next reconnect
-            // (OnConnectedAsync pre-joins all of their channels).
+            // Notify existing members. The new member isn't in the channel:{id} group yet; they pick
+            // it up on next reconnect (OnConnectedAsync pre-joins all their channels).
             await hub.Clients.Group($"channel:{channel.Id}")
                 .SendAsync("ChatChannelMemberAdded", new { channelId = channel.Id, userId = uid }, cancellationToken)
                 .ConfigureAwait(false);

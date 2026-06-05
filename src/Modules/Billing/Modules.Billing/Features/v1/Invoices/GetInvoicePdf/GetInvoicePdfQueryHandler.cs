@@ -18,9 +18,8 @@ public sealed class GetInvoicePdfQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        // BillingDbContext is not tenant-filtered (mirrors GetInvoiceById): the root operator may
-        // download ANY tenant's invoice PDF (admin drills into invoices across every tenant); a tenant
-        // caller is pinned to its own tenant so a cross-tenant id resolves to 404, never leaking a PDF.
+        // BillingDbContext is not tenant-filtered: root may download ANY tenant's invoice PDF; a tenant
+        // caller is pinned to its own, so a cross-tenant id resolves to 404 and never leaks a PDF.
         var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
             ?? throw new UnauthorizedException("Tenant context is required.");
         var isRoot = callerTenantId == MultitenancyConstants.Root.Id;

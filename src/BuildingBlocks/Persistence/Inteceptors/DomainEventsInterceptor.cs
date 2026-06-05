@@ -68,9 +68,8 @@ public sealed class DomainEventsInterceptor : SaveChangesInterceptor
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                // Domain event handler failures must not roll back or fail the already-committed save.
-                // The event was collected after SaveChanges completed — the data is persisted.
-                // Handlers that need guaranteed delivery should use the outbox pattern.
+                // Handler failures must not fail the already-committed save (events collected post-
+                // SaveChanges). Handlers needing guaranteed delivery should use the outbox pattern.
                 _logger.LogError(ex, "Failed to publish domain event {EventType}", domainEvent.GetType().Name);
             }
         }

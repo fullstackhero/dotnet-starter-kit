@@ -175,10 +175,8 @@ public class ContractsPurityTests
             }
         }
 
-        // This is informational - existing codebase may have non-sealed commands
-        // The pattern is recommended but not strictly enforced to allow gradual migration
-        // For now, just verify we can identify non-sealed types (the test infrastructure works)
-        // This serves as documentation of types that could be improved
+        // Informational only: sealed commands/queries are recommended but not enforced (gradual migration).
+        // Just verify the test infrastructure can identify non-sealed types.
         nonSealedTypes.ShouldNotBeNull();
     }
 }

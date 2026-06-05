@@ -153,9 +153,8 @@ public class IdentityModule : IModule
             options.Password.RequireUppercase = true;
             options.User.RequireUniqueEmail = true;
 
-            // Account lockout: 5 consecutive failed logins → 15-minute lockout.
-            // Applies to newly created users by default. Login flow triggers
-            // AccessFailedAsync / IsLockedOutAsync in IdentityService.
+            // Account lockout: 5 consecutive failed logins → 15-minute lockout (applies to new users by default).
+            // IdentityService's login flow drives AccessFailedAsync / IsLockedOutAsync.
             options.Lockout.AllowedForNewUsers = true;
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
@@ -187,11 +186,8 @@ public class IdentityModule : IModule
         group.MapGenerateTokenEndpoint().AllowAnonymous().RequireRateLimiting("auth");
         group.MapRefreshTokenEndpoint().AllowAnonymous().RequireRateLimiting("auth");
 
-        // The outbox is dispatched by the framework's OutboxDispatcherHostedService
-        // (EventingOptions.UseHostedServiceDispatcher, on by default). A second
-        // dispatcher here would race the same rows (GetPendingBatchAsync has no
-        // row-level claim) — duplicate handler invocations and PK_InboxMessages
-        // collisions — so this module does NOT register its own recurring job.
+        // The outbox is dispatched by the framework's OutboxDispatcherHostedService (on by default). A second dispatcher
+        // here would race the same rows (no row-level claim) → duplicate handlers + PK_InboxMessages collisions, so this module registers none.
 
         // roles
         group.MapGetRolesEndpoint();

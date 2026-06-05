@@ -20,9 +20,8 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
     ICurrentUser currentUser,
     IUserPermissionService userPermissionService) : IRoleService
 {
-    // Invalidate every user whose effective permission set may have shifted as a
-    // result of a role-level mutation. "Direct" = AspNetUserRoles, "via groups"
-    // = members of groups that carry this role.
+    // Invalidate every user whose effective permissions may have shifted from a role mutation:
+    // direct holders (AspNetUserRoles) and group-derived holders (members of groups carrying this role).
     private async Task InvalidateAffectedUsersAsync(string roleId, CancellationToken cancellationToken)
     {
         var role = await roleManager.FindByIdAsync(roleId);
@@ -198,10 +197,8 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
             return;
         }
 
-        // Strip every permission flagged IsRoot in the registry. The previous check removed only names
-        // starting with "Permissions.Root." — but NO root permission uses that prefix (they are
-        // Permissions.Tenants.* / Permissions.Platform.*, flagged via IsRoot), so the filter was a
-        // no-op and a non-root tenant admin with Roles.Update could grant their role root permissions.
+        // Strip every permission flagged IsRoot in the registry. (A prior prefix check on "Permissions.Root."
+        // was a no-op — no root perm uses that prefix — letting a tenant admin grant themselves root perms.)
         var rootOnly = PermissionConstants.Root.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
         permissions.RemoveAll(rootOnly.Contains);
     }

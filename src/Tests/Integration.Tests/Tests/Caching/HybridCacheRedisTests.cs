@@ -88,9 +88,8 @@ public sealed class HybridCacheRedisTests : IAsyncLifetime
     [Fact]
     public async Task RemoveByTagAsync_Should_Invalidate_Within_Same_Instance()
     {
-        // Note: HybridCache tag invalidation is per-instance (no L1 backplane). This test
-        // verifies the in-instance behavior; cross-node invalidation requires a custom
-        // pub/sub backplane and is documented as a known limitation in docs/caching.mdx.
+        // HybridCache tag invalidation is per-instance (no L1 backplane); cross-node invalidation
+        // needs a custom pub/sub backplane — a known limitation documented in docs/caching.mdx.
         var (cache, _, provider) = CreateCache();
         await using (provider)
         {
@@ -118,9 +117,8 @@ public sealed class HybridCacheRedisTests : IAsyncLifetime
     [Fact]
     public void Redis_Backend_Should_Implement_IBufferDistributedCache()
     {
-        // Microsoft.Extensions.Caching.StackExchangeRedis 9.0+ implements IBufferDistributedCache
-        // for zero-copy reads via HybridCache. If this regresses, every L2 read pays an extra
-        // byte[] allocation. Lock it in.
+        // StackExchangeRedis 9.0+ implements IBufferDistributedCache for HybridCache zero-copy reads;
+        // a regression would cost an extra byte[] allocation per L2 read, so lock it in.
         var (_, distributedCache, provider) = CreateCache();
         using (provider)
         {

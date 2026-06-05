@@ -64,16 +64,8 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
 
     public MiddlewareWebApplicationFactory()
     {
-        // ── Rate-limit config must be visible to the EAGER read in AddHeroRateLimiting ──
-        // AddHeroRateLimiting calls configuration.GetSection(...).Get<RateLimitingOptions>()
-        // at SERVICE-REGISTRATION time — which, for WebApplicationFactory, runs while Program.cs's
-        // top-level statements execute (before ConfigureWebHost's in-memory overlay is merged).
-        // appsettings.json ships RateLimitingOptions:Enabled=false, so the eager read would
-        // register NO limiter/policy and nothing would ever 429 (the later ConfigureAppConfiguration
-        // overlay only fixes IOptions, not the already-built limiter). Environment variables ARE in
-        // the default config that WebApplication.CreateBuilder reads up front, so setting them in the
-        // ctor (before `_ = Server` triggers host build) makes the eager read see Enabled=true and
-        // the tiny auth window. Same eager-config gotcha as AddHeroStorage.
+        // AddHeroRateLimiting reads config EAGERLY at registration (before ConfigureWebHost's overlay merges)
+        // and appsettings ships Enabled=false; set env vars here (in the up-front config) to flip it. Cf. AddHeroStorage.
         Environment.SetEnvironmentVariable("RateLimitingOptions__Enabled", "true");
         Environment.SetEnvironmentVariable("RateLimitingOptions__Auth__PermitLimit", "3");
         Environment.SetEnvironmentVariable("RateLimitingOptions__Auth__WindowSeconds", "300");
@@ -92,9 +84,8 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         // Force host creation via the Server property (no leaked HttpClient)
         _ = Server;
 
-        // Run migrations and seed data for the root tenant.
-        // We use a semaphore to prevent multiple test classes (which might share the same DB)
-        // from attempting to migrate simultaneously.
+        // Migrate + seed the root tenant; the semaphore stops test classes sharing a DB from
+        // migrating simultaneously.
         await _migrationLock.WaitAsync();
         try
         {
@@ -176,10 +167,8 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
                 ["Seed:DemoPassword"] = "Password123!",
                 ["Seed:DefaultAdminPassword"] = TestConstants.DefaultPassword,
 
-                // --- Middleware-test-specific overrides (the whole point of this assembly) ---
-                // Rate limiting ON. Only the per-request "auth" policy should trip; the global
-                // tenant/user/ip chained limiters are set effectively unlimited so they never
-                // interfere with the burst test against /token/issue.
+                // Middleware-test overrides: rate limiting ON, but only the "auth" policy should trip —
+                // the global tenant/user/ip limiters are set unlimited so they don't interfere.
                 ["RateLimitingOptions:Enabled"] = "true",
                 ["RateLimitingOptions:Auth:PermitLimit"] = "3",
                 ["RateLimitingOptions:Auth:WindowSeconds"] = "300",
@@ -204,10 +193,8 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
 
         builder.ConfigureServices(services =>
         {
-            // Remove hosted services that depend on infrastructure not available in tests or cause race conditions:
-            // - RolePermissionSyncHostedService (queries identity schema before migrations run)
-            // - Hangfire server + stale lock cleanup (we register our own InMemory server below)
-            // - OutboxDispatcherHostedService (queries OutboxMessages table before migrations run)
+            // Remove hosted services that need unavailable infra or race migrations: RolePermissionSync,
+            // OutboxDispatcher (query tables pre-migration), and Hangfire server/cleanup (InMemory below).
             var hostedServicesToRemove = services
                 .Where(d => d.ServiceType == typeof(IHostedService) &&
                     (d.ImplementationType?.Name == "RolePermissionSyncHostedService" ||
@@ -237,27 +224,11 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
             services.RemoveAll<IMailService>();
             services.AddSingleton<IMailService, NoOpMailService>();
 
-            // NOTE: Unlike Integration.Tests' FshWebApplicationFactory we DELIBERATELY do NOT
-            // swap IExceptionHandler. The production GlobalExceptionHandler stays in place so the
-            // /__test/throw endpoint produces real RFC 9457 ProblemDetails output.
-            //
-            // We also do NOT rewire storage to S3: none of the middleware tests touch a storage
-            // endpoint, so the production registration (which resolves to LocalStorageService) is
-            // fine. Rewiring would require referencing the internal S3StorageService type, which is
-            // only InternalsVisibleTo "Integration.Tests" — and we must not modify BuildingBlocks.
-            // The MinIO container + Storage:S3 config keys are kept so the host configuration binds
-            // cleanly and provisioning/seeding succeed unchanged.
+            // DELIBERATELY keep the production GlobalExceptionHandler (no swap) so /__test/throw yields real
+            // RFC 9457 output; storage stays unrewired (no test hits it; MinIO + S3 keys kept so host binds).
 
-            // Append a throwing endpoint to the live route builder so the production
-            // GlobalExceptionHandler can be exercised end-to-end.
-            //
-            // NOTE on technique: a plain DI-registered EndpointDataSource is NOT routed by minimal
-            // hosting — WebApplication only maps the data sources attached to the route builder it
-            // owns. So we register an IStartupFilter, run `next(app)` FIRST (which executes Program.cs's
-            // pipeline incl. UseRouting → this stamps the WebApplication's own IEndpointRouteBuilder
-            // into app.Properties["__EndpointRouteBuilder"]), and only THEN reach into that builder and
-            // MapGet. Endpoints added to the route builder's DataSources are resolved lazily on the
-            // first request, so appending after the pipeline is built still gets the endpoint matched.
+            // Append a throwing endpoint via IStartupFilter: run next(app) first (UseRouting stamps the real
+            // IEndpointRouteBuilder into app.Properties), then MapGet onto it — lazy data sources still match.
             services.AddSingleton<IStartupFilter, ThrowEndpointStartupFilter>();
         });
     }

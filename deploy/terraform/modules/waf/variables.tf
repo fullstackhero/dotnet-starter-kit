@@ -18,8 +18,14 @@ variable "name" {
 
 variable "alb_arn" {
   type        = string
-  description = "ARN of the ALB to associate with the WAF. Set to null to skip association."
+  description = "ARN of the ALB to associate with the WAF. Required when associate_alb is true."
   default     = null
+}
+
+variable "associate_alb" {
+  type        = bool
+  description = "Associate the Web ACL with alb_arn. Must be a STATIC value (a count cannot key off the ALB ARN, which is unknown until apply). Set false to create the Web ACL without associating it."
+  default     = true
 }
 
 ################################################################################

@@ -31,9 +31,8 @@ public sealed class UsageSnapshotQueryTests
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
-    // Snapshots are unique-indexed on (TenantId, PeriodYear, PeriodMonth, Resource). The factory is
-    // shared across the whole collection, so a process-wide counter hands every test a private period
-    // window well away from the 2030/2031/2080+ ranges other Billing tests use.
+    // Snapshots are unique-indexed on (TenantId, PeriodYear, PeriodMonth, Resource); a process-wide
+    // counter hands each test a private period window away from other Billing tests' ranges.
     private static int s_periodCounter;
 
     private readonly FshWebApplicationFactory _factory;
@@ -180,9 +179,8 @@ public sealed class UsageSnapshotQueryTests
     [Fact]
     public async Task GetUsageSnapshots_Should_Return200_For_NonAdmin_User_With_Basic_View_Permission()
     {
-        // The View Billing permission is IsBasic, so a freshly-registered user (granted RoleConstants.Basic)
-        // can read the usage list. This proves the .RequirePermission(Billing.View) gate admits an
-        // authenticated non-admin caller rather than only the seeded root admin.
+        // Billing.View is a Basic permission, so a freshly-registered (Basic-role) user can read the usage
+        // list — proving the gate admits an authenticated non-admin, not just the seeded root admin.
         // Arrange
         using var adminClient = await _auth.CreateRootAdminClientAsync();
         var (email, password) = await RegisterBasicUserAsync(adminClient, "snap-basic");
@@ -203,11 +201,8 @@ public sealed class UsageSnapshotQueryTests
     [Fact]
     public async Task GetUsageSnapshots_Is_PlatformWide_And_Surfaces_OtherTenant_Rows_To_Admin()
     {
-        // GetUsageSnapshots mirrors GetInvoices: it is an administrative, platform-wide list that is
-        // NOT auto-scoped to the caller's tenant — the only narrowing is the optional tenantId filter.
-        // This test pins that documented behavior: a second tenant's snapshot is visible in the
-        // unfiltered admin result, and the tenantId filter is what isolates a single tenant. (Asserting
-        // hard isolation here would contradict the handler; see findings note on the Basic-View posture.)
+        // GetUsageSnapshots mirrors GetInvoices: a platform-wide admin list NOT auto-scoped to the caller's
+        // tenant. Pins that another tenant's snapshot shows unfiltered and the tenantId filter isolates one.
         // Arrange
         var (year, month) = NextPeriod();
         var otherTenant = $"snap-cross-{Guid.NewGuid().ToString("N")[..8]}";

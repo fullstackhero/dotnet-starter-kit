@@ -179,10 +179,8 @@ public sealed class WebhookSignatureTests
         using var scope = capturingFactory.Services.CreateScope();
         var sp = scope.ServiceProvider;
 
-        // Set the Finbuckle tenant context INLINE in this scope (AsyncLocal — must not cross an awaited
-        // helper boundary or the DbContext tenant filter sees a null TenantInfo). The dispatch job sets
-        // its own context internally too, but it resolves a fresh inner scope, so this is for safety on
-        // the calling scope.
+        // Set Finbuckle tenant context INLINE (AsyncLocal must not cross an awaited helper, else the
+        // DbContext filter sees a null TenantInfo). The job sets its own context too; this guards this scope.
         var tenant = await sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
             .GetAsync(TestConstants.RootTenantId);
         sp.GetRequiredService<IMultiTenantContextSetter>()

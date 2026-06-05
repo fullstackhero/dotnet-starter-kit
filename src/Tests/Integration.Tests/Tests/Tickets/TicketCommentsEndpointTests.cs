@@ -104,9 +104,8 @@ public sealed class TicketCommentsEndpointTests
     [Fact]
     public async Task AddComment_Should_BeAccepted_When_TicketIsResolved()
     {
-        // AddComment only rejects Closed tickets — a Resolved ticket still
-        // accepts comments (e.g. follow-up notes). There is no API path to
-        // reach Closed, so this covers the non-throwing branch explicitly.
+        // AddComment only rejects Closed tickets; Resolved still accepts comments.
+        // No API path reaches Closed, so this covers the non-throwing branch.
         #region Arrange
         using var client = await _auth.CreateRootAdminClientAsync();
         var ticketId = await CreateTicketAsync(client, UniqueTitle("ResolvedComment"));

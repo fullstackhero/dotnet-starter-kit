@@ -115,11 +115,8 @@ public sealed class ChangeTenantActivationValidationTests
     [Fact]
     public async Task ChangeActivation_Should_Reactivate_When_ProvisioningCompleted()
     {
-        // Arrange — provision fully so EnsureCanActivate passes, then deactivate.
-        // Reactivation re-checks the latest provisioning record is Completed; the
-        // background job can briefly report a non-terminal latest record even after
-        // the status endpoint first showed Completed (provisioning is async), so we
-        // wait for the status to be *stably* Completed before toggling.
+        // Provision fully (so EnsureCanActivate passes) then deactivate. Reactivation re-checks the latest provisioning
+        // record is Completed, which can transiently flip non-terminal after first showing Completed — so wait for *stable* Completed.
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var unique = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"act-reactivate-{unique}";

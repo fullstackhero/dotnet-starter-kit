@@ -91,9 +91,8 @@ public sealed class TenantIsolationTests
         var optionsType = typeof(DbContextOptions<>).MakeGenericType(dbContextType);
         var builderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(dbContextType);
         var builder = (DbContextOptionsBuilder)Activator.CreateInstance(builderType)!;
-        // Use Npgsql provider so OnConfiguring's per-tenant wiring is a no-op
-        // (we pass an empty ConnectionString below). Model is built lazily on
-        // first access of ctx.Model — no actual DB connection is opened.
+        // Npgsql provider keeps OnConfiguring's per-tenant wiring a no-op (empty ConnectionString);
+        // the model builds lazily on first ctx.Model access, so no DB connection is opened.
         builder.UseNpgsql("Host=arch;Database=arch;Username=arch;Password=arch");
         var options = builder.Options;
 

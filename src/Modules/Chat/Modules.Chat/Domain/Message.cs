@@ -45,9 +45,8 @@ public sealed class Message : AggregateRoot<Guid>
             throw new ArgumentException("ChannelId is required.", nameof(channelId));
         }
 
-        // Body is optional at the aggregate level — the SendMessage validator
-        // enforces "body OR at least one attachment" since attachments attach
-        // AFTER Create via AddAttachment.
+        // Body is optional here; the SendMessage validator enforces "body OR >=1 attachment"
+        // (attachments attach AFTER Create via AddAttachment).
         var trimmed = string.IsNullOrWhiteSpace(body) ? null : body.Trim();
 
         var m = new Message

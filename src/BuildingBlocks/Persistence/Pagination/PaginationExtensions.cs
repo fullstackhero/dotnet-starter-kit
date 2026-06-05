@@ -43,9 +43,8 @@ public static class PaginationExtensions
             pageSize = MaxPageSize;
         }
 
-        // Pagination is intentionally decoupled from specifications; the incoming
-        // source is expected to already have any required ordering applied via
-        // specifications or explicit ordering at call sites.
+        // Decoupled from specifications: the source is expected to already have any required
+        // ordering applied via specifications or explicit ordering at call sites.
         return ToPagedResponseInternalAsync(source, pageNumber, pageSize, cancellationToken);
     }
 

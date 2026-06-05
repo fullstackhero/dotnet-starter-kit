@@ -116,10 +116,8 @@ public sealed class TenantExpiryScanJob
         _db.TenantExpiryNotices.Add(TenantExpiryNotice.Record(tenant.Id, noticeType, validUpto, now));
         await _db.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        // Install the tenant's Finbuckle context before publishing: downstream handlers (e.g. the
-        // webhook fan-out) touch tenant-filtered DbContexts that capture the ambient tenant at
-        // construction. With no HTTP request in a background job, that context is otherwise empty and
-        // their query filters NRE. The ambient (AsyncLocal) value flows into the bus's handler scope.
+        // Install the Finbuckle context before publishing: downstream handlers (e.g. webhook fan-out) use
+        // tenant-filtered DbContexts that NRE without it, since a background job carries no HTTP request.
         _tenantContextSetter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         await _eventBus.PublishAsync(BuildEvent(noticeType, tenant, validUpto, graceEnds, now), ct).ConfigureAwait(false);

@@ -40,9 +40,8 @@ public sealed class TicketsEndpointTests
     [Fact]
     public async Task CreateTicket_Should_StartInProgress_When_AssignedAtCreation()
     {
-        // Tickets created with an assignee skip the Open state — there's no point
-        // flicking through it for a single tick when an owner is already pushing
-        // it forward. The aggregate's Create() encodes this rule.
+        // Tickets created with an assignee skip the Open state (an owner is already driving it).
+        // The aggregate's Create() encodes this rule.
         using var client = await _auth.CreateRootAdminClientAsync();
         var assigneeId = Guid.NewGuid();
 
@@ -144,9 +143,8 @@ public sealed class TicketsEndpointTests
         reopenResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var fetched = await GetAsync(client, ticketId);
-        // Reopened tickets fall back to whichever assignment state they had.
-        // This one was still assigned, so back to InProgress; the resolution
-        // metadata is wiped so a future resolve gets its own audit window.
+        // Reopened tickets fall back to their assignment state (still assigned here, so InProgress);
+        // resolution metadata is wiped so a future resolve gets its own audit window.
         fetched.Status.ShouldBe("InProgress");
         fetched.ResolutionNote.ShouldBeNull();
         fetched.ResolvedAtUtc.ShouldBeNull();
@@ -157,11 +155,8 @@ public sealed class TicketsEndpointTests
     [Fact]
     public async Task AddComment_Should_Persist_And_BumpCommentCount()
     {
-        // Previously skipped: adding a TicketComment via the aggregate's nav
-        // collection failed with DbUpdateConcurrencyException because
-        // TicketComment.Id lacked ValueGeneratedNever() in its EF config, so EF
-        // tracked the new child as Modified (UPDATE 0 rows) instead of Added.
-        // Fixed in TicketCommentConfiguration; this test now passes.
+        // Previously failed: TicketComment.Id lacked ValueGeneratedNever(), so EF tracked the nav-collection child
+        // as Modified (UPDATE 0 rows) not Added → DbUpdateConcurrencyException. Fixed in TicketCommentConfiguration.
         using var client = await _auth.CreateRootAdminClientAsync();
         var ticketId = await CreateAsync(client, UniqueTitle("Commentable"));
 
@@ -185,10 +180,8 @@ public sealed class TicketsEndpointTests
     [Fact]
     public async Task DeleteTicket_Should_HideFromSearch_But_Show_In_Trash()
     {
-        // Tickets has no DELETE endpoint exposed yet — but EF's interceptor
-        // still soft-deletes when we call Remove. Without a DELETE endpoint
-        // to drive this, we drop into the DbContext via the test factory's
-        // service scope. (This test stays valid once a DELETE endpoint ships.)
+        // No DELETE endpoint exists yet, but EF's interceptor soft-deletes on Remove, so we drive it
+        // via the DbContext through the test factory's service scope. (Stays valid once a DELETE endpoint ships.)
         using var client = await _auth.CreateRootAdminClientAsync();
         var ticketId = await CreateAsync(client, UniqueTitle("Soft"));
 

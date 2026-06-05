@@ -61,9 +61,8 @@ public sealed class EndImpersonationCommandHandler
 
         if (string.IsNullOrWhiteSpace(actorUserId) || string.IsNullOrWhiteSpace(actorTenantId))
         {
-            // Caller is signed in but their session has no act_sub claim — this is
-            // a client error (called End on a non-impersonation token), must be 4xx
-            // not the default 500 that CustomException assumes.
+            // Signed in but no act_sub claim (End called on a non-impersonation token): client error,
+            // must be 4xx not CustomException's default 500.
             throw new CustomException(
                 "current session is not an impersonation session",
                 errors: null,
@@ -73,12 +72,8 @@ public sealed class EndImpersonationCommandHandler
         var impersonatedUserId = _currentUser.GetUserId().ToString();
         var impersonatedTenantId = _currentUser.GetTenant() ?? string.Empty;
 
-        // Mark the grant as ended BEFORE issuing fresh actor tokens. If a
-        // racing request hits the JWT hook in the window between this call
-        // and token issuance, the cache will already report "ended" — safer
-        // ordering than the reverse. If MarkEnded fails we still proceed:
-        // the grant will naturally expire and the JWT hook treats Unknown
-        // states as revoked.
+        // Mark grant ended BEFORE issuing actor tokens so a racing JWT-hook request sees "ended" (safer than the reverse).
+        // If MarkEnded fails we proceed anyway: the grant expires naturally and the hook treats Unknown states as revoked.
         if (!string.IsNullOrWhiteSpace(jti))
         {
             try

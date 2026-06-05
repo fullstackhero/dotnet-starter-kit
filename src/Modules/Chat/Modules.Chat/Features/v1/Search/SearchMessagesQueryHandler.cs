@@ -29,9 +29,8 @@ public sealed class SearchMessagesQueryHandler(
         int page = Math.Max(1, query.Page);
         int pageSize = Math.Clamp(query.PageSize, 1, 100);
 
-        // Channel scoping: collect the channel ids the caller is a member of (and, if a specific
-        // channel was requested, intersect with that). We then filter the search to those ids —
-        // this is the leakage guard, so cross-channel search results never reach non-members.
+        // Leakage guard: scope the search to channels the caller is a member of (intersected with the
+        // requested channel if any) so cross-channel results never reach non-members.
         IQueryable<Guid> memberChannelIds = db.Channels.AsNoTracking()
             .Where(c => c.Members.Any(m => m.UserId == currentUserId))
             .Select(c => c.Id);
@@ -47,9 +46,8 @@ public sealed class SearchMessagesQueryHandler(
             return new List<MessageDto>().AsReadOnly();
         }
 
-        // FormattedString interpolation is parameterized — `to_tsquery` gets a sanitized literal,
-        // not raw SQL. Use `websearch_to_tsquery` so the caller can write natural search syntax
-        // (quoted phrases, OR, -exclude) without us pre-processing it.
+        // Interpolation is parameterized (sanitized literal, not raw SQL); websearch_to_tsquery lets
+        // callers use natural syntax (quoted phrases, OR, -exclude) with no pre-processing.
         int offset = (page - 1) * pageSize;
         FormattableString sql = $@"
 SELECT m.*

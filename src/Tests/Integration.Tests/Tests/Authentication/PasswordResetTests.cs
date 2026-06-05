@@ -108,10 +108,8 @@ public sealed class PasswordResetTests
 
     #region Helpers
 
-    // NOTE: the tenant context is set INLINE here, not via an awaited helper. The
-    // Finbuckle IMultiTenantContextSetter writes to an AsyncLocal; a value set inside
-    // a separate awaited method is lost on return to the caller, so the tenant query
-    // filter would NRE during CreateAsync. Keep the setter in the same method body.
+    // Set the tenant context INLINE, not via an awaited helper: the Finbuckle setter writes an AsyncLocal
+    // that's lost on return from a separate method, NREing the tenant query filter during CreateAsync.
     private async Task CreateActiveUserAsync(string email, string password)
     {
         using var scope = _factory.Services.CreateScope();

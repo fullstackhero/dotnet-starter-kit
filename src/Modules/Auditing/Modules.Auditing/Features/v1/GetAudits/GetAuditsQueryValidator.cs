@@ -14,9 +14,8 @@ public sealed class GetAuditsQueryValidator : AbstractValidator<GetAuditsQuery>
             .Must(q => !q.FromUtc.HasValue || !q.ToUtc.HasValue || q.FromUtc <= q.ToUtc)
             .WithMessage("FromUtc must be less than or equal to ToUtc.");
 
-        // Reject obviously oversized windows up-front so the user sees a 400
-        // instead of a silently-clamped result. The handler still clamps as a
-        // defence in depth (e.g. when only one endpoint is supplied).
+        // Reject oversized windows up-front (user sees a 400, not a silent clamp). The handler
+        // still clamps as defence in depth (e.g. when only one endpoint is supplied).
         RuleFor(q => q)
             .Must(q =>
                 !q.FromUtc.HasValue

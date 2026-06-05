@@ -166,11 +166,8 @@ public class BuildingBlocksIndependenceTests
     [Fact]
     public void BuildingBlocks_Should_Follow_Layered_Dependencies()
     {
-        // Define the expected dependency order (lower layers should not depend on higher)
-        // Layer 0: Core (no dependencies)
-        // Layer 1: Shared, Caching, Mailing, Storage (depend on Core)
-        // Layer 2: Persistence, Jobs (depend on Core, Shared)
-        // Layer 3: Eventing, Web (can depend on lower layers)
+        // Expected layering (lower must not depend on higher): 0=Core; 1=Shared/Caching/Mailing/Storage;
+        // 2=Persistence/Jobs; 3=Eventing/Web.
 
         var layerViolations = new List<string>();
 
@@ -237,10 +234,8 @@ public class BuildingBlocksIndependenceTests
         }
     }
 
-    // ProjectReference Include paths are authored with Windows separators (e.g. ..\Core\Core.csproj).
-    // Path.GetFileNameWithoutExtension only treats '\' as a separator on Windows, so on Linux CI it
-    // returns the whole path minus the extension. Normalize to '/' first to get the bare project name
-    // on every platform.
+    // ProjectReference paths use Windows separators (..\Core\Core.csproj), but GetFileNameWithoutExtension only
+    // splits on '\' on Windows — normalize to '/' first so Linux CI also gets the bare project name.
     private static string GetReferencedProjectName(string includePath) =>
         Path.GetFileNameWithoutExtension(includePath.Replace('\\', '/'));
 }

@@ -45,11 +45,8 @@ public sealed class PurgeOrphanedFilesJob(
             {
                 logger.LogWarning(ex, "Failed to remove orphan storage object {Key}", f.StorageKey);
             }
-            // Hard delete — the row never made it to Available, so soft-delete doesn't apply.
-            // We need EF to issue a DELETE, but FileAsset is ISoftDeletable and the interceptor
-            // would convert Remove() to UPDATE IsDeleted=true. Work around by setting IsDeleted
-            // already (forces interceptor to skip) and calling Remove again. Cleaner path: an
-            // explicit ExecuteDelete bulk operation.
+            // Hard delete (row never reached Available, so soft-delete doesn't apply). FileAsset is ISoftDeletable,
+            // so Remove() would become UPDATE IsDeleted=true — we use the bulk ExecuteDelete below to bypass the interceptor instead.
         }
 
         // Bulk hard delete — bypasses the soft-delete interceptor.

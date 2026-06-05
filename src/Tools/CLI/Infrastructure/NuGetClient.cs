@@ -65,10 +65,8 @@ internal static class NuGetClient
     internal static async Task<string?> GetInstalledTemplateVersionAsync(
         CancellationToken cancellationToken = default)
     {
-        // `dotnet new list` has no version column, so we read `dotnet new uninstall`
-        // (no args), which lists installed template packages with their versions:
-        //    FullStackHero.NET.StarterKit
-        //       Version: 10.0.0
+        // `dotnet new list` has no version column; `dotnet new uninstall` (no args) lists installed
+        // template packages with their versions (package id line, then an indented "Version: x.y.z").
         (bool ok, string output) = await ProcessRunner.CaptureAsync(
             "dotnet", "new uninstall", cancellationToken).ConfigureAwait(false);
 

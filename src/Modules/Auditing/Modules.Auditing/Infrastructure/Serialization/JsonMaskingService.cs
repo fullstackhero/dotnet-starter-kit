@@ -28,9 +28,8 @@ public sealed class JsonMaskingService : IAuditMaskingService
             int maskedCount = 0;
             MaskNode(json, ref maskedCount);
 
-            // No fields matched — return the original reference so callers can
-            // skip the AuditTag.PiiMasked tag and avoid an extra serialization
-            // hop in the sink.
+            // No fields matched — return the original reference so callers skip the
+            // AuditTag.PiiMasked tag and the extra serialization hop in the sink.
             return maskedCount == 0
                 ? new MaskingResult(payload, 0)
                 : new MaskingResult(json, maskedCount);

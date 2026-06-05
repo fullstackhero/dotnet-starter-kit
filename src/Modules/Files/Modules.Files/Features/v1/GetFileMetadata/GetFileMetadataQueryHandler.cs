@@ -39,9 +39,8 @@ public sealed class GetFileMetadataQueryHandler(
             throw new NotFoundException("file not found");
         }
 
-        // Public files get a durable URL so the caller can persist it on a long-lived entity
-        // (e.g. Product.imageUrl). Private files use the auth-gated /url endpoint to mint a
-        // short-lived presigned GET on demand.
+        // Public files get a durable URL safe to persist long-term, while private files mint a
+        // short-lived presigned GET on demand via the auth-gated url endpoint.
         var publicUrl = f.Visibility == Visibility.Public
             ? storage.BuildPublicUrl(f.StorageKey)
             : null;

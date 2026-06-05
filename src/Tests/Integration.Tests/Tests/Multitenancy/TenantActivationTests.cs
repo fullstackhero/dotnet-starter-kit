@@ -98,16 +98,13 @@ public sealed class TenantActivationTests
             new { tenantId, isActive = false });
         deactivate.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        // Once deactivated, the tenant guard rejects the request before the
-        // token handler runs → 403. Regression guard for "a deactivated tenant
-        // can still log in via the dashboard".
+        // Once deactivated, the tenant guard rejects before the token handler runs → 403.
+        // Regression guard for "a deactivated tenant can still log in via the dashboard".
         (await TryIssueTokenAsync(tenantId)).ShouldBe(HttpStatusCode.Forbidden);
     }
 
-    // Anonymous token request scoped to a tenant via the `tenant` header, with
-    // deliberately invalid credentials. We assert on the status the pipeline
-    // returns (401 when the handler runs, 403 when the tenant guard blocks it),
-    // so the test never depends on the tenant's admin being provisioned yet.
+    // Anonymous tenant-scoped token request with invalid credentials. Asserts the pipeline status
+    // (401 when the handler runs, 403 when the tenant guard blocks), so it never needs a provisioned admin.
     private async Task<HttpStatusCode> TryIssueTokenAsync(string tenantId)
     {
         using var client = _factory.CreateClient();

@@ -31,12 +31,8 @@ public sealed class MentionedInChannelIntegrationEventHandler(
     {
         ArgumentNullException.ThrowIfNull(@event);
 
-        // Fail loud on a tenant-context mismatch instead of silently writing the notification to
-        // the wrong tenant. NotificationsDbContext captures its tenant at construction (BaseDbContext),
-        // so we cannot "restore" it here — but the publisher (Chat, in-memory synchronous dispatch)
-        // runs inside the originating request's tenant context, which flows into this scope. If a
-        // future background publisher omits that context, this guard turns a cross-tenant leak into a
-        // visible failure rather than corrupt data.
+        // Fail loud on a tenant mismatch rather than write to the wrong tenant: the DbContext captures its
+        // tenant at construction, so a future publisher omitting the context would leak cross-tenant silently.
         var ambientTenantId = tenantAccessor.MultiTenantContext.TenantInfo?.Id;
         if (!string.Equals(ambientTenantId, @event.TenantId, StringComparison.Ordinal))
         {

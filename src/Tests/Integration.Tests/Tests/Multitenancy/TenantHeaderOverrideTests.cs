@@ -53,13 +53,8 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
         await WaitForProvisioningAsync(rootClient, _tenantA);
         await WaitForProvisioningAsync(rootClient, _tenantB);
 
-        // WaitForProvisioning returns when the provisioning record reports
-        // "Completed", but identity seeding writes the admin user inside that
-        // same job and the UserManager view can lag the status by a tick. A
-        // successful token issuance is the strongest cross-check that the
-        // tenant admin user exists *and* is queryable by the identity store
-        // — without this, the very first test occasionally races and gets an
-        // empty user list.
+        // Provisioning can report "Completed" a tick before the seeded admin user is queryable; a
+        // successful token issuance cross-checks the user exists, avoiding a first-test race on empty lists.
         _ = await GetTokenWithRetryAsync(_tenantAAdminEmail, TestConstants.DefaultPassword, _tenantA);
         _ = await GetTokenWithRetryAsync(_tenantBAdminEmail, TestConstants.DefaultPassword, _tenantB);
     }
@@ -94,9 +89,8 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
     [Fact]
     public async Task RootOperator_Should_UseOwnTenant_When_NoHeaderSent()
     {
-        // Arrange — bare CreateRootAdminClient sends `tenant: root`. The claim
-        // matches the header, so the override is a no-op and we fall through
-        // to ClaimStrategy. The result must scope to root tenant.
+        // Arrange — bare CreateRootAdminClient sends `tenant: root`; claim matches header, so the
+        // override no-ops and resolution scopes to the root tenant.
         using var rootClient = await _auth.CreateRootAdminClientAsync();
 
         // Act
@@ -113,9 +107,8 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
     [Fact]
     public async Task TenantAdmin_HeaderOverride_Should_BeIgnored()
     {
-        // Arrange — tenant A's admin tries to scope to tenant B by sending the
-        // header. The override is gated by `claim == root`, so this must fail
-        // closed: query stays in tenant A.
+        // Arrange — tenant A's admin sends a `tenant: B` header; the override is gated by claim==root,
+        // so it must fail closed and the query stays in tenant A.
         var tenantAToken = await GetTokenWithRetryAsync(_tenantAAdminEmail, TestConstants.DefaultPassword, _tenantA);
         using var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new("Bearer", tenantAToken.AccessToken);
@@ -124,9 +117,8 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
         // Act
         var response = await client.GetAsync($"{TestConstants.IdentityBasePath}/users/search?PageNumber=1&PageSize=50");
 
-        // Assert — request still resolves to tenant A (the claim wins), so
-        // tenant A's admin is in results and tenant B's admin is not. If the
-        // override leaked to non-root callers this assertion would flip.
+        // Assert — still resolves to tenant A (claim wins): A's admin present, B's absent. This flips
+        // if the override ever leaked to non-root callers.
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var page = await response.Content.ReadFromJsonAsync<PagedResult<SearchUserDto>>(Json);
         page.ShouldNotBeNull();

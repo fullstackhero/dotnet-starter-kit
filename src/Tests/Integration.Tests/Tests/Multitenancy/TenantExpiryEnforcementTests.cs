@@ -123,9 +123,8 @@ public sealed class TenantExpiryEnforcementTests
         return status;
     }
 
-    // Probes the post-auth guard with an anonymous token-issue request scoped to the tenant header,
-    // returning the response status plus the X-Subscription-Grace header (null when absent). The guard
-    // runs before the token handler, so the grace header is set regardless of the credential outcome.
+    // Probes the post-auth guard via anonymous token-issue scoped to the tenant header, returning status
+    // plus X-Subscription-Grace (null when absent); the guard runs before the handler, so grace is set regardless of creds.
     private async Task<(HttpStatusCode Status, string? Grace)> ProbeAsync(string tenantId)
     {
         using var client = _factory.CreateClient();

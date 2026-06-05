@@ -165,10 +165,8 @@ public sealed class WebhookDispatchOutcomeTests
         using var scope = capturingFactory.Services.CreateScope();
         var sp = scope.ServiceProvider;
 
-        // Set the Finbuckle tenant context INLINE: the AsyncLocal mutation must happen in this
-        // method body (not a separate awaited helper, or the change doesn't flow back to the
-        // caller's execution context) and BEFORE the DbContext is resolved, so its tenant query
-        // filter reads a real TenantInfo instead of throwing an NRE on a null one.
+        // Set Finbuckle tenant context INLINE and BEFORE resolving the DbContext: the AsyncLocal mutation
+        // must happen in this method body (not an awaited helper) or its tenant query filter NREs on a null.
         var tenant = await sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
             .GetAsync(TestConstants.RootTenantId).ConfigureAwait(false);
         sp.GetRequiredService<IMultiTenantContextSetter>()

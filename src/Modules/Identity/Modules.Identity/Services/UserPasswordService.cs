@@ -29,9 +29,8 @@ internal sealed class UserPasswordService(
 
         var user = await userManager.FindByEmailAsync(email);
 
-        // Anti-enumeration: respond identically whether or not the address is registered, so an
-        // anonymous caller cannot distinguish real accounts from unknown ones. A real user gets
-        // the reset email; an unknown (or email-less) account silently no-ops with the same 200.
+        // Anti-enumeration: respond identically regardless of registration — a real user gets the
+        // reset email; an unknown or email-less account silently no-ops with the same 200.
         if (user is null || string.IsNullOrWhiteSpace(user.Email))
         {
             return;

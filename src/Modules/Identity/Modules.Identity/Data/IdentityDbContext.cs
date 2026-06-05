@@ -66,12 +66,8 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
         builder.ApplyConfiguration(new OutboxMessageConfiguration(IdentityModuleConstants.SchemaName));
         builder.ApplyConfiguration(new InboxMessageConfiguration(IdentityModuleConstants.SchemaName));
 
-        // Default-on tenant isolation — any entity not marked IGlobalEntity gets
-        // IsMultiTenant() applied automatically. ImpersonationGrant, OutboxMessage,
-        // and InboxMessage opt out via IGlobalEntity. ASP.NET Identity tables
-        // (Users/Roles/Claims/etc.) are already marked IsMultiTenant in
-        // IdentityConfigurations.cs; the auto-apply detects that annotation and
-        // skips re-applying.
+        // Default-on tenant isolation: non-IGlobalEntity entities get IsMultiTenant() automatically (Outbox/Inbox/ImpersonationGrant opt out).
+        // Identity tables are already IsMultiTenant in IdentityConfigurations.cs; auto-apply detects that annotation and skips them.
         builder.ApplyTenantIsolationByDefault();
     }
 

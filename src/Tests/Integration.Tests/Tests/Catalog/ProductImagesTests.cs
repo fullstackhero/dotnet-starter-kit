@@ -125,12 +125,8 @@ public sealed class ProductImagesTests
     [Fact]
     public async Task SetProductThumbnail_Should_Survive_Repeated_Flips_Across_Three_Images()
     {
-        // Regression: a partial UNIQUE index on (ProductId) WHERE IsThumbnail=TRUE was firing
-        // whenever EF emitted promote-before-demote, leaving the constraint with two TRUE rows
-        // mid-statement. The aggregate enforces the single-thumbnail invariant on its own; the
-        // DB-level constraint was belt-and-suspenders that broke for half the EF orderings.
-        // Walking the thumbnail through every image, both forward and backward, is the
-        // ordering-agnostic way to lock that bug down.
+        // Regression: a partial UNIQUE on (ProductId) WHERE IsThumbnail fired mid-statement on promote-before-
+        // demote. The aggregate enforces single-thumbnail; walking the cover forward+back locks the bug down.
         using var client = await _auth.CreateRootAdminClientAsync();
         var (brandId, categoryId) = await PickExistingBrandAndCategoryAsync(client);
         var productId = await CreateProductAsync(client, brandId, categoryId);

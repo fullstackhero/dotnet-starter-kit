@@ -27,9 +27,8 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
         var ctx = eventData.Context;
         if (ctx is null) return result;
 
-        // Never audit the audit store's own writes — it would recurse: each flush would
-        // capture the AuditRecord inserts, whose PayloadJson embeds the prior PayloadJson,
-        // growing exponentially until System.Text.Json rejects the payload.
+        // Never audit the audit store's own writes — it recurses (each flush captures AuditRecord
+        // inserts whose PayloadJson embeds the prior), growing until System.Text.Json rejects it.
         if (ctx is AuditDbContext) return result;
 
         var entries = ctx.ChangeTracker.Entries()

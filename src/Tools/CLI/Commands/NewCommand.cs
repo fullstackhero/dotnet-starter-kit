@@ -263,9 +263,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             {
                 await ProcessRunner.RunAsync("git", "init", output, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
-                // Default the initial branch to `main` regardless of the user's git
-                // `init.defaultBranch` (older git defaults to `master`). symbolic-ref on
-                // the unborn HEAD works on every git version, unlike `git init -b`.
+                // Force the initial branch to main on every git version via symbolic-ref on the
+                // unborn HEAD, regardless of the user's configured default-branch setting.
                 await ProcessRunner.RunAsync("git", "symbolic-ref HEAD refs/heads/main", output, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
                 await ProcessRunner.RunAsync("git", "add -A", output, showOutput: false, cancellationToken: cancellationToken)
@@ -326,9 +325,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         File.WriteAllText(appsettingsDev, content.Replace(placeholder, key, StringComparison.Ordinal));
     }
 
-    // Generate deploy/docker/.env from .env.example with strong random secrets so
-    // `cd deploy/docker && docker compose up` works without hand-filling 8 secrets.
-    // .env is git-ignored, so the initial commit never captures these values.
+    // Generate deploy/docker/.env from .env.example with strong random secrets so compose
+    // works without hand-filling 8 secrets; .env is git-ignored so the initial commit skips them.
     private static bool GenerateDockerEnv(string output)
     {
         string dockerDir = Path.Combine(output, "deploy", "docker");

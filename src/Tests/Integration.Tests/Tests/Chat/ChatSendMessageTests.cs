@@ -37,11 +37,8 @@ public sealed class ChatSendMessageTests
     [Fact]
     public async Task SendMessage_Should_Succeed_When_Mirroring_Dashboard_Payload()
     {
-        // The dashboard composer always sends:
-        //   - POST /api/v1/chat/channels/{id}/messages
-        //   - Idempotency-Key header (fresh UUID per call)
-        //   - body: { body, parentMessageId: null, attachments: [] }
-        // This test reproduces that exact shape so any drift between client and contract is caught here.
+        // Reproduces the dashboard composer's exact wire shape (POST messages + fresh Idempotency-Key header +
+        // body { body, parentMessageId: null, attachments: [] }) so any client/contract drift is caught here.
         using var client = await _auth.CreateRootAdminClientAsync();
         var channelId = await CreateChannelAsync(client, UniqueName("Dash"));
 
@@ -204,9 +201,8 @@ public sealed class ChatSendMessageTests
     [Fact]
     public async Task SendMessage_Should_Succeed_When_Parent_Is_Top_Level_Message_In_Same_Channel()
     {
-        // Threads are 1-deep. A reply with a top-level parent in the *same* channel should land 200
-        // and bump the parent's ReplyCount (covered in ChatMessagesTests). This test just locks the
-        // happy thread shape so we can confidently assert the negative case that follows.
+        // Threads are 1-deep: a reply to a top-level parent in the *same* channel lands 200 and bumps ReplyCount (covered elsewhere).
+        // This locks the happy thread shape so the negative case that follows is meaningful.
         using var client = await _auth.CreateRootAdminClientAsync();
         var channelId = await CreateChannelAsync(client, UniqueName("OkThread"));
         var parentId = await SendMessageAsync(client, channelId, "parent");

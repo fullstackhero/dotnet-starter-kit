@@ -65,12 +65,12 @@ db_manage_master_user_password = true
 container_registry  = "ghcr.io/fullstackhero"
 api_image_name      = "fsh-api"
 migrator_image_name = "fsh-db-migrator"
-container_image_tag = "1d2c9f9d3b85bb86229f1bc1b9cd8196054f2166"
+container_image_tag = "dev-ba3e9498632df227a04a633e3573b646c9c2aa62"
 
 ################################################################################
 # DbMigrator — dev migrates AND seeds (admin + default tenant) on every deploy.
-# Seeding is idempotent; Seed:* / JwtOptions config comes from the image's
-# appsettings.Development.json (ASPNETCORE_ENVIRONMENT=Development on dev).
+# Seeding is idempotent; Seed:* config comes from the image's appsettings.Development.json.
+# Override explicitly via seed_default_admin_password / seed_demo_password if needed.
 # Demo tenants (acme/globex) are opt-in: run deploy with --seed-demo / -SeedDemo.
 ################################################################################
 

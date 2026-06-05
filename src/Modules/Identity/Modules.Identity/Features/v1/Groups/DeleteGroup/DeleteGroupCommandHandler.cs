@@ -34,9 +34,8 @@ public sealed class DeleteGroupCommandHandler : ICommandHandler<DeleteGroupComma
             throw new ForbiddenException("System groups cannot be deleted.");
         }
 
-        // Snapshot members BEFORE delete — the soft-delete flips IsDeleted but
-        // membership rows persist, so this lookup works either way; we capture
-        // first for clarity.
+        // Snapshot members before delete; soft-delete flips IsDeleted but membership rows
+        // persist, so capture first for clarity.
         var memberIds = await _dbContext.UserGroups
             .Where(ug => ug.GroupId == command.Id)
             .Select(ug => ug.UserId)

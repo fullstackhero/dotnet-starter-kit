@@ -202,9 +202,8 @@ public class EndpointConventionTests
             }
         }
 
-        // This check is informational: some private static helpers in endpoints are acceptable.
-        // A hard failure would require case-by-case review. We assert the list was populated
-        // (i.e., the test ran) rather than that it is empty.
+        // Informational only — some private static helpers in endpoints are acceptable; we assert
+        // the check ran (list populated) rather than that it is empty.
         warnings.ShouldNotBeNull("Endpoint business logic check did not run");
         // Review any endpoints reported in 'warnings' and move business logic to handlers.
     }

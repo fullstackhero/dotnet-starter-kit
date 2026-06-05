@@ -12,9 +12,8 @@ public static class Audit
     public static IAuditPublisher Publisher { get; private set; } = new NoopPublisher();
     public static IAuditSerializer Serializer { get; private set; } = new SystemTextJsonAuditSerializer();
 
-    // Immutable snapshot swapped atomically by Configure(). Readers (WriteAsync) take a single
-    // volatile read of the reference and enumerate that — never the live, mutating collection —
-    // so reconfiguration can never throw "Collection was modified" mid-enrich.
+    // Immutable snapshot swapped atomically by Configure(). Readers take one volatile read and
+    // enumerate that — never the live collection — so reconfig can't throw "Collection modified".
     private static volatile IAuditEnricher[] _enrichers = [];
 
     public static void Configure(

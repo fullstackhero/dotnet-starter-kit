@@ -474,9 +474,8 @@ public sealed class ProductsEndpointTests
     [Fact]
     public async Task CreateProduct_Should_NotMarkReplayed_When_NoIdempotencyKey()
     {
-        // Mirror of the BrandsEndpointTests check. Products' POST opts in to the
-        // Idempotency filter — without a key, the response must never carry the
-        // Idempotency-Replayed: true header.
+        // Products' POST opts in to the Idempotency filter — without a key the response
+        // must never carry the Idempotency-Replayed: true header (mirrors BrandsEndpointTests).
         const string ReplayedHeader = "Idempotency-Replayed";
 
         using var client = await _auth.CreateRootAdminClientAsync();

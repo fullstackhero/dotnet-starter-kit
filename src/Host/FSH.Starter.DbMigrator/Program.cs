@@ -26,20 +26,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-// ─────────────────────────────────────────────────────────────────────────
-// FSH DbMigrator — one-shot console that brings every database in the
-// solution up to head, optionally seeds, then exits with code 0 on success
-// or 1 on any failure. Runs as a deployment step (not at API startup), so
-// the runtime app can use a reduced-privilege connection string and the
-// migrator runs with elevated DDL perms.
-//
-// Usage:
-//   dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply
-//   dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --tenant root
-//   dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --catalog-only
-//   dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending
-//   dotnet run --project src/Host/FSH.Starter.DbMigrator -- seed
-// ─────────────────────────────────────────────────────────────────────────
+// FSH DbMigrator — one-shot console that migrates every DB to head, optionally seeds, then exits 0/1.
+// Runs as a deployment step (not at API startup) so it can use an elevated-DDL connection string. Verbs: see MigratorCommand.HelpText.
 
 var cli = MigratorCommand.Parse(args);
 if (cli.Help)
@@ -49,20 +37,13 @@ if (cli.Help)
 }
 var builder = Host.CreateApplicationBuilder(args);
 
-// The migrator loads every module so DbInitializers/seeders resolve, but runs a
-// deliberately reduced service graph (Mailing, Realtime/SignalR, Jobs disabled
-// via AddHeroPlatform below). The default container's build-time validation —
-// auto-on in Development — walks ALL registered descriptors, including request
-// handlers this process never invokes (Chat handlers needing IHubContext,
-// Identity handlers needing IMailService) and throws at startup. Disable it: the
-// migrator only resolves migration/seed services, so full-graph validation is a
-// false positive here. No-op in Production, where it's already off.
+// Disable build-time DI validation: auto-on in Development, it walks ALL descriptors incl. handlers this
+// reduced-graph process never invokes (Chat→IHubContext, Identity→IMailService) and throws — false positive.
 builder.ConfigureContainer(new DefaultServiceProviderFactory(
     new ServiceProviderOptions { ValidateOnBuild = false, ValidateScopes = false }));
 
-// In local development (dotnet run), the working directory is the project folder,
-// but appsettings.json is linked and copied to the output directory.
-// We explicitly load it from AppContext.BaseDirectory so IdentityModule's JwtOptions validate.
+// Under dotnet run the cwd is the project folder but appsettings.json is copied to the output dir,
+// so load it from AppContext.BaseDirectory for IdentityModule's JwtOptions to validate.
 builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), optional: true);
 builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
 
@@ -70,12 +51,8 @@ builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, $"appse
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.AddCommandLine(args);
 
-// The migrator loads the Identity module so its seed initializers can run, but
-// the migrator itself never mints JWTs. IdentityModule wires JwtOptions with
-// ValidateOnStart() (rightly so for the API), which trips on the empty
-// SigningKey now in the base appsettings.json. Inject a deterministic, clearly-
-// labelled placeholder ONLY when nothing real is configured — env vars and
-// JSON-supplied keys both win over this. Same treatment for Issuer/Audience.
+// IdentityModule's JwtOptions.ValidateOnStart() trips on the empty SigningKey in base appsettings, but
+// the migrator never mints JWTs. Inject a labelled placeholder only when nothing real is configured.
 if (string.IsNullOrWhiteSpace(builder.Configuration["JwtOptions:SigningKey"]))
 {
     builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -86,9 +63,8 @@ if (string.IsNullOrWhiteSpace(builder.Configuration["JwtOptions:SigningKey"]))
     });
 }
 
-// Fail-fast before option-validation runs at host build time: if the operator
-// forgot to set DatabaseOptions__ConnectionString, give them a single clear
-// line they'll actually read rather than a validation exception stack trace.
+// Fail-fast with one clear line if DatabaseOptions__ConnectionString is unset, rather than letting
+// host-build-time option validation throw a stack trace.
 if (string.IsNullOrWhiteSpace(builder.Configuration["DatabaseOptions:ConnectionString"]))
 {
     await Console.Error.WriteLineAsync(
@@ -142,10 +118,8 @@ var moduleAssemblies = new Assembly[]
     typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,
 };
 
-// Disable every runtime-only concern. Persistence + multitenancy stay enabled
-// so the modules' DbInitializers resolve cleanly. Caching is left on because
-// some modules' constructor wiring touches IDistributedCache; tolerate the
-// in-memory fallback when Redis isn't configured.
+// Disable runtime-only concerns; persistence + multitenancy stay on so DbInitializers resolve. Caching
+// stays on because some modules' ctor wiring touches IDistributedCache (in-memory fallback if no Redis).
 builder.AddHeroPlatform(o =>
 {
     o.EnableOpenTelemetry = false;
@@ -163,28 +137,12 @@ builder.AddHeroPlatform(o =>
 
 builder.AddModules(moduleAssemblies);
 
-// The Multitenancy module's TenantProvisioningService depends on IJobService —
-// Hangfire's IJobService is only registered when EnableJobs is true, which we 
-// don't want in the migrator (Hangfire needs its own schema bootstrap + workers).
-// Provide a throwing no-op so the DI graph resolves; the migration code paths
-// don't enqueue jobs.
+// TenantProvisioningService needs IJobService, but Hangfire's is gated behind EnableJobs (off here).
+// Provide a throwing no-op so the DI graph resolves; the migration code paths don't enqueue jobs.
 builder.Services.AddSingleton<FSH.Framework.Jobs.Services.IJobService, NoOpJobService>();
 
-// Strip every runtime background worker before host.StartAsync() boots them.
-// This is a one-shot migrator: it does all its work via explicit scopes in
-// Steps 0–3 below and depends on no hosted service. Left running, these
-// long-lived workers begin polling/writing the database the instant the host
-// starts — BEFORE Step 1/2 create the tables — and spew 42P01 "relation does
-// not exist" errors against a fresh DB (OutboxDispatcher → OutboxMessages,
-// AuditBackgroundWorker → AuditRecords, SessionCleanup/RolePermissionSync →
-// identity tables, each also resolving tenant.Tenants before it exists).
-// Removing every BackgroundService catches them all — and any future worker —
-// without an ever-growing name denylist; Hangfire's are already gone via
-// EnableJobs=false. We also drop TenantStoreInitializerHostedService (a plain
-// IHostedService, not a BackgroundService) which races the tenant-catalog
-// MigrateAsync. Non-DB framework IHostedServices are intentionally preserved:
-// the options StartupValidator (so ValidateOnStart still runs at StartAsync)
-// and Serilog's flush-on-shutdown service (so log output reaches stdout/stderr).
+// Strip every BackgroundService (+ TenantStoreInitializerHostedService) before StartAsync: left running they
+// poll/write tables BEFORE Step 1/2 create them (42P01). StartupValidator + Serilog flush IHostedServices stay.
 foreach (var descriptor in builder.Services
     .Where(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService)
         && (typeof(Microsoft.Extensions.Hosting.BackgroundService).IsAssignableFrom(d.ImplementationType)
@@ -207,10 +165,7 @@ await host.StartAsync().ConfigureAwait(false);
 try
 {
     // ── Step 0 — wait for the database to come up ────────────────────────
-    // Aspire / Kubernetes cold-starts can leave Postgres still initialising
-    // when the migrator's container is scheduled. Exponential backoff up to
-    // two minutes catches the common 5–30s startup gap; longer outages
-    // surface as a clean TimeoutException + exit code 1.
+    // Postgres may still be initialising on cold-start; exp. backoff (≤2 min), then TimeoutException + exit 1.
     var connectionString = host.Services.GetRequiredService<IConfiguration>()["DatabaseOptions:ConnectionString"]
         ?? throw new InvalidOperationException("DatabaseOptions:ConnectionString is not configured.");
     await Console.Out.WriteLineAsync("[migrator] waiting for postgres…").ConfigureAwait(false);
@@ -218,16 +173,12 @@ try
         .ConfigureAwait(false);
     await Console.Out.WriteLineAsync("[migrator] postgres ready").ConfigureAwait(false);
 
-    // Log the connected role + database so operators catch a misconfigured low-priv
-    // connection string immediately, rather than at the first "permission denied
-    // for schema public" during MigrateAsync.
+    // Log the connected role + database so a misconfigured low-priv connection string surfaces now,
+    // not as "permission denied for schema public" during MigrateAsync.
     await LogConnectionIdentityAsync(connectionString).ConfigureAwait(false);
 
     // ── Step 0b — acquire the advisory lock ──────────────────────────────
-    // Postgres session-level advisory lock. Concurrent migrator runs
-    // (CI-races, ops-vs-Helm-hook overlap, replicas: 2 by accident) block
-    // here until the holder finishes. The lock auto-releases on connection
-    // close, so even a crashed migrator doesn't leave the lock orphaned.
+    // Session-level lock: concurrent runs block here; auto-releases on connection close (no orphan on crash).
     await Console.Out.WriteLineAsync("[migrator] acquiring advisory lock…").ConfigureAwait(false);
     await using var migratorLock = await PostgresMigratorLock
         .AcquireAsync(connectionString, logger, CancellationToken.None)
@@ -235,8 +186,7 @@ try
     await Console.Out.WriteLineAsync("[migrator] advisory lock acquired").ConfigureAwait(false);
 
     // ── Step 1 — tenant catalog ───────────────────────────────────────────
-    // Always applied first because the per-tenant migrator below reads
-    // every tenant out of this database.
+    // Always applied first: the per-tenant migrator below reads every tenant out of this database.
     using (var scope = host.Services.CreateScope())
     {
         var tenantDb = scope.ServiceProvider.GetRequiredService<TenantDbContext>();
@@ -289,8 +239,7 @@ try
     }
 
     // ── Step 2 — per-tenant migrations + (optional) seeds ────────────────
-    // `seed-demo` short-circuits Step 2 because it provisions its own demo tenants
-    // (acme, globex) by running migrate + seed inline against each — handled below.
+    // `seed-demo` short-circuits this: it provisions its own demo tenants inline (Step 3 below).
     if (!cli.CatalogOnly && cli.Command != "seed-demo")
     {
         var tenantStore = host.Services.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
@@ -335,10 +284,7 @@ try
     }
 
     // ── Step 3 — demo seed (verb: `seed-demo`) ───────────────────────────
-    // Dev-only. Provisions acme + globex tenants with rich demo content
-    // (users, custom roles, catalog, tickets, chat) so a fresh dev DB
-    // comes up feeling lived-in. Hard-fails outside Development to keep
-    // demo data out of staging / prod by accident.
+    // Dev-only: provisions acme + globex with rich demo content; hard-fails outside Development.
     if (cli.Command == "seed-demo")
     {
         var env = host.Services.GetRequiredService<IHostEnvironment>();

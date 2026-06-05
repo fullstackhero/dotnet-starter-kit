@@ -37,14 +37,8 @@ public static class Extensions
                     var settings = corsSettings.Value;
                     if (settings.AllowAll)
                     {
-                        // SetIsOriginAllowed(_ => true) is "permissive like AllowAnyOrigin"
-                        // but echoes the specific request origin in the response. The W3C
-                        // CORS spec forbids `Access-Control-Allow-Origin: *` together with
-                        // credentialed requests, and SignalR's negotiate fetch always runs
-                        // in credentials mode (so it can carry cookie auth) — using
-                        // AllowAnyOrigin here breaks SignalR with a CORS error even though
-                        // regular Bearer-token REST works fine. AllowCredentials must be
-                        // paired with a specific origin, hence this pattern.
+                        // Echo the request origin (not `*`): the CORS spec forbids `*` with credentialed requests,
+                        // and SignalR's negotiate always runs credentialed — so AllowCredentials needs a specific origin.
                         builder
                             .SetIsOriginAllowed(_ => true)
                             .AllowAnyHeader()

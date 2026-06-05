@@ -34,10 +34,8 @@ public static class HealthEndpoints
                 .WithDescription("Reports if the API process is alive. Does not check dependencies.")
                 .Produces<HealthResult>(StatusCodes.Status200OK);
 
-        // Readiness: includes DB (and any other registered checks). Returns the
-        // full payload on both 200 and 503 so dashboards/operators can see *which*
-        // check failed and why. Probe consumers (k8s, load balancers) only key
-        // off the status code, so adding a body on 503 is safe.
+        // Readiness: includes DB + registered checks. Full payload on both 200 and 503 so
+        // operators see which check failed; probe consumers key off status code, so a 503 body is safe.
         group.MapGet("/ready",
                     async (HealthCheckService hc, CancellationToken cancellationToken) =>
                     {
