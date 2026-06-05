@@ -19,8 +19,14 @@ locals {
   migrator_container_image = "${var.container_registry}/${var.migrator_image_name}:${var.container_image_tag}"
 
   # Public origin of the API (no /api suffix) — used for the app OriginUrl and
-  # as the apiBase the React SPAs read from their runtime config.json.
-  api_origin = var.enable_https && var.domain_name != null ? "https://${var.domain_name}" : "http://${module.alb.dns_name}"
+  # as the apiBase the React SPAs read from their runtime config.json. HTTPS via
+  # a custom domain when set, else via the API CloudFront distribution (free
+  # *.cloudfront.net cert), else plain HTTP on the ALB.
+  api_origin = (
+    var.enable_https && var.domain_name != null ? "https://${var.domain_name}" :
+    var.enable_api_cloudfront ? "https://${one(aws_cloudfront_distribution.api[*].domain_name)}" :
+    "http://${module.alb.dns_name}"
+  )
 }
 
 ################################################################################
@@ -169,10 +175,14 @@ module "app_s3" {
   enable_intelligent_tiering = var.app_s3_enable_intelligent_tiering
   lifecycle_rules            = var.app_s3_lifecycle_rules
 
-  cors_rules = var.enable_https && var.domain_name != null ? [
+  # Browser presigned uploads (My Files, chat attachments) PUT directly from the
+  # SPA origins to S3, so the bucket must allow those origins — not just a custom
+  # domain. Reuse the API's allow-list (SPA CloudFront/alias origins + custom
+  # domain + extras), so it works on the default CloudFront domains too.
+  cors_rules = local.has_cors_origins ? [
     {
       allowed_methods = ["GET", "PUT", "POST"]
-      allowed_origins = ["https://${var.domain_name}"]
+      allowed_origins = local.cors_allowed_origins
       allowed_headers = ["*"]
       expose_headers  = ["ETag"]
       max_age_seconds = 3600
@@ -240,6 +250,63 @@ module "admin_site" {
   tags = local.common_tags
 }
 
+################################################################################
+# API CloudFront — HTTPS in front of the (HTTP-only) ALB without a custom
+# domain. Viewer↔CloudFront is HTTPS on the free *.cloudfront.net cert; the
+# CloudFront↔ALB hop stays HTTP inside AWS. Dynamic API: no caching, forward
+# everything (incl. Authorization) via the managed AllViewerExceptHostHeader.
+################################################################################
+
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  count = var.enable_api_cloudfront ? 1 : 0
+  name  = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
+  count = var.enable_api_cloudfront ? 1 : 0
+  name  = "Managed-AllViewerExceptHostHeader"
+}
+
+resource "aws_cloudfront_distribution" "api" {
+  count       = var.enable_api_cloudfront ? 1 : 0
+  enabled     = true
+  comment     = "${local.name_prefix} API (ALB origin)"
+  price_class = var.frontend_cloudfront_price_class
+
+  origin {
+    domain_name = module.alb.dns_name
+    origin_id   = "alb"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id         = "alb"
+    viewer_protocol_policy   = "redirect-to-https"
+    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods           = ["GET", "HEAD"]
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled[0].id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host[0].id
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+
+  tags = local.common_tags
+}
+
 locals {
   # Resolved SPA origins (custom alias when set, else the CloudFront domain).
   # Fall back to an override for SPAs hosted outside this stack.
@@ -253,6 +320,20 @@ locals {
     var.enable_https && var.domain_name != null ? ["https://${var.domain_name}"] : [],
     var.api_extra_cors_origins,
   ))
+
+  # Whether to emit the app bucket's CORS rule. Must be a PLAN-KNOWN boolean: the
+  # resolved origins above are CloudFront domains that don't exist until apply, so
+  # length(cors_allowed_origins) is unknown on first apply — feeding that into the
+  # s3_bucket module's `count` fails with "Invalid count argument". Gate on the
+  # known inputs that produce those origins instead.
+  has_cors_origins = (
+    var.enable_admin_site
+    || var.enable_dashboard_site
+    || var.admin_url != null
+    || var.dashboard_url != null
+    || (var.enable_https && var.domain_name != null)
+    || length(var.api_extra_cors_origins) > 0
+  )
 
   cors_environment_variables = {
     for idx, origin in local.cors_allowed_origins :

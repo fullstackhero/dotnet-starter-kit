@@ -47,7 +47,16 @@ output "alb_zone_id" {
 
 output "api_url" {
   description = "API URL."
-  value       = var.enable_https && var.domain_name != null ? "https://${var.domain_name}/api" : "http://${module.alb.dns_name}/api"
+  value = (
+    var.enable_https && var.domain_name != null ? "https://${var.domain_name}/api" :
+    var.enable_api_cloudfront ? "https://${one(aws_cloudfront_distribution.api[*].domain_name)}/api" :
+    "http://${module.alb.dns_name}/api"
+  )
+}
+
+output "api_cloudfront_domain" {
+  description = "CloudFront domain fronting the API (null unless enable_api_cloudfront)."
+  value       = one(aws_cloudfront_distribution.api[*].domain_name)
 }
 
 ################################################################################

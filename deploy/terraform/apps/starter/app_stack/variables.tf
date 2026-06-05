@@ -138,6 +138,12 @@ variable "acm_certificate_arn" {
   default     = null
 }
 
+variable "enable_api_cloudfront" {
+  type        = bool
+  description = "Front the API ALB with a CloudFront distribution for HTTPS without a custom domain (free *.cloudfront.net cert). Ignored when enable_https + domain_name are set."
+  default     = false
+}
+
 variable "ssl_policy" {
   type        = string
   description = "SSL policy for the HTTPS listener."

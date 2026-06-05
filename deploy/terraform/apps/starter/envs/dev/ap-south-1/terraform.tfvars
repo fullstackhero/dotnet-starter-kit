@@ -1,24 +1,27 @@
 ################################################################################
-# Dev Environment — US East 1
+# Dev Environment — Asia Pacific (Mumbai) ap-south-1
 ################################################################################
 
 environment = "dev"
-region      = "us-east-1"
+region      = "ap-south-1"
 
 ################################################################################
 # Network
+#
+# Distinct CIDR from us-east-1 (10.10.0.0/16) so the two dev stacks can ever be
+# peered without overlap.
 ################################################################################
 
-vpc_cidr_block = "10.10.0.0/16"
+vpc_cidr_block = "10.20.0.0/16"
 
 public_subnets = {
-  a = { cidr_block = "10.10.0.0/24", az = "us-east-1a" }
-  b = { cidr_block = "10.10.1.0/24", az = "us-east-1b" }
+  a = { cidr_block = "10.20.0.0/24", az = "ap-south-1a" }
+  b = { cidr_block = "10.20.1.0/24", az = "ap-south-1b" }
 }
 
 private_subnets = {
-  a = { cidr_block = "10.10.10.0/24", az = "us-east-1a" }
-  b = { cidr_block = "10.10.11.0/24", az = "us-east-1b" }
+  a = { cidr_block = "10.20.10.0/24", az = "ap-south-1a" }
+  b = { cidr_block = "10.20.11.0/24", az = "ap-south-1b" }
 }
 
 single_nat_gateway = true
@@ -28,10 +31,12 @@ enable_ecr_endpoints = true
 enable_logs_endpoint = true
 
 ################################################################################
-# S3
+# S3 — bucket names must be globally unique, so they carry an -aps1 suffix to
+# coexist with the us-east-1 dev stack (S3 names are global; a bucket lives in
+# exactly one region).
 ################################################################################
 
-app_s3_bucket_name        = "dev-fsh-app-bucket"
+app_s3_bucket_name        = "dev-fsh-app-bucket-aps1"
 app_s3_enable_public_read = false
 app_s3_enable_cloudfront  = true
 
@@ -39,8 +44,8 @@ app_s3_enable_cloudfront  = true
 # Frontend SPAs (S3 + CloudFront) — bucket names must be globally unique
 ################################################################################
 
-dashboard_s3_bucket_name = "dev-fsh-dashboard"
-admin_s3_bucket_name     = "dev-fsh-admin"
+dashboard_s3_bucket_name = "dev-fsh-dashboard-aps1"
+admin_s3_bucket_name     = "dev-fsh-admin-aps1"
 dashboard_demo_mode      = true
 
 # HTTPS for the API without a custom domain: front the ALB with CloudFront
