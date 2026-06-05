@@ -80,12 +80,27 @@ ENV_DIR="$SCRIPT_DIR/envs/$ENVIRONMENT/$REGION"
 [[ -f "$ENV_DIR/backend.hcl" ]] || die "no backend.hcl for $ENVIRONMENT/$REGION at $ENV_DIR"
 [[ -f "$ENV_DIR/terraform.tfvars" ]] || die "no terraform.tfvars for $ENVIRONMENT/$REGION at $ENV_DIR"
 
+# Each env/region gets its OWN Terraform data dir (backend pointer, providers,
+# modules) instead of the shared app_stack/.terraform — otherwise two runs against
+# different backends (e.g. a deploy in one region while another is destroyed)
+# clobber each other's backend pointer mid-run and `terraform output` then reads
+# the wrong state. Absolute path so it is unaffected by `terraform -chdir`.
+export TF_DATA_DIR="$APP_STACK_DIR/.terraform/$ENVIRONMENT-$REGION"
+
 # ---- tooling preflight ------------------------------------------------------
 for tool in terraform aws jq; do command -v "$tool" >/dev/null || die "$tool is required but not installed"; done
 
 TF_VERSION="$(terraform version -json | jq -r .terraform_version)"
 if [[ "$(printf '%s\n%s\n' "$MIN_TF_VERSION" "$TF_VERSION" | sort -V | head -1)" != "$MIN_TF_VERSION" ]]; then
   die "Terraform >= $MIN_TF_VERSION required (found $TF_VERSION). Upgrade with e.g. 'choco upgrade terraform'."
+fi
+
+# Ask up front (before the long apply) whether to seed the acme/globex demo
+# tenants. Skipped when already chosen (--seed-demo), not migrating
+# (--skip-migrate), or running unattended (--auto-approve / no TTY) so CI never blocks.
+if [[ "$SEED_DEMO" != true && "$SKIP_MIGRATE" != true && "$AUTO_APPROVE" != true && -t 0 ]]; then
+  read -rp "Seed demo tenants (acme/globex) after migrating? [y/N]: " ans
+  [[ "$ans" =~ ^[Yy] ]] && SEED_DEMO=true
 fi
 
 echo "==> Deploying '$ENVIRONMENT' in $REGION"

@@ -41,6 +41,13 @@ $RepoRoot = (Resolve-Path "$ScriptDir/../../../..").Path
 $AppStackDir = Join-Path $ScriptDir 'app_stack'
 $EnvDir = Join-Path $ScriptDir "envs/$Environment/$Region"
 
+# Each env/region gets its OWN Terraform data dir (backend pointer, providers,
+# modules) instead of the shared app_stack/.terraform. Without this, two runs
+# against different backends — e.g. a deploy in one region while another region
+# is being destroyed — clobber each other's backend pointer mid-run, so the
+# later `terraform output` reads the wrong state ("Output not found").
+$env:TF_DATA_DIR = Join-Path $AppStackDir ".terraform/$Environment-$Region"
+
 function Die($msg) { Write-Error $msg; exit 1 }
 
 if (-not (Test-Path "$EnvDir/backend.hcl")) { Die "no backend.hcl for $Environment/$Region at $EnvDir" }
@@ -59,6 +66,14 @@ $env:AWS_DEFAULT_REGION = $Region
 $tfVersion = [version](terraform version -json | ConvertFrom-Json).terraform_version
 if ($tfVersion -lt $MinTfVersion) {
   Die "Terraform >= $MinTfVersion required (found $tfVersion). Upgrade with e.g. 'choco upgrade terraform'."
+}
+
+# Ask up front (before the long apply) whether to seed the acme/globex demo
+# tenants. Skipped when already chosen (-SeedDemo), not migrating (-SkipMigrate),
+# or running unattended (-AutoApprove / non-interactive) so CI never blocks.
+if (-not $SeedDemo -and -not $SkipMigrate -and -not $AutoApprove -and [Environment]::UserInteractive) {
+  $ans = Read-Host 'Seed demo tenants (acme/globex) after migrating? [y/N]'
+  if ($ans -match '^[Yy]') { $SeedDemo = $true }
 }
 
 Write-Host "==> Deploying '$Environment' in $Region"

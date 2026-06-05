@@ -34,6 +34,10 @@ $ScriptDir = $PSScriptRoot
 $AppStackDir = Join-Path $ScriptDir 'app_stack'
 $EnvDir = Join-Path $ScriptDir "envs/$Environment/$Region"
 
+# Per-env/region Terraform data dir so a destroy never clobbers (or is clobbered
+# by) a concurrent deploy/destroy in another region sharing app_stack/.terraform.
+$env:TF_DATA_DIR = Join-Path $AppStackDir ".terraform/$Environment-$Region"
+
 function Die($msg) { Write-Error $msg; exit 1 }
 
 if (-not (Test-Path "$EnvDir/backend.hcl")) { Die "no backend.hcl for $Environment/$Region at $EnvDir" }
