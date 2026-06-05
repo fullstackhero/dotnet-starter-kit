@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   Check,
   ChevronsUpDown,
@@ -31,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
 import { useAuth } from "@/auth/use-auth";
+import { getMyProfile } from "@/api/users";
 import { useTheme } from "@/components/theme/theme-provider";
 import { cn } from "@/lib/cn";
 
@@ -50,6 +52,43 @@ function initialsOf(name?: string | null): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+/**
+ * ProfileTile — the square topbar avatar. Renders the uploaded profile
+ * image when present (object-cover to fill the rounded tile) and falls
+ * back to the brand-tinted initials tile when missing or on load error.
+ * Keyed by `src` at the call site so a freshly-uploaded image resets the
+ * failure state and shows immediately.
+ */
+function ProfileTile({ src, initials }: { src: string | null; initials: string }) {
+  const [failed, setFailed] = useState(false);
+  const showImage = Boolean(src) && !failed;
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg",
+        "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.15)] text-[var(--color-primary)]",
+        "font-display text-[11px] font-bold tracking-tight",
+      )}
+    >
+      {showImage ? (
+        <img
+          src={src ?? undefined}
+          alt=""
+          width={32}
+          height={32}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        initials
+      )}
+    </span>
+  );
 }
 
 function ThemeMenuItem({
@@ -111,6 +150,17 @@ export function Topbar() {
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // Avatar lives on the profile, not the JWT — read it from the shared
+  // ["identity","profile"] query so it updates the instant a new image is
+  // uploaded (the profile page invalidates that key on success).
+  const profile = useQuery({
+    queryKey: ["identity", "profile"],
+    queryFn: getMyProfile,
+    staleTime: 60_000,
+  });
+  const avatarUrl = profile.data?.imageUrl ?? null;
+  const displayName = user?.name ?? user?.email ?? "Unknown";
+
   const onConfirmSignOut = () => {
     setConfirmOpen(false);
     logout();
@@ -148,21 +198,16 @@ export function Topbar() {
               "data-[state=open]:bg-[var(--color-accent)]",
             )}
           >
-          {/* Square initials tile */}
-          <span
-            aria-hidden
-            className={cn(
-              "grid size-8 shrink-0 place-items-center rounded-lg",
-              "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.15)] text-[var(--color-primary)]",
-              "font-display text-[11px] font-bold tracking-tight",
-            )}
-          >
-            {initialsOf(user?.name ?? user?.email)}
-          </span>
+          {/* Square avatar tile — uploaded image with initials fallback */}
+          <ProfileTile
+            key={avatarUrl ?? "none"}
+            src={avatarUrl}
+            initials={initialsOf(user?.name ?? user?.email)}
+          />
           {/* Name + tenant — desktop only */}
           <div className="hidden min-w-0 text-left md:block">
             <p className="truncate text-[12px] font-medium leading-none text-[var(--color-foreground)]">
-              {user?.name ?? user?.email ?? "Unknown"}
+              {displayName}
             </p>
             <p className="mt-1 truncate text-[10px] leading-none text-[var(--color-muted-foreground)]">
               {user?.tenant ?? "—"}
@@ -183,7 +228,7 @@ export function Topbar() {
           {/* User info header */}
           <div className="px-3 py-2.5">
             <p className="truncate text-[12px] font-semibold text-[var(--color-foreground)]">
-              {user?.name ?? user?.email ?? "Unknown"}
+              {displayName}
             </p>
             {user?.email && user.name && (
               <p className="mt-0.5 truncate text-[10.5px] text-[var(--color-muted-foreground)]">
@@ -263,7 +308,7 @@ export function Topbar() {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sign out of FullStackHero?</DialogTitle>
+            <DialogTitle>Sign out of fullstackhero?</DialogTitle>
             <DialogDescription>
               You'll need to sign in again to access this admin. Any unsaved
               work in this session will be lost.
@@ -271,10 +316,10 @@ export function Topbar() {
           </DialogHeader>
           <DialogBody>
             <div className="flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2.5">
-              <Avatar name={user?.name ?? user?.email ?? "?"} size="md" />
+              <Avatar name={displayName} src={avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium tracking-tight">
-                  {user?.name ?? user?.email ?? "Unknown"}
+                  {displayName}
                 </div>
                 {user?.email && user.name && (
                   <div className="truncate text-xs text-[var(--color-muted-foreground)]">

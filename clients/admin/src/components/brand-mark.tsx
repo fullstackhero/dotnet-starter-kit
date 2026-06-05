@@ -46,7 +46,7 @@ export function BrandMarkXL({ className }: { className?: string }) {
       <div className="flex items-center gap-2.5">
         <img
           src="/logo-fullstackhero.png"
-          alt="FullStackHero"
+          alt="fullstackhero"
           className="size-7 object-contain"
         />
         <span className="font-display text-[18px] font-semibold tracking-tight text-[var(--color-foreground)]">

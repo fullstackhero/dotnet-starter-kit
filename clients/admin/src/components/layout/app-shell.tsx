@@ -6,6 +6,7 @@ import {
   MobileNavProvider,
   MobileNavRoot,
 } from "@/components/layout/mobile-nav";
+import { InactivityGuard } from "@/components/auth/inactivity-guard";
 
 /**
  * AppShell — three-area layout: sidebar / topbar / main content.
@@ -62,6 +63,9 @@ export function AppShell() {
 
       {/* Mobile drawer — mounted at root so it portals above the shell. */}
       <MobileNavRoot />
+
+      {/* Inactivity auto-logout — warning modal + countdown, signed-in only. */}
+      <InactivityGuard />
     </MobileNavProvider>
   );
 }

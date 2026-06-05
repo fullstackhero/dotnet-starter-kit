@@ -506,6 +506,14 @@
     cursor: not-allowed;
   }
 
+  /* Hide the browser's native password reveal/clear controls (Edge/IE).
+     We ship our own eye toggle on password fields, so the built-in one
+     would just double up the affordance. */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+
   html {
     font-family: var(--font-sans);
     font-feature-settings: var(--font-feature-default);

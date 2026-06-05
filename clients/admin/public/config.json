@@ -1,5 +1,7 @@
 {
   "apiBase": "",
   "defaultTenant": "root",
-  "dashboardUrl": "http://localhost:5174"
+  "dashboardUrl": "http://localhost:5174",
+  "inactivityIdleMs": 600000,
+  "inactivityWarningMs": 60000
 }

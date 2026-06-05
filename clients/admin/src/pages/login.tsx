@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -8,8 +8,10 @@ import {
   Loader2,
   ShieldCheck,
   Sparkles,
+  TimerOff,
 } from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
+import { consumeSignedOutReason } from "@/auth/inactivity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +46,14 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // Surface why the previous session ended (read-and-clear, one-shot).
+  useEffect(() => {
+    if (consumeSignedOutReason() === "inactivity") {
+      setNotice("You were signed out due to inactivity.");
+    }
+  }, []);
 
   if (isAuthenticated) {
     return <Navigate to={from} replace />;
@@ -108,7 +118,7 @@ export function LoginPage() {
             <div className="flex items-center gap-2.5">
               <img
                 src="/logo-fullstackhero.png"
-                alt="FullStackHero"
+                alt="fullstackhero"
                 className="size-9 object-contain"
               />
               <span className="font-display text-[26px] font-semibold tracking-tight text-[var(--color-foreground)]">
@@ -133,6 +143,16 @@ export function LoginPage() {
                   Sign in to your operator account
                 </p>
               </div>
+
+              {notice && (
+                <div
+                  role="status"
+                  className="mb-5 flex items-start gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2.5 text-[12.5px] leading-snug text-[var(--color-muted-foreground)] fsh-enter"
+                >
+                  <TimerOff className="mt-0.5 size-3.5 shrink-0 text-[var(--color-muted-foreground)]" />
+                  <span>{notice}</span>
+                </div>
+              )}
 
               <form
                 onSubmit={onSubmit}
@@ -278,7 +298,7 @@ export function LoginPage() {
             <span>Encrypted in transit · JWT-secured session</span>
           </div>
           <p className="mt-4 text-center text-[10px] font-medium uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]">
-            FullStackHero Administration
+            fullstackhero Administration
           </p>
         </div>
       </div>
