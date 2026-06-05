@@ -3,8 +3,8 @@
   Destroy the FullStackHero Starter Kit AWS stack for one environment.
 
 .EXAMPLE
-  ./destroy.ps1 -Environment dev
-  ./destroy.ps1 -Environment dev -AutoApprove
+  ./destroy.ps1 -Environment dev -Region us-east-1
+  ./destroy.ps1 -Environment dev -Region us-east-1 -AutoApprove
 
 .DESCRIPTION
   Runs terraform init (re-pointing the backend) + terraform destroy for the
@@ -21,7 +21,8 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory)][ValidateSet('dev', 'staging', 'prod')][string]$Environment,
-  [string]$Region = 'us-east-1',
+  # Region is mandatory — never assume one. PowerShell prompts when it is omitted.
+  [Parameter(Mandatory, HelpMessage = 'AWS region, e.g. us-east-1 or ap-south-1')][string]$Region,
   [switch]$SkipInit,
   [switch]$AutoApprove
 )

@@ -2,7 +2,10 @@
 #
 # One-command deploy of the FullStackHero Starter Kit to AWS.
 #
-#   ./deploy.sh <dev|staging|prod> [region]
+#   ./deploy.sh <dev|staging|prod> <region>
+#
+# Region is required — the script never assumes one. Pass it as the 2nd arg
+# (e.g. `./deploy.sh dev ap-south-1`) or it will prompt interactively.
 #
 # It will, in order:
 #   1. terraform init + apply (infra: VPC, ALB+WAF, ECS API, RDS, Redis, S3, the two SPA CloudFront sites)
@@ -34,7 +37,7 @@ APP_STACK_DIR="$SCRIPT_DIR/app_stack"
 
 # ---- args -------------------------------------------------------------------
 ENVIRONMENT="${1:-}"
-REGION="us-east-1"
+REGION=""
 BUILD_API=false
 SKIP_FRONTEND=false
 SKIP_MIGRATE=false
@@ -61,7 +64,17 @@ done
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
-[[ "$ENVIRONMENT" =~ ^(dev|staging|prod)$ ]] || die "usage: ./deploy.sh <dev|staging|prod> [region] [flags]"
+[[ "$ENVIRONMENT" =~ ^(dev|staging|prod)$ ]] || die "usage: ./deploy.sh <dev|staging|prod> <region> [flags]"
+
+# Region is required — never assume one. Prompt when interactive, else fail.
+if [[ -z "$REGION" ]]; then
+  if [[ -t 0 ]]; then
+    read -rp "AWS region (e.g. us-east-1, ap-south-1): " REGION
+  else
+    die "no region given — pass it as the 2nd arg (e.g. ./deploy.sh $ENVIRONMENT us-east-1); refusing to assume a default"
+  fi
+fi
+[[ "$REGION" =~ ^[a-z]{2}-[a-z]+-[0-9]$ ]] || die "invalid AWS region: '$REGION'"
 
 ENV_DIR="$SCRIPT_DIR/envs/$ENVIRONMENT/$REGION"
 [[ -f "$ENV_DIR/backend.hcl" ]] || die "no backend.hcl for $ENVIRONMENT/$REGION at $ENV_DIR"
