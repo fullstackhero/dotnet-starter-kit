@@ -551,6 +551,11 @@ module "redis" {
   automatic_failover_enabled = var.redis_automatic_failover_enabled
   transit_encryption_enabled = var.redis_transit_encryption_enabled
 
+  # dev tears down without a final snapshot (matches RDS above); otherwise a
+  # repeated destroy collides with the prior attempt's snapshot name
+  # (SnapshotAlreadyExistsFault). staging/prod keep the final snapshot.
+  skip_final_snapshot = var.environment == "dev" ? true : false
+
   tags = local.common_tags
 }
 

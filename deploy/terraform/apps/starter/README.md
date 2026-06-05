@@ -29,18 +29,21 @@ each SPA's `config.json` so the API/dashboard URLs are wired without rebuilding.
 Provisions infra **and** publishes the API image + both SPAs in a single step
 (`deploy.sh` for bash/CI/macOS/Linux, `deploy.ps1` for Windows):
 
+The region is **required** — these scripts never assume one. Pass it as the
+2nd positional arg (bash) or `-Region` (PowerShell); omit it and they prompt.
+
 ```bash
 # bash
-./deploy.sh dev                      # use the image tag from tfvars; dev auto-seeds (apply --seed)
-./deploy.sh dev --seed-demo           # also seed acme/globex demo tenants
-./deploy.sh prod --build-api --auto-approve   # also build+push the API + migrator images at the current git SHA
+./deploy.sh dev us-east-1                       # use the image tag from tfvars; dev auto-seeds (apply --seed)
+./deploy.sh dev ap-south-1 --seed-demo           # also seed acme/globex demo tenants
+./deploy.sh prod us-east-1 --build-api --auto-approve   # also build+push the API + migrator images at the current git SHA
 ```
 
 ```powershell
 # PowerShell
-./deploy.ps1 -Environment dev
-./deploy.ps1 -Environment dev -SeedDemo
-./deploy.ps1 -Environment prod -BuildApi -AutoApprove
+./deploy.ps1 -Environment dev -Region us-east-1
+./deploy.ps1 -Environment dev -Region ap-south-1 -SeedDemo
+./deploy.ps1 -Environment prod -Region us-east-1 -BuildApi -AutoApprove
 ```
 
 The script: `terraform init` + `apply` → (optional) build & push the API +

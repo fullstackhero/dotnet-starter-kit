@@ -3,8 +3,8 @@
   One-command deploy of the FullStackHero Starter Kit to AWS.
 
 .EXAMPLE
-  ./deploy.ps1 -Environment dev
-  ./deploy.ps1 -Environment prod -Region us-east-1 -BuildApi -AutoApprove
+  ./deploy.ps1 -Environment dev -Region us-east-1
+  ./deploy.ps1 -Environment prod -Region ap-south-1 -BuildApi -AutoApprove
 
 .DESCRIPTION
   Runs, in order:
@@ -19,7 +19,9 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory)][ValidateSet('dev', 'staging', 'prod')][string]$Environment,
-  [string]$Region = 'us-east-1',
+  # Region is mandatory — never assume one. PowerShell prompts when it is omitted;
+  # CI/automation passes -Region explicitly.
+  [Parameter(Mandatory, HelpMessage = 'AWS region, e.g. us-east-1 or ap-south-1')][string]$Region,
   [switch]$BuildApi,
   [string]$ImageTag,
   [string]$Registry = 'ghcr.io/fullstackhero',
