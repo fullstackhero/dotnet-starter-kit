@@ -84,5 +84,7 @@ migrator_command = ["apply", "--seed"]
 # Services (Fargate Spot for cost savings)
 ################################################################################
 
+api_cpu              = "1024" # 1 vCPU
+api_memory           = "2048" # 2 GB — Fargate's minimum memory for 1 vCPU
 api_desired_count    = 1
 api_use_fargate_spot = true
