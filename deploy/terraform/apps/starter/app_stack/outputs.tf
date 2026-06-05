@@ -101,6 +101,21 @@ output "rds_secret_arn" {
 }
 
 ################################################################################
+# Application Secrets (generated)
+################################################################################
+
+output "hangfire_password" {
+  description = "Generated Hangfire dashboard password (also in Secrets Manager)."
+  value       = random_password.hangfire.result
+  sensitive   = true
+}
+
+output "jwt_signing_key_secret_arn" {
+  description = "Secrets Manager ARN holding the API's JWT signing key."
+  value       = aws_secretsmanager_secret.jwt_signing_key.arn
+}
+
+################################################################################
 # Redis Outputs
 ################################################################################
 

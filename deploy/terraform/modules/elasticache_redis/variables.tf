@@ -48,10 +48,21 @@ variable "vpc_cidr_block" {
 # Engine Configuration
 ################################################################################
 
+variable "engine" {
+  type        = string
+  description = "ElastiCache engine: 'valkey' (default, Redis-compatible) or 'redis'."
+  default     = "valkey"
+
+  validation {
+    condition     = contains(["valkey", "redis"], var.engine)
+    error_message = "engine must be 'valkey' or 'redis'."
+  }
+}
+
 variable "engine_version" {
   type        = string
-  description = "Redis engine version."
-  default     = "7.2"
+  description = "Engine version. Valkey: 8.0 / 7.2. Redis (legacy): tops out at 7.1 on ElastiCache."
+  default     = "8.0"
 }
 
 variable "node_type" {

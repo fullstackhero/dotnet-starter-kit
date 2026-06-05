@@ -67,8 +67,9 @@ resource "aws_elasticache_subnet_group" "this" {
 resource "aws_elasticache_parameter_group" "this" {
   count = var.create_parameter_group ? 1 : 0
 
-  name   = "${var.name}-params"
-  family = "redis${split(".", var.engine_version)[0]}"
+  name = "${var.name}-params"
+  # Parameter-group family is engine-specific: valkey8 / valkey7 / redis7.
+  family = "${var.engine}${split(".", var.engine_version)[0]}"
 
   dynamic "parameter" {
     for_each = var.parameters
@@ -94,7 +95,7 @@ resource "aws_elasticache_replication_group" "this" {
   description          = var.description != "" ? var.description : "Redis for ${var.name}"
 
   # Engine
-  engine         = "redis"
+  engine         = var.engine
   engine_version = var.engine_version
   node_type      = var.node_type
 

@@ -385,6 +385,70 @@ locals {
 }
 
 ################################################################################
+# Application Auth Secrets (generated → Secrets Manager → injected into tasks)
+#
+# The API hard-requires JwtOptions:SigningKey and HangfireOptions:Username/
+# Password (Require() in Production + ValidateOnStart in every env). Rather than
+# lean on the public dev appsettings (forgeable JWTs), generate them here and
+# inject via the task execution role like the DB connection string.
+################################################################################
+
+resource "random_password" "jwt_signing_key" {
+  length  = 64
+  special = false # consumed as ASCII bytes for HMAC — keep it alphanumeric
+}
+
+resource "random_password" "hangfire" {
+  length           = 24
+  special          = true
+  override_special = "!@#%^-_=+"
+}
+
+resource "aws_secretsmanager_secret" "jwt_signing_key" {
+  name        = "${var.environment}-jwt-signing-key"
+  description = "HMAC signing key for FSH API JWTs."
+  tags        = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "jwt_signing_key" {
+  secret_id     = aws_secretsmanager_secret.jwt_signing_key.id
+  secret_string = random_password.jwt_signing_key.result
+}
+
+resource "aws_secretsmanager_secret" "hangfire_password" {
+  name        = "${var.environment}-hangfire-password"
+  description = "Hangfire dashboard password for the FSH API."
+  tags        = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "hangfire_password" {
+  secret_id     = aws_secretsmanager_secret.hangfire_password.id
+  secret_string = random_password.hangfire.result
+}
+
+locals {
+  # Auth secrets injected into BOTH the API and the migrator task (the migrator
+  # otherwise self-injects a placeholder signing key; a real one is harmless).
+  app_auth_secrets = [
+    {
+      name      = "JwtOptions__SigningKey"
+      valueFrom = aws_secretsmanager_secret.jwt_signing_key.arn
+    },
+    {
+      name      = "HangfireOptions__Password"
+      valueFrom = aws_secretsmanager_secret.hangfire_password.arn
+    },
+  ]
+
+  # Optional dev seed credentials — injected only when set (prod runs `apply`
+  # without --seed, so it never reads them).
+  seed_environment_variables = merge(
+    var.seed_default_admin_password != null ? { "Seed__DefaultAdminPassword" = var.seed_default_admin_password } : {},
+    var.seed_demo_password != null ? { "Seed__DemoPassword" = var.seed_demo_password } : {},
+  )
+}
+
+################################################################################
 # ElastiCache Redis
 ################################################################################
 
@@ -401,6 +465,7 @@ module "redis" {
 
   node_type                  = var.redis_node_type
   num_cache_clusters         = var.redis_num_cache_clusters
+  engine                     = var.redis_engine
   engine_version             = var.redis_engine_version
   automatic_failover_enabled = var.redis_automatic_failover_enabled
   transit_encryption_enabled = var.redis_transit_encryption_enabled
@@ -458,6 +523,9 @@ module "api_service" {
       Storage__S3__Bucket        = var.app_s3_bucket_name
       Storage__S3__PublicBaseUrl = module.app_s3.cloudfront_domain_name != "" ? "https://${module.app_s3.cloudfront_domain_name}" : ""
       OriginOptions__OriginUrl   = local.api_origin
+      # Hangfire dashboard user (password arrives via `secrets` below). Both are
+      # [Required] + ValidateOnStart, so the API won't boot without them.
+      HangfireOptions__Username = var.hangfire_username
     },
     # Connection string is injected via env var only when NOT using a managed
     # (Secrets Manager) password; otherwise it arrives via `secrets` below.
@@ -470,13 +538,17 @@ module "api_service" {
     var.api_extra_environment_variables
   )
 
-  # When using managed password, inject the full connection string from Secrets Manager
-  secrets = var.db_manage_master_user_password ? [
-    {
-      name      = "DatabaseOptions__ConnectionString"
-      valueFrom = aws_secretsmanager_secret.db_connection_string[0].arn
-    }
-  ] : []
+  # Injected from Secrets Manager by the task execution role: the JWT signing
+  # key + Hangfire password always, plus the DB connection string when managed.
+  secrets = concat(
+    local.app_auth_secrets,
+    var.db_manage_master_user_password ? [
+      {
+        name      = "DatabaseOptions__ConnectionString"
+        valueFrom = aws_secretsmanager_secret.db_connection_string[0].arn
+      }
+    ] : []
+  )
 
   tags = local.common_tags
 }
@@ -487,10 +559,9 @@ module "api_service" {
 # Registers a runnable task definition only (no service). The deploy scripts
 # invoke it with `aws ecs run-task` after `apply` and wait for exit code 0.
 # Command is environment-driven: dev runs `apply --seed`, prod runs `apply`
-# (set per-env in terraform.tfvars via `migrator_command`). The seed path reads
-# Seed:* / JwtOptions:SigningKey from appsettings.Development.json (baked into
-# the image, active because dev sets ASPNETCORE_ENVIRONMENT=Development);
-# override for non-dev seeding via `migrator_extra_environment_variables`.
+# (set per-env in terraform.tfvars via `migrator_command`). Seed credentials come
+# from seed_default_admin_password / seed_demo_password when set (else the baked
+# dev appsettings); the JWT signing key is injected from Secrets Manager.
 ################################################################################
 
 module "migrator" {
@@ -510,21 +581,28 @@ module "migrator" {
       ASPNETCORE_ENVIRONMENT              = local.aspnetcore_environment
       DatabaseOptions__Provider           = "POSTGRESQL"
       DatabaseOptions__MigrationsAssembly = "FSH.Starter.Migrations.PostgreSQL"
+      HangfireOptions__Username           = var.hangfire_username
     },
     # Plain connection string only when NOT using a managed (Secrets Manager)
     # password; otherwise it arrives via `secrets` below — same as the API.
     var.db_manage_master_user_password ? {} : {
       DatabaseOptions__ConnectionString = local.db_connection_string_plain
     },
+    # Seed credentials (when configured) so seeding doesn't depend on the baked
+    # dev appsettings; empty when unset → falls back to image config.
+    local.seed_environment_variables,
     var.migrator_extra_environment_variables
   )
 
-  secrets = var.db_manage_master_user_password ? [
-    {
-      name      = "DatabaseOptions__ConnectionString"
-      valueFrom = aws_secretsmanager_secret.db_connection_string[0].arn
-    }
-  ] : []
+  secrets = concat(
+    local.app_auth_secrets,
+    var.db_manage_master_user_password ? [
+      {
+        name      = "DatabaseOptions__ConnectionString"
+        valueFrom = aws_secretsmanager_secret.db_connection_string[0].arn
+      }
+    ] : []
+  )
 
   tags = local.common_tags
 }
