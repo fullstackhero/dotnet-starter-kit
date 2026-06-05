@@ -78,7 +78,7 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
             Step into any role.
           </h2>
           <p className="mt-1.5 max-w-[80%] text-[12.5px] leading-relaxed text-muted-foreground/80">
-            Explore FullStackHero as any user across the demo tenants — we'll sign you in instantly.
+            Explore fullstackhero as any user across the demo tenants — we'll sign you in instantly.
           </p>
         </header>
 

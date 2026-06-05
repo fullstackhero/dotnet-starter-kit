@@ -68,7 +68,7 @@ export function AuthShell({
           <div className="flex items-center gap-2.5">
             <img
               src="/logo-fullstackhero.png"
-              alt="FullStackHero"
+              alt="fullstackhero"
               className="size-9 object-contain"
             />
             <span className="font-display text-[26px] font-semibold tracking-tight text-[var(--color-foreground)]">
@@ -98,7 +98,7 @@ export function AuthShell({
           <span>Encrypted in transit · JWT-secured session</span>
         </div>
         <p className="mt-4 text-center text-[10px] font-medium uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]">
-          FullStackHero Administration
+          fullstackhero Administration
         </p>
       </div>
     </div>

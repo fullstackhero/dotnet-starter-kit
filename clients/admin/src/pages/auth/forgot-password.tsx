@@ -79,7 +79,7 @@ export function ForgotPasswordPage() {
           <div className="flex items-center gap-2.5">
             <img
               src="/logo-fullstackhero.png"
-              alt="FullStackHero"
+              alt="fullstackhero"
               className="size-9 object-contain"
             />
             <span className="font-display text-[26px] font-semibold tracking-tight text-[var(--color-foreground)]">
