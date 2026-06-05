@@ -6,6 +6,7 @@ shared modules in `../../modules`.
 What it provisions:
 
 - **API** — ECS Fargate service behind an ALB (+ WAF, RDS PostgreSQL, ElastiCache Redis, app S3 bucket).
+- **DbMigrator** — a one-shot ECS Fargate task definition (`modules/ecs_task`, no service). The deploy scripts run it with `aws ecs run-task` after `apply` and wait for exit 0. Command is per-environment: dev runs `apply --seed`, prod runs `apply` (migrate only).
 - **Dashboard SPA** (`clients/dashboard`) — private S3 + CloudFront (OAC), tenant-facing.
 - **Admin SPA** (`clients/admin`) — private S3 + CloudFront (OAC), operator-facing.
 
@@ -30,21 +31,29 @@ Provisions infra **and** publishes the API image + both SPAs in a single step
 
 ```bash
 # bash
-./deploy.sh dev                      # use the API image tag from tfvars
-./deploy.sh prod --build-api --auto-approve   # also build+push the API image at the current git SHA
+./deploy.sh dev                      # use the image tag from tfvars; dev auto-seeds (apply --seed)
+./deploy.sh dev --seed-demo           # also seed acme/globex demo tenants
+./deploy.sh prod --build-api --auto-approve   # also build+push the API + migrator images at the current git SHA
 ```
 
 ```powershell
 # PowerShell
 ./deploy.ps1 -Environment dev
+./deploy.ps1 -Environment dev -SeedDemo
 ./deploy.ps1 -Environment prod -BuildApi -AutoApprove
 ```
 
-The script: `terraform init` + `apply` → (optional) build & push the API
-container → `npm run build` each SPA → `aws s3 sync` to its bucket → CloudFront
-invalidation. Requires Terraform >= 1.15.4, the AWS CLI (configured), `jq`, and
-Node; `--build-api` additionally needs the .NET SDK + a registry login. State
-backend is bootstrapped once via `../../bootstrap`.
+The script: `terraform init` + `apply` → (optional) build & push the API +
+migrator containers → **run the DbMigrator task and wait for exit 0** →
+`npm run build` each SPA → `aws s3 sync` to its bucket → CloudFront invalidation.
+Requires Terraform >= 1.15.4, the AWS CLI (configured), `jq`, and Node;
+`--build-api` additionally needs the .NET SDK + a registry login. State backend
+is bootstrapped once via `../../bootstrap`.
+
+**Migration flags:** `--skip-migrate` / `-SkipMigrate` skips the migrator run;
+`--seed-demo` / `-SeedDemo` runs the migrator's `seed-demo` verb after migrating.
+The migrator image must be published **and public** in GHCR at the deployed tag
+(see the repo's `backend.yml` publish jobs) before the task can pull it.
 
 ## Manual Terraform (if you prefer)
 

@@ -6,13 +6,16 @@
 #
 # It will, in order:
 #   1. terraform init + apply (infra: VPC, ALB+WAF, ECS API, RDS, Redis, S3, the two SPA CloudFront sites)
-#   2. (optional) build & push the API container image
-#   3. build the React apps and publish them to their S3 buckets + invalidate CloudFront
+#   2. (optional) build & push the API + DbMigrator container images
+#   3. run the DbMigrator one-shot ECS task (apply / apply --seed) and wait for exit 0
+#   4. build the React apps and publish them to their S3 buckets + invalidate CloudFront
 #
 # Flags:
-#   --build-api          Build & push the API image at the current git SHA and deploy that tag.
-#   --image-tag TAG      Deploy a specific, already-published API image tag.
+#   --build-api          Build & push the API + migrator images at the current git SHA and deploy that tag.
+#   --image-tag TAG      Deploy a specific, already-published image tag.
 #   --registry REG       Container registry (default: ghcr.io/fullstackhero). Used only with --build-api.
+#   --skip-migrate       Skip running the DbMigrator task after apply.
+#   --seed-demo          After migrating, also run the migrator's `seed-demo` verb (acme/globex demo tenants).
 #   --skip-frontend      Skip building/publishing the SPAs.
 #   --auto-approve       Don't prompt before applying.
 #
@@ -23,6 +26,7 @@ set -euo pipefail
 MIN_TF_VERSION="1.15.4"
 DEFAULT_REGISTRY="ghcr.io/fullstackhero"
 API_IMAGE_NAME="fsh-api"
+MIGRATOR_IMAGE_NAME="fsh-db-migrator"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
@@ -33,6 +37,8 @@ ENVIRONMENT="${1:-}"
 REGION="us-east-1"
 BUILD_API=false
 SKIP_FRONTEND=false
+SKIP_MIGRATE=false
+SEED_DEMO=false
 AUTO_APPROVE=false
 IMAGE_TAG=""
 REGISTRY="$DEFAULT_REGISTRY"
@@ -42,6 +48,8 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --build-api) BUILD_API=true ;;
     --skip-frontend) SKIP_FRONTEND=true ;;
+    --skip-migrate) SKIP_MIGRATE=true ;;
+    --seed-demo) SEED_DEMO=true ;;
     --auto-approve) AUTO_APPROVE=true ;;
     --image-tag) IMAGE_TAG="${2:-}"; shift ;;
     --registry) REGISTRY="${2:-}"; shift ;;
@@ -80,7 +88,13 @@ if [[ "$BUILD_API" == true ]]; then
     /t:PublishContainer \
     -p:ContainerRepository="$REGISTRY/$API_IMAGE_NAME" \
     -p:ContainerImageTags="$IMAGE_TAG"
-  TF_IMAGE_ARGS=(-var "container_registry=$REGISTRY" -var "api_image_name=$API_IMAGE_NAME" -var "container_image_tag=$IMAGE_TAG")
+  echo "==> Building & pushing migrator image $REGISTRY/$MIGRATOR_IMAGE_NAME:$IMAGE_TAG"
+  dotnet publish "$REPO_ROOT/src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj" \
+    -c Release -r linux-x64 \
+    /t:PublishContainer \
+    -p:ContainerRepository="$REGISTRY/$MIGRATOR_IMAGE_NAME" \
+    -p:ContainerImageTags="$IMAGE_TAG"
+  TF_IMAGE_ARGS=(-var "container_registry=$REGISTRY" -var "api_image_name=$API_IMAGE_NAME" -var "migrator_image_name=$MIGRATOR_IMAGE_NAME" -var "container_image_tag=$IMAGE_TAG")
 elif [[ -n "$IMAGE_TAG" ]]; then
   TF_IMAGE_ARGS=(-var "container_image_tag=$IMAGE_TAG")
 fi
@@ -94,6 +108,48 @@ APPLY_ARGS=(-var-file="$ENV_DIR/terraform.tfvars" "${TF_IMAGE_ARGS[@]}" -input=f
 
 echo "==> terraform apply"
 terraform -chdir="$APP_STACK_DIR" apply "${APPLY_ARGS[@]}"
+
+# ---- 2.5 db migrator (one-shot ECS task) ------------------------------------
+run_ecs_task() {
+  # $1 = label, $2 = optional --overrides JSON ("" for the task's baked command)
+  local label="$1" overrides="${2:-}"
+  local run_args task_arn exit_code reason
+  echo "==> Running DbMigrator task ($label)"
+  run_args=(--cluster "$MIG_CLUSTER" --task-definition "$MIG_TASKDEF" --launch-type FARGATE
+    --network-configuration "awsvpcConfiguration={subnets=[$MIG_SUBNETS],securityGroups=[$MIG_SG],assignPublicIp=DISABLED}"
+    --query 'tasks[0].taskArn' --output text)
+  [[ -n "$overrides" ]] && run_args+=(--overrides "$overrides")
+  task_arn="$(aws ecs run-task "${run_args[@]}")"
+  [[ -n "$task_arn" && "$task_arn" != "None" ]] || die "run-task failed to start ($label)"
+  echo "    task: $task_arn — waiting for it to stop..."
+  aws ecs wait tasks-stopped --cluster "$MIG_CLUSTER" --tasks "$task_arn"
+  exit_code="$(aws ecs describe-tasks --cluster "$MIG_CLUSTER" --tasks "$task_arn" --query 'tasks[0].containers[0].exitCode' --output text)"
+  if [[ "$exit_code" != "0" ]]; then
+    reason="$(aws ecs describe-tasks --cluster "$MIG_CLUSTER" --tasks "$task_arn" --query 'tasks[0].stoppedReason' --output text)"
+    die "migrator ($label) exited ${exit_code} — ${reason} (logs: CloudWatch ${MIG_LOG_GROUP})"
+  fi
+  echo "    migrator ($label) succeeded."
+}
+
+if [[ "$SKIP_MIGRATE" == true ]]; then
+  echo "==> Skipping DB migration (--skip-migrate)"
+else
+  MIG="$(terraform -chdir="$APP_STACK_DIR" output -json migrator 2>/dev/null || echo null)"
+  if [[ "$MIG" == "null" || -z "$MIG" ]]; then
+    echo "==> Migrator not provisioned (enable_migrator=false) — skipping"
+  else
+    MIG_CLUSTER="$(echo "$MIG" | jq -r .cluster_arn)"
+    MIG_TASKDEF="$(echo "$MIG" | jq -r .task_definition_family)"
+    MIG_CNAME="$(echo "$MIG" | jq -r .container_name)"
+    MIG_SG="$(echo "$MIG" | jq -r .security_group_id)"
+    MIG_SUBNETS="$(echo "$MIG" | jq -r '.subnet_ids | join(",")')"
+    MIG_LOG_GROUP="$(echo "$MIG" | jq -r .log_group_name)"
+    run_ecs_task "migrate" ""
+    if [[ "$SEED_DEMO" == true ]]; then
+      run_ecs_task "seed-demo" "{\"containerOverrides\":[{\"name\":\"${MIG_CNAME}\",\"command\":[\"seed-demo\"]}]}"
+    fi
+  fi
+fi
 
 # ---- 3. frontends -----------------------------------------------------------
 if [[ "$SKIP_FRONTEND" == true ]]; then

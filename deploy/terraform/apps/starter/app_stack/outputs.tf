@@ -69,6 +69,18 @@ output "api_service_name" {
   value       = module.api_service.service_name
 }
 
+output "migrator" {
+  description = "DbMigrator one-shot task details for `aws ecs run-task` (deploy scripts), or null when not provisioned."
+  value = var.enable_migrator ? {
+    cluster_arn            = module.ecs_cluster.arn
+    task_definition_family = module.migrator[0].task_definition_family
+    container_name         = module.migrator[0].container_name
+    security_group_id      = module.migrator[0].security_group_id
+    subnet_ids             = module.network.private_subnet_ids
+    log_group_name         = module.migrator[0].log_group_name
+  } : null
+}
+
 ################################################################################
 # Database Outputs
 ################################################################################

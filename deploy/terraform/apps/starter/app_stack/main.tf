@@ -14,6 +14,10 @@ locals {
   # Container image constructed from registry, name, and tag.
   api_container_image = "${var.container_registry}/${var.api_image_name}:${var.container_image_tag}"
 
+  # DbMigrator image — same registry + tag as the API, different repository.
+  # Run as a one-shot ECS task (apply / apply --seed) by the deploy scripts.
+  migrator_container_image = "${var.container_registry}/${var.migrator_image_name}:${var.container_image_tag}"
+
   # Public origin of the API (no /api suffix) — used for the app OriginUrl and
   # as the apiBase the React SPAs read from their runtime config.json.
   api_origin = var.enable_https && var.domain_name != null ? "https://${var.domain_name}" : "http://${module.alb.dns_name}"
@@ -467,6 +471,54 @@ module "api_service" {
   )
 
   # When using managed password, inject the full connection string from Secrets Manager
+  secrets = var.db_manage_master_user_password ? [
+    {
+      name      = "DatabaseOptions__ConnectionString"
+      valueFrom = aws_secretsmanager_secret.db_connection_string[0].arn
+    }
+  ] : []
+
+  tags = local.common_tags
+}
+
+################################################################################
+# DbMigrator — one-shot ECS task
+#
+# Registers a runnable task definition only (no service). The deploy scripts
+# invoke it with `aws ecs run-task` after `apply` and wait for exit code 0.
+# Command is environment-driven: dev runs `apply --seed`, prod runs `apply`
+# (set per-env in terraform.tfvars via `migrator_command`). The seed path reads
+# Seed:* / JwtOptions:SigningKey from appsettings.Development.json (baked into
+# the image, active because dev sets ASPNETCORE_ENVIRONMENT=Development);
+# override for non-dev seeding via `migrator_extra_environment_variables`.
+################################################################################
+
+module "migrator" {
+  count  = var.enable_migrator ? 1 : 0
+  source = "../../../modules/ecs_task"
+
+  name            = "${var.environment}-db-migrator"
+  region          = var.region
+  vpc_id          = module.network.vpc_id
+  container_image = local.migrator_container_image
+  command         = var.migrator_command
+  cpu             = var.migrator_cpu
+  memory          = var.migrator_memory
+
+  environment_variables = merge(
+    {
+      ASPNETCORE_ENVIRONMENT              = local.aspnetcore_environment
+      DatabaseOptions__Provider           = "POSTGRESQL"
+      DatabaseOptions__MigrationsAssembly = "FSH.Starter.Migrations.PostgreSQL"
+    },
+    # Plain connection string only when NOT using a managed (Secrets Manager)
+    # password; otherwise it arrives via `secrets` below — same as the API.
+    var.db_manage_master_user_password ? {} : {
+      DatabaseOptions__ConnectionString = local.db_connection_string_plain
+    },
+    var.migrator_extra_environment_variables
+  )
+
   secrets = var.db_manage_master_user_password ? [
     {
       name      = "DatabaseOptions__ConnectionString"
