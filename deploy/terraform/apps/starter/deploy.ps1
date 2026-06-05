@@ -59,18 +59,27 @@ Write-Host "==> Deploying '$Environment' in $Region"
 $tfImageArgs = @()
 if ($BuildApi) {
   if (-not $ImageTag) { $ImageTag = (git -C $RepoRoot rev-parse --short=12 HEAD).Trim() }
-  Write-Host "==> Building & pushing API image $Registry/$ApiImageName`:$ImageTag"
   if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { Die 'dotnet SDK required for -BuildApi' }
+  # The SDK pushes to a REMOTE registry only when ContainerRegistry is set; the
+  # registry host must be split out of the repository name (folding it into
+  # ContainerRepository silently loads to the local Docker daemon instead).
+  $registryHost = $Registry.Split('/')[0]                                   # e.g. ghcr.io
+  $registryPath = $Registry.Substring($registryHost.Length).TrimStart('/')  # e.g. fullstackhero
+  $apiRepo = if ($registryPath) { "$registryPath/$ApiImageName" } else { $ApiImageName }
+  $migratorRepo = if ($registryPath) { "$registryPath/$MigratorImageName" } else { $MigratorImageName }
+  Write-Host "==> Building & pushing API image $registryHost/$apiRepo`:$ImageTag"
   dotnet publish "$RepoRoot/src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj" `
     -c Release -r linux-x64 `
     /t:PublishContainer `
-    -p:ContainerRepository="$Registry/$ApiImageName" `
+    -p:ContainerRegistry="$registryHost" `
+    -p:ContainerRepository="$apiRepo" `
     -p:ContainerImageTags="$ImageTag"
-  Write-Host "==> Building & pushing migrator image $Registry/$MigratorImageName`:$ImageTag"
+  Write-Host "==> Building & pushing migrator image $registryHost/$migratorRepo`:$ImageTag"
   dotnet publish "$RepoRoot/src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj" `
     -c Release -r linux-x64 `
     /t:PublishContainer `
-    -p:ContainerRepository="$Registry/$MigratorImageName" `
+    -p:ContainerRegistry="$registryHost" `
+    -p:ContainerRepository="$migratorRepo" `
     -p:ContainerImageTags="$ImageTag"
   $tfImageArgs = @('-var', "container_registry=$Registry", '-var', "api_image_name=$ApiImageName", '-var', "migrator_image_name=$MigratorImageName", '-var', "container_image_tag=$ImageTag")
 }

@@ -81,18 +81,27 @@ echo "==> Deploying '$ENVIRONMENT' in $REGION"
 TF_IMAGE_ARGS=()
 if [[ "$BUILD_API" == true ]]; then
   [[ -n "$IMAGE_TAG" ]] || IMAGE_TAG="$(git -C "$REPO_ROOT" rev-parse --short=12 HEAD)"
-  echo "==> Building & pushing API image $REGISTRY/$API_IMAGE_NAME:$IMAGE_TAG"
   command -v dotnet >/dev/null || die "dotnet SDK required for --build-api"
+  # The SDK pushes to a REMOTE registry only when ContainerRegistry is set; the
+  # registry host must be split out of the repository name (folding it into
+  # ContainerRepository silently loads to the local Docker daemon instead).
+  REGISTRY_HOST="${REGISTRY%%/*}"                       # e.g. ghcr.io
+  REGISTRY_PATH="${REGISTRY#"$REGISTRY_HOST"}"; REGISTRY_PATH="${REGISTRY_PATH#/}"  # e.g. fullstackhero
+  API_REPO="${REGISTRY_PATH:+$REGISTRY_PATH/}$API_IMAGE_NAME"
+  MIGRATOR_REPO="${REGISTRY_PATH:+$REGISTRY_PATH/}$MIGRATOR_IMAGE_NAME"
+  echo "==> Building & pushing API image $REGISTRY_HOST/$API_REPO:$IMAGE_TAG"
   dotnet publish "$REPO_ROOT/src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj" \
     -c Release -r linux-x64 \
     /t:PublishContainer \
-    -p:ContainerRepository="$REGISTRY/$API_IMAGE_NAME" \
+    -p:ContainerRegistry="$REGISTRY_HOST" \
+    -p:ContainerRepository="$API_REPO" \
     -p:ContainerImageTags="$IMAGE_TAG"
-  echo "==> Building & pushing migrator image $REGISTRY/$MIGRATOR_IMAGE_NAME:$IMAGE_TAG"
+  echo "==> Building & pushing migrator image $REGISTRY_HOST/$MIGRATOR_REPO:$IMAGE_TAG"
   dotnet publish "$REPO_ROOT/src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj" \
     -c Release -r linux-x64 \
     /t:PublishContainer \
-    -p:ContainerRepository="$REGISTRY/$MIGRATOR_IMAGE_NAME" \
+    -p:ContainerRegistry="$REGISTRY_HOST" \
+    -p:ContainerRepository="$MIGRATOR_REPO" \
     -p:ContainerImageTags="$IMAGE_TAG"
   TF_IMAGE_ARGS=(-var "container_registry=$REGISTRY" -var "api_image_name=$API_IMAGE_NAME" -var "migrator_image_name=$MIGRATOR_IMAGE_NAME" -var "container_image_tag=$IMAGE_TAG")
 elif [[ -n "$IMAGE_TAG" ]]; then
