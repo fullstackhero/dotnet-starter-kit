@@ -112,9 +112,17 @@ public static class Extensions
 
                 if (exportOtlp)
                 {
-                    metrics.AddOtlpExporter(otlp =>
+                    metrics.AddOtlpExporter((exporter, reader) =>
                     {
-                        ConfigureOtlpExporter(options.Exporter.Otlp, otlp, useEnvEndpoint);
+                        ConfigureOtlpExporter(options.Exporter.Otlp, exporter, useEnvEndpoint);
+
+                        // The OTLP metric reader defaults to a 60s export interval, so after a restart metrics stay
+                        // empty for a full minute while logs/traces show within seconds — a confusing gap in the
+                        // Aspire dashboard. Honor the standard OTEL_METRIC_EXPORT_INTERVAL when set, otherwise export
+                        // every 10s: prompt locally, still reasonable for a production collector.
+                        var intervalRaw = Environment.GetEnvironmentVariable("OTEL_METRIC_EXPORT_INTERVAL");
+                        reader.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds =
+                            int.TryParse(intervalRaw, out var ms) && ms > 0 ? ms : 10_000;
                     });
                 }
             })
