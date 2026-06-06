@@ -55,7 +55,9 @@ public static class SseEndpoints
 
             context.Response.ContentType = "text/event-stream";
             context.Response.Headers.CacheControl = "no-cache";
-            context.Response.Headers.Connection = "keep-alive";
+            // No `Connection: keep-alive` — it's a hop-by-hop header forbidden on HTTP/2+ (RFC 9113 §8.2.2),
+            // so Kestrel strips it and warns on every SSE connect (the feed serves over HTTP/2 via ALPN).
+            // It was redundant anyway: HTTP/1.1 keeps connections alive by default.
             context.Response.Headers["X-Accel-Buffering"] = "no"; // disable nginx buffering
 
             var (connectionId, reader) = connectionManager.Connect(principal.UserId, principal.TenantId);
