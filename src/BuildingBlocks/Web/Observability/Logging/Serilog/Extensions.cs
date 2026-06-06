@@ -42,11 +42,14 @@ public static class Extensions
                 {
                     sink.Endpoint = otlp.Endpoint;
                     sink.Protocol = otlp.Protocol;
-                    // service.name must match the traces/metrics resource (AddHeroOpenTelemetry uses ApplicationName)
-                    // so the dashboard groups logs under the same resource as the spans they belong to.
+                    // service.name must match the traces/metrics resource (AddHeroOpenTelemetry resolves the same
+                    // OTEL_SERVICE_NAME ?? ApplicationName) so the dashboard groups logs under the same resource as
+                    // the spans they belong to — and adopts the orchestrator's resource name (e.g. Aspire's
+                    // "fsh-starter-api") rather than the entry-assembly name, which would list the process twice.
                     sink.ResourceAttributes = new Dictionary<string, object>
                     {
-                        ["service.name"] = builder.Environment.ApplicationName
+                        ["service.name"] = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME")
+                            ?? builder.Environment.ApplicationName
                     };
                     // Aspire's OTLP receiver requires the injected x-otlp-api-key header. The OTel SDK reads
                     // OTEL_EXPORTER_OTLP_HEADERS automatically for traces/metrics; this sink does not, so pass it through.

@@ -37,9 +37,16 @@ public static class Extensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        // Honor the orchestrator's identity: Aspire (and any OTLP collector) injects OTEL_SERVICE_NAME as the
+        // resource name it knows the process by (e.g. "fsh-starter-api"). Overriding it with the entry-assembly
+        // name ("FSH.Starter.Api") de-correlates our telemetry from that resource, so the dashboard lists the
+        // process twice. Adopt the injected name when present; fall back to ApplicationName when running standalone.
+        var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME")
+            ?? builder.Environment.ApplicationName;
+
         var resourceBuilder = ResourceBuilder
             .CreateDefault()
-            .AddService(serviceName: builder.Environment.ApplicationName);
+            .AddService(serviceName: serviceName);
 
         // Shared ActivitySource for spans (Mediator, etc.)
         builder.Services.AddSingleton(new ActivitySource(builder.Environment.ApplicationName));
@@ -51,7 +58,7 @@ public static class Extensions
         var useEnvEndpoint = !string.IsNullOrWhiteSpace(
             Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT"));
 
-        ConfigureMetricsAndTracing(builder, options, resourceBuilder, useEnvEndpoint);
+        ConfigureMetricsAndTracing(builder, options, resourceBuilder, serviceName, useEnvEndpoint);
 
         return builder;
     }
@@ -60,12 +67,13 @@ public static class Extensions
         IHostApplicationBuilder builder,
         OpenTelemetryOptions options,
         ResourceBuilder resourceBuilder,
+        string serviceName,
         bool useEnvEndpoint)
     {
         var exportOtlp = options.Exporter.Otlp.Enabled || useEnvEndpoint;
 
         builder.Services.AddOpenTelemetry()
-            .ConfigureResource(rb => rb.AddService(builder.Environment.ApplicationName))
+            .ConfigureResource(rb => rb.AddService(serviceName))
             .WithMetrics(metrics =>
             {
                 if (!options.Metrics.Enabled)
