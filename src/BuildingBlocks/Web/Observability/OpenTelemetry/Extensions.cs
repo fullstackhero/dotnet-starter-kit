@@ -44,7 +44,14 @@ public static class Extensions
         // Shared ActivitySource for spans (Mediator, etc.)
         builder.Services.AddSingleton(new ActivitySource(builder.Environment.ApplicationName));
 
-        ConfigureMetricsAndTracing(builder, options, resourceBuilder);
+        // Aspire (and any OTLP collector) injects OTEL_EXPORTER_OTLP_ENDPOINT into the process. When present we
+        // export to it even if Exporter.Otlp.Enabled is false in config, and we let the OpenTelemetry SDK read the
+        // endpoint/protocol from the standard OTEL_EXPORTER_OTLP_* env vars instead of overriding with config — that
+        // is how telemetry reaches the Aspire dashboard's Traces/Metrics tabs (its OTLP receiver is on a dynamic port).
+        var useEnvEndpoint = !string.IsNullOrWhiteSpace(
+            Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT"));
+
+        ConfigureMetricsAndTracing(builder, options, resourceBuilder, useEnvEndpoint);
 
         return builder;
     }
@@ -52,8 +59,11 @@ public static class Extensions
     private static void ConfigureMetricsAndTracing(
         IHostApplicationBuilder builder,
         OpenTelemetryOptions options,
-        ResourceBuilder resourceBuilder)
+        ResourceBuilder resourceBuilder,
+        bool useEnvEndpoint)
     {
+        var exportOtlp = options.Exporter.Otlp.Enabled || useEnvEndpoint;
+
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(rb => rb.AddService(builder.Environment.ApplicationName))
             .WithMetrics(metrics =>
@@ -92,11 +102,11 @@ public static class Extensions
                     metrics.AddMeter(meterName);
                 }
 
-                if (options.Exporter.Otlp.Enabled)
+                if (exportOtlp)
                 {
                     metrics.AddOtlpExporter(otlp =>
                     {
-                        ConfigureOtlpExporter(options.Exporter.Otlp, otlp);
+                        ConfigureOtlpExporter(options.Exporter.Otlp, otlp, useEnvEndpoint);
                     });
                 }
             })
@@ -129,11 +139,11 @@ public static class Extensions
                     .AddSource("FSH.Hangfire")
                     .AddSource(CachingTelemetry.ActivitySourceName);
 
-                if (options.Exporter.Otlp.Enabled)
+                if (exportOtlp)
                 {
                     tracing.AddOtlpExporter(otlp =>
                     {
-                        ConfigureOtlpExporter(options.Exporter.Otlp, otlp);
+                        ConfigureOtlpExporter(options.Exporter.Otlp, otlp, useEnvEndpoint);
                     });
                 }
             });
@@ -177,8 +187,16 @@ public static class Extensions
 
     private static void ConfigureOtlpExporter(
         OtlpOptions options,
-        OtlpExporterOptions otlp)
+        OtlpExporterOptions otlp,
+        bool useEnvEndpoint)
     {
+        // When an OTLP endpoint is supplied via OTEL_EXPORTER_OTLP_ENDPOINT (e.g. Aspire), defer entirely to the
+        // SDK's env-var resolution for endpoint + protocol; overriding here would point us away from the dashboard.
+        if (useEnvEndpoint)
+        {
+            return;
+        }
+
         if (!string.IsNullOrWhiteSpace(options.Endpoint))
         {
             otlp.Endpoint = new Uri(options.Endpoint);
