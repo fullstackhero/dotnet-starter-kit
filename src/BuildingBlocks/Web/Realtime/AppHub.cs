@@ -76,52 +76,62 @@ public sealed class AppHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId) || userId == Guid.Empty.ToString())
+        try
         {
-            Context.Abort();
-            return;
-        }
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId) || userId == Guid.Empty.ToString())
+            {
+                Context.Abort();
+                return;
+            }
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}", Context.ConnectionAborted)
-            .ConfigureAwait(false);
-
-        // Join the tenant group — scopes cross-tenant broadcasts (presence) so a 1000-user
-        // tenant doesn't broadcast every connect to other tenants.
-        var tenantId = GetTenantId();
-        if (!string.IsNullOrEmpty(tenantId))
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"tenant:{tenantId}", Context.ConnectionAborted)
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}", Context.ConnectionAborted)
                 .ConfigureAwait(false);
-        }
 
-        var channelIds = await _channels
-            .ListMyChannelIdsAsync(userId, Context.ConnectionAborted)
-            .ConfigureAwait(false);
+            // Join the tenant group — scopes cross-tenant broadcasts (presence) so a 1000-user
+            // tenant doesn't broadcast every connect to other tenants.
+            var tenantId = GetTenantId();
+            if (!string.IsNullOrEmpty(tenantId))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"tenant:{tenantId}", Context.ConnectionAborted)
+                    .ConfigureAwait(false);
+            }
 
-        foreach (var channelId in channelIds)
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"channel:{channelId}", Context.ConnectionAborted)
+            var channelIds = await _channels
+                .ListMyChannelIdsAsync(userId, Context.ConnectionAborted)
                 .ConfigureAwait(false);
+
+            foreach (var channelId in channelIds)
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"channel:{channelId}", Context.ConnectionAborted)
+                    .ConfigureAwait(false);
+            }
+
+            AppHubLog.Connected(_logger, Context.ConnectionId, userId, channelIds.Count);
+
+            // On the user's first open connection, broadcast PresenceChanged so clients flip the dot.
+            // Scoped to the tenant group, not Clients.All, to avoid global fan-out.
+            if (_presence.Connect(userId))
+            {
+                var target = string.IsNullOrEmpty(tenantId)
+                    ? Clients.All
+                    : Clients.Group($"tenant:{tenantId}");
+                await target.SendAsync(
+                        "PresenceChanged",
+                        new { userId, online = true },
+                        Context.ConnectionAborted)
+                    .ConfigureAwait(false);
+            }
+
+            await base.OnConnectedAsync().ConfigureAwait(false);
         }
-
-        AppHubLog.Connected(_logger, Context.ConnectionId, userId, channelIds.Count);
-
-        // On the user's first open connection, broadcast PresenceChanged so clients flip the dot.
-        // Scoped to the tenant group, not Clients.All, to avoid global fan-out.
-        if (_presence.Connect(userId))
+        catch (OperationCanceledException) when (Context.ConnectionAborted.IsCancellationRequested)
         {
-            var target = string.IsNullOrEmpty(tenantId)
-                ? Clients.All
-                : Clients.Group($"tenant:{tenantId}");
-            await target.SendAsync(
-                    "PresenceChanged",
-                    new { userId, online = true },
-                    Context.ConnectionAborted)
-                .ConfigureAwait(false);
+            // Client disconnected mid-connect (fast reconnect, page navigation, negotiate/connect
+            // churn). The aborting token cancels the in-flight group joins / channel lookup. There's
+            // no connection left to set up, so this is expected — swallow it rather than let it
+            // surface as a hub-dispatch error in the logs.
         }
-
-        await base.OnConnectedAsync().ConfigureAwait(false);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
