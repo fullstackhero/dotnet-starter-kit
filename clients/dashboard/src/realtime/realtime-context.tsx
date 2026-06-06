@@ -103,7 +103,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
             sr.HttpTransportType.ServerSentEvents |
             sr.HttpTransportType.LongPolling,
         })
-        .withAutomaticReconnect(backoffs.slice(1))
+        // SignalR's automatic reconnect re-negotiates internally, bypassing connect()'s
+        // token guard. When the user is signed out (token cleared/expired) every reconnect
+        // fires an anonymous negotiate the API 401s and logs — so stop retrying the moment
+        // there's no token. onclose then rebuilds lazily once a token lands back in storage.
+        .withAutomaticReconnect({
+          nextRetryDelayInMilliseconds: (ctx) =>
+            tokenStore.getAccessToken()
+              ? (backoffs.slice(1)[ctx.previousRetryCount] ?? null)
+              : null,
+        })
         .configureLogging(sr.LogLevel.Warning)
         .build();
     };
