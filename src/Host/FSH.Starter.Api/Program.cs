@@ -91,6 +91,10 @@ builder.AddHeroPlatform(o =>
 
 builder.AddModules(moduleAssemblies);
 
+// Self-heal deployments carrying retired per-module `{module}-outbox-dispatcher` Hangfire recurring jobs
+// (the outbox is now dispatched by OutboxDispatcherHostedService). No-op once the storage is clean.
+builder.Services.AddHostedService<FSH.Starter.Api.OrphanedOutboxRecurringJobCleanupService>();
+
 // Demo data is provisioned by the DbMigrator's `seed-demo` verb, not the API — the API never mutates data on startup.
 // See src/Host/FSH.Starter.DbMigrator/README.md.
 
