@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -33,6 +33,11 @@ import {
   restoreFile,
   type FileAssetDto,
 } from "@/api/files";
+import { useAuth } from "@/auth/use-auth";
+import {
+  TRASH_TAB_PERMISSIONS,
+  type TrashTabKey,
+} from "@/lib/trash-permissions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -63,18 +68,20 @@ import {
 const PAGE_SIZE = 20;
 const DESKTOP_COLS = "grid-cols-[1.5fr_140px_140px_100px]";
 
-type TabKey = "products" | "brands" | "categories" | "tickets" | "files";
+type TabKey = TrashTabKey;
 
 const TABS: ReadonlyArray<{
   key: TabKey;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  /** Permission gating this tab — mirrors what its trash endpoint enforces. */
+  perm: string;
 }> = [
-  { key: "products", label: "Products", icon: Package },
-  { key: "brands", label: "Brands", icon: Tags },
-  { key: "categories", label: "Categories", icon: FolderTree },
-  { key: "tickets", label: "Tickets", icon: Ticket },
-  { key: "files", label: "Files", icon: FileText },
+  { key: "products", label: "Products", icon: Package, perm: TRASH_TAB_PERMISSIONS.products },
+  { key: "brands", label: "Brands", icon: Tags, perm: TRASH_TAB_PERMISSIONS.brands },
+  { key: "categories", label: "Categories", icon: FolderTree, perm: TRASH_TAB_PERMISSIONS.categories },
+  { key: "tickets", label: "Tickets", icon: Ticket, perm: TRASH_TAB_PERMISSIONS.tickets },
+  { key: "files", label: "Files", icon: FileText, perm: TRASH_TAB_PERMISSIONS.files },
 ];
 
 // ───────────────────────────────────────────────────────────────────────
@@ -82,8 +89,25 @@ const TABS: ReadonlyArray<{
 // ───────────────────────────────────────────────────────────────────────
 
 export function TrashPage() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabKey>("products");
   const [pageNumber, setPageNumber] = useState(1);
+
+  // Show only the tabs whose trash endpoint the user can actually reach, so they
+  // never click into a guaranteed 403. The server still enforces (defence in
+  // depth) — this is the UX layer. The nav already hides the Trash entry when
+  // the user has none of these, but the route is still directly reachable, so
+  // we handle the empty case here too.
+  const perms = user?.permissions;
+  const visibleTabs = useMemo(
+    () => TABS.filter((t) => perms?.includes(t.perm) ?? false),
+    [perms],
+  );
+  // The selected tab may be one the user can't see (initial default, or a
+  // permission they lost) — fall back to the first visible tab.
+  const activeTab = visibleTabs.some((t) => t.key === tab)
+    ? tab
+    : visibleTabs[0]?.key;
 
   // Reset paging when switching tabs.
   const onTab = (next: TabKey) => {
@@ -99,13 +123,21 @@ export function TrashPage() {
         description="Soft-deleted records, kept indefinitely until you restore them. Restoring a row brings it back to its parent list with the same ID and history intact."
       />
 
+      {visibleTabs.length === 0 ? (
+        <EntityEmpty
+          icon={Trash2}
+          title="No recycle bins available"
+          body="You don't have permission to restore deleted records in this tenant. Ask an administrator if you think you should."
+        />
+      ) : (
+        <>
       {/* Tab pills */}
       <nav
         aria-label="Trash sections"
         className="flex flex-wrap items-center gap-2"
       >
-        {TABS.map(({ key, label, icon: Icon }) => {
-          const active = tab === key;
+        {visibleTabs.map(({ key, label, icon: Icon }) => {
+          const active = activeTab === key;
           return (
             <button
               key={key}
@@ -127,20 +159,22 @@ export function TrashPage() {
       </nav>
 
       {/* Active panel */}
-      {tab === "products" && (
+      {activeTab === "products" && (
         <ProductsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
       )}
-      {tab === "brands" && (
+      {activeTab === "brands" && (
         <BrandsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
       )}
-      {tab === "categories" && (
+      {activeTab === "categories" && (
         <CategoriesTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
       )}
-      {tab === "tickets" && (
+      {activeTab === "tickets" && (
         <TicketsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
       )}
-      {tab === "files" && (
+      {activeTab === "files" && (
         <FilesTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
+      )}
+        </>
       )}
     </div>
   );

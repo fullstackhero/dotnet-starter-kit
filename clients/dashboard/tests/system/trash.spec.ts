@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { mockJsonResponse } from "../helpers/api-mocks";
 import { seedAuthedSession, TEST_USER } from "../helpers/auth-seed";
 import { installShellMocks, paged } from "../helpers/shell-mocks";
@@ -37,9 +37,29 @@ function trashedBrand(over: Record<string, unknown> = {}) {
   };
 }
 
+// Trash tabs are permission-gated (mirrors src/lib/trash-permissions.ts). The
+// dashboard reads the user's permission set from GET /identity/permissions, so
+// tests grant tabs by re-mocking that endpoint AFTER installShellMocks (which
+// defaults it to []); Playwright matches the most-recently-registered route.
+const TRASH_PERMS = {
+  products: "Permissions.Catalog.Products.Restore",
+  brands: "Permissions.Catalog.Brands.Restore",
+  categories: "Permissions.Catalog.Categories.Restore",
+  tickets: "Permissions.Tickets.Restore",
+  files: "Permissions.Files.ViewTrash",
+} as const;
+
+const ALL_TRASH_PERMS = Object.values(TRASH_PERMS);
+
+async function grantPermissions(page: Page, perms: readonly string[]): Promise<void> {
+  await mockJsonResponse(page, "**/api/v1/identity/permissions", perms);
+}
+
 test.beforeEach(async ({ page }) => {
   await seedAuthedSession(page, TEST_USER);
   await installShellMocks(page);
+  // Default: the user can reach every trash tab. Gating-specific tests override.
+  await grantPermissions(page, ALL_TRASH_PERMS);
 });
 
 test.describe("system/trash", () => {
@@ -111,5 +131,47 @@ test.describe("system/trash", () => {
 
     await expect(page.getByText("Acme Tools").last()).toBeVisible();
     await expect(page.getByText(/1 brands in trash/i)).toBeVisible();
+  });
+
+  test("hides tabs the user lacks permission for, defaulting to the first visible one", async ({
+    page,
+  }) => {
+    // Only Brands + Files are reachable — Products (the hard-coded default tab)
+    // is gated away, so the page must fall back to the first visible tab (Brands).
+    await grantPermissions(page, [TRASH_PERMS.brands, TRASH_PERMS.files]);
+    await mockJsonResponse(
+      page,
+      "**/api/v1/catalog/brands/trash**",
+      paged([trashedBrand()], { totalCount: 1 }),
+    );
+
+    await page.goto("/system/trash");
+
+    const tabs = page.getByRole("navigation", { name: /trash sections/i });
+    await expect(tabs.getByRole("button", { name: "Brands" })).toBeVisible();
+    await expect(tabs.getByRole("button", { name: "Files" })).toBeVisible();
+    // Gated tabs are absent entirely — not just disabled.
+    await expect(tabs.getByRole("button", { name: "Products" })).toHaveCount(0);
+    await expect(tabs.getByRole("button", { name: "Categories" })).toHaveCount(0);
+    await expect(tabs.getByRole("button", { name: "Tickets" })).toHaveCount(0);
+
+    // Defaulted to Brands (first visible) and loaded its data, not a 403.
+    await expect(page.getByText(/1 brands in trash/i)).toBeVisible();
+  });
+
+  test("shows a no-access empty state when the user has no trash permissions", async ({
+    page,
+  }) => {
+    await grantPermissions(page, []);
+
+    await page.goto("/system/trash");
+
+    await expect(
+      page.getByRole("heading", { name: /no recycle bins available/i }),
+    ).toBeVisible();
+    // No tab rail at all.
+    await expect(
+      page.getByRole("navigation", { name: /trash sections/i }),
+    ).toHaveCount(0);
   });
 });
