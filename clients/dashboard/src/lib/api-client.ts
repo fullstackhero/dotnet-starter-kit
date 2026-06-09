@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { tokenStore } from "@/auth/token-store";
+import { decodeJwt } from "@/auth/jwt";
 
 export type ApiError = {
   status: number;
@@ -36,6 +37,29 @@ export function isTenantDeactivatedError(error: unknown): boolean {
   if (!(error instanceof ApiRequestError) || error.status !== 403) return false;
   const detail = error.problem?.detail ?? error.message ?? "";
   return detail.toLowerCase().includes("tenant has been deactivated");
+}
+
+/**
+ * True when an error is a 401 fired against an *impersonation* session — i.e.
+ * the operator's grant was revoked (via /impersonation/revoke) or the
+ * short-lived impersonation token expired. Both surface as a 401 from the
+ * server's OnTokenValidated hook (ConfigureJwtBearerOptions).
+ *
+ * Detection is intentionally message-agnostic: in Production the 401 body is
+ * opaque (the "Impersonation grant revoked or ended" reason is dev-only), so we
+ * key off the durable shape instead — a 401 while the *currently installed*
+ * access token carries the `act_sub` (impersonation) claim. Impersonation
+ * sessions never hold a refresh token (token-store drops the refresh slot on
+ * beginImpersonation), so such a 401 always propagates here rather than being
+ * silently refreshed-and-retried by apiFetch. A global query/mutation error
+ * hook (query-client.ts) uses this to route to the /impersonation-ended
+ * terminal page instead of leaving a dead error banner under a half-loaded
+ * dashboard — mirrors isTenantDeactivatedError.
+ */
+export function isImpersonationRevokedError(error: unknown): boolean {
+  if (!(error instanceof ApiRequestError) || error.status !== 401) return false;
+  const claims = decodeJwt(tokenStore.getAccessToken());
+  return claims?.act_sub != null;
 }
 
 type RequestInitEx = RequestInit & {
