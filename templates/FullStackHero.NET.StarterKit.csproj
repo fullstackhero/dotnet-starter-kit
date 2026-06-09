@@ -43,19 +43,33 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--
-      Ship the whole repo (incl. the root .template.config) as template content,
-      minus build output, VCS/IDE/agent state, node_modules, and the docs site.
-      Excluding .claude/** is load-bearing: it holds agent worktrees, each with a
-      nested .template.config that would otherwise collide on `dotnet new install`.
-    -->
-    <Content Include="..\**\*"
-             Exclude="..\**\bin\**;..\**\obj\**;..\.git\**;..\.github\**;..\.claude\**;..\.agents\**;..\**\.vs\**;..\**\.idea\**;..\**\.vscode\**;..\.devcontainer\**;..\**\node_modules\**;..\**\dist\**;..\**\build\**;..\**\TestResults\**;..\**\playwright-report\**;..\**\test-results\**;..\coverage-report\**;..\nupkgs\**;..\nupkgs-test\**;..\docs\**;..\templates\**;..\**\*.user"
-             Pack="true"
-             PackagePath="content" />
     <Compile Remove="**\*" />
     <!-- Gallery icon at package root (separate from the .template.config content copy). -->
     <None Include="..\.template.config\icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
+
+  <!--
+    Template content = ONLY git-tracked files. This is self-maintaining: no local or
+    gitignored state can ever leak into the package (bin/obj, node_modules, .terraform,
+    *.tfstate, audit-dlq dumps, release-nupkgs, .claude worktrees, *.user). The previous
+    `..\**\*` filesystem glob with a denylist shipped 583 MB incl. Terraform state.
+    Filtering is pushed into git via :(exclude) pathspecs — on top of git-tracking we
+    drop this pack project (templates/), the docs leftover, and repo-internal AI/CI
+    tooling (.github, .agents, .vscode, .devcontainer, superpowers) a consumer's
+    scaffold doesn't need. The root .template.config IS tracked, so it ships.
+  -->
+  <Target Name="CollectGitTrackedTemplateContent" BeforeTargets="_GetPackageFiles">
+    <Exec Command="git -c core.quotePath=false ls-files -- . &quot;:(exclude).github&quot; &quot;:(exclude).agents&quot; &quot;:(exclude).vscode&quot; &quot;:(exclude).devcontainer&quot; &quot;:(exclude)docs&quot; &quot;:(exclude)templates&quot; &quot;:(exclude)superpowers&quot;"
+          WorkingDirectory="$(MSBuildThisFileDirectory).."
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" ItemName="_GitTrackedTemplateFile" />
+    </Exec>
+    <ItemGroup>
+      <Content Include="$(MSBuildThisFileDirectory)..\%(_GitTrackedTemplateFile.Identity)"
+               Pack="true"
+               PackagePath="content/%(_GitTrackedTemplateFile.RelativeDir)" />
+    </ItemGroup>
+  </Target>
 
 </Project>
