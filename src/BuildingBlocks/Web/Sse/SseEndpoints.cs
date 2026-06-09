@@ -61,6 +61,16 @@ public static class SseEndpoints
             context.Response.Headers["X-Accel-Buffering"] = "no"; // disable nginx buffering
 
             var (connectionId, reader) = connectionManager.Connect(principal.UserId, principal.TenantId);
+
+            // Flush the response headers + an initial comment immediately. Kestrel buffers
+            // response headers until the first body write, and our first write would otherwise
+            // be the heartbeat up to HeartbeatInterval (15s) away — so the client's fetch()
+            // promise (which resolves on response headers) would sit pending and the UI would
+            // show "connecting" for up to 15s on every connect/reconnect. Writing a no-op SSE
+            // comment now sends the headers and lets the client flip to "connected" at once.
+            await context.Response.WriteAsync(":connected\n\n", cancellationToken).ConfigureAwait(false);
+            await context.Response.Body.FlushAsync(cancellationToken).ConfigureAwait(false);
+
             using var heartbeat = new PeriodicTimer(HeartbeatInterval);
 
             try
