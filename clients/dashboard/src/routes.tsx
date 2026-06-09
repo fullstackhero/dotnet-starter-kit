@@ -64,6 +64,10 @@ const TenantDeactivatedPage = lazyNamed(
   () => import("@/pages/tenant-deactivated"),
   "TenantDeactivatedPage",
 );
+const ImpersonationEndedPage = lazyNamed(
+  () => import("@/pages/impersonation-ended"),
+  "ImpersonationEndedPage",
+);
 const SettingsLayout = lazyNamed(
   () => import("@/pages/settings/settings-layout"),
   "SettingsLayout",
@@ -169,6 +173,16 @@ export const router = createBrowserRouter([
     // here on detecting the deactivated-tenant 403.
     path: "/tenant-deactivated",
     element: withSuspense(<TenantDeactivatedPage />),
+    errorElement: <RouteError />,
+  },
+  {
+    // Terminal state when an operator's impersonation grant is revoked (or its
+    // short-lived token expires) mid-session. Top-level (outside
+    // ProtectedRoute/AppShell) — the token still decodes but every request
+    // 401s, so there is no shell to render. query-client.ts routes here on
+    // detecting the impersonation-revoked 401.
+    path: "/impersonation-ended",
+    element: withSuspense(<ImpersonationEndedPage />),
     errorElement: <RouteError />,
   },
   {
