@@ -7,9 +7,7 @@
     <Project Path="BuildingBlocks/Jobs/Jobs.csproj" Id="8ea652eb-ce20-4cb4-a4bd-7902d24208dd" />
     <Project Path="BuildingBlocks/Mailing/Mailing.csproj" />
     <Project Path="BuildingBlocks/Persistence/Persistence.csproj" Id="5a988325-a6ee-4bd9-8909-a56e60b86bad" />
-    <Project Path="BuildingBlocks/Quota/Quota.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="BuildingBlocks/Quota/Quota.csproj" />
     <Project Path="BuildingBlocks/Shared/Shared.csproj" Id="3588897f-ada8-4f4f-a8f7-3457a1286769" />
     <Project Path="BuildingBlocks/Storage/Storage.csproj" />
     <Project Path="BuildingBlocks/Web/Web.csproj" />
