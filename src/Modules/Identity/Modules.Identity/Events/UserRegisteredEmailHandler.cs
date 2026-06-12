@@ -45,7 +45,8 @@ public sealed class UserRegisteredEmailHandler
         {
             // Email failures must not break user registration.
             // The email can be retried via the outbox/dead-letter mechanism.
-            _logger.LogWarning(ex, "Failed to send welcome email to {Email}", @event.Email);
+            // PII minimization: identify the recipient by UserId, not email address.
+            _logger.LogWarning(ex, "Failed to send welcome email to user {UserId}", @event.UserId);
         }
     }
 }
