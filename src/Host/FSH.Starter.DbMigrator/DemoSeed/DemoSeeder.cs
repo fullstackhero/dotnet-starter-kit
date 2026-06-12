@@ -7,15 +7,18 @@ using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Domain;
+using FSH.Modules.Catalog.Contracts.Authorization;
 using FSH.Modules.Catalog.Data;
 using FSH.Modules.Catalog.Domain;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Domain;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
 using FSH.Modules.Multitenancy.Contracts;
 using FSH.Modules.Multitenancy.Data;
 using FSH.Modules.Multitenancy.Provisioning;
+using FSH.Modules.Tickets.Contracts.Authorization;
 using FSH.Modules.Tickets.Contracts.Dtos;
 using FSH.Modules.Tickets.Data;
 using FSH.Modules.Tickets.Domain;
@@ -734,48 +737,52 @@ internal sealed class DemoSeeder
         new("globex.dave",   "dave@globex.com",   "Dave",   "Hartwell", [RoleConstants.Basic]),
     ];
 
+    // Permission claims reference the module contracts constants — never raw strings.
+    // A hand-typed name that doesn't match a registry entry (e.g. the old
+    // "Permissions.Brands.View" vs the real "Permissions.Catalog.Brands.View")
+    // is a claim that grants nothing, silently.
     private static IReadOnlyList<DemoRole> BuildAcmeCustomRoles() =>
     [
         new(
             "Manager",
             "Operations manager — full catalog + tickets + read-only users.",
             [
-                "Permissions.Users.View",
-                "Permissions.Users.Update",
-                "Permissions.UserRoles.View",
-                "Permissions.Roles.View",
-                "Permissions.Sessions.View",
-                "Permissions.Sessions.Revoke",
-                "Permissions.Groups.View",
-                "Permissions.Brands.View",
-                "Permissions.Brands.Create",
-                "Permissions.Brands.Update",
-                "Permissions.Brands.Delete",
-                "Permissions.Categories.View",
-                "Permissions.Categories.Create",
-                "Permissions.Categories.Update",
-                "Permissions.Categories.Delete",
-                "Permissions.Products.View",
-                "Permissions.Products.Create",
-                "Permissions.Products.Update",
-                "Permissions.Products.Delete",
-                "Permissions.Tickets.View",
-                "Permissions.Tickets.Create",
-                "Permissions.Tickets.Update",
-                "Permissions.Tickets.Delete",
+                IdentityPermissions.Users.View,
+                IdentityPermissions.Users.Update,
+                IdentityPermissions.UserRoles.View,
+                IdentityPermissions.Roles.View,
+                IdentityPermissions.Sessions.View,
+                IdentityPermissions.Sessions.Revoke,
+                IdentityPermissions.Groups.View,
+                CatalogPermissions.Brands.View,
+                CatalogPermissions.Brands.Create,
+                CatalogPermissions.Brands.Update,
+                CatalogPermissions.Brands.Delete,
+                CatalogPermissions.Categories.View,
+                CatalogPermissions.Categories.Create,
+                CatalogPermissions.Categories.Update,
+                CatalogPermissions.Categories.Delete,
+                CatalogPermissions.Products.View,
+                CatalogPermissions.Products.Create,
+                CatalogPermissions.Products.Update,
+                CatalogPermissions.Products.Delete,
+                TicketsPermissions.Tickets.View,
+                TicketsPermissions.Tickets.Create,
+                TicketsPermissions.Tickets.Update,
+                TicketsPermissions.Tickets.Delete,
             ]),
 
         new(
             "Support",
             "Support agent — full tickets + read-only users.",
             [
-                "Permissions.Users.View",
-                "Permissions.UserRoles.View",
-                "Permissions.Sessions.View",
-                "Permissions.Sessions.Revoke",
-                "Permissions.Tickets.View",
-                "Permissions.Tickets.Create",
-                "Permissions.Tickets.Update",
+                IdentityPermissions.Users.View,
+                IdentityPermissions.UserRoles.View,
+                IdentityPermissions.Sessions.View,
+                IdentityPermissions.Sessions.Revoke,
+                TicketsPermissions.Tickets.View,
+                TicketsPermissions.Tickets.Create,
+                TicketsPermissions.Tickets.Update,
             ]),
     ];
 
