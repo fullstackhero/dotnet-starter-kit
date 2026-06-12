@@ -119,6 +119,9 @@ export async function refreshAccessToken() {
       ...(tenant ? { tenant } : {}),
     },
     body: JSON.stringify({ token: accessToken, refreshToken }),
+    // A stalled refresh would otherwise hang forever and block every queued
+    // 401-retry awaiting the shared refreshPromise.
+    signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
   });
 
   if (!response.ok) {
