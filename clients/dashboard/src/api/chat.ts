@@ -22,7 +22,6 @@ export type ChannelMemberDto = {
   role: ChannelMemberRoleValue;
   joinedAtUtc: string;
   lastReadMessageId?: string | null;
-  isMuted: boolean;
 };
 
 export type ChannelDto = {

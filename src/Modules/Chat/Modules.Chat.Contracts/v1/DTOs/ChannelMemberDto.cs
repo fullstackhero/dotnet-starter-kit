@@ -5,5 +5,4 @@ public sealed record ChannelMemberDto(
     string UserId,
     ChannelMemberRole Role,
     DateTime JoinedAtUtc,
-    Guid? LastReadMessageId,
-    bool IsMuted);
+    Guid? LastReadMessageId);
