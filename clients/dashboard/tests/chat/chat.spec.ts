@@ -51,7 +51,6 @@ const CHANNEL_ENGINEERING = {
       role: "Admin",
       joinedAtUtc: "2026-05-01T10:00:00Z",
       lastReadMessageId: null,
-      isMuted: false,
     },
   ],
 };

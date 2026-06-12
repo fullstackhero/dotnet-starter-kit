@@ -49,6 +49,10 @@ internal sealed class UserRoleService(
         var roles = await roleManager.Roles.AsNoTracking().ToListAsync(cancellationToken)
             ?? throw new NotFoundException("roles not found");
 
+        // Single membership query instead of one IsInRoleAsync round-trip per role.
+        var memberships = await userManager.GetRolesAsync(user);
+        var membershipSet = new HashSet<string>(memberships, StringComparer.OrdinalIgnoreCase);
+
         var userRoles = new List<UserRoleDto>();
         foreach (var role in roles)
         {
@@ -57,7 +61,7 @@ internal sealed class UserRoleService(
                 RoleId = role.Id,
                 RoleName = role.Name,
                 Description = role.Description,
-                Enabled = await userManager.IsInRoleAsync(user, role.Name!)
+                Enabled = membershipSet.Contains(role.Name!)
             });
         }
 

@@ -21,10 +21,10 @@ public sealed class UserRegisteredHandler(
 
         if (logger.IsEnabled(LogLevel.Information))
         {
+            // PII minimization: log the pseudonymous UserId only, not the email address.
             logger.LogInformation(
-                "User registered: {UserId} ({Email})",
-                notification.UserId,
-                notification.Email);
+                "User registered: {UserId}",
+                notification.UserId);
         }
 
         var integrationEvent = new UserRegisteredIntegrationEvent(

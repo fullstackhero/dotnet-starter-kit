@@ -24,10 +24,10 @@ public sealed class TokenGeneratedLogHandler
 
         if (_logger.IsEnabled(LogLevel.Information))
         {
+            // PII minimization: log the pseudonymous UserId only, not the email address.
             _logger.LogInformation(
-                "Token generated for user {UserId} ({Email}) with client {ClientId}, IP {IpAddress}, UserAgent {UserAgent}, expires at {ExpiresAtUtc} (fingerprint: {Fingerprint})",
+                "Token generated for user {UserId} with client {ClientId}, IP {IpAddress}, UserAgent {UserAgent}, expires at {ExpiresAtUtc} (fingerprint: {Fingerprint})",
                 @event.UserId,
-                @event.Email,
                 @event.ClientId,
                 @event.IpAddress,
                 @event.UserAgent,

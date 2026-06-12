@@ -10,7 +10,6 @@ public sealed class ChannelMember : BaseEntity<Guid>
     public ChannelMemberRole Role { get; private set; }
     public DateTime JoinedAtUtc { get; private set; }
     public Guid? LastReadMessageId { get; private set; }
-    public bool IsMuted { get; }
 
     private ChannelMember() { }
 

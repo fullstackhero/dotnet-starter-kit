@@ -6,7 +6,7 @@ namespace FSH.Modules.Chat.Features.v1.Internal;
 internal static class ChatMappers
 {
     public static ChannelMemberDto ToDto(this ChannelMember m) =>
-        new(m.Id, m.UserId, m.Role, m.JoinedAtUtc, m.LastReadMessageId, m.IsMuted);
+        new(m.Id, m.UserId, m.Role, m.JoinedAtUtc, m.LastReadMessageId);
 
     public static ChannelDto ToDto(this ChatChannel c, int unreadCount = 0) =>
         new(

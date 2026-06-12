@@ -20,7 +20,6 @@ public sealed class ChannelMemberConfiguration : IEntityTypeConfiguration<Channe
         builder.Property(x => x.Role).IsRequired().HasConversion<int>();
         builder.Property(x => x.JoinedAtUtc).IsRequired();
         builder.Property(x => x.LastReadMessageId);
-        builder.Property(x => x.IsMuted).IsRequired();
 
         builder.HasIndex(x => new { x.UserId, x.ChannelId }).IsUnique();
         builder.HasIndex(x => x.UserId);
