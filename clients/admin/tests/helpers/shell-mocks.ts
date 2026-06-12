@@ -34,6 +34,10 @@ export const ADMIN_PERMS = [
   "Permissions.Billing.Manage",
   "Permissions.AuditTrails.View",
   "Permissions.AuditTrails.ViewCrossTenant",
+  "Permissions.Webhooks.View",
+  "Permissions.Webhooks.Create",
+  "Permissions.Webhooks.Delete",
+  "Permissions.Webhooks.Test",
 ] as const;
 
 export const ADMIN_PROFILE = {

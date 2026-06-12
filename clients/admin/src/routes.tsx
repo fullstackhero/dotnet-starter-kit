@@ -12,6 +12,7 @@ import {
   BillingPermissions,
   IdentityPermissions,
   MultitenancyPermissions,
+  WebhooksPermissions,
 } from "@/lib/permissions";
 
 // Lazy-loaded pages — each `import()` becomes its own bundle chunk so the
@@ -192,9 +193,24 @@ export const router = createBrowserRouter([
             element: <Navigate to="/audits" replace />,
           },
 
-          // Webhooks — any signed-in user can manage their tenant's subscriptions
-          { path: "webhooks", element: <WebhooksListPage /> },
-          { path: "webhooks/:id", element: <WebhookDetailPage /> },
+          // Webhooks — list/detail both read subscriptions, which the server
+          // gates on Webhooks.View (granted to Basic by default).
+          {
+            path: "webhooks",
+            element: (
+              <RouteGuard perms={[WebhooksPermissions.Subscriptions.View]}>
+                <WebhooksListPage />
+              </RouteGuard>
+            ),
+          },
+          {
+            path: "webhooks/:id",
+            element: (
+              <RouteGuard perms={[WebhooksPermissions.Subscriptions.View]}>
+                <WebhookDetailPage />
+              </RouteGuard>
+            ),
+          },
 
           // Notifications inbox — available to every signed-in user
           { path: "notifications", element: <NotificationsInboxPage /> },

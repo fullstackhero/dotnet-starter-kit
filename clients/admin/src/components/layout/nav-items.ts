@@ -16,6 +16,7 @@ import {
   BillingPermissions,
   IdentityPermissions,
   MultitenancyPermissions,
+  WebhooksPermissions,
 } from "@/lib/permissions";
 
 /** A single nav destination — label, route, icon, optional perm guard. */
@@ -101,6 +102,7 @@ export const sections: NavSection[] = [
         to: "/webhooks",
         label: "Webhooks",
         icon: Webhook,
+        perms: [WebhooksPermissions.Subscriptions.View],
       },
       {
         to: "/audits",
@@ -208,6 +210,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Webhooks",
     icon: Webhook,
     matchPrefix: "/webhooks",
+    perms: [WebhooksPermissions.Subscriptions.View],
   },
   { to: "/health", label: "Health", icon: Activity, matchPrefix: "/health" },
 ];
