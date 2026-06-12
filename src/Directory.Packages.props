@@ -120,4 +120,11 @@
     <PackageVersion Include="Spectre.Console.Cli" Version="0.55.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.5" />
   </ItemGroup>
+  <ItemGroup Label="Transitive security pins">
+    <!-- Pulled transitively by Microsoft.AspNetCore.SignalR.StackExchangeRedis; versions
+         below 2.5.301 fail NuGet audit (NU1903, GHSA-hv8m-jj95-wg3x: LZ4 decompression
+         AccessViolation). Transitive pinning is enabled, so this entry alone bumps it.
+         Remove once the SignalR backplane package depends on a patched version itself. -->
+    <PackageVersion Include="MessagePack" Version="2.5.301" />
+  </ItemGroup>
 </Project>
