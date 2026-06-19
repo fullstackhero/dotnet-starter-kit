@@ -18,7 +18,7 @@ app.Configure(config =>
     config.AddCommand<NewCommand>("new")
         .WithDescription("Create a new FullStackHero .NET project.")
         .WithExample("new", "MyApp")
-        .WithExample("new", "MyApp", "--no-aspire", "--no-git");
+        .WithExample("new", "MyApp", "--no-aspire", "--no-frontend");
 
     config.AddCommand<DoctorCommand>("doctor")
         .WithDescription("Check your development environment for required tools.");

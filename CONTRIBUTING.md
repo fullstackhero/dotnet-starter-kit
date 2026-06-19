@@ -10,7 +10,7 @@ Thanks for helping out. The conventions below keep PRs reviewable.
 
 ## Dev setup
 
-Prerequisites: .NET 10 SDK, Docker, Node.js 22+.
+Prerequisites: .NET 10 SDK, Docker, Node.js 20+.
 
 ```bash
 dotnet build src/FSH.Starter.slnx

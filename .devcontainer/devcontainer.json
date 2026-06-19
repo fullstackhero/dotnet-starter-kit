@@ -4,7 +4,7 @@
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
-    "postCreateCommand": "dotnet workload install aspire && dotnet restore src/FSH.Starter.slnx",
+    "postCreateCommand": "dotnet restore src/FSH.Starter.slnx",
     "forwardPorts": [5030, 7030, 15888],
     "customizations": {
         "vscode": {

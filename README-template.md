@@ -12,7 +12,6 @@ the shared code lives in `src/BuildingBlocks` and is yours to change.
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Node.js 20+](https://nodejs.org) — for the React apps
 - [Docker](https://www.docker.com/) — Postgres, Redis, MinIO (orchestrated by Aspire)
-- .NET Aspire workload: `dotnet workload install aspire`
 
 ## Quick start
 

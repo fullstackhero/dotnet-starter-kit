@@ -66,7 +66,7 @@ internal sealed record MigratorCommand(
           seed            Run only the SeedAsync step per tenant.
           seed-demo       Provision the demo tenants (acme, globex) with users, catalog,
                           tickets, and chat. Dev-only — refuses to run unless
-                          ASPNETCORE_ENVIRONMENT=Development.
+                          DOTNET_ENVIRONMENT=Development.
           list-pending    Print pending migrations without applying anything.
 
         Options:
