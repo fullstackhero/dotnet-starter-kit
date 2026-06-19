@@ -70,10 +70,24 @@ internal sealed class UserPermissionService(
 
         var userRoles = await s.UserManager.GetRolesAsync(user).ConfigureAwait(false);
 
-        var roleIds = await s.RoleManager.Roles
+        var directRoleIds = await s.RoleManager.Roles
             .Where(r => userRoles.Contains(r.Name!))
             .Select(r => r.Id)
             .ToListAsync(ct).ConfigureAwait(false);
+
+        // Group-derived roles confer permissions too — the JWT already unions them
+        // (IdentityService.AddRoleClaimsAsync) and every group mutation invalidates this
+        // cache entry, so the effective set must include roles reachable via UserGroups.
+        var groupRoleIds = await s.Db.GroupRoles
+            .Where(gr => s.Db.UserGroups
+                .Where(ug => ug.UserId == s.UserId)
+                .Select(ug => ug.GroupId)
+                .Contains(gr.GroupId))
+            .Select(gr => gr.RoleId)
+            .Distinct()
+            .ToListAsync(ct).ConfigureAwait(false);
+
+        var roleIds = directRoleIds.Union(groupRoleIds, StringComparer.Ordinal).ToList();
 
         if (roleIds.Count == 0)
         {
