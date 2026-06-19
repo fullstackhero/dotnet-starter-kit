@@ -39,7 +39,18 @@ internal sealed class UserPasswordService(
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-        var resetPasswordUri = $"{origin}/reset-password?token={token}&email={email}";
+        // Build the SPA reset link with QueryHelpers (matches GetEmailVerificationUriAsync): trim any trailing
+        // slash from the configured origin (Uri.ToString adds one for a host-only URL → "//reset-password"
+        // misses the client route) and include the tenant the reset page requires. QueryHelpers URL-encodes
+        // each value, so reserved chars in the email (e.g. '+') survive.
+        var resetPasswordUri = QueryHelpers.AddQueryString(
+            $"{origin.TrimEnd('/')}/reset-password",
+            new Dictionary<string, string?>
+            {
+                ["token"] = token,
+                ["email"] = email,
+                ["tenant"] = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id,
+            });
         var mailRequest = new MailRequest(
             new Collection<string> { user.Email },
             "Reset Password",
