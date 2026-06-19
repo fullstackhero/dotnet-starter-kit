@@ -372,7 +372,8 @@ function CommentsSection({
   const [body, setBody] = useState("");
 
   const mutation = useMutation({
-    mutationFn: () => addTicketComment(ticketId, body.trim()),
+    // Per-call data flows through mutate(arg), never closed-over state (golden rule #9).
+    mutationFn: (text: string) => addTicketComment(ticketId, text),
     onSuccess: () => {
       setBody("");
       toast.success("Comment posted");
@@ -416,7 +417,7 @@ function CommentsSection({
         onSubmit={(e) => {
           e.preventDefault();
           if (!body.trim() || disabled) return;
-          mutation.mutate();
+          mutation.mutate(body.trim());
         }}
         className={cn(
           "mt-5 rounded-xl border bg-[var(--color-card)]",
@@ -427,6 +428,7 @@ function CommentsSection({
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          aria-label="Add a comment"
           placeholder={
             disabled
               ? "Reopen the ticket to add a new comment."

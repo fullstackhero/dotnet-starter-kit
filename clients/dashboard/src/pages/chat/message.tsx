@@ -34,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cn";
+import { describe } from "@/lib/list-helpers";
 import { useUserByUsername, useUserDisplay } from "@/lib/use-user-display";
 import { usePresence } from "@/realtime/use-presence";
 import { groupReactions, shortTime } from "@/pages/chat/chat-utils";
@@ -568,7 +569,7 @@ function MentionPill({ username }: { username: string }) {
       setOpen(false);
       navigate(`/chat/${channelId}`);
     },
-    onError: () => toast.error("Couldn't open DM"),
+    onError: (err) => toast.error("Couldn't open DM", { description: describe(err) }),
   });
 
   const displayName =
@@ -719,7 +720,7 @@ function MessageActions({
       setConfirmingDelete(false);
       toast.success("Message deleted");
     },
-    onError: () => toast.error("Couldn't delete the message"),
+    onError: (err) => toast.error("Couldn't delete the message", { description: describe(err) }),
   });
 
   const pinMutation = useMutation({
@@ -733,7 +734,7 @@ function MessageActions({
       void queryClient.invalidateQueries({ queryKey: ["chat", "pinned", message.channelId] });
       toast.success(message.isPinned ? "Unpinned" : "Pinned");
     },
-    onError: () => toast.error("Couldn't update the pin."),
+    onError: (err) => toast.error("Couldn't update the pin", { description: describe(err) }),
   });
 
   if (isDeleted) return null;
