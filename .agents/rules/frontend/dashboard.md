@@ -10,9 +10,9 @@ Tenant-facing application. Read `frontend/shared.md` first; this file is only th
 
 The dashboard does **not** depend on react-hook-form or zod. Use controlled inputs + local state. Don't add those deps to match admin.
 
-## Permissions — straight from the JWT
+## Permissions — fetched, not in the JWT
 
-`auth-context.tsx` reads `claims.permissions` off the decoded JWT — no separate fetch, no `permissionsHydrated`, no permissions cache key. `ProtectedRoute` is **auth-only** (no permission gating). Don't add `RouteGuard`-style gating here.
+The JWT carries **only role names**. `auth-context.tsx` fetches the effective permission list from `GET /api/v1/identity/permissions` (`getMyPermissions()` in `src/api/identity.ts`), caches it in `tokenStore` under `fsh.dashboard.permissions`, and exposes a `permissionsHydrated` flag so gated UI doesn't flash while the fetch is in flight (re-fetched on login/impersonation swaps; `refreshPermissions()` for role changes). Nav items are gated via `perm`/`anyPerm` in `src/components/layout/nav-data.ts`. `ProtectedRoute` is still **auth-only** (no per-route permission gating) — don't add `RouteGuard`-style gating here.
 
 ## Routing & realtime/SSE
 

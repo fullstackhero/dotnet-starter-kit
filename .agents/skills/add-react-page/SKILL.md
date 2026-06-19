@@ -17,7 +17,7 @@ The frontend slice. Read `.agents/rules/frontend/shared.md` plus the app file (`
 | Forms | **react-hook-form + zod** | **hand-rolled** controlled inputs (no RHF/zod) |
 | List + create | separate routed pages (`list.tsx`, `create.tsx`) | one file with `<Dialog>` editors |
 | Route wrapper | `<RouteGuard perms={[…]}>` | `withSuspense(<X/>)` (no permission gate) |
-| Permissions | mirror in `src/lib/permissions.ts` | none — JWT claims + server 403 |
+| Permissions | mirror in `src/lib/permissions.ts` | fetched from `GET /identity/permissions` (not JWT); nav gating via `perm`/`anyPerm` in `nav-data.ts`; no route guard — server 403 backstops |
 
 Shared everywhere: types are **hand-written** (no codegen); `apiFetch<T>` from `@/lib/api-client`; `cn()` from `@/lib/cn`; `env.apiBase` from runtime `/config.json`; CVA `components/ui` + `components/list` primitives; Tailwind v4 CSS-first (tokens in `src/styles/globals.css`); `toast` from `sonner`; pages are **named exports**; `placeholderData: keepPreviousData` (v5).
 

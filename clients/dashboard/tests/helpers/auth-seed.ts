@@ -7,8 +7,11 @@ import type { Page } from "@playwright/test";
  * We populate the same localStorage keys the runtime tokenStore writes
  * (see clients/dashboard/src/auth/token-store.ts). The token value is
  * a JWT-shaped string that decodes to the supplied user — useAuth's
- * decoder reads sub/email/given_name/family_name/tenant/permissions
- * out of the payload.
+ * decoder reads sub/email/given_name/family_name/tenant out of the
+ * payload. Permissions are NOT read from the JWT: at runtime the app
+ * fetches them from GET /api/v1/identity/permissions (installShellMocks
+ * stubs that route to []; permission-gated specs re-mock it with the
+ * grants they need — see tests/system/trash.spec.ts).
  */
 export type SeededUser = {
   sub: string;
@@ -16,6 +19,11 @@ export type SeededUser = {
   firstName: string;
   lastName: string;
   tenant: string;
+  /**
+   * Inert — written into the fake JWT payload but ignored by the app.
+   * To grant permissions in a spec, mock GET /identity/permissions
+   * instead.
+   */
   permissions?: string[];
 };
 
@@ -36,7 +44,7 @@ function fakeJwt(payload: Record<string, unknown>): string {
 
 export async function seedAuthedSession(page: Page, user: SeededUser) {
   // Build the JWT-shaped payload. Claim names match what useAuth's decoder
-  // looks for in the runtime path.
+  // looks for in the runtime path (permissions excepted — inert, see SeededUser).
   const payload = {
     sub: user.sub,
     email: user.email,
