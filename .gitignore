@@ -503,6 +503,8 @@ spec-os/
 /.claude/worktrees/
 /.claude/scheduled_tasks.lock
 /.claude/last30days.env
+# Local AI-tool state should never be tracked, at any depth.
+**/.claude/settings.local.json
 tmpclaude**
 
 # Auto Claude data directory

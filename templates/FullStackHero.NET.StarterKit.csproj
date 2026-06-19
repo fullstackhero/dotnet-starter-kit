@@ -28,6 +28,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
+    <!-- Render the project README on the nuget.org gallery page (same README the CLI ships). -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <TargetFramework>net10.0</TargetFramework>
     <IncludeContentInPack>true</IncludeContentInPack>
@@ -46,6 +48,8 @@
     <Compile Remove="**\*" />
     <!-- Gallery icon at package root (separate from the .template.config content copy). -->
     <None Include="..\.template.config\icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <!-- Gallery README at package root (separate from the content/README.md scaffold copy). -->
+    <None Include="..\README.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
   <!--
