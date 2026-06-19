@@ -291,7 +291,7 @@ try
         if (!env.IsDevelopment())
         {
             await Console.Error.WriteLineAsync(
-                $"[demo-seed] REFUSING to run — ASPNETCORE_ENVIRONMENT is '{env.EnvironmentName}'. "
+                $"[demo-seed] REFUSING to run — DOTNET_ENVIRONMENT is '{env.EnvironmentName}'. "
                 + "seed-demo is dev-only by design.")
                 .ConfigureAwait(false);
             return 1;

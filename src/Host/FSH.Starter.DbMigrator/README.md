@@ -43,7 +43,7 @@ dotnet run --project src/Host/FSH.Starter.DbMigrator -- seed
 # Dev only — provision the demo tenants (acme, globex) with users,
 # custom roles, sample catalog, tickets, and chat. Hard-refuses outside
 # Development. Idempotent: safe to re-run.
-ASPNETCORE_ENVIRONMENT=Development \
+DOTNET_ENVIRONMENT=Development \
   dotnet run --project src/Host/FSH.Starter.DbMigrator -- seed-demo
 ```
 
