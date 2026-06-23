@@ -18,7 +18,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ApiRequestError } from "@/lib/api-client";
+import { describeError } from "@/lib/api-client";
 
 // ─── Schema (identical to the old create page) ───────────────────────────────
 
@@ -124,11 +124,7 @@ export function CreateUserDialog({
       navigate(result.userId ? `/users/${result.userId}` : "/users");
     },
     onError: (err) => {
-      const detail =
-        err instanceof ApiRequestError
-          ? err.problem?.detail ?? err.problem?.title ?? err.message
-          : (err as Error).message;
-      toast.error("Create failed", { description: detail });
+      toast.error("Create failed", { description: describeError(err) });
     },
   });
 

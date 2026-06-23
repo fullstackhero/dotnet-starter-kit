@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -189,7 +190,10 @@ internal sealed class UserRegistrationService(
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new CustomException("Failed to create user from external principal.", errors);
+            throw new CustomException(
+                "Failed to create user from external principal.",
+                errors,
+                HttpStatusCode.BadRequest);
         }
 
         return user;
@@ -226,7 +230,10 @@ internal sealed class UserRegistrationService(
     {
         if (password != confirmPassword)
         {
-            throw new CustomException("password mismatch.");
+            throw new CustomException(
+                "Passwords do not match.",
+                errors: null,
+                HttpStatusCode.BadRequest);
         }
     }
 
@@ -253,8 +260,14 @@ internal sealed class UserRegistrationService(
         var result = await userManager.CreateAsync(user, password);
         if (!result.Succeeded)
         {
+            // Identity create failures (duplicate email/username, password policy, …) are
+            // client-input errors, not server faults — surface them as 400 with the specific
+            // reasons so the caller sees *why* registration failed, not a bare 500.
             var errors = result.Errors.Select(error => error.Description).ToList();
-            throw new CustomException("error while registering a new user", errors);
+            throw new CustomException(
+                "Unable to register the user.",
+                errors,
+                HttpStatusCode.BadRequest);
         }
 
         return user;
