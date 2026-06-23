@@ -72,12 +72,33 @@ export function formatMoney(amount: number, currency: string) {
   }
 }
 
+// Flatten the ProblemDetails `errors` extension into a list of human messages.
+// FluentValidation sends a field-keyed map ({ Email: ["..."] }); CustomException
+// (e.g. Identity registration failures) sends a flat string[]. Both end up here.
+function problemErrorMessages(errors: unknown): string[] {
+  if (Array.isArray(errors)) {
+    return errors.filter((e): e is string => typeof e === "string");
+  }
+  if (errors && typeof errors === "object") {
+    return Object.values(errors as Record<string, unknown>)
+      .flatMap((v) => (Array.isArray(v) ? v : [v]))
+      .filter((e): e is string => typeof e === "string");
+  }
+  return [];
+}
+
 // Surface API/network/runtime errors with the same formatting everywhere.
-// Prefers the Dev-only `reason` extension on ProblemDetails so JwtBearer
-// rejection causes (expired token, signing key drift, etc) are visible
-// in toast descriptions during development.
+// When the server includes specific reasons in the ProblemDetails `errors`
+// extension (validation failures, Identity errors like "Email is already
+// taken"), show those — they tell the user what to fix. Otherwise fall back to
+// the Dev-only `reason` extension / detail / title so JwtBearer rejection
+// causes (expired token, signing key drift, etc) stay visible in development.
 export function describe(err: unknown): string {
   if (err instanceof ApiRequestError) {
+    const details = problemErrorMessages(err.problem?.errors);
+    if (details.length > 0) {
+      return details.join(" ");
+    }
     const reason =
       err.problem?.reason ??
       err.problem?.detail ??

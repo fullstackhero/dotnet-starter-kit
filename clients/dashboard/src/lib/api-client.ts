@@ -6,7 +6,9 @@ export type ApiError = {
   status: number;
   title?: string;
   detail?: string;
-  errors?: Record<string, string[]>;
+  // FluentValidation errors arrive keyed by field (Record); CustomException
+  // (e.g. Identity registration failures) sends a flat string[]. Handle both.
+  errors?: Record<string, string[]> | string[];
   // Dev-only extension surfaced on 401 by ConfigureJwtBearerOptions.
   reason?: string;
   // Allow any other ProblemDetails extensions through.

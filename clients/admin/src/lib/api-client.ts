@@ -5,7 +5,9 @@ export type ApiError = {
   status: number;
   title?: string;
   detail?: string;
-  errors?: Record<string, string[]>;
+  // FluentValidation errors arrive keyed by field (Record); CustomException
+  // (e.g. Identity registration failures) sends a flat string[]. Handle both.
+  errors?: Record<string, string[]> | string[];
   reason?: string;
   [key: string]: unknown;
 };
@@ -19,6 +21,28 @@ export class ApiRequestError extends Error {
     this.status = status;
     this.problem = problem;
   }
+}
+
+/**
+ * Build a user-facing message from an error. When the server includes specific
+ * reasons in the ProblemDetails `errors` extension (validation failures,
+ * Identity errors like "Email is already taken"), those are shown — they tell
+ * the user what to fix. Otherwise falls back to detail / title / message.
+ */
+export function describeError(err: unknown): string {
+  if (err instanceof ApiRequestError) {
+    const raw = err.problem?.errors;
+    const details = Array.isArray(raw)
+      ? raw.filter((e): e is string => typeof e === "string")
+      : raw && typeof raw === "object"
+        ? Object.values(raw)
+            .flat()
+            .filter((e): e is string => typeof e === "string")
+        : [];
+    if (details.length > 0) return details.join(" ");
+    return err.problem?.detail ?? err.problem?.title ?? err.message;
+  }
+  return err instanceof Error ? err.message : String(err);
 }
 
 type RequestInitEx = RequestInit & { skipAuth?: boolean; timeoutMs?: number };

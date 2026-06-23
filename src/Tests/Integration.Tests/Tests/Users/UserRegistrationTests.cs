@@ -58,7 +58,8 @@ public sealed class UserRegistrationTests
             $"{TestConstants.IdentityBasePath}/register",
             payload with { userName = $"dupuser2-{uniqueId}" });
 
-        secondResponse.IsSuccessStatusCode.ShouldBeFalse();
+        // A duplicate email is a client-input error → 400, not a 500.
+        secondResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -77,7 +78,8 @@ public sealed class UserRegistrationTests
             confirmPassword = "123"
         });
 
-        response.IsSuccessStatusCode.ShouldBeFalse();
+        // A weak password is a client-input error → 400, not a 500.
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]
