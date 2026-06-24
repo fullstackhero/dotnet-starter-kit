@@ -15,7 +15,7 @@ public sealed class WebhookSubscriptionConfiguration : IEntityTypeConfiguration<
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Url).IsRequired().HasMaxLength(2048);
         builder.Property(x => x.EventsCsv).IsRequired().HasMaxLength(4096);
-        builder.Property(x => x.SecretHash).HasMaxLength(512);
+        builder.Property(x => x.ProtectedSecret).HasMaxLength(512);
         builder.HasIndex(x => x.IsActive);
         builder.Ignore(x => x.DomainEvents);
     }

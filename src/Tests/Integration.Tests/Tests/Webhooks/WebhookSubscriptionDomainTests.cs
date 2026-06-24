@@ -29,7 +29,7 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "user.created", "user.updated" },
-            secretHash: null);
+            protectedSecret: null);
 
         // Act & Assert
         subscription.MatchesEvent("user.updated").ShouldBeTrue();
@@ -42,7 +42,7 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "a.one", "b.two", "c.three" },
-            secretHash: null);
+            protectedSecret: null);
 
         // Act
         var events = subscription.GetEvents();
@@ -62,7 +62,7 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "User.Created" },
-            secretHash: null);
+            protectedSecret: null);
 
         // Act & Assert — exact-name matching ignores case.
         subscription.MatchesEvent("user.created").ShouldBeTrue();
@@ -76,7 +76,7 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "*" },
-            secretHash: null);
+            protectedSecret: null);
 
         // Act & Assert
         subscription.MatchesEvent("any.unconfigured.event").ShouldBeTrue();
@@ -90,7 +90,7 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "user.created" },
-            secretHash: null);
+            protectedSecret: null);
 
         // Act & Assert
         subscription.MatchesEvent("user.deleted").ShouldBeFalse();
@@ -104,7 +104,7 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "  spaced.event  ", "", "  ", "tight.event" },
-            secretHash: null);
+            protectedSecret: null);
 
         // Act
         var events = subscription.GetEvents();
@@ -123,7 +123,7 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "user.created" },
-            secretHash: null);
+            protectedSecret: null);
         subscription.IsActive.ShouldBeTrue();
 
         // Act
@@ -140,12 +140,12 @@ public sealed class WebhookSubscriptionDomainTests
         var subscription = WebhookSubscription.Create(
             "https://example.com/hook",
             new[] { "user.created" },
-            secretHash: "hashed-secret");
+            protectedSecret: "protected-secret");
 
         // Assert
         subscription.Id.ShouldNotBe(Guid.Empty);
         subscription.Url.ShouldBe("https://example.com/hook");
-        subscription.SecretHash.ShouldBe("hashed-secret");
+        subscription.ProtectedSecret.ShouldBe("protected-secret");
         subscription.IsActive.ShouldBeTrue();
         subscription.CreatedAtUtc.ShouldNotBe(default);
     }

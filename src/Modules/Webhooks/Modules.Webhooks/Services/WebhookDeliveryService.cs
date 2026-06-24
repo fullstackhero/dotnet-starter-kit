@@ -14,7 +14,7 @@ public sealed class WebhookDeliveryService(
     public async Task DeliverAsync(
         Guid subscriptionId,
         string url,
-        string? secretHash,
+        string? signingSecret,
         string eventType,
         string payloadJson,
         CancellationToken ct = default)
@@ -26,9 +26,9 @@ public sealed class WebhookDeliveryService(
         {
             using var content = new StringContent(payloadJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
-            if (!string.IsNullOrEmpty(secretHash))
+            if (!string.IsNullOrEmpty(signingSecret))
             {
-                var signature = WebhookPayloadSigner.Sign(payloadJson, secretHash);
+                var signature = WebhookPayloadSigner.Sign(payloadJson, signingSecret);
                 content.Headers.Add("X-Webhook-Signature", signature);
             }
 

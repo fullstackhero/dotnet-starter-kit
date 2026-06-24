@@ -257,7 +257,7 @@ public sealed class WebhookDeliveryTests
         await service.DeliverAsync(
             subscriptionId,
             "https://no-secret.invalid/hook",
-            secretHash: null,
+            signingSecret: null,
             eventType: "manual.event",
             payloadJson: "{\"manual\":true}",
             ct: CancellationToken.None);

@@ -12,22 +12,22 @@ public sealed class WebhookSubscriptionTests
         var sub = WebhookSubscription.Create(
             "https://example.com/hook",
             ["user.created", "user.deleted"],
-            "hashed-secret");
+            "protected-secret");
 
         sub.Url.ShouldBe("https://example.com/hook");
         sub.EventsCsv.ShouldBe("user.created,user.deleted");
-        sub.SecretHash.ShouldBe("hashed-secret");
+        sub.ProtectedSecret.ShouldBe("protected-secret");
         sub.IsActive.ShouldBeTrue();
         sub.Id.ShouldNotBe(Guid.Empty);
         sub.CreatedAtUtc.ShouldNotBe(default);
     }
 
     [Fact]
-    public void Create_Should_Allow_Null_SecretHash()
+    public void Create_Should_Allow_Null_ProtectedSecret()
     {
-        var sub = WebhookSubscription.Create("https://example.com", ["a"], secretHash: null);
+        var sub = WebhookSubscription.Create("https://example.com", ["a"], protectedSecret: null);
 
-        sub.SecretHash.ShouldBeNull();
+        sub.ProtectedSecret.ShouldBeNull();
     }
 
     [Fact]
