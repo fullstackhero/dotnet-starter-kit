@@ -37,7 +37,7 @@ public sealed class TenantExpiryScanJobTests
         var planKey = await CreatePlanAsync(rootClient, $"scan-m-{unique}", 10m);
         await CreateTenantAsync(rootClient, tenantId, adminEmail, planKey);
 
-        // Lapse into the grace window (1 day past ValidUpto).
+        // Lapse into the grace period (1 day past ValidUpto).
         var adjust = await rootClient.PostAsJsonAsync(
             $"{TestConstants.TenantsBasePath}/{tenantId}/adjust-validity",
             new { tenantId, validUpto = DateTime.UtcNow.AddDays(-1) });

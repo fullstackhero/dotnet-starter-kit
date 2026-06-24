@@ -9,7 +9,7 @@ namespace Integration.Tests.Tests.Multitenancy;
 
 /// <summary>
 /// Verifies subscription-expiry enforcement in the post-auth tenant guard: a tenant past
-/// <c>ValidUpto</c> but within the grace window still passes (so requests/logins keep working during
+/// <c>ValidUpto</c> but within the grace period still passes (so requests/logins keep working during
 /// dunning), while a tenant past <c>ValidUpto + grace</c> is hard-blocked with 403 — mirroring the
 /// deactivation guard. Grace defaults to 7 days.
 /// </summary>
@@ -33,7 +33,7 @@ public sealed class TenantExpiryEnforcementTests
         // While valid, the guard does not short-circuit — the token handler runs and fails on creds.
         (await TryIssueTokenAsync(tenantId)).ShouldNotBe(HttpStatusCode.Forbidden);
 
-        // Lapse well past the 7-day grace window.
+        // Lapse well past the 7-day grace period.
         await SetTenantValidityAsync(tenantId, DateTime.UtcNow.AddDays(-30));
 
         (await TryIssueTokenAsync(tenantId)).ShouldBe(HttpStatusCode.Forbidden,
@@ -45,11 +45,11 @@ public sealed class TenantExpiryEnforcementTests
     {
         var tenantId = await CreateTenantAsync();
 
-        // One day past expiry is still inside the 7-day grace window.
+        // One day past expiry is still inside the 7-day grace period.
         await SetTenantValidityAsync(tenantId, DateTime.UtcNow.AddDays(-1));
 
         (await TryIssueTokenAsync(tenantId)).ShouldNotBe(HttpStatusCode.Forbidden,
-            "a lapsed tenant within the grace window must still be allowed through the guard");
+            "a lapsed tenant within the grace period must still be allowed through the guard");
     }
 
     [Fact]
@@ -57,13 +57,13 @@ public sealed class TenantExpiryEnforcementTests
     {
         var tenantId = await CreateTenantAsync();
 
-        // One day past expiry — inside the 7-day grace window.
+        // One day past expiry — inside the 7-day grace period.
         await SetTenantValidityAsync(tenantId, DateTime.UtcNow.AddDays(-1));
 
         var (status, grace) = await ProbeAsync(tenantId);
 
         status.ShouldNotBe(HttpStatusCode.Forbidden);
-        grace.ShouldNotBeNull("a tenant in the grace window must receive the X-Subscription-Grace header");
+        grace.ShouldNotBeNull("a tenant in the grace period must receive the X-Subscription-Grace header");
         int.Parse(grace!, CultureInfo.InvariantCulture).ShouldBeInRange(1, 7);
     }
 

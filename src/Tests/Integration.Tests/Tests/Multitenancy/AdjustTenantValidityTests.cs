@@ -69,7 +69,7 @@ public sealed class AdjustTenantValidityTests
         var planKey = await CreatePlanAsync(rootClient, $"adj-b-{unique}", monthlyBasePrice: 10m);
         await CreateTenantAsync(rootClient, tenantId, $"adj-back-{unique}@tenant.com", planKey);
 
-        // Backdate well past the grace window — renewal would reject this; the override allows it.
+        // Backdate well past the grace period — renewal would reject this; the override allows it.
         var target = DateTime.UtcNow.AddDays(-30);
         var response = await rootClient.PostAsJsonAsync(
             $"{TestConstants.TenantsBasePath}/{tenantId}/adjust-validity",

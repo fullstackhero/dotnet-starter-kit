@@ -166,7 +166,7 @@ public sealed class TenantService : ITenantService
     {
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
 
-        var graceEnds = tenant.ValidUpto.AddDays(_billingOptions.GraceWindowDays);
+        var graceEnds = tenant.ValidUpto.AddDays(_billingOptions.GracePeriodDays);
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         string expiryState;
         if (now <= tenant.ValidUpto)

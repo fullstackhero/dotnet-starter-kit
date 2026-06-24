@@ -16,6 +16,6 @@ public sealed class TenantStatusDto
     /// <summary>Derived lifecycle state: "Active", "InGrace", or "Expired".</summary>
     public string ExpiryState { get; init; } = "Active";
 
-    /// <summary>Instant after which a lapsed tenant is hard-blocked (ValidUpto + grace window).</summary>
+    /// <summary>Instant after which a lapsed tenant is hard-blocked (ValidUpto + grace period).</summary>
     public DateTime GraceEndsUtc { get; init; }
 }

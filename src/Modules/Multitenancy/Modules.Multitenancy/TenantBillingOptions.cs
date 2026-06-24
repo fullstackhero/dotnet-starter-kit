@@ -13,7 +13,7 @@ public sealed class TenantBillingOptions
     public string DefaultPlanKey { get; set; } = "free";
 
     /// <summary>Days past <c>ValidUpto</c> during which requests/logins still succeed.</summary>
-    public int GraceWindowDays { get; set; } = 7;
+    public int GracePeriodDays { get; set; } = 7;
 
     /// <summary>How many days before <c>ValidUpto</c> the daily scan starts sending "nearing expiry" reminders.</summary>
     public int ExpiryNotificationLeadDays { get; set; } = 7;

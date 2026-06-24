@@ -84,7 +84,7 @@ public sealed class TenantExpiryScanJob
     private async Task<bool> TryNotifyAsync(AppTenantInfo tenant, DateTime now, CancellationToken ct)
     {
         var validUpto = tenant.ValidUpto;
-        var graceEnds = validUpto.AddDays(_options.GraceWindowDays);
+        var graceEnds = validUpto.AddDays(_options.GracePeriodDays);
 
         string noticeType;
         if (now > graceEnds)

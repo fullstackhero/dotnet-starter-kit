@@ -23,7 +23,7 @@ public sealed class IdentityService : IIdentityService
     private readonly IGroupRoleService _groupRoleService;
     private readonly TimeProvider _timeProvider;
     private readonly IdentityDbContext _dbContext;
-    private readonly int _graceWindowDays;
+    private readonly int _gracePeriodDays;
 
     public IdentityService(
         UserManager<FshUser> userManager,
@@ -41,7 +41,7 @@ public sealed class IdentityService : IIdentityService
         _groupRoleService = groupRoleService;
         _timeProvider = timeProvider;
         _dbContext = dbContext;
-        _graceWindowDays = graceOptions.Value.GraceWindowDays;
+        _gracePeriodDays = graceOptions.Value.GracePeriodDays;
     }
 
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
@@ -286,9 +286,9 @@ public sealed class IdentityService : IIdentityService
             throw new UnauthorizedException($"tenant {tenant.Id} is deactivated");
         }
 
-        // Honor the billing grace window: a lapsed tenant can still authenticate until
+        // Honor the billing grace period: a lapsed tenant can still authenticate until
         // ValidUpto + grace (matching the request-time guard in MultitenancyModule).
-        if (_timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto.AddDays(_graceWindowDays))
+        if (_timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto.AddDays(_gracePeriodDays))
         {
             throw new UnauthorizedException($"tenant {tenant.Id} validity has expired");
         }

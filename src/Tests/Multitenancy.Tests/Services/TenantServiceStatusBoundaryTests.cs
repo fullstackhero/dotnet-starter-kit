@@ -12,7 +12,7 @@ namespace Multitenancy.Tests.Services;
 /// <summary>
 /// Pins the expiry-state transitions in <see cref="TenantService.GetStatusAsync"/> exactly at the
 /// ValidUpto and grace-window boundaries, so the Active → InGrace → Expired badges never drift.
-/// Grace window is fixed at 7 days for these cases.
+/// Grace period is fixed at 7 days for these cases.
 /// </summary>
 public sealed class TenantServiceStatusBoundaryTests
 {
@@ -47,7 +47,7 @@ public sealed class TenantServiceStatusBoundaryTests
             dbContext: null!,
             provisioningService: null!,
             _clock,
-            Options.Create(new TenantBillingOptions { GraceWindowDays = GraceDays }),
+            Options.Create(new TenantBillingOptions { GracePeriodDays = GraceDays }),
             NullLogger<TenantService>.Instance);
 
         var status = await sut.GetStatusAsync(tenantId, CancellationToken.None);
