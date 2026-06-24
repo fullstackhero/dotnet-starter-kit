@@ -81,7 +81,7 @@ export async function changePassword(input: {
   newPassword: string;
   confirmNewPassword: string;
 }): Promise<string> {
-  return apiFetch<string>(`${BASE}/change-password`, {
+  return apiFetch<string>(`${IDENTITY}/change-password`, {
     method: "POST",
     body: JSON.stringify(input),
   });
@@ -110,7 +110,7 @@ export async function getUserRoles(id: string): Promise<UserRoleDto[]> {
 }
 
 export async function registerUser(input: RegisterUserInput): Promise<RegisterUserResponse> {
-  return apiFetch<RegisterUserResponse>(`${BASE}/register`, {
+  return apiFetch<RegisterUserResponse>(`${IDENTITY}/register`, {
     method: "POST",
     body: JSON.stringify(input),
   });

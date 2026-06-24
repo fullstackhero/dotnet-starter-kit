@@ -5,7 +5,7 @@ import { installAdminShellMocks, ADMIN_PERMS } from "../helpers/shell-mocks";
 
 // SecuritySettings = password change + 2FA. The 2FA branch is driven by the
 // profile's twoFactorEnabled flag (GET /api/v1/identity/profile). Password
-// change POSTs to /api/v1/identity/users/change-password with
+// change POSTs to /api/v1/identity/change-password with
 // { password, newPassword, confirmNewPassword }.
 
 const PROFILE_2FA_OFF = {
@@ -55,7 +55,7 @@ test.describe("settings · security", () => {
     await mockJsonResponse(page, "**/api/v1/identity/profile", PROFILE_2FA_OFF);
     await mockJsonResponse(
       page,
-      "**/api/v1/identity/users/change-password",
+      "**/api/v1/identity/change-password",
       '"Password changed."',
       { method: "POST" },
     );
@@ -75,7 +75,7 @@ test.describe("settings · security", () => {
 
     const reqPromise = page.waitForRequest(
       (r) =>
-        r.url().includes("/api/v1/identity/users/change-password") && r.method() === "POST",
+        r.url().includes("/api/v1/identity/change-password") && r.method() === "POST",
       { timeout: 5_000 },
     );
     await dialog.getByRole("button", { name: /update password/i }).click();
@@ -135,7 +135,7 @@ test.describe("settings · security", () => {
     await mockJsonResponse(page, "**/api/v1/identity/profile", PROFILE_2FA_OFF);
     await mockProblemDetails(
       page,
-      "**/api/v1/identity/users/change-password",
+      "**/api/v1/identity/change-password",
       400,
       { title: "Bad Request", detail: "Current password is incorrect." },
     );
