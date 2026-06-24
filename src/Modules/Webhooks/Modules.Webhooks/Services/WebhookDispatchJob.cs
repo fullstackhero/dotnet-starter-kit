@@ -103,7 +103,7 @@ public sealed class WebhookDispatchJob
         try
         {
             using var content = new StringContent(payloadJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
-            var signingSecret = _secretProtector.Unprotect(subscription.SecretHash);
+            var signingSecret = _secretProtector.Unprotect(subscription.ProtectedSecret);
             if (!string.IsNullOrEmpty(signingSecret))
             {
                 content.Headers.Add("X-Webhook-Signature", WebhookPayloadSigner.Sign(payloadJson, signingSecret));

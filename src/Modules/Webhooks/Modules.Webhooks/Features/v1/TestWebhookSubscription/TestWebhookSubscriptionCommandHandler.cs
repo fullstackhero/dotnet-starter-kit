@@ -33,7 +33,7 @@ public sealed class TestWebhookSubscriptionCommandHandler(
         await deliveryService.DeliverAsync(
             subscription.Id,
             subscription.Url,
-            secretProtector.Unprotect(subscription.SecretHash),
+            secretProtector.Unprotect(subscription.ProtectedSecret),
             "webhook.test",
             testPayload,
             cancellationToken).ConfigureAwait(false);
