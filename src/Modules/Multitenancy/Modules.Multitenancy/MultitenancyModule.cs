@@ -175,10 +175,10 @@ public sealed class MultitenancyModule : IModule
                         throw new ForbiddenException("This tenant has been deactivated. Contact your administrator.");
                     }
 
-                    // Expiry is enforced on every request (not just at login) with a grace window:
+                    // Expiry is enforced on every request (not just at login) with a grace period:
                     // a tenant past ValidUpto still works until ValidUpto + grace, then is hard-blocked.
                     var graceDays = ctx.RequestServices
-                        .GetRequiredService<IOptions<TenantBillingOptions>>().Value.GraceWindowDays;
+                        .GetRequiredService<IOptions<TenantBillingOptions>>().Value.GracePeriodDays;
                     var nowUtc = ctx.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime;
                     var graceEndsUtc = tenant.ValidUpto.AddDays(graceDays);
                     if (nowUtc > graceEndsUtc)
@@ -186,7 +186,7 @@ public sealed class MultitenancyModule : IModule
                         throw new ForbiddenException("This tenant's subscription has expired. Please renew to continue.");
                     }
 
-                    // Inside the grace window: surface days-left so clients can warn. Set via OnStarting so
+                    // Inside the grace period: surface days-left so clients can warn. Set via OnStarting so
                     // the header survives even when an exception handler rewrites the response.
                     if (nowUtc > tenant.ValidUpto)
                     {
