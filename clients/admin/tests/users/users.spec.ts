@@ -138,8 +138,8 @@ test.describe("users create form", () => {
     ).toBeVisible();
   });
 
-  test("filling the form and submitting POSTs to /users/register", async ({ page }) => {
-    await page.route("**/api/v1/identity/users/register", async (route) => {
+  test("filling the form and submitting POSTs to /register", async ({ page }) => {
+    await page.route("**/api/v1/identity/register", async (route) => {
       if (route.request().method() !== "POST") {
         await route.fallback();
         return;
@@ -179,7 +179,7 @@ test.describe("users create form", () => {
     await dialog.getByLabel(/^Confirm password/).fill("Sup3rSecret!");
 
     const reqPromise = page.waitForRequest(
-      (r) => r.url().endsWith("/api/v1/identity/users/register") && r.method() === "POST",
+      (r) => r.url().endsWith("/api/v1/identity/register") && r.method() === "POST",
       { timeout: 5_000 },
     );
     await dialog.getByRole("button", { name: "Create account", exact: true }).click();
@@ -198,7 +198,7 @@ test.describe("users create form", () => {
 
   test("client-side validation blocks submit on an invalid username", async ({ page }) => {
     let posted = false;
-    await page.route("**/api/v1/identity/users/register", async (route) => {
+    await page.route("**/api/v1/identity/register", async (route) => {
       if (route.request().method() === "POST") posted = true;
       await route.fulfill({
         status: 200,
