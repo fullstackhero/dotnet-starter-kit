@@ -33,5 +33,28 @@ public enum InvoicePurpose
     // Usage=0 doubles as the column default (rows backfill to Usage; Subscription=1 always written
     // explicitly). Do NOT reorder — making Subscription 0 reintroduces the EF default-omitted bug.
     Usage = 0,
-    Subscription = 1
+    Subscription = 1,
+    Topup = 2
+}
+
+public enum WalletStatus
+{
+    Active = 0,
+    Frozen = 1
+}
+
+public enum WalletTransactionKind
+{
+    Topup = 0,
+    MessageCharge = 1,
+    Adjustment = 2
+}
+
+public enum TopupRequestStatus
+{
+    Pending = 0,
+    Invoiced = 1,
+    Completed = 2,
+    Rejected = 3,
+    Cancelled = 4
 }
