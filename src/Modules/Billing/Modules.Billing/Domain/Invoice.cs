@@ -90,6 +90,26 @@ public sealed class Invoice : AggregateRoot<Guid>
         };
     }
 
+    /// <summary>
+    /// Convenience factory for top-up invoices: creates a Draft with <c>InvoicePurpose.Topup</c>
+    /// and immediately adds a single <see cref="InvoiceLineItemKind.Adjustment"/> line item so that
+    /// <see cref="SubtotalAmount"/> is set before the invoice is issued.
+    /// </summary>
+    public static Invoice CreateTopupDraft(
+        string tenantId,
+        string invoiceNumber,
+        int periodYear,
+        int periodMonth,
+        string currency,
+        decimal amount,
+        string lineItemDescription)
+    {
+        var invoice = CreateDraft(tenantId, invoiceNumber, periodYear, periodMonth, currency,
+            InvoicePurpose.Topup, periodStartUtc: null, periodEndUtc: null);
+        invoice.AddLineItem(InvoiceLineItemKind.Adjustment, lineItemDescription, 1m, amount);
+        return invoice;
+    }
+
     public InvoiceLineItem AddLineItem(InvoiceLineItemKind kind, string description, decimal quantity, decimal unitPrice)
     {
         RequireStatus(InvoiceStatus.Draft);
