@@ -20,6 +20,9 @@ public sealed class BillingDbContext : DbContext
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceLineItem> InvoiceLineItems => Set<InvoiceLineItem>();
     public DbSet<UsageSnapshot> UsageSnapshots => Set<UsageSnapshot>();
+    public DbSet<Wallet> Wallets => Set<Wallet>();
+    public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+    public DbSet<TopupRequest> TopupRequests => Set<TopupRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
