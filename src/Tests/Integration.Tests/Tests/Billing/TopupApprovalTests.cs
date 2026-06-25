@@ -107,6 +107,32 @@ public sealed class TopupApprovalTests
         });
     }
 
+    // ─── Reject: double-reject on non-Pending returns 409 ────────────
+
+    [Fact]
+    public async Task Reject_of_already_rejected_request_returns_409_Conflict()
+    {
+        // Arrange: seed a Pending request and perform a successful first rejection.
+        var requestId = await SeedPendingTopupRequestAsync(TestConstants.RootTenantId, 120m);
+
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+
+        // First reject — must succeed.
+        using var firstRejectResp = await rootClient.PostAsJsonAsync(
+            $"{BillingBasePath}/wallet/topup-requests/{requestId}/reject",
+            new { reason = "first rejection" });
+        firstRejectResp.StatusCode.ShouldBe(HttpStatusCode.OK, "first rejection must succeed");
+
+        // Act: attempt a second rejection on the now-Rejected request.
+        using var secondRejectResp = await rootClient.PostAsJsonAsync(
+            $"{BillingBasePath}/wallet/topup-requests/{requestId}/reject",
+            new { reason = "duplicate rejection" });
+
+        // Assert: 409 Conflict — not 500.
+        secondRejectResp.StatusCode.ShouldBe(HttpStatusCode.Conflict,
+            "rejecting a non-Pending request must return 409 Conflict, not 500");
+    }
+
     // ─── Cross-tenant: non-root cannot see other tenants' requests ────
 
     [Fact]

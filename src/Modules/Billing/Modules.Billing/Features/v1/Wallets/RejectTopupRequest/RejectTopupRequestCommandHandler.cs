@@ -1,6 +1,8 @@
+using System.Net;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Contracts.v1.Wallets;
 using FSH.Modules.Billing.Data;
 using Mediator;
@@ -29,6 +31,14 @@ public sealed class RejectTopupRequestCommandHandler(
         if (!isRoot && request.TenantId != callerTenantId)
         {
             throw new UnauthorizedException("You can only reject top-up requests for your own tenant.");
+        }
+
+        if (request.Status != TopupRequestStatus.Pending)
+        {
+            throw new CustomException(
+                $"Top-up request {command.Id} cannot be rejected because it is {request.Status} (only Pending requests can be rejected).",
+                (IEnumerable<string>?)null,
+                HttpStatusCode.Conflict);
         }
 
         request.Reject(command.Reason);
