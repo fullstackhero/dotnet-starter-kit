@@ -18,6 +18,12 @@ using FSH.Modules.Billing.Features.v1.Subscriptions.AssignSubscription;
 using FSH.Modules.Billing.Features.v1.Subscriptions.GetSubscription;
 using FSH.Modules.Billing.Features.v1.Usage.CaptureUsageSnapshots;
 using FSH.Modules.Billing.Features.v1.Usage.GetUsageSnapshots;
+using FSH.Modules.Billing.Features.v1.Wallets.ApproveTopupRequest;
+using FSH.Modules.Billing.Features.v1.Wallets.CreateTopupRequest;
+using FSH.Modules.Billing.Features.v1.Wallets.GetMyTopupRequests;
+using FSH.Modules.Billing.Features.v1.Wallets.GetMyWallet;
+using FSH.Modules.Billing.Features.v1.Wallets.GetTopupRequests;
+using FSH.Modules.Billing.Features.v1.Wallets.RejectTopupRequest;
 using FSH.Modules.Billing.Services;
 using Hangfire;
 using Hangfire.Common;
@@ -95,6 +101,14 @@ public sealed class BillingModule : IModule
 
         group.MapGetUsageSnapshotsEndpoint();
         group.MapCaptureUsageSnapshotsEndpoint();
+
+        group.MapGetMyWalletEndpoint();
+        group.MapCreateTopupRequestEndpoint();
+        group.MapGetMyTopupRequestsEndpoint();
+
+        group.MapGetTopupRequestsEndpoint();
+        group.MapApproveTopupRequestEndpoint();
+        group.MapRejectTopupRequestEndpoint();
 
         var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
         if (jobManager is not null)

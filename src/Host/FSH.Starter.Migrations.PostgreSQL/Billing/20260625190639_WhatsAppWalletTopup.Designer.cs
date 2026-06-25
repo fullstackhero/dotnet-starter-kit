@@ -3,6 +3,7 @@ using System;
 using FSH.Modules.Billing.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FSH.Starter.Migrations.PostgreSQL.Billing
 {
     [DbContext(typeof(BillingDbContext))]
-    partial class BillingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625190639_WhatsAppWalletTopup")]
+    partial class WhatsAppWalletTopup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -405,11 +408,6 @@ namespace FSH.Starter.Migrations.PostgreSQL.Billing
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ReferenceId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_wallet_transactions_topup_reference")
-                        .HasFilter("\"Kind\" = 0");
 
                     b.HasIndex("TenantId");
 

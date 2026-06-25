@@ -37,6 +37,7 @@ const BillingLayout = lazyNamed(() => import("@/pages/billing/layout"), "Billing
 const PlansListPage = lazyNamed(() => import("@/pages/billing/plans-list"), "PlansListPage");
 const InvoicesListPage = lazyNamed(() => import("@/pages/billing/invoices-list"), "InvoicesListPage");
 const InvoiceDetailPage = lazyNamed(() => import("@/pages/billing/invoice-detail"), "InvoiceDetailPage");
+const TopupsListPage = lazyNamed(() => import("@/pages/billing/topups-list"), "TopupsListPage");
 const AuditsListPage = lazyNamed(() => import("@/pages/audits/list"), "AuditsListPage");
 const HealthPage = lazyNamed(() => import("@/pages/health/page"), "HealthPage");
 const ImpersonationListPage = lazyNamed(() => import("@/pages/impersonation/list"), "ImpersonationListPage");
@@ -165,6 +166,7 @@ export const router = createBrowserRouter([
               { path: "plans", element: <PlansListPage /> },
               { path: "invoices", element: <InvoicesListPage /> },
               { path: "invoices/:invoiceId", element: <InvoiceDetailPage /> },
+              { path: "topups", element: <TopupsListPage /> },
             ],
           },
 

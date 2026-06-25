@@ -7,6 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="Billing.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\..\..\BuildingBlocks\Eventing\Eventing.csproj" />
 	  <ProjectReference Include="..\..\..\BuildingBlocks\Jobs\Jobs.csproj" />
 	  <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
