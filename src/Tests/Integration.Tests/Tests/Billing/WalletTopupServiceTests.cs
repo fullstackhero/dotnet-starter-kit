@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Data;
@@ -106,6 +107,34 @@ public sealed class WalletTopupServiceTests
         inv2.Purpose.ShouldBe(InvoicePurpose.Topup);
         inv1.InvoiceNumber.ShouldNotBe(inv2.InvoiceNumber,
             "two top-ups in the same month must have distinct invoice numbers");
+    }
+
+    // ── Fix 1 guard ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task CreateTopupInvoice_throws_NotFoundException_when_request_already_invoiced()
+    {
+        var tenantId = UniqueTestTenantId();
+
+        using var scope = _factory.Services.CreateScope();
+
+        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
+        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
+            new MultiTenantContext<AppTenantInfo>(tenant);
+
+        var billing = scope.ServiceProvider.GetRequiredService<IBillingService>();
+        var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
+
+        // Arrange: seed a Pending request and advance it to Invoiced via the happy path.
+        var request = TopupRequest.Create(tenantId, 10m, "USD", "advance to invoiced", "user-1");
+        db.TopupRequests.Add(request);
+        await db.SaveChangesAsync();
+        await billing.CreateTopupInvoiceAsync(tenantId, request.Id);
+
+        // Act + Assert: a second call for the same (now Invoiced) request must 404, not 500.
+        await Should.ThrowAsync<NotFoundException>(
+            () => billing.CreateTopupInvoiceAsync(tenantId, request.Id));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

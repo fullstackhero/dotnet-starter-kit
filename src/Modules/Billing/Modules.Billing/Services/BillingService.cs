@@ -168,6 +168,7 @@ public sealed class BillingService : IBillingService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         var wallet = await _db.Wallets
+            .Include(w => w.Transactions)
             .FirstOrDefaultAsync(w => w.TenantId == tenantId, cancellationToken)
             .ConfigureAwait(false);
         if (wallet is null)
@@ -184,9 +185,9 @@ public sealed class BillingService : IBillingService
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
         var request = await _db.TopupRequests
-            .FirstOrDefaultAsync(r => r.Id == topupRequestId && r.TenantId == tenantId, cancellationToken)
+            .FirstOrDefaultAsync(r => r.Id == topupRequestId && r.TenantId == tenantId && r.Status == TopupRequestStatus.Pending, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Top-up request {topupRequestId} not found for tenant {tenantId}.");
+            ?? throw new NotFoundException($"Top-up request {topupRequestId} not found or not pending.");
 
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var invoiceNumber = BuildTopupInvoiceNumber(tenantId, now, topupRequestId);
