@@ -16,6 +16,7 @@ import {
   Trash2,
   Users,
   UsersRound,
+  Wallet,
   Wifi,
 } from "lucide-react";
 import { ALL_TRASH_PERMISSIONS } from "@/lib/trash-permissions";
@@ -74,6 +75,7 @@ export const sections: NavSection[] = [
       // Live activity is SSE-backed; the stream is auth-only (no permission), so no gate.
       { to: "/activity", label: "Live activity", icon: Activity },
       { to: "/subscription", label: "Subscription", icon: CreditCard, perm: "Permissions.Billing.View" },
+      { to: "/wallet", label: "WhatsApp wallet", icon: Wallet, perm: "Permissions.Billing.View" },
       { to: "/invoices", label: "Invoices", icon: Receipt, perm: "Permissions.Billing.View" },
     ],
   },

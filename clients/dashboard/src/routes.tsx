@@ -52,6 +52,7 @@ const SubscriptionPage = lazyNamed(
   () => import("@/pages/subscription"),
   "SubscriptionPage",
 );
+const WalletPage = lazyNamed(() => import("@/pages/wallet"), "WalletPage");
 const BrandsPage = lazyNamed(() => import("@/pages/catalog/brands"), "BrandsPage");
 const CategoriesPage = lazyNamed(() => import("@/pages/catalog/categories"), "CategoriesPage");
 const ProductsPage = lazyNamed(() => import("@/pages/catalog/products"), "ProductsPage");
@@ -196,6 +197,7 @@ export const router = createBrowserRouter([
           { index: true, element: withSuspense(<OverviewPage />) },
           { path: "activity", element: withSuspense(<ActivityPage />) },
           { path: "subscription", element: withSuspense(<SubscriptionPage />) },
+          { path: "wallet", element: withSuspense(<WalletPage />) },
           { path: "invoices", element: withSuspense(<InvoicesPage />) },
           { path: "invoices/:id", element: withSuspense(<InvoiceDetailPage />) },
           { path: "system/health", element: withSuspense(<HealthPage />) },
