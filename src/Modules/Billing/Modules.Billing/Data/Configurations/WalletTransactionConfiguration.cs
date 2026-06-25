@@ -20,5 +20,12 @@ public sealed class WalletTransactionConfiguration : IEntityTypeConfiguration<Wa
         builder.Property(x => x.ReferenceId).HasMaxLength(128);
         builder.HasIndex(x => new { x.WalletId, x.CreatedAtUtc });
         builder.HasIndex(x => x.TenantId);
+
+        // Exactly-once credit: at most one Topup ledger row per top-up request (ReferenceId == TopupRequest.Id).
+        // A concurrent second MarkInvoicePaid on the same invoice fails this constraint and rolls back.
+        builder.HasIndex(x => x.ReferenceId)
+            .IsUnique()
+            .HasFilter($"\"Kind\" = {(int)Contracts.WalletTransactionKind.Topup}")
+            .HasDatabaseName("ux_wallet_transactions_topup_reference");
     }
 }
