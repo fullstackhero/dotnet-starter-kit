@@ -8,6 +8,7 @@ type Tab = { to: string; label: string };
 const TABS: Tab[] = [
   { to: "/billing/plans", label: "Plans" },
   { to: "/billing/invoices", label: "Invoices" },
+  { to: "/billing/topups", label: "Top-ups" },
 ];
 
 /**
