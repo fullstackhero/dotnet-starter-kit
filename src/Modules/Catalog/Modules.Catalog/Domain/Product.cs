@@ -52,6 +52,10 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
         ArgumentException.ThrowIfNullOrWhiteSpace(sku);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(price);
+        if (price.Amount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(price), "Price cannot be negative.");
+        }
         if (stock < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(stock), "Stock cannot be negative.");
@@ -115,6 +119,10 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
     public void ChangePrice(Money newPrice)
     {
         ArgumentNullException.ThrowIfNull(newPrice);
+        if (newPrice.Amount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(newPrice), "Price cannot be negative.");
+        }
         if (newPrice == Price)
         {
             return;

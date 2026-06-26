@@ -1,4 +1,5 @@
 using System.Net;
+using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;

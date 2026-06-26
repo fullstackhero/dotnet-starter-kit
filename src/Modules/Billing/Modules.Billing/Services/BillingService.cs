@@ -197,9 +197,9 @@ public sealed class BillingService : IBillingService
             invoiceNumber,
             now.Year,
             now.Month,
-            request.Currency,
-            request.Amount,
-            $"WhatsApp wallet top-up ({request.Amount:0.##} {request.Currency})");
+            request.Amount.Currency,
+            request.Amount.Amount,
+            $"WhatsApp wallet top-up ({request.Amount.Amount:0.##} {request.Amount.Currency})");
 
         invoice.Issue();
         _db.Invoices.Add(invoice);

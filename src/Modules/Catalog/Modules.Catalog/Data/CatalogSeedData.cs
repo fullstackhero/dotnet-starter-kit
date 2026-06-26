@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Domain;
 using FSH.Modules.Catalog.Domain;
 
 namespace FSH.Modules.Catalog.Data;

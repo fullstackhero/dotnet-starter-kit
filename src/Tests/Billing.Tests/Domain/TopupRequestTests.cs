@@ -12,7 +12,8 @@ public sealed class TopupRequestTests
     {
         var r = TopupRequest.Create("tenant-a", 50m, "USD", "need credit", "user-1");
         r.Status.ShouldBe(TopupRequestStatus.Pending);
-        r.Amount.ShouldBe(50m);
+        r.Amount.Amount.ShouldBe(50m);
+        r.Amount.Currency.ShouldBe("USD");
         r.InvoiceId.ShouldBeNull();
     }
 
