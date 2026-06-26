@@ -12,8 +12,12 @@ public sealed class TopupRequestConfiguration : IEntityTypeConfiguration<TopupRe
         builder.ToTable("TopupRequests");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
-        builder.Property(x => x.Amount).HasPrecision(18, 4);
-        builder.Property(x => x.Currency).IsRequired().HasMaxLength(8);
+        builder.OwnsOne(x => x.Amount, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("Amount").HasPrecision(18, 4).IsRequired();
+            m.Property(p => p.Currency).HasColumnName("Currency").HasMaxLength(8).IsRequired();
+        });
+        builder.Navigation(x => x.Amount).IsRequired();
         builder.Property(x => x.Note).HasMaxLength(512);
         builder.Property(x => x.DecisionNote).HasMaxLength(512);
         builder.Property(x => x.RequestedBy).HasMaxLength(64);
