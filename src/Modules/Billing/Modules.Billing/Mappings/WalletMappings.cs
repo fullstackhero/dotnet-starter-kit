@@ -19,6 +19,6 @@ internal static class WalletMappings
 
     public static TopupRequestDto ToDto(this TopupRequest r)
         => new(
-            r.Id, r.TenantId, r.Amount, r.Currency, r.Note, r.Status.ToString(),
+            r.Id, r.TenantId, r.Amount.Amount, r.Amount.Currency, r.Note, r.Status.ToString(),
             r.InvoiceId, r.RequestedBy, r.DecisionNote, r.CreatedAtUtc, r.DecidedAtUtc, r.CompletedAtUtc);
 }

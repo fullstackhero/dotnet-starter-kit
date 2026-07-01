@@ -1,4 +1,4 @@
-namespace FSH.Modules.Catalog.Domain;
+namespace FSH.Framework.Core.Domain;
 
 public sealed record Money
 {
@@ -8,10 +8,6 @@ public sealed record Money
     public Money(decimal amount, string currency)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(currency);
-        if (amount < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
-        }
         Amount = amount;
         Currency = currency.ToUpperInvariant();
     }

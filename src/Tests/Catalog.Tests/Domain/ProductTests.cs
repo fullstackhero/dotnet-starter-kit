@@ -124,6 +124,14 @@ public sealed class ProductTests
     }
 
     [Fact]
+    public void Create_Should_Throw_When_PriceIsNegative()
+    {
+        // Act / Assert - shared Money allows signed amounts; the non-negative price invariant lives on the aggregate
+        Should.Throw<ArgumentOutOfRangeException>(() =>
+            Product.Create("sku", "Name", null, Guid.NewGuid(), Guid.NewGuid(), new Money(-0.01m, "USD"), 0));
+    }
+
+    [Fact]
     public void Create_Should_Throw_When_BrandIdIsEmpty()
     {
         // Act / Assert
@@ -247,6 +255,16 @@ public sealed class ProductTests
 
         // Act / Assert
         Should.Throw<ArgumentNullException>(() => product.ChangePrice(null!));
+    }
+
+    [Fact]
+    public void ChangePrice_Should_Throw_When_NewPriceIsNegative()
+    {
+        // Arrange
+        Product product = CreateValidProduct();
+
+        // Act / Assert
+        Should.Throw<ArgumentOutOfRangeException>(() => product.ChangePrice(new Money(-1m, "USD")));
     }
 
     #endregion
