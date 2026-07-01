@@ -99,6 +99,11 @@
     <PackageVersion Include="StackExchange.Redis" Version="2.13.17" />
     <PackageVersion Include="UAParser" Version="3.1.47" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+    <!-- Pin the transitive Microsoft.OpenApi explicitly. Microsoft.AspNetCore.OpenApi 10.0.8 only requires
+         >= 2.0.0, but 2.0.0 carries a HIGH-severity advisory (GHSA-v5pm-xwqc-g5wc, patched in 2.7.5) that
+         trips NuGetAudit under TreatWarningsAsErrors. Stay on the 2.x line — 3.x has breaking API changes that
+         fail the framework's OpenAPI transformers. Bump in lockstep with Microsoft.AspNetCore.OpenApi. -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
