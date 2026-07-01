@@ -17,10 +17,19 @@ public sealed class BillingPlanConfiguration : IEntityTypeConfiguration<BillingP
         builder.Property(x => x.Key).IsRequired().HasMaxLength(64);
         builder.HasIndex(x => x.Key).IsUnique();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        builder.Property(x => x.Currency).IsRequired().HasMaxLength(8);
-        builder.Property(x => x.MonthlyBasePrice).HasPrecision(18, 4);
+        builder.Ignore(x => x.Currency);
+        builder.OwnsOne(x => x.MonthlyBasePrice, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("MonthlyBasePrice").HasPrecision(18, 4).IsRequired();
+            m.Property(p => p.Currency).HasColumnName("Currency").HasMaxLength(8).IsRequired();
+        });
+        builder.Navigation(x => x.MonthlyBasePrice).IsRequired();
         builder.Property(x => x.Interval).HasConversion<int>().HasDefaultValue(Contracts.PlanInterval.Monthly);
-        builder.Property(x => x.AnnualPrice).HasPrecision(18, 4);
+        builder.OwnsOne(x => x.AnnualPrice, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("AnnualPrice").HasPrecision(18, 4);
+            m.Property(p => p.Currency).HasColumnName("AnnualPriceCurrency").HasMaxLength(8);
+        });
 
         // Overage rates map to jsonb so the plan's pricing schedule is a single column.
         builder.Property<Dictionary<QuotaResource, decimal>>("_overageRates")

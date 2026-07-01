@@ -12,7 +12,7 @@ internal static class InvoiceMappings
         invoice.PeriodYear,
         invoice.PeriodMonth,
         invoice.Currency,
-        invoice.SubtotalAmount,
+        invoice.SubtotalAmount.Amount,
         invoice.Status,
         invoice.CreatedAtUtc,
         invoice.IssuedAtUtc,
@@ -21,7 +21,7 @@ internal static class InvoiceMappings
         invoice.VoidedAtUtc,
         invoice.Notes,
         invoice.LineItems
-            .Select(l => new InvoiceLineItemDto(l.Id, l.Kind, l.Resource, l.Description, l.Quantity, l.UnitPrice, l.Amount))
+            .Select(l => new InvoiceLineItemDto(l.Id, l.Kind, l.Resource, l.Description, l.Quantity, l.UnitPrice, l.Amount.Amount))
             .ToList(),
         invoice.Purpose,
         invoice.PeriodStartUtc,

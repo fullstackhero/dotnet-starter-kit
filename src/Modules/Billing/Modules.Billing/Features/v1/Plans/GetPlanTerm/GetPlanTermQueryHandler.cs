@@ -26,7 +26,7 @@ public sealed class GetPlanTermQueryHandler(BillingDbContext dbContext)
             plan.Name,
             plan.Interval,
             plan.TermMonths,
-            plan.TermPrice,
+            plan.TermPrice.Amount,
             plan.Currency);
     }
 }

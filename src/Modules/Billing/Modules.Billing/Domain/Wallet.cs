@@ -8,8 +8,8 @@ public sealed class Wallet : AggregateRoot<Guid>
     private readonly List<WalletTransaction> _transactions = new();
 
     public string TenantId { get; private set; } = default!;
-    public string Currency { get; private set; } = "USD";
-    public decimal Balance { get; private set; }
+    public Money Balance { get; private set; } = default!;
+    public string Currency => Balance.Currency;
     public WalletStatus Status { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? UpdatedAtUtc { get; private set; }
@@ -25,8 +25,7 @@ public sealed class Wallet : AggregateRoot<Guid>
         {
             Id = Guid.CreateVersion7(),
             TenantId = tenantId,
-            Currency = string.IsNullOrWhiteSpace(currency) ? "USD" : currency,
-            Balance = 0m,
+            Balance = Money.Zero(string.IsNullOrWhiteSpace(currency) ? "USD" : currency),
             Status = WalletStatus.Active,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -35,9 +34,10 @@ public sealed class Wallet : AggregateRoot<Guid>
     public WalletTransaction Credit(decimal amount, WalletTransactionKind kind, string description, string? referenceId)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(amount, 0m);
-        var tx = WalletTransaction.Create(Id, TenantId, amount, kind, description, referenceId);
+        var credit = new Money(amount, Balance.Currency);
+        var tx = WalletTransaction.Create(Id, TenantId, credit, kind, description, referenceId);
         _transactions.Add(tx);
-        Balance += amount;
+        Balance = Balance.Add(credit);
         UpdatedAtUtc = DateTime.UtcNow;
         return tx;
     }
@@ -45,11 +45,12 @@ public sealed class Wallet : AggregateRoot<Guid>
     public WalletTransaction Debit(decimal amount, WalletTransactionKind kind, string description, string? referenceId)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(amount, 0m);
-        if (amount > Balance)
+        if (amount > Balance.Amount)
             throw new InvalidOperationException("Insufficient wallet balance.");
-        var tx = WalletTransaction.Create(Id, TenantId, -amount, kind, description, referenceId);
+        var debit = new Money(amount, Balance.Currency);
+        var tx = WalletTransaction.Create(Id, TenantId, new Money(-amount, Balance.Currency), kind, description, referenceId);
         _transactions.Add(tx);
-        Balance -= amount;
+        Balance = Balance.Subtract(debit);
         UpdatedAtUtc = DateTime.UtcNow;
         return tx;
     }

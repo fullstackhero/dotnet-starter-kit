@@ -58,7 +58,7 @@ public sealed class InvoiceTests
 
         inv.Status.ShouldBe(InvoiceStatus.Draft);
         inv.Currency.ShouldBe("USD");
-        inv.SubtotalAmount.ShouldBe(0m);
+        inv.SubtotalAmount.Amount.ShouldBe(0m);
         inv.LineItems.ShouldBeEmpty();
     }
 
@@ -71,7 +71,7 @@ public sealed class InvoiceTests
         inv.AddLineItem(InvoiceLineItemKind.Overage, "Overage", 2m, 10m);
 
         inv.LineItems.Count.ShouldBe(2);
-        inv.SubtotalAmount.ShouldBe(69m);
+        inv.SubtotalAmount.Amount.ShouldBe(69m);
     }
 
     [Fact]
@@ -252,8 +252,8 @@ public sealed class InvoiceTests
         // 0.005 * 1 = 0.005 -> rounds to 0.01 (away from zero), not banker's 0.00
         var line = inv.AddLineItem(InvoiceLineItemKind.Overage, "tiny", 1m, 0.005m);
 
-        line.Amount.ShouldBe(0.01m);
-        inv.SubtotalAmount.ShouldBe(0.01m);
+        line.Amount.Amount.ShouldBe(0.01m);
+        inv.SubtotalAmount.Amount.ShouldBe(0.01m);
     }
 
     [Fact]
@@ -264,7 +264,7 @@ public sealed class InvoiceTests
         // 3 * 0.333 = 0.999 -> 1.00
         var line = inv.AddLineItem(InvoiceLineItemKind.Overage, "units", 3m, 0.333m);
 
-        line.Amount.ShouldBe(1.00m);
+        line.Amount.Amount.ShouldBe(1.00m);
     }
 
     #endregion

@@ -16,7 +16,7 @@ public sealed class InvoiceLineItem : BaseEntity<Guid>
     public string Description { get; private set; } = default!;
     public decimal Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }
-    public decimal Amount { get; private set; }
+    public Money Amount { get; private set; } = default!;
 
     private InvoiceLineItem() { }
 
@@ -25,9 +25,11 @@ public sealed class InvoiceLineItem : BaseEntity<Guid>
         InvoiceLineItemKind kind,
         string description,
         decimal quantity,
-        decimal unitPrice)
+        decimal unitPrice,
+        string currency)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
+        ArgumentException.ThrowIfNullOrWhiteSpace(currency);
         if (quantity < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity cannot be negative.");
@@ -45,7 +47,7 @@ public sealed class InvoiceLineItem : BaseEntity<Guid>
             Description = description,
             Quantity = quantity,
             UnitPrice = unitPrice,
-            Amount = Math.Round(quantity * unitPrice, 2, MidpointRounding.AwayFromZero)
+            Amount = new Money(quantity * unitPrice, currency).Round(2)
         };
     }
 

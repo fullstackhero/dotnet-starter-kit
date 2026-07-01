@@ -29,8 +29,8 @@ public sealed class Invoice : AggregateRoot<Guid>
 
     /// <summary>End of the billed term (subscription invoices only).</summary>
     public DateTime? PeriodEndUtc { get; private set; }
-    public string Currency { get; private set; } = "USD";
-    public decimal SubtotalAmount { get; private set; }
+    public Money SubtotalAmount { get; private set; } = default!;
+    public string Currency => SubtotalAmount.Currency;
     public InvoiceStatus Status { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? IssuedAtUtc { get; private set; }
@@ -84,7 +84,7 @@ public sealed class Invoice : AggregateRoot<Guid>
             Purpose = purpose,
             PeriodStartUtc = periodStartUtc is { } s ? DateTime.SpecifyKind(s, DateTimeKind.Utc) : null,
             PeriodEndUtc = periodEndUtc is { } e ? DateTime.SpecifyKind(e, DateTimeKind.Utc) : null,
-            Currency = currency.ToUpperInvariant(),
+            SubtotalAmount = Money.Zero(currency.ToUpperInvariant()),
             Status = InvoiceStatus.Draft,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -113,7 +113,7 @@ public sealed class Invoice : AggregateRoot<Guid>
     public InvoiceLineItem AddLineItem(InvoiceLineItemKind kind, string description, decimal quantity, decimal unitPrice)
     {
         RequireStatus(InvoiceStatus.Draft);
-        var line = InvoiceLineItem.Create(Id, kind, description, quantity, unitPrice);
+        var line = InvoiceLineItem.Create(Id, kind, description, quantity, unitPrice, Currency);
         _lineItems.Add(line);
         RecalculateTotals();
         return line;
@@ -177,6 +177,8 @@ public sealed class Invoice : AggregateRoot<Guid>
 
     private void RecalculateTotals()
     {
-        SubtotalAmount = _lineItems.Sum(l => l.Amount);
+        SubtotalAmount = _lineItems.Aggregate(
+            Money.Zero(SubtotalAmount.Currency),
+            (acc, l) => acc.Add(l.Amount));
     }
 }

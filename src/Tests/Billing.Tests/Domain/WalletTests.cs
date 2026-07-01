@@ -13,7 +13,7 @@ public sealed class WalletTests
         var w = Wallet.Create("tenant-a", "USD");
         w.TenantId.ShouldBe("tenant-a");
         w.Currency.ShouldBe("USD");
-        w.Balance.ShouldBe(0m);
+        w.Balance.Amount.ShouldBe(0m);
         w.Status.ShouldBe(WalletStatus.Active);
         w.Id.ShouldNotBe(Guid.Empty);
     }
@@ -23,8 +23,8 @@ public sealed class WalletTests
     {
         var w = Wallet.Create("tenant-a", "USD");
         var tx = w.Credit(50m, WalletTransactionKind.Topup, "Top-up", "req-1");
-        w.Balance.ShouldBe(50m);
-        tx.Amount.ShouldBe(50m);
+        w.Balance.Amount.ShouldBe(50m);
+        tx.Amount.Amount.ShouldBe(50m);
         tx.WalletId.ShouldBe(w.Id);
         tx.TenantId.ShouldBe("tenant-a");
         tx.ReferenceId.ShouldBe("req-1");

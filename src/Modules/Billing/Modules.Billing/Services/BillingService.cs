@@ -109,7 +109,7 @@ public sealed class BillingService : IBillingService
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("[Billing] generated draft invoice {InvoiceNumber} for tenant {TenantId} period {Year}-{Month:00} total={Total} {Currency}",
-                invoice.InvoiceNumber, tenantId, periodYear, periodMonth, invoice.SubtotalAmount, invoice.Currency);
+                invoice.InvoiceNumber, tenantId, periodYear, periodMonth, invoice.SubtotalAmount.Amount, invoice.Currency);
         }
         return invoice;
     }
@@ -211,7 +211,7 @@ public sealed class BillingService : IBillingService
         {
             _logger.LogInformation(
                 "[Billing] issued top-up invoice {InvoiceNumber} for tenant {TenantId} amount={Amount} {Currency}",
-                invoice.InvoiceNumber, tenantId, invoice.SubtotalAmount, invoice.Currency);
+                invoice.InvoiceNumber, tenantId, invoice.SubtotalAmount.Amount, invoice.Currency);
         }
 
         await _eventBus.PublishAsync(new InvoiceIssuedIntegrationEvent(
@@ -222,7 +222,7 @@ public sealed class BillingService : IBillingService
             Source: "Billing",
             InvoiceId: invoice.Id,
             InvoiceNumber: invoice.InvoiceNumber,
-            Amount: invoice.SubtotalAmount,
+            Amount: invoice.SubtotalAmount.Amount,
             Currency: invoice.Currency,
             DueAtUtc: invoice.DueAtUtc,
             PeriodYear: invoice.PeriodYear,
@@ -257,7 +257,7 @@ public sealed class BillingService : IBillingService
                 }
 
                 wallet.Credit(
-                    invoice.SubtotalAmount,
+                    invoice.SubtotalAmount.Amount,
                     WalletTransactionKind.Topup,
                     "WhatsApp wallet top-up",
                     topupRequest.Id.ToString());
@@ -303,7 +303,7 @@ public sealed class BillingService : IBillingService
             ?? throw new NotFoundException($"Plan {planId} not found for tenant {tenantId}.");
 
         var termPrice = plan.TermPrice;
-        if (termPrice <= 0)
+        if (termPrice.Amount <= 0m)
         {
             // Free / trial plan — validity is still set, but there is nothing to bill.
             if (_logger.IsEnabled(LogLevel.Information))
@@ -332,7 +332,7 @@ public sealed class BillingService : IBillingService
             InvoiceLineItemKind.BaseFee,
             $"{plan.Name} — {plan.Interval} subscription ({periodStart:yyyy-MM-dd} to {periodEnd:yyyy-MM-dd})",
             1m,
-            termPrice);
+            termPrice.Amount);
         invoice.Issue();
 
         _db.Invoices.Add(invoice);
@@ -340,7 +340,7 @@ public sealed class BillingService : IBillingService
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("[Billing] issued subscription invoice {InvoiceNumber} for tenant {TenantId} total={Total} {Currency}",
-                invoice.InvoiceNumber, tenantId, invoice.SubtotalAmount, invoice.Currency);
+                invoice.InvoiceNumber, tenantId, invoice.SubtotalAmount.Amount, invoice.Currency);
         }
 
         // Notify (e.g. email the tenant) that a real bill was issued. Only fires for newly-created
@@ -353,7 +353,7 @@ public sealed class BillingService : IBillingService
             Source: "Billing",
             InvoiceId: invoice.Id,
             InvoiceNumber: invoice.InvoiceNumber,
-            Amount: invoice.SubtotalAmount,
+            Amount: invoice.SubtotalAmount.Amount,
             Currency: invoice.Currency,
             DueAtUtc: invoice.DueAtUtc,
             PeriodYear: invoice.PeriodYear,

@@ -15,7 +15,7 @@ public sealed class BillingPlanTests
 
         plan.Interval.ShouldBe(PlanInterval.Monthly);
         plan.TermMonths.ShouldBe(1);
-        plan.TermPrice.ShouldBe(30m);
+        plan.TermPrice.Amount.ShouldBe(30m);
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public sealed class BillingPlanTests
 
         plan.Interval.ShouldBe(PlanInterval.Yearly);
         plan.TermMonths.ShouldBe(12);
-        plan.TermPrice.ShouldBe(300m);
+        plan.TermPrice.Amount.ShouldBe(300m);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public sealed class BillingPlanTests
     {
         var plan = BillingPlan.Create("pro-yr", "Pro Annual", "USD", 30m, interval: PlanInterval.Yearly);
 
-        plan.TermPrice.ShouldBe(360m);
+        plan.TermPrice.Amount.ShouldBe(360m);
     }
 
     [Fact]
@@ -51,8 +51,8 @@ public sealed class BillingPlanTests
         plan.Update("Pro", 30m, null, PlanInterval.Yearly, 300m);
 
         plan.Interval.ShouldBe(PlanInterval.Yearly);
-        plan.AnnualPrice.ShouldBe(300m);
-        plan.TermPrice.ShouldBe(300m);
+        plan.AnnualPrice!.Amount.ShouldBe(300m);
+        plan.TermPrice.Amount.ShouldBe(300m);
     }
 
     #endregion
@@ -68,7 +68,7 @@ public sealed class BillingPlanTests
         plan.Currency.ShouldBe("USD");
         plan.Name.ShouldBe("Pro Plan");
         plan.IsActive.ShouldBeTrue();
-        plan.MonthlyBasePrice.ShouldBe(49m);
+        plan.MonthlyBasePrice.Amount.ShouldBe(49m);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public sealed class BillingPlanTests
         plan.Update("Pro Max", 99m, newRates);
 
         plan.Name.ShouldBe("Pro Max");
-        plan.MonthlyBasePrice.ShouldBe(99m);
+        plan.MonthlyBasePrice.Amount.ShouldBe(99m);
         plan.GetOverageRate(QuotaResource.ApiCalls).ShouldBe(0m);
         plan.GetOverageRate(QuotaResource.Users).ShouldBe(2m);
         plan.UpdatedAtUtc.ShouldNotBeNull();
@@ -184,7 +184,7 @@ public sealed class BillingPlanTests
     {
         var plan = BillingPlan.Create("free", "Free", "USD", 0m);
 
-        plan.MonthlyBasePrice.ShouldBe(0m);
+        plan.MonthlyBasePrice.Amount.ShouldBe(0m);
     }
 
     #endregion

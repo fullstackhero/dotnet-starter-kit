@@ -65,7 +65,7 @@ public sealed class WalletTopupServiceTests
 
         // Assert: wallet balance equals the top-up amount.
         var wallet = await billing.GetOrCreateWalletAsync(tenantId, "USD");
-        wallet.Balance.ShouldBe(50m);
+        wallet.Balance.Amount.ShouldBe(50m);
 
         // Assert: request transitioned to Completed.
         var reloaded = await db.TopupRequests.FindAsync(request.Id);
