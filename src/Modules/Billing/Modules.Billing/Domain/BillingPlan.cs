@@ -18,8 +18,8 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
 
     public string Key { get; private set; } = default!;
     public string Name { get; private set; } = default!;
-    public string Currency { get; private set; } = "USD";
-    public decimal MonthlyBasePrice { get; private set; }
+    public Money MonthlyBasePrice { get; private set; } = default!;
+    public string Currency => MonthlyBasePrice.Currency;
     public PlanInterval Interval { get; private set; } = PlanInterval.Monthly;
 
     /// <summary>
@@ -27,7 +27,7 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
     /// <see cref="PlanInterval.Yearly"/>; <c>null</c> falls back to twelve times the monthly base
     /// price so a yearly plan can be configured without restating the discount.
     /// </summary>
-    public decimal? AnnualPrice { get; private set; }
+    public Money? AnnualPrice { get; private set; }
     public bool IsActive { get; private set; } = true;
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? UpdatedAtUtc { get; private set; }
@@ -64,10 +64,9 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
             Key = key.ToLowerInvariant(),
 #pragma warning restore CA1308
             Name = name,
-            Currency = currency.ToUpperInvariant(),
-            MonthlyBasePrice = monthlyBasePrice,
+            MonthlyBasePrice = new Money(monthlyBasePrice, currency),
             Interval = interval,
-            AnnualPrice = annualPrice,
+            AnnualPrice = annualPrice is { } a ? new Money(a, currency) : null,
             IsActive = true,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -101,9 +100,9 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
         }
 
         Name = name;
-        MonthlyBasePrice = monthlyBasePrice;
+        MonthlyBasePrice = new Money(monthlyBasePrice, Currency);
         Interval = interval;
-        AnnualPrice = annualPrice;
+        AnnualPrice = annualPrice is { } a ? new Money(a, Currency) : null;
         _overageRates.Clear();
         if (overageRates is not null)
         {
@@ -131,8 +130,8 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
     /// Price charged for a single billing term: the monthly base price for monthly plans, or the
     /// annual price (falling back to twelve months) for yearly plans.
     /// </summary>
-    public decimal TermPrice =>
+    public Money TermPrice =>
         Interval == PlanInterval.Yearly
-            ? AnnualPrice ?? (MonthlyBasePrice * 12m)
+            ? AnnualPrice ?? MonthlyBasePrice.Multiply(12m)
             : MonthlyBasePrice;
 }

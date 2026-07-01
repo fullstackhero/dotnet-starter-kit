@@ -17,7 +17,12 @@ public sealed class InvoiceLineItemConfiguration : IEntityTypeConfiguration<Invo
         builder.Property(x => x.Description).IsRequired().HasMaxLength(512);
         builder.Property(x => x.Quantity).HasPrecision(18, 4);
         builder.Property(x => x.UnitPrice).HasPrecision(18, 4);
-        builder.Property(x => x.Amount).HasPrecision(18, 4);
+        builder.OwnsOne(x => x.Amount, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("Amount").HasPrecision(18, 4).IsRequired();
+            m.Property(p => p.Currency).HasColumnName("AmountCurrency").HasMaxLength(8).IsRequired();
+        });
+        builder.Navigation(x => x.Amount).IsRequired();
 
         builder.HasIndex(x => x.InvoiceId);
 

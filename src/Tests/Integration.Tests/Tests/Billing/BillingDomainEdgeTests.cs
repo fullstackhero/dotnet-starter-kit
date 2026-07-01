@@ -202,10 +202,10 @@ public sealed class BillingDomainEdgeTests
         {
             var inv = await db.Invoices.AsNoTracking().Include(i => i.LineItems).FirstAsync(i => i.Id == invoiceId);
             var overage = inv.LineItems.Single(l => l.Kind == InvoiceLineItemKind.Overage);
-            overage.Amount.ShouldBe(0.03m, "2.5 * 0.01 = 0.025 must round AwayFromZero to 0.03");
+            overage.Amount.Amount.ShouldBe(0.03m, "2.5 * 0.01 = 0.025 must round AwayFromZero to 0.03");
 
             // Subtotal recomputes across all lines (BaseFee 10 + overage 0.03).
-            inv.SubtotalAmount.ShouldBe(10.03m, "AddLineItem must recompute SubtotalAmount over every line");
+            inv.SubtotalAmount.Amount.ShouldBe(10.03m, "AddLineItem must recompute SubtotalAmount over every line");
         });
     }
 

@@ -65,6 +65,74 @@ public sealed class MoneyTests
 
     #endregion
 
+    #region Arithmetic
+
+    [Fact]
+    public void Add_Should_SumAmounts_When_CurrenciesMatch()
+    {
+        var sum = new Money(10m, "USD").Add(new Money(2.50m, "usd"));
+
+        sum.Amount.ShouldBe(12.50m);
+        sum.Currency.ShouldBe("USD");
+    }
+
+    [Fact]
+    public void Subtract_Should_DiffAmounts_When_CurrenciesMatch()
+    {
+        var diff = new Money(10m, "USD").Subtract(new Money(2.50m, "USD"));
+
+        diff.Amount.ShouldBe(7.50m);
+    }
+
+    [Fact]
+    public void Subtract_Should_AllowNegativeResult_When_RightExceedsLeft()
+    {
+        var diff = new Money(2m, "USD").Subtract(new Money(5m, "USD"));
+
+        diff.Amount.ShouldBe(-3m);
+    }
+
+    [Fact]
+    public void Multiply_Should_ScaleAmountAndKeepCurrency()
+    {
+        var product = new Money(3m, "USD").Multiply(4m);
+
+        product.Amount.ShouldBe(12m);
+        product.Currency.ShouldBe("USD");
+    }
+
+    [Fact]
+    public void Round_Should_RoundAwayFromZero()
+    {
+        new Money(1.005m, "USD").Round(2).Amount.ShouldBe(1.01m);
+        new Money(-1.005m, "USD").Round(2).Amount.ShouldBe(-1.01m);
+    }
+
+    [Fact]
+    public void Add_Should_Throw_When_CurrenciesDiffer()
+    {
+        Should.Throw<InvalidOperationException>(() => new Money(1m, "USD").Add(new Money(1m, "EUR")));
+    }
+
+    [Fact]
+    public void Subtract_Should_Throw_When_CurrenciesDiffer()
+    {
+        Should.Throw<InvalidOperationException>(() => new Money(1m, "USD").Subtract(new Money(1m, "EUR")));
+    }
+
+    [Fact]
+    public void Operators_Should_MirrorNamedMethods()
+    {
+        var a = new Money(10m, "USD");
+        var b = new Money(4m, "USD");
+
+        (a + b).Amount.ShouldBe(14m);
+        (a - b).Amount.ShouldBe(6m);
+        (a * 2m).Amount.ShouldBe(20m);
+    }
+
+    #endregion
+
     #region Equality
 
     [Fact]

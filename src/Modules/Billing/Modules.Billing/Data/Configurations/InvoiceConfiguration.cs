@@ -13,8 +13,13 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
         builder.Property(x => x.InvoiceNumber).IsRequired().HasMaxLength(64);
-        builder.Property(x => x.Currency).IsRequired().HasMaxLength(8);
-        builder.Property(x => x.SubtotalAmount).HasPrecision(18, 4);
+        builder.Ignore(x => x.Currency);
+        builder.OwnsOne(x => x.SubtotalAmount, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("SubtotalAmount").HasPrecision(18, 4).IsRequired();
+            m.Property(p => p.Currency).HasColumnName("Currency").HasMaxLength(8).IsRequired();
+        });
+        builder.Navigation(x => x.SubtotalAmount).IsRequired();
         builder.Property(x => x.Status).HasConversion<int>();
         builder.Property(x => x.Purpose).HasConversion<int>().HasDefaultValue(Contracts.InvoicePurpose.Usage);
         builder.Property(x => x.PeriodStartUtc);

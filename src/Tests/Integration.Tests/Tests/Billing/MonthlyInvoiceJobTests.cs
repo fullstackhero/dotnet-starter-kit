@@ -57,7 +57,7 @@ public sealed class MonthlyInvoiceJobTests
         invoice.PeriodYear.ShouldBe(previous.Year);
         invoice.PeriodMonth.ShouldBe(previous.Month);
         invoice.Purpose.ShouldBe(InvoicePurpose.Usage, "the monthly job produces usage invoices");
-        invoice.SubtotalAmount.ShouldBe(0m,
+        invoice.SubtotalAmount.Amount.ShouldBe(0m,
             "usage invoices bill metered overage only — the base fee is billed on the subscription invoice on create/renew, and root has no overage");
     }
 

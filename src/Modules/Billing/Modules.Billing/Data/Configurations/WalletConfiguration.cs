@@ -12,8 +12,13 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
         builder.ToTable("Wallets");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
-        builder.Property(x => x.Currency).IsRequired().HasMaxLength(8);
-        builder.Property(x => x.Balance).HasPrecision(18, 4);
+        builder.Ignore(x => x.Currency);
+        builder.OwnsOne(x => x.Balance, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("Balance").HasPrecision(18, 4).IsRequired();
+            m.Property(p => p.Currency).HasColumnName("Currency").HasMaxLength(8).IsRequired();
+        });
+        builder.Navigation(x => x.Balance).IsRequired();
         builder.Property(x => x.Status).HasConversion<int>();
         builder.HasIndex(x => x.TenantId).IsUnique().HasDatabaseName("ux_wallets_tenantid");
 

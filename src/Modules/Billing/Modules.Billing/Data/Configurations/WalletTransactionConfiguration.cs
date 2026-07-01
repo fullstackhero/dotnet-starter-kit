@@ -14,7 +14,12 @@ public sealed class WalletTransactionConfiguration : IEntityTypeConfiguration<Wa
         // Child reached only via Wallet.Transactions nav — pin Id generation or EF marks Modified, not Added.
         builder.Property(x => x.Id).ValueGeneratedNever();
         builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
-        builder.Property(x => x.Amount).HasPrecision(18, 4);
+        builder.OwnsOne(x => x.Amount, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("Amount").HasPrecision(18, 4).IsRequired();
+            m.Property(p => p.Currency).HasColumnName("Currency").HasMaxLength(8).IsRequired();
+        });
+        builder.Navigation(x => x.Amount).IsRequired();
         builder.Property(x => x.Kind).HasConversion<int>();
         builder.Property(x => x.Description).IsRequired().HasMaxLength(256);
         builder.Property(x => x.ReferenceId).HasMaxLength(128);

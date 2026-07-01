@@ -23,7 +23,7 @@ public sealed class InvoiceLineItemTests
 
         line.Quantity.ShouldBe(100m);
         line.UnitPrice.ShouldBe(0.02m);
-        line.Amount.ShouldBe(2.00m);
+        line.Amount.Amount.ShouldBe(2.00m);
         line.InvoiceId.ShouldBe(inv.Id);
         line.Kind.ShouldBe(InvoiceLineItemKind.Overage);
     }
@@ -35,7 +35,7 @@ public sealed class InvoiceLineItemTests
 
         var line = inv.AddLineItem(InvoiceLineItemKind.Adjustment, "credit", 0m, 0m);
 
-        line.Amount.ShouldBe(0m);
+        line.Amount.Amount.ShouldBe(0m);
     }
 
     #endregion
