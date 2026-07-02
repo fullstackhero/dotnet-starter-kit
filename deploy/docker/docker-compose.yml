@@ -19,7 +19,9 @@ services:
       POSTGRES_USER: fsh
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      # 18+ images keep PGDATA under /var/lib/postgresql/<major>/docker and
+      # refuse to start with a volume mounted at the legacy .../data path.
+      - pg_data:/var/lib/postgresql
       - ./postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U fsh -d fsh"]

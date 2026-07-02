@@ -8,7 +8,7 @@ This brings up the full stack on a single host:
 | `admin` | `fsh/admin:local` | `FSH_ADMIN_PORT` (default 8081) | Operator console (nginx + React) |
 | `dashboard` | `fsh/dashboard:local` | `FSH_DASHBOARD_PORT` (default 8082) | Tenant dashboard (nginx + React) |
 | `migrator` | `fsh/dbmigrator:local` | — | One-shot: applies EF migrations + seeds the root tenant + creates the default admin user |
-| `postgres` | `postgres:17-alpine` | (internal) | Identity, tenant catalog, module schemas |
+| `postgres` | `postgres:18-alpine` | (internal) | Identity, tenant catalog, module schemas |
 | `redis` | `redis:7-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
 | `minio` | `minio/minio:latest` | (internal) | S3-compatible blob store for the Files module |
 
