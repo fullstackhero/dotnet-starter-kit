@@ -16,6 +16,89 @@ The three public surfaces end up at `api.<DOMAIN>`, `admin.<DOMAIN>`, `app.<DOMA
 
 ---
 
+## Architecture at a glance
+
+What the finished deployment looks like. Only Caddy is reachable from the internet; the
+three app containers are loopback-bound, and the data plane has no published ports at all.
+
+```mermaid
+flowchart TB
+    user(["User's browser"])
+
+    dns["DNS provider
+    A records: api / admin / app → VPS_IP"]
+
+    subgraph vps["Ubuntu VPS — VPS_IP"]
+        fw["ufw firewall — only 22, 80, 443 open"]
+        caddy["Caddy reverse proxy
+        auto-HTTPS via Let's Encrypt"]
+
+        subgraph stack["Docker Compose stack (fsh)"]
+            api["fsh-api — ASP.NET Core
+            127.0.0.1:8080"]
+            admin["fsh-admin — React admin
+            127.0.0.1:8081"]
+            dash["fsh-dashboard — React tenant
+            127.0.0.1:8082"]
+            mig["fsh-migrator — one-shot
+            migrate + seed, then exits"]
+            subgraph data["Data plane — no published ports"]
+                pg[("fsh-postgres")]
+                rd[("fsh-redis")]
+                mn[("fsh-minio")]
+            end
+        end
+    end
+
+    user -. "1 — resolve api / admin / app .DOMAIN" .-> dns
+    user -- "2 — HTTPS :443" --> fw --> caddy
+    caddy -- "api.DOMAIN → :8080" --> api
+    caddy -- "admin.DOMAIN → :8081" --> admin
+    caddy -- "app.DOMAIN → :8082" --> dash
+    api --> pg & rd & mn
+    mig --> pg
+```
+
+## Deployment flow (with the errors we hit)
+
+The happy path top to bottom, with the two failure branches from the first deploy and
+where they re-join.
+
+```mermaid
+flowchart TD
+    s1["1 — ssh in, apt update + upgrade, reboot"] --> s2["2 — install Docker via get.docker.com"]
+    s2 --> s3["3 — git clone + create .env
+    secrets via openssl rand"]
+    s3 --> s4["4 — docker compose up -d --build
+    ~4 min first time"]
+    s4 --> e1{"fsh-postgres healthy?"}
+    e1 -- "no — log says: Error: in 18+ these
+    Docker images ..." --> f1["FIX: mount pg_data at
+    /var/lib/postgresql
+    docker compose down -v && up -d"]
+    f1 --> s5
+    e1 -- yes --> s5["5 — DNS: three A records → VPS_IP
+    wait until dig +short shows the IP"]
+    s5 --> s6["6 — install Caddy, write Caddyfile,
+    systemctl reload caddy"]
+    e2 -- yes --> s7["7 — .env: https URLs +
+    127.0.0.1: port prefixes,
+    force-recreate api admin dashboard"]
+    s6 --> e2{"journalctl shows
+    certificate obtained?"}
+    e2 -- "no — placeholder yourdomain.com
+    left in Caddyfile" --> f2["FIX: real domain in
+    /etc/caddy/Caddyfile,
+    reload caddy"]
+    f2 --> s7
+    s7 --> s8["8 — ufw allow 22, 80, 443 + enable"]
+    s8 --> s9["9 — verify: curl health endpoints,
+    sign in, rotate admin password"]
+    s9 --> done(["deployed ✔"])
+```
+
+---
+
 ## 0. What you need
 
 - A VPS: 2+ vCPU, 4+ GB RAM (8 GB comfortable), ~10 GB free disk. Root SSH access.
@@ -244,6 +327,35 @@ Sign in at `https://admin.<DOMAIN>`:
   (Settings → Security), then create real users from the admin app.
 - Hangfire dashboard: `https://api.<DOMAIN>/jobs` (login = `HANGFIRE_USERNAME`/`_PASSWORD`).
 - API reference: `https://api.<DOMAIN>/scalar`.
+
+## How a request flows once deployed
+
+Useful mental model when debugging: the React apps run in the user's browser and call the
+API **through Caddy at the public URL** (`FSH_API_URL`) — never container-to-container.
+That's why the `.env` URLs must exactly match what the browser sees (CORS).
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant D as DNS
+    participant C as Caddy (VPS :443)
+    participant A as fsh-admin (nginx)
+    participant P as fsh-api
+    participant DB as fsh-postgres
+
+    B->>D: resolve admin.DOMAIN
+    D-->>B: VPS_IP
+    B->>C: GET https://admin.DOMAIN
+    C->>A: proxy → localhost:8081
+    A-->>B: React app + /config.json (contains FSH_API_URL)
+    Note over B: user submits login form
+    B->>C: POST https://api.DOMAIN/api/token
+    C->>P: proxy → localhost:8080
+    P->>DB: verify credentials (tenant root)
+    DB-->>P: ok
+    P-->>B: JWT access token
+    Note over B,P: all further API calls: Bearer token via api.DOMAIN
+```
 
 ---
 
