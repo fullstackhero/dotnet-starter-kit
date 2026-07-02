@@ -130,6 +130,14 @@ records for DTOs/events/value objects · `default!` for required non-nullable st
 - **Module** — new `Modules.{Name}` + `.Contracts`, implement `IModule` w/ assembly-level `[assembly: FshModule(typeof(XModule), order)]`, register in **all four places**, add migration folder + tests. Details: `architecture.md`.
 - **React page** — API module (`src/api/`) → page → register lazy route → (admin) mirror permission + RouteGuard → Playwright test. Details: `frontend/shared.md`.
 
+## Worklog (deployment/ops journal)
+
+Real deployment and ops sessions are journaled in **`worklog/`** — one
+`YYYY-MM-DD-<topic>.md` per session plus a self-contained `index.html` dashboard.
+**When a session does deployment/infra/ops work, append a session log and refresh
+the dashboard before finishing** (conventions in `worklog/README.md`; never store
+secrets there). The reusable deploy runbook is `deploy/docker/DEPLOY-VPS.md`.
+
 ## AI tooling resources
 
 - **Rules** — `.agents/rules/*.md` (indexed above). Read on demand.

@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sabinstack.cloud — Deployment Worklog</title>
+<style>
+  :root {
+    --page:        #f9f9f7;
+    --surface-1:   #fcfcfb;
+    --text-primary:#0b0b0b;
+    --text-secondary:#52514e;
+    --muted:       #898781;
+    --grid:        #e1e0d9;
+    --baseline:    #c3c2b7;
+    --border:      rgba(11,11,11,0.10);
+    --series-1:    #2a78d6;
+    --seq-250:     #86b6ef;
+    --good:        #0ca30c;
+    --warning:     #fab219;
+    --serious:     #ec835a;
+    --critical:    #d03b3b;
+    --good-text:   #006300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page:        #0d0d0d;
+      --surface-1:   #1a1a19;
+      --text-primary:#ffffff;
+      --text-secondary:#c3c2b7;
+      --muted:       #898781;
+      --grid:        #2c2c2a;
+      --baseline:    #383835;
+      --border:      rgba(255,255,255,0.10);
+      --series-1:    #3987e5;
+      --seq-250:     #1c5cab;
+      --good-text:   #0ca30c;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--page); color: var(--text-primary);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 32px 20px 64px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 26px; letter-spacing: -0.02em; }
+  h2 { font-size: 17px; margin: 40px 0 12px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); margin-top: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip {
+    font-size: 12.5px; color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 3px 11px; background: var(--surface-1);
+  }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+  }
+  /* stat tiles */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 22px; }
+  .tile .k { font-size: 12px; color: var(--text-secondary); }
+  .tile .v { font-size: 26px; font-weight: 650; margin-top: 2px; }
+  .tile .d { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .meter { height: 6px; border-radius: 3px; background: var(--grid); margin-top: 10px; overflow: hidden; }
+  .meter > span { display: block; height: 100%; width: 5.3%; background: var(--series-1); border-radius: 3px; }
+  .up { color: var(--good-text); font-weight: 600; }
+  /* diagram */
+  svg text { font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--text-primary); }
+  svg .lbl2 { fill: var(--text-secondary); font-size: 11px; }
+  svg .lblm { fill: var(--muted); font-size: 10.5px; }
+  svg .box  { fill: var(--surface-1); stroke: var(--border); rx: 8; }
+  svg .zone { fill: none; stroke: var(--baseline); stroke-dasharray: 4 4; rx: 10; }
+  svg .flow { stroke: var(--series-1); stroke-width: 2; fill: none; }
+  svg .flow2{ stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  svg .accent { fill: var(--series-1); }
+  /* timeline */
+  .timeline { list-style: none; padding: 0; }
+  .timeline li { position: relative; padding: 0 0 16px 26px; }
+  .timeline li::before {
+    content: ""; position: absolute; left: 6px; top: 7px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--series-1);
+  }
+  .timeline li.err::before { background: var(--critical); }
+  .timeline li::after {
+    content: ""; position: absolute; left: 9.5px; top: 19px; bottom: -2px;
+    width: 1px; background: var(--grid);
+  }
+  .timeline li:last-child::after { display: none; }
+  .timeline .t { color: var(--muted); font-size: 12px; }
+  .timeline .fix { color: var(--text-secondary); font-size: 13.5px; }
+  /* bar chart */
+  .chart-note { font-size: 12.5px; color: var(--muted); margin: 2px 0 14px; }
+  .row { display: grid; grid-template-columns: 110px 1fr 64px; align-items: center; gap: 10px; margin: 0 0 8px; }
+  .row .name { font-size: 13px; color: var(--text-secondary); text-align: right; }
+  .row .track { position: relative; height: 20px; background: transparent; border-left: 1px solid var(--baseline); }
+  .row .bar {
+    position: absolute; left: 0; top: 0; height: 20px; min-width: 2px;
+    background: var(--series-1); border-radius: 0 4px 4px 0; cursor: default;
+  }
+  .row .val { font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  .axis { display: grid; grid-template-columns: 110px 1fr 64px; gap: 10px; margin-top: 6px; }
+  .axis .ticks { position: relative; height: 16px; border-left: 1px solid transparent; }
+  .axis .ticks span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .gridlines { position: relative; }
+  .gridlines::before, .gridlines::after { content:""; position:absolute; top:0; bottom:0; width:1px; background: var(--grid); }
+  details { margin-top: 12px; }
+  summary { font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 13.5px; }
+  th { text-align: left; color: var(--text-secondary); font-weight: 600; font-size: 12.5px; }
+  th, td { padding: 7px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  /* status chips */
+  .st { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .st::before { font-size: 12px; }
+  .st.open::before { content: "▲"; color: var(--critical); }
+  .st.med::before  { content: "◆"; color: var(--serious); }
+  .st.low::before  { content: "●"; color: var(--warning); }
+  .st.done::before { content: "✓"; color: var(--good); }
+  code, pre {
+    font: 12.5px/1.6 ui-monospace, "Cascadia Code", Consolas, monospace;
+    background: var(--page); border: 1px solid var(--border); border-radius: 6px;
+  }
+  code { padding: 1px 5px; }
+  pre { padding: 12px 14px; overflow-x: auto; margin-top: 8px; }
+  pre code { border: 0; padding: 0; background: none; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .errcard h3 { font-size: 14px; margin-bottom: 6px; }
+  .errcard .cause { color: var(--text-secondary); font-size: 13.5px; }
+  .errcard .fixln { font-size: 13.5px; margin-top: 6px; }
+  .fixln b { color: var(--good-text); }
+  #tip {
+    position: fixed; display: none; pointer-events: none; z-index: 10;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  }
+  footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>sabinstack.cloud — deployment worklog</h1>
+  <p class="sub">FullStackHero .NET Starter Kit on a Hostinger KVM&nbsp;2 VPS · journal of real sessions, errors, fixes and risks</p>
+  <div class="chips">
+    <span class="chip">srv1784663 · 2.25.69.231</span>
+    <span class="chip">Ubuntu 24.04 · Docker 29</span>
+    <span class="chip">2 vCPU · 8 GB RAM · 100 GB</span>
+    <span class="chip">Caddy + Let's Encrypt</span>
+    <span class="chip">Last update: 2026-07-02</span>
+  </div>
+
+  <div class="tiles">
+    <div class="card tile">
+      <div class="k">HTTPS surfaces live</div>
+      <div class="v up">3 / 3</div>
+      <div class="d">api · admin · app — certs auto-renew</div>
+    </div>
+    <div class="card tile">
+      <div class="k">Containers running</div>
+      <div class="v">7</div>
+      <div class="d">fsh ×6 + pgAdmin (2 one-shots exited 0)</div>
+    </div>
+    <div class="card tile">
+      <div class="k">Idle RAM — stack total</div>
+      <div class="v">437 <span style="font-size:14px;font-weight:400">MB</span></div>
+      <div class="d">of 8 GB (5.3%)</div>
+      <div class="meter"><span></span></div>
+    </div>
+    <div class="card tile">
+      <div class="k">Public ports open</div>
+      <div class="v">3</div>
+      <div class="d">22 (SSH) · 80 · 443 — everything else loopback/internal</div>
+    </div>
+  </div>
+
+  <h2>Architecture</h2>
+  <div class="card" style="overflow-x:auto">
+    <svg viewBox="0 0 900 400" width="100%" style="min-width:720px" role="img" aria-label="Architecture: browser through DNS and Caddy to three loopback-bound app containers and an internal data plane; admin tools reached via SSH tunnel">
+      <!-- internet actors -->
+      <rect class="box" x="30" y="20" width="150" height="46" rx="8"/>
+      <text x="105" y="39" text-anchor="middle">User's browser</text>
+      <text class="lbl2" x="105" y="55" text-anchor="middle">https://…sabinstack.cloud</text>
+
+      <rect class="box" x="720" y="20" width="150" height="46" rx="8"/>
+      <text x="795" y="39" text-anchor="middle">Your PC</text>
+      <text class="lbl2" x="795" y="55" text-anchor="middle">DBeaver · pgAdmin tab</text>
+
+      <rect class="box" x="375" y="20" width="150" height="46" rx="8"/>
+      <text x="450" y="39" text-anchor="middle">DNS</text>
+      <text class="lbl2" x="450" y="55" text-anchor="middle">api / admin / app → VPS</text>
+
+      <!-- VPS zone -->
+      <rect class="zone" x="30" y="96" width="840" height="284" rx="10"/>
+      <text class="lblm" x="46" y="116">UBUNTU VPS — 2.25.69.231 · ufw: only 22 / 80 / 443</text>
+
+      <!-- caddy -->
+      <rect class="box" x="80" y="132" width="180" height="52" rx="8"/>
+      <rect class="accent" x="80" y="132" width="4" height="52" rx="2"/>
+      <text x="172" y="153" text-anchor="middle">Caddy :443</text>
+      <text class="lbl2" x="172" y="169" text-anchor="middle">TLS · routes by subdomain</text>
+
+      <!-- ssh -->
+      <rect class="box" x="700" y="132" width="150" height="52" rx="8"/>
+      <text x="775" y="153" text-anchor="middle">sshd :22</text>
+      <text class="lbl2" x="775" y="169" text-anchor="middle">key auth · tunnels</text>
+
+      <!-- apps -->
+      <rect class="box" x="60" y="226" width="132" height="52" rx="8"/>
+      <text x="126" y="247" text-anchor="middle">fsh-api</text>
+      <text class="lbl2" x="126" y="263" text-anchor="middle">127.0.0.1:8080</text>
+
+      <rect class="box" x="208" y="226" width="132" height="52" rx="8"/>
+      <text x="274" y="247" text-anchor="middle">fsh-admin</text>
+      <text class="lbl2" x="274" y="263" text-anchor="middle">127.0.0.1:8081</text>
+
+      <rect class="box" x="356" y="226" width="132" height="52" rx="8"/>
+      <text x="422" y="247" text-anchor="middle">fsh-dashboard</text>
+      <text class="lbl2" x="422" y="263" text-anchor="middle">127.0.0.1:8082</text>
+
+      <rect class="box" x="600" y="226" width="120" height="52" rx="8"/>
+      <text x="660" y="247" text-anchor="middle">pgAdmin</text>
+      <text class="lbl2" x="660" y="263" text-anchor="middle">127.0.0.1:8084</text>
+
+      <!-- data plane -->
+      <rect class="zone" x="60" y="300" width="660" height="64" rx="8"/>
+      <text class="lblm" x="76" y="318">DATA PLANE — docker network fsh_default only, no public ports</text>
+      <rect class="box" x="84" y="326" width="182" height="28" rx="6"/>
+      <text x="175" y="345" text-anchor="middle">fsh-postgres <tspan class="lbl2">+127.0.0.1:5432</tspan></text>
+      <rect class="box" x="290" y="326" width="110" height="28" rx="6"/>
+      <text x="345" y="345" text-anchor="middle">fsh-redis</text>
+      <rect class="box" x="420" y="326" width="120" height="28" rx="6"/>
+      <text x="480" y="345" text-anchor="middle">fsh-minio</text>
+      <rect class="box" x="570" y="326" width="120" height="28" rx="6"/>
+      <text x="630" y="345" text-anchor="middle">migrator ✓</text>
+
+      <!-- flows -->
+      <path class="flow" d="M105 66 L105 126" marker-end="url(#a1)"/>
+      <path class="flow2" d="M180 43 L375 43"/>
+      <path class="flow" d="M150 184 L126 226"/>
+      <path class="flow" d="M172 184 L274 226"/>
+      <path class="flow" d="M195 184 L422 226"/>
+      <path class="flow2" d="M795 66 L795 132"/>
+      <path class="flow2" d="M745 184 L672 226"/>
+      <path class="flow2" d="M790 184 L790 290 L48 290 L48 340 L84 340"/>
+      <path class="flow" d="M126 278 L126 300"/>
+      <defs>
+        <marker id="a1" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+          <path d="M0,0 L7,3.5 L0,7 Z" fill="var(--series-1)"/>
+        </marker>
+      </defs>
+      <text class="lblm" x="310" y="35">resolves to VPS IP</text>
+      <text class="lblm" x="240" y="212">proxy by subdomain</text>
+      <text class="lblm" x="806" y="212">ssh -L tunnels</text>
+    </svg>
+    <p class="chart-note">Solid blue = public request path (HTTPS). Dashed = admin path over SSH tunnels. Dotted boxes = trust boundaries.</p>
+  </div>
+
+  <h2>Idle memory per container <span style="font-weight:400;color:var(--muted);font-size:13px">— measured 2026-07-02, Hostinger container stats</span></h2>
+  <div class="card">
+    <div id="ram"></div>
+    <div class="axis">
+      <span></span>
+      <div class="ticks">
+        <span style="left:0%">0</span><span style="left:28.6%">100</span>
+        <span style="left:57.1%">200</span><span style="left:85.7%">300</span>
+        <span style="left:97%;transform:none">MB</span>
+      </div>
+      <span></span>
+    </div>
+    <p class="chart-note" style="margin-top:10px">The API is the only heavy process — the whole stack idles at ~5% of the 8 GB machine, leaving ample headroom for real traffic and future modules.</p>
+    <details>
+      <summary>Data table</summary>
+      <table>
+        <thead><tr><th>Container</th><th style="text-align:right">Idle RAM (MB)</th></tr></thead>
+        <tbody id="ramtable"></tbody>
+      </table>
+    </details>
+  </div>
+
+  <h2>Session timeline — 2026-07-02</h2>
+  <div class="card">
+    <ol class="timeline">
+      <li><span class="t">21:53</span> — SSH in · <code>apt upgrade</code> · reboot to kernel 6.8.0-134</li>
+      <li><span class="t">21:57</span> — Docker Engine 29.6.1 installed · repo cloned · <code>.env</code> secrets generated</li>
+      <li class="err"><span class="t">~22:05</span> — <b>First launch fails:</b> <code>fsh-postgres</code> unhealthy
+        <div class="fix">Postgres 18 image rejects legacy volume path → remount at <code>/var/lib/postgresql</code>, <code>down -v</code>, relaunch</div></li>
+      <li><span class="t">00:10</span> — Migrator seeds root tenant, permissions, admin user · stack healthy on test URLs</li>
+      <li><span class="t">~00:30</span> — DNS A records for <code>api/admin/app.sabinstack.cloud</code> · Caddy installed</li>
+      <li class="err"><span class="t">00:40</span> — <b>Cert failures:</b> placeholder <code>yourdomain.com</code> left in Caddyfile
+        <div class="fix">Real hostnames + <code>systemctl reload caddy</code> → 3 certificates issued seconds later</div></li>
+      <li><span class="t">00:45</span> — <code>.env</code> → https URLs, ports rebound to 127.0.0.1 · containers recreated · ufw enabled</li>
+      <li class="err"><span class="t">~01:00</span> — <b>Timeout from office network only</b>
+        <div class="fix">Diagnosed as corporate filter on the newly-registered domain — server proven healthy from mobile & VPS</div></li>
+      <li><span class="t">15:30</span> — Catalog Adminer/pgAdmin removed (public ports, wrong network) · pgAdmin re-installed loopback-only on <code>fsh_default</code></li>
+      <li><span class="t">15:50</span> — Postgres loopback port 5432 added · DBeaver connected via SSH tunnel · security review done</li>
+      <li><span class="t">16:00</span> — Repo: postgres fix + runbook + diagrams + this worklog → PR #1</li>
+    </ol>
+  </div>
+
+  <h2>Errors & fixes (grep these first on the next deploy)</h2>
+  <div class="cols">
+    <div class="card errcard">
+      <h3>1 · fsh-postgres dies at start</h3>
+      <pre><code>Error: in 18+, these Docker images are
+configured to store database data in …</code></pre>
+      <p class="cause">postgres:18 moved PGDATA; legacy mount path <code>…/data</code> is refused.</p>
+      <p class="fixln"><b>Fix:</b> mount <code>pg_data:/var/lib/postgresql</code> (in repo since PR #1).</p>
+    </div>
+    <div class="card errcard">
+      <h3>2 · Let's Encrypt "no application protocol"</h3>
+      <pre><code>acme:error:tls … yourdomain.com</code></pre>
+      <p class="cause">Placeholder domain left in <code>/etc/caddy/Caddyfile</code>.</p>
+      <p class="fixln"><b>Fix:</b> real hostnames, <code>systemctl reload caddy</code>.</p>
+    </div>
+    <div class="card errcard">
+      <h3>3 · ERR_CONNECTION_TIMED_OUT (one network)</h3>
+      <pre><code>curl on VPS: 200 · office: timeout
+mobile data: works</code></pre>
+      <p class="cause">Corporate filter blocks newly-registered domains. Not a server issue.</p>
+      <p class="fixln"><b>Fix:</b> wait 24–72 h for categorization / ask IT. Verify with <code>tcpdump 'tcp port 443'</code>.</p>
+    </div>
+  </div>
+
+  <h2>Risk register</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Risk</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>SSH password auth still enabled — bots brute-force root 24/7</td>
+            <td><span class="st open">Open · High</span></td>
+            <td><code>PasswordAuthentication no</code> + <code>PermitRootLogin prohibit-password</code>; hPanel terminal stays as recovery door</td></tr>
+        <tr><td>No backups (snapshots 0, no volume dumps)</td>
+            <td><span class="st open">Open · High</span></td>
+            <td>Enable Hostinger auto-backup and/or cron the volume <code>tar</code> loop from the runbook</td></tr>
+        <tr><td>PR #1 unmerged — fresh clones still hit the postgres 18 crash</td>
+            <td><span class="st med">Open · Medium</span></td>
+            <td>Merge PR #1 into <code>main</code></td></tr>
+        <tr><td>Secrets live only in <code>.env</code> on the VPS</td>
+            <td><span class="st med">Open · Medium</span></td>
+            <td>Copy to a password manager</td></tr>
+        <tr><td>Loopback 5432 reachable by any process on the VPS</td>
+            <td><span class="st low">Accepted · Low</span></td>
+            <td>Strong password; keep untrusted software off the box</td></tr>
+        <tr><td>Direct prod-DB edits can corrupt app-managed state</td>
+            <td><span class="st low">Accepted · Low</span></td>
+            <td>DBeaver connection type "Production"; prefer the admin app for writes</td></tr>
+        <tr><td>Public app ports / catalog tools exposure</td>
+            <td><span class="st done">Closed</span></td>
+            <td>Everything rebound to 127.0.0.1; catalog Adminer/pgAdmin removed</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Quick reference — passwords &amp; daily commands</h2>
+  <div class="cols">
+    <div class="card">
+      <h3 style="font-size:14px">Where the secrets live (never in this repo)</h3>
+      <pre><code># on the VPS — every credential:
+grep POSTGRES_PASSWORD  ~/dotnet-starter-kit/deploy/docker/.env
+grep SEED_ADMIN_PASSWORD ~/dotnet-starter-kit/deploy/docker/.env
+grep -E 'HANGFIRE|MINIO|REDIS|JWT' \
+  ~/dotnet-starter-kit/deploy/docker/.env
+
+# pgAdmin's own login:
+grep PGADMIN ~/pgadmin/docker-compose.yml</code></pre>
+      <p class="chart-note">DB login: host <code>fsh-postgres</code> (or tunneled <code>localhost:5432</code>) · user <code>fsh</code> · db <code>fsh</code>. App admin: <code>admin@root.com</code> · tenant <code>root</code>.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px">Daily driver commands</h3>
+      <pre><code># pgAdmin (run on the PC, keep open):
+ssh -L 8084:localhost:8084 root@2.25.69.231
+#   → browse http://localhost:8084
+
+# update the app:
+cd ~/dotnet-starter-kit && git pull
+cd deploy/docker && docker compose up -d --build
+
+# status / logs:
+docker compose ps
+docker compose logs -f api</code></pre>
+      <p class="chart-note">DBeaver: SSH tab → <code>2.25.69.231</code>/<code>root</code>/key · Main tab → <code>localhost:5432</code>.</p>
+    </div>
+  </div>
+
+  <h2>Sessions</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Date</th><th>Log</th><th>Summary</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="white-space:nowrap">2026-07-02</td>
+          <td style="white-space:nowrap"><a href="2026-07-02-vps-deployment.md">2026-07-02-vps-deployment.md</a></td>
+          <td>First production deploy: full stack + HTTPS on sabinstack.cloud; 3 errors diagnosed &amp; fixed; DB tooling over SSH tunnels; runbook + fixes pushed as PR #1.</td>
+        </tr>
+        <!-- FUTURE SESSIONS: append one <tr> per session here, add the md log, refresh tiles/risks above -->
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Self-contained dashboard — no external requests. Update alongside each session log (see worklog/README.md conventions).</footer>
+</div>
+
+<div id="tip"></div>
+<script>
+  const ram = [
+    ["fsh-api",       322.6],
+    ["fsh-minio",      62.3],
+    ["fsh-postgres",   41.3],
+    ["fsh-redis",       3.5],
+    ["fsh-admin",       3.4],
+    ["fsh-dashboard",   3.4],
+  ];
+  const MAX = 350;
+  const host = document.getElementById("ram");
+  const tbody = document.getElementById("ramtable");
+  for (const [name, mb] of ram) {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML =
+      '<span class="name">' + name + '</span>' +
+      '<div class="track"><div class="bar" style="width:' + (mb / MAX * 100).toFixed(2) + '%" data-name="' + name + '" data-mb="' + mb + '"></div></div>' +
+      '<span class="val">' + mb.toFixed(1) + ' MB</span>';
+    host.appendChild(row);
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + name + '</td><td class="num">' + mb.toFixed(1) + "</td>";
+    tbody.appendChild(tr);
+  }
+  const tip = document.getElementById("tip");
+  document.addEventListener("mousemove", (e) => {
+    const bar = e.target.closest(".bar");
+    if (!bar) { tip.style.display = "none"; return; }
+    const total = ram.reduce((s, r) => s + r[1], 0);
+    tip.innerHTML = "<b>" + bar.dataset.name + "</b> — " + bar.dataset.mb +
+      " MB (" + (bar.dataset.mb / total * 100).toFixed(1) + "% of stack)";
+    tip.style.display = "block";
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 240) + "px";
+    tip.style.top = (e.clientY + 14) + "px";
+  });
+</script>
+</body>
+</html>
