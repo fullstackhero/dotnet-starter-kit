@@ -1,7 +1,7 @@
 ---
 name: add-permission
 description: Add a new permission end-to-end — server constant + endpoint gate, and (admin app) mirror it into the permissions catalog + route guard. Use when a new endpoint needs authorization. See modules/identity.md + frontend/admin.md.
-argument-hint: [ModuleName] [Resource] [Action]
+argument-hint: "[ModuleName] [Resource] [Action]"
 ---
 
 # Add Permission

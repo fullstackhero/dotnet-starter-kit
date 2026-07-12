@@ -1,7 +1,7 @@
 ---
 name: add-feature
 description: Add a vertical-slice feature (command/query + handler + validator + endpoint) to an existing FSH module. Use when adding an API endpoint or business operation to a module that already exists.
-argument-hint: [ModuleName] [Area] [FeatureName]
+argument-hint: "[ModuleName] [Area] [FeatureName]"
 ---
 
 # Add Feature

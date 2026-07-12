@@ -1,7 +1,7 @@
 ---
 name: add-full-slice
 description: Build a capability end-to-end — backend vertical slice (Contracts→handler→validator→endpoint) AND the React page wired to it. Use when delivering a user-facing feature across API + UI. Composes add-feature + add-react-page.
-argument-hint: [ModuleName] [admin|dashboard] [FeatureName]
+argument-hint: "[ModuleName] [admin|dashboard] [FeatureName]"
 ---
 
 # Add Full Slice (backend → frontend)

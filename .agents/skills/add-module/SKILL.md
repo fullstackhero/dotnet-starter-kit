@@ -1,7 +1,7 @@
 ---
 name: add-module
 description: Create a new module (bounded context) — runtime + Contracts projects, IModule, DbContext, permissions, migrations, and the four registration sites. Use when adding a distinct business domain. For a feature in an existing module, use add-feature.
-argument-hint: [ModuleName]
+argument-hint: "[ModuleName]"
 ---
 
 # Add Module

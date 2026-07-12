@@ -1,7 +1,7 @@
 ---
 name: add-integration-event
 description: Publish a cross-module integration event via the Outbox and handle it idempotently in another module. Use when one module must react to something that happened in another. See .agents/rules/eventing.md.
-argument-hint: [SourceModule] [EventName] [ConsumerModule]
+argument-hint: "[SourceModule] [EventName] [ConsumerModule]"
 ---
 
 # Add Integration Event
