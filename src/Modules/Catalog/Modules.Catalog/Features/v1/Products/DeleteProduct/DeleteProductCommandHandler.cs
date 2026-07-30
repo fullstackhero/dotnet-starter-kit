@@ -21,6 +21,7 @@ public sealed class DeleteProductCommandHandler(CatalogDbContext dbContext)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Product {command.ProductId} not found.");
 
+        product.QueueDeleteEvent();
         dbContext.Products.Remove(product);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return Unit.Value;
