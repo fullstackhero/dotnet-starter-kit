@@ -114,6 +114,9 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
         CategoryId = categoryId;
         IsActive = isActive;
         UpdatedAtUtc = DateTime.UtcNow;
+
+        AddDomainEvent(DomainEvent.Create((id, ts) =>
+            new ProductUpdatedDomainEvent(Id, Name, id, ts)));
     }
 
     public void ChangePrice(Money newPrice)
@@ -151,6 +154,12 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
 
         AddDomainEvent(DomainEvent.Create((id, ts) =>
             new ProductStockAdjustedDomainEvent(Id, oldStock, newStock, delta, id, ts)));
+    }
+
+    public void QueueDeleteEvent()
+    {
+        AddDomainEvent(DomainEvent.Create((id, ts) =>
+            new ProductDeletedDomainEvent(Id, id, ts)));
     }
 
     // ─── Image management ─────────────────────────────────────────────────

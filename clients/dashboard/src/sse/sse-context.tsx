@@ -98,7 +98,17 @@ async function* parseSseStream(
 
 export function SseProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<SseStatus>("idle");
-  const [events, setEvents] = useState<SseEvent[]>([]);
+  const [events, setEvents] = useState<SseEvent[]>(() => {
+    try {
+      const stored = sessionStorage.getItem("fsh-sse-events");
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return [];
+  });
   const [eventCount, setEventCount] = useState(0);
 
   // We keep the running connection in refs so re-renders don't restart it.
@@ -115,7 +125,13 @@ export function SseProvider({ children }: { children: ReactNode }) {
     };
     setEvents((prev) => {
       const next = [entry, ...prev];
-      return next.length > MAX_EVENTS ? next.slice(0, MAX_EVENTS) : next;
+      const sliced = next.length > MAX_EVENTS ? next.slice(0, MAX_EVENTS) : next;
+      try {
+        sessionStorage.setItem("fsh-sse-events", JSON.stringify(sliced));
+      } catch {
+        // storage quota exceeded or unavailable
+      }
+      return sliced;
     });
     setEventCount((c) => c + 1);
   }, []);
