@@ -101,7 +101,7 @@ Single long-lived branch: **`main`** (the default) — there is **no `develop`**
 | Background jobs (Hangfire), recurring jobs | `jobs.md` |
 | Outbound HTTP resilience (Polly) | `resilience.md` |
 | Files/blobs, presigned uploads, providers | `storage.md` |
-| CORS, security headers, rate limiting, idempotency, quotas | `security.md` |
+| CORS, security headers, rate limiting, idempotency, quotas, front-end link origins | `security.md` |
 | SignalR / SSE backend | `realtime.md` |
 | Logging, correlation, OpenTelemetry | `logging.md` |
 | Unit test conventions, NetArchTest | `testing.md` |

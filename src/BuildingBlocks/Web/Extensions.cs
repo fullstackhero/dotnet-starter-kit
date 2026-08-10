@@ -8,6 +8,7 @@ using FSH.Framework.Web.Auth;
 using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
 using FSH.Framework.Web.FeatureFlags;
+using FSH.Framework.Web.Frontend;
 using FSH.Framework.Web.Idempotency;
 using FSH.Framework.Web.Sse;
 using FSH.Framework.Web.Health;
@@ -28,6 +29,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Mediator;
 
 namespace FSH.Framework.Web;
@@ -135,6 +138,13 @@ public static class Extensions
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
         builder.Services.AddOptions<SecurityHeadersOptions>().BindConfiguration(nameof(SecurityHeadersOptions));
 
+        // Front-end origin resolution for user-facing links in e-mails/notifications. DefaultOrigin
+        // is not validated at startup on purpose: a deployment that never sends such a link must not
+        // be taken down by the setting. Unset, the resolver falls back to the API's own origin and
+        // UseHeroPlatform logs one Warning naming the setting and what degrades without it.
+        builder.Services.AddOptions<FrontendOptions>().BindConfiguration(nameof(FrontendOptions));
+        builder.Services.AddScoped<IFrontendOriginResolver, FrontendOriginResolver>();
+
         return builder;
     }
 
@@ -142,6 +152,8 @@ public static class Extensions
     public static WebApplication UseHeroPlatform(this WebApplication app, Action<FshPipelineOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(app);
+
+        WarnOnMissingFrontendOrigin(app);
 
         var options = new FshPipelineOptions();
         configure?.Invoke(options);
@@ -228,6 +240,54 @@ public static class Extensions
     private static bool IsOpenApiEnabled(IConfiguration configuration)
     {
         return configuration.GetValue("OpenApiOptions:Enabled", true);
+    }
+
+    // One Warning at boot, never per request: the resolver is scoped, so logging there would either
+    // flood the aggregator or stay silent on a host that simply never sends a link. An operator who
+    // upgrades into this change reads it once, in the startup banner, with the fix in the message.
+    private static void WarnOnMissingFrontendOrigin(WebApplication app)
+    {
+        var frontend = app.Services.GetRequiredService<IOptions<FrontendOptions>>().Value;
+
+        // Reported independently of DefaultOrigin: a deployment that sets only the default still
+        // has every self-service link falling back to it, which is wrong the moment there is more
+        // than one front-end. Counted after normalization, so a list of nothing but unparseable
+        // entries reports as the empty list it effectively is rather than looking configured.
+        var usableOrigins = FrontendOriginResolver.Normalize(frontend.AllowedOrigins).Length;
+        if (usableOrigins == 0)
+        {
+            app.Logger.LogWarning(
+                "FrontendOptions:AllowedOrigins is empty or entirely unparseable (appsettings.{Environment}.json). Password-reset and self-registration links cannot follow the front-end that made the request and will all point at FrontendOptions:DefaultOrigin instead. With more than one front-end that sends users to the wrong app. List every SPA origin as an absolute URL, e.g. [ \"https://app.example.com\", \"https://admin.example.com\" ].",
+                app.Environment.EnvironmentName);
+        }
+        else if (usableOrigins < frontend.AllowedOrigins.Length)
+        {
+            app.Logger.LogWarning(
+                "{DroppedCount} of {ConfiguredCount} FrontendOptions:AllowedOrigins entries are not absolute URLs and were ignored (appsettings.{Environment}.json). Requests from those origins will be rejected with 400. Each entry must carry a scheme, e.g. \"https://app.example.com\".",
+                frontend.AllowedOrigins.Length - usableOrigins,
+                frontend.AllowedOrigins.Length,
+                app.Environment.EnvironmentName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(frontend.DefaultOrigin))
+        {
+            return;
+        }
+
+        // Same absolute-Uri guard the resolver applies.
+        var apiOrigin = app.Services.GetRequiredService<IOptions<OriginOptions>>().Value.OriginUrl;
+        if (apiOrigin is { IsAbsoluteUri: true })
+        {
+            app.Logger.LogWarning(
+                "FrontendOptions:DefaultOrigin is not set (appsettings.{Environment}.json). Auth e-mail links for operator-driven flows (admin register, resend confirmation) and for callers that send no Origin header will point at the API origin {ApiOrigin} instead of the front-end app. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
+                app.Environment.EnvironmentName,
+                apiOrigin);
+            return;
+        }
+
+        app.Logger.LogWarning(
+            "Neither FrontendOptions:DefaultOrigin nor OriginOptions:OriginUrl is set (appsettings.{Environment}.json). Auth e-mail links for operator-driven flows (admin register, resend confirmation) and for callers that send no Origin header will point at this API's own request host instead of the front-end app, and will fail outright in a background job, which has no request to derive a host from. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
+            app.Environment.EnvironmentName);
     }
 }
 
