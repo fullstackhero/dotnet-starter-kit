@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, ApiRequestError } from "@/lib/api-client";
 import type { PagedResponse } from "@/api/catalog";
 
 // -----------------------------
@@ -397,16 +397,52 @@ export type UpdateProfileInput = {
 };
 
 /**
+ * Reads the profile along with the ETag the server publishes for it. The tag is the
+ * profile's version marker: echoing it back in `If-Match` on the PUT below is what lets
+ * the server reject a save built from a snapshot someone else has since changed.
+ */
+async function readProfileWithETag(): Promise<{ profile: UserDto; etag: string | null }> {
+  let etag: string | null = null;
+  const profile = await apiFetch<UserDto>("/api/v1/identity/profile", {
+    onResponse: (response) => {
+      etag = response.headers.get("ETag");
+    },
+  });
+  return { profile, etag };
+}
+
+/**
  * Updates the authenticated user's profile. Maps to UpdateUserCommand
  * server-side. Image and email changes go through their own dedicated
  * endpoints — this is for the editable profile fields surfaced in
  * settings/profile. Reads the current profile first so unset optional
  * fields keep their existing values instead of being nulled.
+ *
+ * That read-modify-write is why the PUT carries `If-Match`: the server answers 412 when
+ * the profile moved in between, instead of accepting a full representation built from a
+ * stale copy and blanking the concurrent change. A 412 is retried once against a fresh
+ * read, because the token also rotates on writes the user never sees as profile edits (a
+ * password change, a failed sign-in, a new avatar) and surfacing those as a failed save
+ * would be noise. A second 412 means the profile is changing faster than this client can
+ * follow, and the error propagates.
  */
 export async function updateMyProfile(input: UpdateProfileInput): Promise<void> {
-  const profile = await getMyProfile();
+  try {
+    await putProfileFromFreshRead(input);
+  } catch (error) {
+    if (error instanceof ApiRequestError && error.status === 412) {
+      await putProfileFromFreshRead(input);
+      return;
+    }
+    throw error;
+  }
+}
+
+async function putProfileFromFreshRead(input: UpdateProfileInput): Promise<void> {
+  const { profile, etag } = await readProfileWithETag();
   await apiFetch<unknown>(`/api/v1/identity/profile`, {
     method: "PUT",
+    headers: etag ? { "If-Match": etag } : undefined,
     body: JSON.stringify({
       id: profile.id,
       firstName: input.firstName ?? profile.firstName ?? null,

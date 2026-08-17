@@ -24,6 +24,7 @@ public sealed class UpdateUserCommandHandler : ICommandHandler<UpdateUserCommand
             command.PhoneNumber ?? string.Empty,
             command.Image!,
             command.DeleteCurrentImage,
+            command.ExpectedConcurrencyStamps,
             cancellationToken).ConfigureAwait(false);
 
         return Unit.Value;
