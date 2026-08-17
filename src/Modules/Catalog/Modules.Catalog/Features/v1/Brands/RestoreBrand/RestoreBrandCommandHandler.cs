@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
 using FSH.Modules.Catalog.Contracts.v1.Brands;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,7 +21,12 @@ public sealed class RestoreBrandCommandHandler(CatalogDbContext dbContext)
             .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .FirstOrDefaultAsync(b => b.Id == command.BrandId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Brand {command.BrandId} not found.");
+            ?? throw new NotFoundException($"Brand {command.BrandId} not found.")
+            {
+                MessageKey = "Catalog.BrandNotFound",
+                MessageArgs = [command.BrandId],
+                ResourceSource = typeof(CatalogResources),
+            };
 
         brand.Restore();
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

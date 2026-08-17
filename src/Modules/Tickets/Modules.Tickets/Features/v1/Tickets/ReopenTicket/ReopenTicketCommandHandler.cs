@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Tickets.Contracts.v1.Tickets;
+using FSH.Modules.Tickets.Localization;
 using FSH.Modules.Tickets.Data;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,12 @@ public sealed class ReopenTicketCommandHandler(TicketsDbContext dbContext)
         var ticket = await dbContext.Tickets
             .FirstOrDefaultAsync(t => t.Id == command.TicketId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Ticket {command.TicketId} not found.");
+            ?? throw new NotFoundException($"Ticket {command.TicketId} not found.")
+            {
+                MessageKey = "Tickets.TicketNotFound",
+                MessageArgs = [command.TicketId],
+                ResourceSource = typeof(TicketsResources),
+            };
 
         ticket.Reopen();
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

@@ -1,39 +1,41 @@
 using FluentValidation;
+using FSH.Framework.Core.Localization;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
+using Microsoft.Extensions.Localization;
 
 namespace FSH.Modules.Identity.Features.v1.Users.RegisterUser;
 
 public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    public RegisterUserCommandValidator()
+    public RegisterUserCommandValidator(IStringLocalizer<SharedResources> localizer)
     {
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("First name is required.")
-            .MaximumLength(100).WithMessage("First name must not exceed 100 characters.");
+            .NotEmpty().WithMessage(_ => localizer["Validation.FirstNameRequired"])
+            .MaximumLength(100).WithMessage(_ => localizer["Validation.FirstNameMaxLength"]);
 
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("Last name is required.")
-            .MaximumLength(100).WithMessage("Last name must not exceed 100 characters.");
+            .NotEmpty().WithMessage(_ => localizer["Validation.LastNameRequired"])
+            .MaximumLength(100).WithMessage(_ => localizer["Validation.LastNameMaxLength"]);
 
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("A valid email address is required.");
+            .NotEmpty().WithMessage(_ => localizer["Validation.EmailRequired"])
+            .EmailAddress().WithMessage(_ => localizer["Validation.EmailInvalid"]);
 
         RuleFor(x => x.UserName)
-            .NotEmpty().WithMessage("Username is required.")
-            .MinimumLength(3).WithMessage("Username must be at least 3 characters.")
-            .MaximumLength(50).WithMessage("Username must not exceed 50 characters.");
+            .NotEmpty().WithMessage(_ => localizer["Validation.UsernameRequired"])
+            .MinimumLength(3).WithMessage(_ => localizer["Validation.UsernameMinLength"])
+            .MaximumLength(50).WithMessage(_ => localizer["Validation.UsernameMaxLength"]);
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(6).WithMessage("Password must be at least 6 characters.");
+            .NotEmpty().WithMessage(_ => localizer["Validation.PasswordRequired"])
+            .MinimumLength(6).WithMessage(_ => localizer["Validation.PasswordMinLength"]);
 
         RuleFor(x => x.ConfirmPassword)
-            .NotEmpty().WithMessage("Password confirmation is required.")
-            .Equal(x => x.Password).WithMessage("Passwords do not match.");
+            .NotEmpty().WithMessage(_ => localizer["Validation.PasswordConfirmationRequired"])
+            .Equal(x => x.Password).WithMessage(_ => localizer["Validation.PasswordsDoNotMatch"]);
 
         RuleFor(x => x.PhoneNumber)
-            .MaximumLength(20).WithMessage("Phone number must not exceed 20 characters.")
+            .MaximumLength(20).WithMessage(_ => localizer["Validation.PhoneNumberMaxLength"])
             .When(x => x.PhoneNumber is not null);
     }
 }

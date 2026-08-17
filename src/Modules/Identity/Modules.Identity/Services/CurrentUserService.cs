@@ -2,6 +2,7 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Modules.Identity.Contracts.Services;
+using FSH.Modules.Identity.Localization;
 using System.Security.Claims;
 
 namespace FSH.Modules.Identity.Services;
@@ -42,7 +43,11 @@ internal sealed class CurrentUserService : ICurrentUserService
     {
         if (_user != null)
         {
-            throw new CustomException("Method reserved for in-scope initialization");
+            throw new CustomException("Method reserved for in-scope initialization")
+            {
+                MessageKey = "Identity.InScopeInitializationOnly",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         _user = user;
@@ -52,7 +57,11 @@ internal sealed class CurrentUserService : ICurrentUserService
     {
         if (_userId != Guid.Empty)
         {
-            throw new CustomException("Method reserved for in-scope initialization");
+            throw new CustomException("Method reserved for in-scope initialization")
+            {
+                MessageKey = "Identity.InScopeInitializationOnly",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         if (!string.IsNullOrEmpty(userId))

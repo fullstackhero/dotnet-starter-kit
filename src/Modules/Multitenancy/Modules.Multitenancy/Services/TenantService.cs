@@ -9,6 +9,7 @@ using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenants;
 using FSH.Modules.Multitenancy.Data;
 using FSH.Modules.Multitenancy.Features.v1.GetTenants;
+using FSH.Modules.Multitenancy.Localization;
 using FSH.Modules.Multitenancy.Provisioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +57,12 @@ public sealed class TenantService : ITenantService
 
         if (tenant.IsActive)
         {
-            throw new CustomException($"tenant {id} is already activated");
+            throw new CustomException($"tenant {id} is already activated")
+            {
+                MessageKey = "Multitenancy.TenantAlreadyActivated",
+                MessageArgs = [id],
+                ResourceSource = typeof(MultitenancyResources),
+            };
         }
 
         await _provisioningService.EnsureCanActivateAsync(id, cancellationToken).ConfigureAwait(false);
@@ -123,18 +129,31 @@ public sealed class TenantService : ITenantService
         var tenant = await GetTenantInfoAsync(id, cancellationToken).ConfigureAwait(false);
         if (!tenant.IsActive)
         {
-            throw new CustomException($"tenant {id} is already deactivated");
+            throw new CustomException($"tenant {id} is already deactivated")
+            {
+                MessageKey = "Multitenancy.TenantAlreadyDeactivated",
+                MessageArgs = [id],
+                ResourceSource = typeof(MultitenancyResources),
+            };
         }
 
         int tenantCount = (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Count(t => t.IsActive);
         if (tenantCount <= 1)
         {
-            throw new CustomException("At least one active tenant is required.");
+            throw new CustomException("At least one active tenant is required.")
+            {
+                MessageKey = "Multitenancy.AtLeastOneActiveTenantRequired",
+                ResourceSource = typeof(MultitenancyResources),
+            };
         }
 
         if (tenant.Id.Equals(MultitenancyConstants.Root.Id, StringComparison.OrdinalIgnoreCase))
         {
-            throw new CustomException("The root tenant cannot be deactivated.");
+            throw new CustomException("The root tenant cannot be deactivated.")
+            {
+                MessageKey = "Multitenancy.RootTenantCannotBeDeactivated",
+                ResourceSource = typeof(MultitenancyResources),
+            };
         }
 
         tenant.Deactivate();
@@ -247,7 +266,12 @@ public sealed class TenantService : ITenantService
 
     private async Task<AppTenantInfo> GetTenantInfoAsync(string id, CancellationToken cancellationToken = default) =>
         await _tenantStore.GetAsync(id).ConfigureAwait(false)
-            ?? throw new NotFoundException($"{typeof(AppTenantInfo).Name} {id} Not Found.");
+            ?? throw new NotFoundException($"{typeof(AppTenantInfo).Name} {id} Not Found.")
+            {
+                MessageKey = "Multitenancy.TenantNotFound",
+                MessageArgs = [id],
+                ResourceSource = typeof(MultitenancyResources),
+            };
 
     // Finbuckle resolves via the distributed-cache store first (60-min TTL) while the injected store only
     // writes EF, so push the new state into the cache store too — otherwise flips lag until cache expiry.

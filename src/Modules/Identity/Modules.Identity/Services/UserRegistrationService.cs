@@ -11,6 +11,7 @@ using FSH.Modules.Identity.Contracts.Events;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -79,14 +80,23 @@ internal sealed class UserRegistrationService(
             .Where(u => u.Id == userId && !u.EmailConfirmed)
             .FirstOrDefaultAsync(cancellationToken);
 
-        _ = user ?? throw new CustomException("An error occurred while confirming E-Mail.");
+        _ = user ?? throw new CustomException("An error occurred while confirming E-Mail.")
+        {
+            MessageKey = "Identity.EmailConfirmationError",
+            ResourceSource = typeof(IdentityResources),
+        };
 
         code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
         var result = await userManager.ConfirmEmailAsync(user, code);
 
         return result.Succeeded
             ? string.Format(CultureInfo.InvariantCulture, "Account Confirmed for E-Mail {0}. You can now use the /api/tokens endpoint to generate JWT.", user.Email)
-            : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming {0}", user.Email));
+            : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming {0}", user.Email))
+            {
+                MessageKey = "Identity.EmailConfirmationFailedFor",
+                MessageArgs = [user.Email!],
+                ResourceSource = typeof(IdentityResources),
+            };
     }
 
     public async Task AdminConfirmEmailAsync(string userId, CancellationToken cancellationToken = default)
@@ -96,7 +106,12 @@ internal sealed class UserRegistrationService(
         var user = await userManager.Users
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new NotFoundException($"User {userId} was not found.");
+            ?? throw new NotFoundException($"User {userId} was not found.")
+            {
+                MessageKey = "Identity.UserNotFoundById",
+                MessageArgs = [userId],
+                ResourceSource = typeof(IdentityResources),
+            };
 
         // Idempotent: a second confirm is a no-op rather than an error.
         if (user.EmailConfirmed)
@@ -112,7 +127,12 @@ internal sealed class UserRegistrationService(
                 CultureInfo.InvariantCulture,
                 "An error occurred while confirming the email for {0}: {1}",
                 user.Email,
-                string.Join("; ", result.Errors.Select(e => e.Description))));
+                string.Join("; ", result.Errors.Select(e => e.Description))))
+            {
+                MessageKey = "Identity.EmailConfirmationFailedWithErrors",
+                MessageArgs = [user.Email!, string.Join("; ", result.Errors.Select(e => e.Description))],
+                ResourceSource = typeof(IdentityResources),
+            };
         }
     }
 
@@ -123,14 +143,24 @@ internal sealed class UserRegistrationService(
         var user = await userManager.Users
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new NotFoundException($"User {userId} was not found.");
+            ?? throw new NotFoundException($"User {userId} was not found.")
+            {
+                MessageKey = "Identity.UserNotFoundById",
+                MessageArgs = [userId],
+                ResourceSource = typeof(IdentityResources),
+            };
 
         if (user.EmailConfirmed)
         {
             throw new CustomException(string.Format(
                 CultureInfo.InvariantCulture,
                 "The email for {0} is already confirmed.",
-                user.Email));
+                user.Email))
+            {
+                MessageKey = "Identity.EmailAlreadyConfirmed",
+                MessageArgs = [user.Email!],
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         await SendConfirmationEmailAsync(user, origin, cancellationToken);
@@ -144,21 +174,33 @@ internal sealed class UserRegistrationService(
             .Where(u => u.Id == userId && !u.PhoneNumberConfirmed)
             .FirstOrDefaultAsync(cancellationToken);
 
-        _ = user ?? throw new CustomException("An error occurred while confirming phone number.");
+        _ = user ?? throw new CustomException("An error occurred while confirming phone number.")
+        {
+            MessageKey = "Identity.PhoneConfirmationError",
+            ResourceSource = typeof(IdentityResources),
+        };
 
         code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
         var result = await userManager.ChangePhoneNumberAsync(user, user.PhoneNumber!, code);
 
         return result.Succeeded
             ? string.Format(CultureInfo.InvariantCulture, "Phone number {0} confirmed successfully.", user.PhoneNumber)
-            : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming phone number {0}", user.PhoneNumber));
+            : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming phone number {0}", user.PhoneNumber))
+            {
+                MessageKey = "Identity.PhoneConfirmationFailedFor",
+                MessageArgs = [user.PhoneNumber!],
+                ResourceSource = typeof(IdentityResources),
+            };
     }
 
     private void EnsureValidTenant()
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedException("invalid tenant");
+            throw new UnauthorizedException("invalid tenant")
+            {
+                MessageKey = "Error.InvalidTenant",
+            };
         }
     }
 
@@ -166,7 +208,11 @@ internal sealed class UserRegistrationService(
     {
         return principal.FindFirstValue(ClaimTypes.Email)
             ?? principal.FindFirstValue("email")
-            ?? throw new CustomException("Email claim is required for external authentication.");
+            ?? throw new CustomException("Email claim is required for external authentication.")
+            {
+                MessageKey = "Identity.EmailClaimRequired",
+                ResourceSource = typeof(IdentityResources),
+            };
     }
 
     private async Task<FshUser> CreateUserFromPrincipalAsync(ClaimsPrincipal principal, string email)
@@ -193,7 +239,11 @@ internal sealed class UserRegistrationService(
             throw new CustomException(
                 "Failed to create user from external principal.",
                 errors,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Identity.FailedToCreateUserFromPrincipal",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         return user;
@@ -233,7 +283,11 @@ internal sealed class UserRegistrationService(
             throw new CustomException(
                 "Passwords do not match.",
                 errors: null,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Identity.PasswordsDoNotMatch",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
     }
 
@@ -267,7 +321,11 @@ internal sealed class UserRegistrationService(
             throw new CustomException(
                 "Unable to register the user.",
                 errors,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Identity.UnableToRegisterUser",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         return user;

@@ -7,6 +7,7 @@ using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Features.v1.Internal;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -29,21 +30,38 @@ public sealed class ChangeFileVisibilityCommandHandler(
             throw new CustomException(
                 $"Unknown visibility value '{cmd.Visibility}'.",
                 errors: null,
-                System.Net.HttpStatusCode.BadRequest);
+                System.Net.HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Files.UnknownVisibility",
+                MessageArgs = [cmd.Visibility],
+                ResourceSource = typeof(FilesResources),
+            };
         }
 
         var f = await db.FileAssets
             .FirstOrDefaultAsync(x => x.Id == cmd.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
 
         var userId = currentUser.GetUserId().ToString();
         var policy = policies.Resolve(f.OwnerType)
-            ?? throw new ForbiddenException("no policy");
+            ?? throw new ForbiddenException("no policy")
+            {
+                MessageKey = "Files.NoAccessPolicy",
+                ResourceSource = typeof(FilesResources),
+            };
         var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
         if (!await policy.CanChangeVisibilityAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
-            throw new ForbiddenException("not allowed to change this file's visibility");
+            throw new ForbiddenException("not allowed to change this file's visibility")
+            {
+                MessageKey = "Files.NotAllowedToChangeVisibility",
+                ResourceSource = typeof(FilesResources),
+            };
         }
 
         f.ChangeVisibility(cmd.Visibility);

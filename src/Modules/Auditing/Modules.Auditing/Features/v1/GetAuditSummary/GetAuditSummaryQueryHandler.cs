@@ -4,6 +4,7 @@ using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Authorization;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAuditSummary;
+using FSH.Modules.Auditing.Localization;
 using FSH.Modules.Auditing.Persistence;
 using FSH.Modules.Identity.Contracts.Services;
 using Mediator;
@@ -13,7 +14,8 @@ namespace FSH.Modules.Auditing.Features.v1.GetAuditSummary;
 
 public sealed class GetAuditSummaryQueryHandler : IQueryHandler<GetAuditSummaryQuery, AuditSummaryAggregateDto>
 {
-    public static readonly TimeSpan MaxWindow = TimeSpan.FromDays(90);
+    public const int MaxWindowDays = 90;
+    public static readonly TimeSpan MaxWindow = TimeSpan.FromDays(MaxWindowDays);
     public static readonly TimeSpan DefaultWindow = TimeSpan.FromDays(7);
 
     private readonly AuditDbContext _dbContext;
@@ -104,7 +106,11 @@ public sealed class GetAuditSummaryQueryHandler : IQueryHandler<GetAuditSummaryQ
             .ConfigureAwait(false);
         if (!allowed)
         {
-            throw new ForbiddenException("Cross-tenant audit summary requires Permissions.AuditTrails.ViewCrossTenant.");
+            throw new ForbiddenException("Cross-tenant audit summary requires Permissions.AuditTrails.ViewCrossTenant.")
+            {
+                MessageKey = "Error.Auditing.CrossTenantSummaryForbidden",
+                ResourceSource = typeof(AuditingResources),
+            };
         }
 
         return _dbContext.AuditRecords

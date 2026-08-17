@@ -4,6 +4,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;
 using FSH.Modules.Catalog.Domain;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,12 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             .ConfigureAwait(false);
         if (!brandExists)
         {
-            throw new NotFoundException($"Brand {command.BrandId} not found.");
+            throw new NotFoundException($"Brand {command.BrandId} not found.")
+            {
+                MessageKey = "Catalog.BrandNotFound",
+                MessageArgs = [command.BrandId],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         bool categoryExists = await dbContext.Categories
@@ -29,7 +35,12 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             .ConfigureAwait(false);
         if (!categoryExists)
         {
-            throw new NotFoundException($"Category {command.CategoryId} not found.");
+            throw new NotFoundException($"Category {command.CategoryId} not found.")
+            {
+                MessageKey = "Catalog.CategoryNotFound",
+                MessageArgs = [command.CategoryId],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         var product = Product.Create(
@@ -49,7 +60,12 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"A product with SKU '{product.Sku}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.ProductSkuAlreadyExists",
+                MessageArgs = [product.Sku],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         bool slugTaken = await dbContext.Products
@@ -60,7 +76,12 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"A product with name '{command.Name}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.ProductNameAlreadyExists",
+                MessageArgs = [command.Name],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         dbContext.Products.Add(product);

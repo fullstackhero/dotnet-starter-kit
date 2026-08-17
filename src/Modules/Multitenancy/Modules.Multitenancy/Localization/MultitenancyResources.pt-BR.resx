@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Multitenancy.TenantDeactivated" xml:space="preserve">
+    <value>Este tenant foi desativado. Entre em contato com seu administrador.</value>
+  </data>
+  <data name="Multitenancy.TenantSubscriptionExpired" xml:space="preserve">
+    <value>A assinatura deste tenant expirou. Renove para continuar.</value>
+  </data>
+  <data name="Multitenancy.TenantNotFoundDuringProvisioning" xml:space="preserve">
+    <value>Tenant {0} não encontrado durante o provisionamento.</value>
+  </data>
+  <data name="Multitenancy.TenantNotFoundForProvisioning" xml:space="preserve">
+    <value>Tenant {0} não encontrado para provisionamento.</value>
+  </data>
+  <data name="Multitenancy.ProvisioningAlreadyRunning" xml:space="preserve">
+    <value>O provisionamento já está em execução para o tenant {0}.</value>
+  </data>
+  <data name="Multitenancy.ProvisioningNotFound" xml:space="preserve">
+    <value>Provisionamento não encontrado para o tenant {0}.</value>
+  </data>
+  <data name="Multitenancy.TenantNotProvisioned" xml:space="preserve">
+    <value>O tenant {0} não está provisionado. Status: {1}.</value>
+  </data>
+  <data name="Multitenancy.ProvisioningCorrelationNotFound" xml:space="preserve">
+    <value>Provisionamento {0} para o tenant {1} não encontrado.</value>
+  </data>
+  <data name="Multitenancy.TenantAlreadyActivated" xml:space="preserve">
+    <value>o tenant {0} já está ativado</value>
+  </data>
+  <data name="Multitenancy.TenantAlreadyDeactivated" xml:space="preserve">
+    <value>o tenant {0} já está desativado</value>
+  </data>
+  <data name="Multitenancy.AtLeastOneActiveTenantRequired" xml:space="preserve">
+    <value>É necessário pelo menos um tenant ativo.</value>
+  </data>
+  <data name="Multitenancy.RootTenantCannotBeDeactivated" xml:space="preserve">
+    <value>O tenant raiz não pode ser desativado.</value>
+  </data>
+  <data name="Multitenancy.TenantNotFound" xml:space="preserve">
+    <value>AppTenantInfo {0} não encontrado.</value>
+  </data>
+  <data name="Multitenancy.OnlyRootCanSetDefaultTheme" xml:space="preserve">
+    <value>Apenas o tenant raiz pode definir o tema padrão.</value>
+  </data>
+  <data name="Multitenancy.TenantThemeNotFound" xml:space="preserve">
+    <value>Tema do tenant {0} não encontrado.</value>
+  </data>
+  <data name="Validation.RootTenantValidityImmutable" xml:space="preserve">
+    <value>A validade do tenant operador raiz não pode ser ajustada.</value>
+  </data>
+  <data name="Validation.ValidUptoRequired" xml:space="preserve">
+    <value>Uma data 'validUpto' válida é obrigatória.</value>
+  </data>
+  <data name="Validation.TenantAlreadyExists" xml:space="preserve">
+    <value>O tenant {0} já existe.</value>
+  </data>
+  <data name="Validation.ConnectionStringInvalid" xml:space="preserve">
+    <value>String de conexão inválida.</value>
+  </data>
+  <data name="Validation.AdminPasswordMinLength" xml:space="preserve">
+    <value>A senha do administrador deve ter pelo menos 8 caracteres.</value>
+  </data>
+  <data name="Validation.PlanKeySlug" xml:space="preserve">
+    <value>A chave do plano deve ser um slug minúsculo (a-z, 0-9, hífen).</value>
+  </data>
+  <data name="Validation.ThemeRequired" xml:space="preserve">
+    <value>O tema é obrigatório.</value>
+  </data>
+  <data name="Validation.ColorMustBeHex" xml:space="preserve">
+    <value>{0} deve ser uma cor hexadecimal válida.</value>
+  </data>
+  <data name="Validation.FontFamilyWebSafe" xml:space="preserve">
+    <value>{0} deve ser uma fonte web-safe válida.</value>
+  </data>
+  <data name="Validation.FontSizeBaseRange" xml:space="preserve">
+    <value>FontSizeBase deve estar entre 10 e 24.</value>
+  </data>
+  <data name="Validation.LineHeightBaseRange" xml:space="preserve">
+    <value>LineHeightBase deve estar entre 1.0 e 2.5.</value>
+  </data>
+  <data name="Validation.BorderRadiusInvalid" xml:space="preserve">
+    <value>BorderRadius deve ser um valor CSS válido (ex.: '4px', '0.5rem').</value>
+  </data>
+  <data name="Validation.DefaultElevationRange" xml:space="preserve">
+    <value>DefaultElevation deve estar entre 0 e 24.</value>
+  </data>
+</root>

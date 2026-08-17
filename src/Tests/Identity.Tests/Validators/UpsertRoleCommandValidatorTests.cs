@@ -1,5 +1,6 @@
 using FSH.Modules.Identity.Contracts.v1.Roles.UpsertRole;
 using FSH.Modules.Identity.Features.v1.Roles.UpsertRole;
+using Identity.Tests.Support;
 
 namespace Identity.Tests.Validators;
 
@@ -8,7 +9,7 @@ namespace Identity.Tests.Validators;
 /// </summary>
 public sealed class UpsertRoleCommandValidatorTests
 {
-    private readonly UpsertRoleCommandValidator _sut = new();
+    private readonly UpsertRoleCommandValidator _sut = new(SharedResourcesLocalizerFactory.Create());
 
     #region Name Validation
 

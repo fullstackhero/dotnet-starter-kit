@@ -3,6 +3,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Categories;
 using FSH.Modules.Catalog.Data;
 using FSH.Modules.Catalog.Domain;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,12 @@ public sealed class CreateCategoryCommandHandler(CatalogDbContext dbContext)
                 .ConfigureAwait(false);
             if (!parentExists)
             {
-                throw new NotFoundException($"Parent category {parentId} not found.");
+                throw new NotFoundException($"Parent category {parentId} not found.")
+                {
+                    MessageKey = "Catalog.ParentCategoryNotFound",
+                    MessageArgs = [parentId],
+                    ResourceSource = typeof(CatalogResources),
+                };
             }
         }
 
@@ -36,7 +42,12 @@ public sealed class CreateCategoryCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"A category with name '{command.Name}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.CategoryNameAlreadyExists",
+                MessageArgs = [command.Name],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         dbContext.Categories.Add(category);

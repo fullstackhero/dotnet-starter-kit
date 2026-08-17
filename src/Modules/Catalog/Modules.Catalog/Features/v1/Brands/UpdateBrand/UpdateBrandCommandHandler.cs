@@ -2,6 +2,7 @@ using System.Net;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Brands;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,12 @@ public sealed class UpdateBrandCommandHandler(CatalogDbContext dbContext)
         var brand = await dbContext.Brands
             .FirstOrDefaultAsync(b => b.Id == command.BrandId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Brand {command.BrandId} not found.");
+            ?? throw new NotFoundException($"Brand {command.BrandId} not found.")
+            {
+                MessageKey = "Catalog.BrandNotFound",
+                MessageArgs = [command.BrandId],
+                ResourceSource = typeof(CatalogResources),
+            };
 
         brand.Update(command.Name, command.Description, command.LogoUrl);
 
@@ -29,7 +35,12 @@ public sealed class UpdateBrandCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"Another brand with name '{command.Name}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.AnotherBrandNameAlreadyExists",
+                MessageArgs = [command.Name],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

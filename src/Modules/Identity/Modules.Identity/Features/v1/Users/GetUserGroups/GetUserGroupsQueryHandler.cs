@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Users.GetUserGroups;
 using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +26,12 @@ public sealed class GetUserGroupsQueryHandler : IQueryHandler<GetUserGroupsQuery
 
         if (!userExists)
         {
-            throw new NotFoundException($"User with ID '{query.UserId}' not found.");
+            throw new NotFoundException($"User with ID '{query.UserId}' not found.")
+            {
+                MessageKey = "Identity.UserNotFoundById",
+                MessageArgs = [query.UserId],
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // Get user's groups

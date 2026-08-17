@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Billing.Contracts.v1.Plans;
 using FSH.Modules.Billing.Data;
+using FSH.Modules.Billing.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,12 @@ public sealed class GetPlanTermQueryHandler(BillingDbContext dbContext)
 #pragma warning restore CA1308
         var plan = await dbContext.Plans.AsNoTracking()
             .FirstOrDefaultAsync(p => p.Key == key && p.IsActive, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Active plan with key '{query.PlanKey}' not found.");
+            ?? throw new NotFoundException($"Active plan with key '{query.PlanKey}' not found.")
+            {
+                MessageKey = "Billing.ActivePlanNotFound",
+                MessageArgs = [query.PlanKey],
+                ResourceSource = typeof(BillingResources),
+            };
 
         return new PlanTermResponse(
             plan.Id,

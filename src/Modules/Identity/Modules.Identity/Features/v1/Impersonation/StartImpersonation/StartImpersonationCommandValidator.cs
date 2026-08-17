@@ -1,5 +1,7 @@
 using FluentValidation;
+using FSH.Framework.Core.Localization;
 using FSH.Modules.Identity.Contracts.v1.Impersonation.StartImpersonation;
+using Microsoft.Extensions.Localization;
 
 namespace FSH.Modules.Identity.Features.v1.Impersonation.StartImpersonation;
 
@@ -12,7 +14,7 @@ public sealed class StartImpersonationCommandValidator : AbstractValidator<Start
     /// </summary>
     public const int MaxImpersonationMinutes = 60;
 
-    public StartImpersonationCommandValidator()
+    public StartImpersonationCommandValidator(IStringLocalizer<SharedResources> localizer)
     {
         RuleFor(p => p.TargetUserId)
             .Cascade(CascadeMode.Stop)
@@ -25,7 +27,7 @@ public sealed class StartImpersonationCommandValidator : AbstractValidator<Start
         RuleFor(p => p.DurationMinutes!.Value)
             .GreaterThan(0)
             .LessThanOrEqualTo(MaxImpersonationMinutes)
-            .WithMessage($"Duration must be between 1 and {MaxImpersonationMinutes} minutes.")
+            .WithMessage(_ => localizer["Validation.ImpersonationDurationRange", MaxImpersonationMinutes])
             .When(p => p.DurationMinutes.HasValue);
     }
 }

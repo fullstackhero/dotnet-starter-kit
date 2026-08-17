@@ -20,7 +20,7 @@ public sealed class DiscoverChannelsQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(q);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         int page = Math.Max(1, q.Page);

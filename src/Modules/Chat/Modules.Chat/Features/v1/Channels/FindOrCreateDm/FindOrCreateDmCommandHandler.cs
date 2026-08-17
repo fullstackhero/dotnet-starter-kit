@@ -5,6 +5,7 @@ using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Domain;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -21,13 +22,17 @@ public sealed class FindOrCreateDmCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         var otherIds = cmd.UserIds.Distinct(StringComparer.Ordinal).ToList();
         if (otherIds.Any(id => string.Equals(id, currentUserId, StringComparison.Ordinal)))
         {
-            throw new CustomException("Cannot DM yourself.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.BadRequest);
+            throw new CustomException("Cannot DM yourself.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Chat.CannotDmYourself",
+                ResourceSource = typeof(ChatResources),
+            };
         }
 
         if (otherIds.Count == 1)

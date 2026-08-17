@@ -4,6 +4,7 @@ using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -20,17 +21,25 @@ public sealed class EditMessageCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         var message = await db.Messages.FirstOrDefaultAsync(m => m.Id == cmd.MessageId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Message not found.");
+            ?? throw new NotFoundException("Message not found.")
+            {
+                MessageKey = "Chat.MessageNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
 
         // Verify membership through the parent channel (don't leak existence to non-members).
         var channel = await db.Channels.FirstOrDefaultAsync(c => c.Id == message.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Message not found.");
+            ?? throw new NotFoundException("Message not found.")
+            {
+                MessageKey = "Chat.MessageNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
         channel.RequireMember(currentUserId);
 
         message.Edit(cmd.Body, currentUserId); // domain enforces author-only

@@ -1,7 +1,9 @@
 using FluentValidation;
 using FSH.Framework.Core.Context;
+using FSH.Framework.Core.Localization;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Users.ChangePassword;
+using Microsoft.Extensions.Localization;
 
 namespace FSH.Modules.Identity.Features.v1.Users.ChangePassword;
 
@@ -12,26 +14,27 @@ public sealed class ChangePasswordValidator : AbstractValidator<ChangePasswordCo
 
     public ChangePasswordValidator(
         IPasswordHistoryService passwordHistoryService,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IStringLocalizer<SharedResources> localizer)
     {
         _passwordHistoryService = passwordHistoryService;
         _currentUser = currentUser;
 
         RuleFor(p => p.Password)
             .NotEmpty()
-            .WithMessage("Current password is required.");
+            .WithMessage(_ => localizer["Validation.CurrentPasswordRequired"]);
 
         RuleFor(p => p.NewPassword)
             .NotEmpty()
-            .WithMessage("New password is required.")
+            .WithMessage(_ => localizer["Validation.NewPasswordRequired"])
             .NotEqual(p => p.Password)
-            .WithMessage("New password must be different from the current password.")
+            .WithMessage(_ => localizer["Validation.NewPasswordMustDiffer"])
             .MustAsync(NotBeInPasswordHistoryAsync)
-            .WithMessage("This password has been used recently. Please choose a different password.");
+            .WithMessage(_ => localizer["Validation.PasswordRecentlyUsed"]);
 
         RuleFor(p => p.ConfirmNewPassword)
             .Equal(p => p.NewPassword)
-            .WithMessage("Passwords do not match.");
+            .WithMessage(_ => localizer["Validation.PasswordsDoNotMatch"]);
     }
 
     private async Task<bool> NotBeInPasswordHistoryAsync(string newPassword, CancellationToken cancellationToken)

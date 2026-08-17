@@ -5,6 +5,7 @@ using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Contracts.v1.Queries;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,7 @@ public sealed class ListMessageRepliesQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(query);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         // Load the parent so we can authorize the caller through the channel.
@@ -31,11 +32,19 @@ public sealed class ListMessageRepliesQueryHandler(
             .Select(m => new { m.Id, m.ChannelId })
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Parent message not found.");
+            ?? throw new NotFoundException("Parent message not found.")
+            {
+                MessageKey = "Chat.ParentMessageNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
 
         var channel = await db.Channels.FirstOrDefaultAsync(c => c.Id == parent.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Parent message not found.");
+            ?? throw new NotFoundException("Parent message not found.")
+            {
+                MessageKey = "Chat.ParentMessageNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
         channel.RequireMember(currentUserId);
 
         IQueryable<Domain.Message> q = db.Messages

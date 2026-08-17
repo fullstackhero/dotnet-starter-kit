@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Files.CannotFinalizeInStatus" xml:space="preserve">
+    <value>Cannot finalize file in status {0}.</value>
+  </data>
+  <data name="Files.CannotChangeVisibilityInStatus" xml:space="preserve">
+    <value>Cannot change visibility while file is in status {0}.</value>
+  </data>
+  <data name="Files.UnknownVisibility" xml:space="preserve">
+    <value>Unknown visibility value '{0}'.</value>
+  </data>
+  <data name="Files.FileNotFound" xml:space="preserve">
+    <value>File not found.</value>
+  </data>
+  <data name="Files.NoAccessPolicy" xml:space="preserve">
+    <value>No file access policy is registered.</value>
+  </data>
+  <data name="Files.NotAllowedToChangeVisibility" xml:space="preserve">
+    <value>You are not allowed to change this file's visibility.</value>
+  </data>
+  <data name="Files.NotAllowedToDelete" xml:space="preserve">
+    <value>You are not allowed to delete this file.</value>
+  </data>
+  <data name="Files.NotYourPendingFile" xml:space="preserve">
+    <value>This pending file does not belong to you.</value>
+  </data>
+  <data name="Files.AlreadyFinalized" xml:space="preserve">
+    <value>File is already finalized.</value>
+  </data>
+  <data name="Files.UploadNotReceived" xml:space="preserve">
+    <value>Upload was not received.</value>
+  </data>
+  <data name="Files.UploadedSizeExceedsDeclared" xml:space="preserve">
+    <value>Uploaded size ({0}) exceeds the declared size ({1}).</value>
+  </data>
+  <data name="Files.ContentTypeMismatch" xml:space="preserve">
+    <value>Uploaded content type does not match.</value>
+  </data>
+  <data name="Files.UnknownCategory" xml:space="preserve">
+    <value>Unknown category '{0}'.</value>
+  </data>
+  <data name="Files.ExtensionNotAllowed" xml:space="preserve">
+    <value>Extension '{0}' is not allowed for category '{1}'.</value>
+  </data>
+  <data name="Files.FileExceedsMaxSize" xml:space="preserve">
+    <value>File exceeds the maximum size of {0} bytes for category '{1}'.</value>
+  </data>
+  <data name="Files.NoPolicyForOwnerType" xml:space="preserve">
+    <value>No file access policy is registered for owner type '{0}'.</value>
+  </data>
+  <data name="Files.NotAllowedToAttach" xml:space="preserve">
+    <value>You are not allowed to attach files to this owner.</value>
+  </data>
+  <data name="Files.StorageQuotaExceeded" xml:space="preserve">
+    <value>Storage quota exceeded ({0}/{1} bytes).</value>
+  </data>
+  <data name="Files.VisibilityInvalid" xml:space="preserve">
+    <value>Visibility must be Public or Private.</value>
+  </data>
+</root>

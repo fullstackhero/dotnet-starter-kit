@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Billing</RootNamespace>
 		<AssemblyName>FSH.Modules.Billing</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;S3267</NoWarn>
+		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;S3267;S2094</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

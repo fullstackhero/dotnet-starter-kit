@@ -3,6 +3,7 @@ using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.v1.Tokens.RefreshToken;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
@@ -51,7 +52,11 @@ public sealed class RefreshTokenCommandHandler
         if (validated is null)
         {
             await _securityAudit.TokenRevokedAsync("unknown", clientId!, "InvalidRefreshToken", cancellationToken);
-            throw new UnauthorizedException("Invalid refresh token.");
+            throw new UnauthorizedException("Invalid refresh token.")
+            {
+                MessageKey = "Identity.InvalidRefreshToken",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         var (subject, claims) = validated.Value;
@@ -62,7 +67,11 @@ public sealed class RefreshTokenCommandHandler
         if (!isSessionValid)
         {
             await _securityAudit.TokenRevokedAsync(subject, clientId!, "SessionRevoked", cancellationToken);
-            throw new UnauthorizedException("Session has been revoked.");
+            throw new UnauthorizedException("Session has been revoked.")
+            {
+                MessageKey = "Identity.SessionRevoked",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // Optionally, cross-check the provided access token subject
@@ -87,7 +96,11 @@ public sealed class RefreshTokenCommandHandler
                 !string.Equals(accessTokenSubject, subject, StringComparison.Ordinal))
             {
                 await _securityAudit.TokenRevokedAsync(subject, clientId!, "RefreshTokenSubjectMismatch", cancellationToken);
-                throw new UnauthorizedException("Access token subject mismatch.");
+                throw new UnauthorizedException("Access token subject mismatch.")
+                {
+                    MessageKey = "Identity.AccessTokenSubjectMismatch",
+                    ResourceSource = typeof(IdentityResources),
+                };
             }
         }
 

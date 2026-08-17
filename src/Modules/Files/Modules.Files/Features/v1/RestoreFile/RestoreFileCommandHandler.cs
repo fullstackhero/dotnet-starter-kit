@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Files.Contracts.v1.Commands;
 using FSH.Modules.Files.Data;
+using FSH.Modules.Files.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,11 @@ public sealed class RestoreFileCommandHandler(FilesDbContext db)
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(x => x.Id == cmd.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
 
         if (!f.IsDeleted)
         {

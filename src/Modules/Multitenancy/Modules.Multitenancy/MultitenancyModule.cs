@@ -26,6 +26,7 @@ using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.GetTenantProvision
 using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.RetryTenantProvisioning;
 using FSH.Modules.Multitenancy.Features.v1.RenewTenant;
 using FSH.Modules.Multitenancy.Features.v1.UpdateTenantTheme;
+using FSH.Modules.Multitenancy.Localization;
 using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Services;
 using Hangfire;
@@ -180,7 +181,11 @@ public sealed class MultitenancyModule : IModule
                 {
                     if (!tenant.IsActive)
                     {
-                        throw new ForbiddenException("This tenant has been deactivated. Contact your administrator.");
+                        throw new ForbiddenException("This tenant has been deactivated. Contact your administrator.")
+                        {
+                            MessageKey = "Multitenancy.TenantDeactivated",
+                            ResourceSource = typeof(MultitenancyResources),
+                        };
                     }
 
                     // Expiry is enforced on every request (not just at login) with a grace period:
@@ -191,7 +196,11 @@ public sealed class MultitenancyModule : IModule
                     var graceEndsUtc = tenant.ValidUpto.AddDays(graceDays);
                     if (nowUtc > graceEndsUtc)
                     {
-                        throw new ForbiddenException("This tenant's subscription has expired. Please renew to continue.");
+                        throw new ForbiddenException("This tenant's subscription has expired. Please renew to continue.")
+                        {
+                            MessageKey = "Multitenancy.TenantSubscriptionExpired",
+                            ResourceSource = typeof(MultitenancyResources),
+                        };
                     }
 
                     // Inside the grace period: surface days-left so clients can warn. Set via OnStarting so

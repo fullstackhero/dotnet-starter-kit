@@ -5,6 +5,7 @@ using FSH.Modules.Files.Contracts;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Contracts.v1.Queries;
 using FSH.Modules.Files.Data;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -27,16 +28,28 @@ public sealed class GetFileDownloadUrlQueryHandler(
         var f = await db.FileAssets.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == q.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
 
         var userId = currentUser.GetUserId().ToString();
         var policy = policies.Resolve(f.OwnerType)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
 
         var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
         if (!await policy.CanReadAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
-            throw new NotFoundException("file not found");
+            throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
         }
 
         var ttl = TimeSpan.FromMinutes(options.Value.DownloadUrlTtlMinutes);
