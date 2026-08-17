@@ -1,4 +1,6 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -9,9 +11,10 @@ import { Button } from "@/components/ui/button";
  * rare cases an operator needs it.
  */
 export function RouteError() {
+  const { t } = useTranslation("common");
   const error = useRouteError();
   const navigate = useNavigate();
-  const { status, title, detail } = describe(error);
+  const { status, title, detail } = describe(error, t);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-[var(--color-background)] p-6">
@@ -26,7 +29,7 @@ export function RouteError() {
       />
 
       <div className="fsh-enter relative w-full max-w-xl space-y-6 text-center">
-        <div className="meta text-[var(--color-muted-foreground)]">// SYSTEM RESPONSE</div>
+        <div className="meta text-[var(--color-muted-foreground)]">{t("routeError.systemResponse")}</div>
 
         <h1 className="font-display text-[clamp(4rem,9vw,7rem)] font-semibold leading-[0.95] tracking-[var(--tracking-display)]">
           {status}
@@ -40,7 +43,7 @@ export function RouteError() {
         {detail && (
           <details className="group mx-auto w-full max-w-lg text-left">
             <summary className="meta cursor-pointer text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]">
-              <span className="select-none">// stack trace · click to expand</span>
+              <span className="select-none">{t("routeError.stackTrace")}</span>
             </summary>
             <pre className="mt-3 max-h-60 overflow-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-left font-mono text-[11px] leading-relaxed text-[var(--color-muted-foreground)] whitespace-pre-wrap">
               {detail}
@@ -50,10 +53,10 @@ export function RouteError() {
 
         <div className="flex items-center justify-center gap-2 pt-2">
           <Button variant="signal" onClick={() => navigate(0)}>
-            Reload →
+            {t("routeError.reload")}
           </Button>
           <Button variant="outline" onClick={() => navigate("/")}>
-            Return to overview
+            {t("routeError.returnOverview")}
           </Button>
         </div>
       </div>
@@ -61,18 +64,18 @@ export function RouteError() {
   );
 }
 
-function describe(error: unknown): { status: string; title: string; detail?: string } {
+function describe(error: unknown, t: TFunction): { status: string; title: string; detail?: string } {
   if (isRouteErrorResponse(error)) {
     return {
       status: String(error.status),
-      title: error.statusText || "Route error",
+      title: error.statusText || t("routeError.routeError"),
       detail: typeof error.data === "string" ? error.data : safeStringify(error.data),
     };
   }
   if (error instanceof Error) {
     return { status: "5XX", title: error.message, detail: error.stack };
   }
-  return { status: "5XX", title: "Unexpected error", detail: safeStringify(error) };
+  return { status: "5XX", title: t("routeError.unexpected"), detail: safeStringify(error) };
 }
 
 function safeStringify(value: unknown): string | undefined {

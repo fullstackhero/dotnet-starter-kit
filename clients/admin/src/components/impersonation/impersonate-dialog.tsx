@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, keepPreviousData } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, Search, ShieldAlert, UserCog } from "lucide-react";
 import { toast } from "sonner";
@@ -19,7 +20,10 @@ import {
 import { Monogram } from "@/components/monogram";
 import { ApiRequestError } from "@/lib/api-client";
 import { env } from "@/env";
+import i18n from "@/i18n";
 import { cn } from "@/lib/cn";
+
+type TFn = (key: string, opts?: Record<string, unknown>) => string;
 
 type Props = {
   open: boolean;
@@ -54,6 +58,7 @@ export function ImpersonateDialog({
   tenantName,
   prefillUser,
 }: Props) {
+  const { t } = useTranslation("impersonation");
   const [step, setStep] = useState<"pick" | "configure">(prefillUser ? "configure" : "pick");
   const [selected, setSelected] = useState<UserDto | null>(prefillUser ?? null);
 
@@ -76,14 +81,14 @@ export function ImpersonateDialog({
             >
               <UserCog className="h-4 w-4" />
             </span>
-            <DialogTitle>Impersonate user</DialogTitle>
+            <DialogTitle>{t("dialog.title")}</DialogTitle>
           </div>
           <DialogDescription>
-            Tenant{" "}
+            {t("dialog.tenant")}{" "}
             <code className="code-chip">{tenantName ?? tenantId}</code> ·{" "}
             {step === "pick"
-              ? "pick a user to impersonate."
-              : "session details. Token will be issued and opened in the dashboard."}
+              ? t("dialog.descPick")
+              : t("dialog.descConfigure")}
           </DialogDescription>
         </DialogHeader>
 
@@ -130,6 +135,7 @@ function PickStep({
   onPick: (user: UserDto) => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation("impersonation");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
 
@@ -164,8 +170,8 @@ function PickStep({
             autoFocus
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, email, or username…"
-            aria-label="Search users to impersonate"
+            placeholder={t("dialog.pick.searchPlaceholder")}
+            aria-label={t("dialog.pick.searchAria")}
             className="pl-9"
           />
         </div>
@@ -175,20 +181,20 @@ function PickStep({
             <div className="px-3 py-6 text-sm text-[var(--color-destructive)]">
               {query.error instanceof ApiRequestError
                 ? query.error.problem?.detail ?? query.error.message
-                : "Failed to load users."}
+                : t("dialog.pick.loadError")}
             </div>
           )}
 
           {query.isLoading && (
             <div className="px-3 py-10 text-center font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Loading
+              {t("dialog.pick.loading")}
               <span className="caret text-[var(--color-accent-signal)]" aria-hidden />
             </div>
           )}
 
           {!query.isLoading && users.length === 0 && (
             <div className="px-3 py-10 text-center text-sm text-[var(--color-muted-foreground)]">
-              No users match{debounced ? ` “${debounced}”` : ""}.
+              {t("dialog.pick.noMatch")}{debounced ? ` “${debounced}”` : ""}.
             </div>
           )}
 
@@ -213,7 +219,7 @@ function PickStep({
                         {[user.firstName, user.lastName].filter(Boolean).join(" ") ||
                           user.userName ||
                           user.email ||
-                          "Unnamed"}
+                          t("dialog.pick.unnamed")}
                       </span>
                       {user.userName && (
                         <span className="truncate font-mono text-[11px] text-[var(--color-muted-foreground)]">
@@ -235,7 +241,7 @@ function PickStep({
 
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
-          Cancel
+          {t("dialog.cancel")}
         </Button>
       </DialogFooter>
     </>
@@ -257,6 +263,7 @@ function ConfigureStep({
   onBack?: () => void;
   onDone: () => void;
 }) {
+  const { t } = useTranslation("impersonation");
   const [reason, setReason] = useState("");
   const [minutes, setMinutes] = useState<number>(15);
 
@@ -273,8 +280,8 @@ function ConfigureStep({
       }),
     onSuccess: (response) => {
       handoffToDashboard(response, tenantId);
-      toast.success(`Impersonation started · ${minutes} min`, {
-        description: `Opened the dashboard as ${labelFor(user)}. End impersonation from inside the dashboard tab.`,
+      toast.success(t("dialog.toast.started", { minutes }), {
+        description: t("dialog.toast.startedDesc", { name: labelFor(user, t) }),
       });
       onDone();
     },
@@ -283,7 +290,7 @@ function ConfigureStep({
         err instanceof ApiRequestError
           ? err.problem?.detail ?? err.problem?.title ?? err.message
           : err.message;
-      toast.error("Impersonation failed", { description: detail });
+      toast.error(t("dialog.toast.failed"), { description: detail });
     },
   });
 
@@ -293,7 +300,7 @@ function ConfigureStep({
         <SelectedUserCard user={user} tenantId={tenantId} tenantName={tenantName} />
 
         <fieldset className="space-y-2">
-          <legend className="meta text-[var(--color-muted-foreground)]">// Duration</legend>
+          <legend className="meta text-[var(--color-muted-foreground)]">{t("dialog.configure.duration")}</legend>
           <div className="grid grid-cols-3 gap-2">
             {DURATION_OPTIONS.map((opt) => {
               const active = minutes === opt.minutes;
@@ -313,7 +320,7 @@ function ConfigureStep({
                   <span className="font-display text-lg font-semibold tabular-nums">
                     {opt.minutes}
                   </span>
-                  <span className="meta text-[var(--color-muted-foreground)]">minutes</span>
+                  <span className="meta text-[var(--color-muted-foreground)]">{t("dialog.configure.minutes")}</span>
                 </button>
               );
             })}
@@ -325,7 +332,7 @@ function ConfigureStep({
             htmlFor="impersonation-reason"
             className="meta flex items-center gap-1.5 text-[var(--color-muted-foreground)]"
           >
-            Reason
+            {t("dialog.configure.reason")}
             <span className="text-[var(--color-destructive)]" aria-hidden>
               ·
             </span>
@@ -334,7 +341,7 @@ function ConfigureStep({
             id="impersonation-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. Customer ticket #4821 — verifying ledger discrepancy"
+            placeholder={t("dialog.configure.reasonPlaceholder")}
             rows={3}
             maxLength={500}
             className={cn(
@@ -346,8 +353,7 @@ function ConfigureStep({
           />
           <p className="flex items-center justify-between text-[11px] text-[var(--color-muted-foreground)]">
             <span>
-              Recorded in the security audit trail — be specific enough that a reviewer can
-              reconstruct the case later.
+              {t("dialog.configure.reasonHelp")}
             </span>
             <span
               className={cn(
@@ -363,10 +369,8 @@ function ConfigureStep({
         <div className="flex items-start gap-2 rounded-md border border-[var(--color-warning)]/40 bg-[oklch(from_var(--color-warning)_l_c_h_/_0.08)] px-3 py-2.5 text-xs text-[var(--color-foreground)]">
           <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-warning)]" />
           <div>
-            <strong className="font-medium">Everything you do is attributed to your account.</strong>
-            {" "}The session token carries actor claims; the audit trail will show
-            both the user being impersonated and you as the actor. End from the dashboard
-            tab when done.
+            <strong className="font-medium">{t("dialog.configure.warningStrong")}</strong>
+            {t("dialog.configure.warningRest")}
           </div>
         </div>
       </DialogBody>
@@ -374,7 +378,7 @@ function ConfigureStep({
       <DialogFooter>
         {onBack && (
           <Button variant="outline" onClick={onBack} disabled={mutation.isPending} className="sm:mr-auto">
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Choose another user
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("dialog.configure.chooseAnother")}
           </Button>
         )}
         <Button
@@ -383,10 +387,10 @@ function ConfigureStep({
           onClick={() => mutation.mutate()}
         >
           {mutation.isPending ? (
-            "Issuing token…"
+            t("dialog.configure.issuing")
           ) : (
             <>
-              <Check className="mr-1 h-3.5 w-3.5" /> Start {minutes}-min impersonation
+              <Check className="mr-1 h-3.5 w-3.5" /> {t("dialog.configure.start", { minutes })}
             </>
           )}
         </Button>
@@ -404,6 +408,7 @@ function SelectedUserCard({
   tenantId: string;
   tenantName?: string;
 }) {
+  const { t } = useTranslation("impersonation");
   return (
     <div className="flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-3">
       <Monogram
@@ -415,7 +420,7 @@ function SelectedUserCard({
       />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="truncate text-sm font-medium">{labelFor(user)}</span>
+          <span className="truncate text-sm font-medium">{labelFor(user, t)}</span>
           {user.userName && (
             <span className="truncate font-mono text-[11px] text-[var(--color-muted-foreground)]">
               @{user.userName}
@@ -443,12 +448,21 @@ function SelectedUserCard({
  * history.replaceState() to strip the hash before any render.
  *
  * `expiresAt` is included so the dashboard can show a countdown.
+ *
+ * `locale` carries the OPERATOR's language across the origin boundary. The
+ * server deliberately strips the target's `locale` claim so the operator keeps
+ * reading in their own language (StartImpersonationCommandHandler), but the
+ * dashboard usually runs on a different origin and therefore cannot read this
+ * app's persisted `i18nextLng`. Without this parameter the API culture falls
+ * through to the dashboard's own detected locale, so the shell would be in the
+ * operator's language while API errors came back in another.
  */
 function handoffToDashboard(response: ImpersonationResponse, tenantId: string) {
   const params = new URLSearchParams();
   params.set("token", response.accessToken);
   params.set("tenant", tenantId);
   params.set("expiresAt", response.accessTokenExpiresAt);
+  params.set("locale", i18n.language);
   const url = `${env.dashboardUrl}/#impersonate?${params.toString()}`;
   // noopener+noreferrer so the opened tab can't navigate this one and the
   // referrer header is suppressed entirely (defense in depth — the hash
@@ -456,11 +470,11 @@ function handoffToDashboard(response: ImpersonationResponse, tenantId: string) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function labelFor(user: UserDto): string {
+function labelFor(user: UserDto, t: TFn): string {
   return (
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
     user.userName ||
     user.email ||
-    "Unnamed user"
+    t("dialog.unnamedUser")
   );
 }

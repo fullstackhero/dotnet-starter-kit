@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Plus, Shield, ShieldCheck } from "lucide-react";
@@ -17,6 +18,7 @@ const DESKTOP_COLS =
   "grid-cols-[1fr_120px_24px] lg:grid-cols-[1.4fr_2fr_120px_24px]";
 
 export function RolesListPage() {
+  const { t } = useTranslation("roles");
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -55,17 +57,17 @@ export function RolesListPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Shield}
-        title="Roles"
+        title={t("header.title")}
         total={query.data ? roles.length : null}
         unit="role"
-        description="Define what people can do. Each role bundles a set of permissions; users inherit a role's permissions by being assigned to it."
+        description={t("header.description")}
       >
         <Button
           onClick={() => setCreateOpen(true)}
           className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
         >
           <Plus className="size-4" />
-          New role
+          {t("newRole")}
         </Button>
       </EntityPageHeader>
 
@@ -78,8 +80,8 @@ export function RolesListPage() {
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or description…"
-          aria-label="Search roles"
+          placeholder={t("search.placeholder")}
+          aria-label={t("search.aria")}
           className="h-9 w-full rounded-md border border-[var(--color-input)] bg-transparent pl-9 pr-3 text-[13px] outline-none transition-colors placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)] focus-visible:border-[var(--color-ring)] focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
         />
       </div>
@@ -89,37 +91,37 @@ export function RolesListPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load roles."
+              : t("loadError")
           }
         />
       )}
 
-      {query.isLoading && <LoadingRow label="Loading roles" />}
+      {query.isLoading && <LoadingRow label={t("loading")} />}
 
       {!query.isLoading && filtered.length === 0 && !query.isError && (
         searchActive ? (
           <div className="py-16 text-center">
-            <p className="font-display text-2xl">No roles found.</p>
+            <p className="font-display text-2xl">{t("empty.searchTitle")}</p>
             <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-              Nothing matches &ldquo;{debounced}&rdquo;. Try a different term.
+              {t("empty.searchDesc", { term: debounced })}
             </p>
             <Button
               variant="outline"
               className="mt-4 h-9 rounded-lg px-4 text-[13px]"
               onClick={() => setSearch("")}
             >
-              Clear search
+              {t("clearSearch")}
             </Button>
           </div>
         ) : (
           <EmptyState
             icon={ShieldCheck}
-            kicker="// no roles"
-            title="No roles defined yet."
-            description="Create your first role to start bundling permissions."
+            kicker={t("empty.kicker")}
+            title={t("empty.title")}
+            description={t("empty.description")}
             action={
               <Button onClick={() => setCreateOpen(true)} className="h-9 rounded-lg px-4 text-[13px]">
-                <Plus className="mr-1.5 h-4 w-4" /> New role
+                <Plus className="mr-1.5 h-4 w-4" /> {t("newRole")}
               </Button>
             }
           />
@@ -129,7 +131,7 @@ export function RolesListPage() {
       {filtered.length > 0 && (
         <div>
           <p className="mb-3 text-[12px] font-medium text-[var(--color-muted-foreground)]">
-            {filtered.length} role{filtered.length !== 1 ? "s" : ""} found
+            {t("found", { count: filtered.length })}
           </p>
 
           {/* Mobile card list */}
@@ -150,13 +152,13 @@ export function RolesListPage() {
               className={`grid items-center gap-3 border-b border-[var(--color-border)] bg-[var(--color-muted)]/40 px-4 py-2.5 ${DESKTOP_COLS}`}
             >
               <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                Name
+                {t("col.name")}
               </span>
               <span className="hidden text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:block">
-                Description
+                {t("col.description")}
               </span>
               <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                Permissions
+                {t("col.permissions")}
               </span>
               <span />
             </div>
@@ -189,13 +191,14 @@ function RoleMobileCard({
   role: RoleDto;
   onClick: () => void;
 }) {
+  const { t } = useTranslation("roles");
   const isSystem = ROOT_ROLE_NAMES.has(role.name);
   return (
     <li className="list-none">
       <button
         type="button"
         onClick={onClick}
-        aria-label={`Open role ${role.name}`}
+        aria-label={t("openRole", { name: role.name })}
         className="group w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left shadow-xs transition-colors hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
       >
         <div className="flex items-center justify-between">
@@ -218,12 +221,12 @@ function RoleMobileCard({
                 </p>
                 {isSystem && (
                   <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-[0.14em]">
-                    System
+                    {t("system")}
                   </Badge>
                 )}
               </div>
               <p className="mt-0.5 truncate text-[11px] text-[var(--color-muted-foreground)]">
-                {role.description ?? <span className="italic opacity-60">No description on file.</span>}
+                {role.description ?? <span className="italic opacity-60">{t("noDescription")}</span>}
               </p>
             </div>
           </div>
@@ -232,8 +235,7 @@ function RoleMobileCard({
         {role.permissions != null && (
           <div className="mt-2 ml-[52px]">
             <span className="inline-flex items-center rounded-full bg-[oklch(from_var(--color-info)_l_c_h_/_0.12)] px-2 py-0.5 text-[10.5px] font-medium text-[var(--color-info)]">
-              {role.permissions.length}{" "}
-              {role.permissions.length === 1 ? "permission" : "permissions"}
+              {t("permCount", { count: role.permissions.length })}
             </span>
           </div>
         )}
@@ -253,11 +255,12 @@ function RoleDesktopRow({
   isLast: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation("roles");
   const isSystem = ROOT_ROLE_NAMES.has(role.name);
   const permLabel =
     role.permissions === undefined || role.permissions === null
       ? "—"
-      : `${role.permissions.length} ${role.permissions.length === 1 ? "permission" : "permissions"}`;
+      : t("permCount", { count: role.permissions.length });
 
   return (
     <li className="list-none">
@@ -284,7 +287,7 @@ function RoleDesktopRow({
           </span>
           {isSystem && (
             <Badge variant="outline" className="shrink-0 font-mono text-[10px] uppercase tracking-[0.14em]">
-              System
+              {t("system")}
             </Badge>
           )}
         </div>
@@ -292,7 +295,7 @@ function RoleDesktopRow({
         {/* Description (lg+) */}
         <div className="hidden lg:block">
           <p className="truncate text-[12.5px] text-[var(--color-muted-foreground)]">
-            {role.description ?? <span className="italic opacity-60">No description on file.</span>}
+            {role.description ?? <span className="italic opacity-60">{t("noDescription")}</span>}
           </p>
         </div>
 

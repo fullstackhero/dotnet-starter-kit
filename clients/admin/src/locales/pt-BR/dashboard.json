@@ -1,0 +1,23 @@
+{
+  "title": "Visão geral",
+  "greeting": ", {{name}}",
+  "description": "Opere todas as organizações desta instância: identidade, multiorganização, faturamento e o restante da superfície do sistema.",
+  "stat.tenants": "Organizações",
+  "stat.tenantsHint": "registrados nesta instância",
+  "stat.plans": "Planos",
+  "stat.plansActive": "{{count}} ativos",
+  "stat.invoices": "Faturas",
+  "stat.invoicesHint": "{{count}} no razão total",
+  "stat.invoicesLoading": "carregando…",
+  "stat.outstanding": "Em aberto",
+  "stat.outstandingHint": "emitidas, aguardando pagamento",
+  "entryPoints": "Pontos de entrada",
+  "pivot.tenants.title": "Organizações",
+  "pivot.tenants.description": "Provisione, suspenda e inspecione organizações.",
+  "pivot.users.title": "Usuários",
+  "pivot.users.description": "Operadores da organização raiz e gestão de papéis.",
+  "pivot.billing.title": "Faturamento",
+  "pivot.billing.description": "Planos, assinaturas, faturas e preços.",
+  "pivot.invoices.title": "Faturas",
+  "pivot.invoices.description": "Razão entre organizações. Emitir, marcar como paga, anular."
+}

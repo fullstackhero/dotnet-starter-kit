@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   keepPreviousData,
@@ -32,11 +33,13 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { CreateWebhookDialog } from "@/components/webhooks/create-webhook-dialog";
 import { ApiRequestError } from "@/lib/api-client";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
 const PAGE_SIZE = 25;
 
 export function WebhooksListPage() {
+  const { t } = useTranslation("webhooks");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -54,16 +57,16 @@ export function WebhooksListPage() {
     onMutate: (id) => setBusyId(id),
     onSuccess: (data) => {
       if (data.success) {
-        toast.success("Test event delivered", {
-          description: "Your endpoint accepted the payload. Check Deliveries for details.",
+        toast.success(t("toast.testDelivered"), {
+          description: t("toast.testDeliveredDesc"),
         });
       } else {
-        toast.warning("Test failed", {
-          description: "Endpoint rejected the test event. See Deliveries for the response code.",
+        toast.warning(t("toast.testFailed"), {
+          description: t("toast.testFailedDesc"),
         });
       }
     },
-    onError: (err) => toast.error("Test failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("toast.testFailed"), { description: describe(err) }),
     onSettled: () => setBusyId(null),
   });
 
@@ -71,10 +74,10 @@ export function WebhooksListPage() {
     mutationFn: (id: string) => deleteWebhookSubscription(id),
     onMutate: (id) => setBusyId(id),
     onSuccess: () => {
-      toast.success("Subscription deleted");
+      toast.success(t("toast.deleted"));
       queryClient.invalidateQueries({ queryKey: ["webhooks", "subscriptions"] });
     },
-    onError: (err) => toast.error("Delete failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("toast.deleteFailed"), { description: describe(err) }),
     onSettled: () => setBusyId(null),
   });
 
@@ -85,10 +88,10 @@ export function WebhooksListPage() {
     <div className="space-y-8">
       <EntityPageHeader
         icon={Webhook}
-        title="Webhooks"
+        title={t("list.title")}
         total={data?.totalCount ?? null}
-        unit="subscription"
-        description="Subscribe HTTP endpoints to domain events. Payloads are signed with HMAC-SHA256 using the secret you provide — verify the X-FSH-Signature header on your side before trusting the body."
+        unit={t("list.unit")}
+        description={t("list.description")}
       >
         <Button
           variant="outline"
@@ -98,10 +101,10 @@ export function WebhooksListPage() {
           className="flex-1 sm:flex-none"
         >
           <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-          Refresh
+          {t("list.refresh")}
         </Button>
         <Button onClick={() => setCreateOpen(true)} className="flex-1 sm:flex-none">
-          <Plus className="mr-1 h-4 w-4" /> New subscription
+          <Plus className="mr-1 h-4 w-4" /> {t("list.newSubscription")}
         </Button>
       </EntityPageHeader>
 
@@ -110,22 +113,22 @@ export function WebhooksListPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load subscriptions."
+              : t("list.loadError")
           }
         />
       )}
 
-      {query.isLoading && <LoadingRow label="Loading subscriptions" />}
+      {query.isLoading && <LoadingRow label={t("list.loading")} />}
 
       {!query.isLoading && items.length === 0 && !query.isError && (
         <EmptyState
           icon={Webhook}
-          kicker="// no subscriptions"
-          title="No webhook subscriptions yet."
-          description="Add an endpoint and pick which events should fire. We'll retry failed deliveries automatically."
+          kicker={t("list.empty.kicker")}
+          title={t("list.empty.title")}
+          description={t("list.empty.description")}
           action={
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> New subscription
+              <Plus className="mr-1 h-4 w-4" /> {t("list.newSubscription")}
             </Button>
           }
         />
@@ -141,7 +144,7 @@ export function WebhooksListPage() {
               busy={busyId === sub.id}
               onTest={() => test.mutate(sub.id)}
               onDelete={() => {
-                if (window.confirm(`Delete subscription to ${sub.url}?`)) {
+                if (window.confirm(t("list.confirmDelete", { url: sub.url }))) {
                   remove.mutate(sub.id);
                 }
               }}
@@ -162,7 +165,7 @@ export function WebhooksListPage() {
           hasNext={data.hasNext}
           onPrev={() => setPage((p) => Math.max(1, p - 1))}
           onNext={() => setPage((p) => p + 1)}
-          noun="subscriptions"
+          noun={t("list.noun")}
         />
       )}
 
@@ -190,6 +193,7 @@ function Row({
   onDelete: () => void;
   onOpen: () => void;
 }) {
+  const { t } = useTranslation("webhooks");
   const num = String(index).padStart(3, "0");
   return (
     <li>
@@ -203,7 +207,7 @@ function Row({
             sub.isActive ? "bg-[var(--color-accent-signal)]" : "bg-[var(--color-muted-foreground)]/50",
           )}
           aria-hidden
-          title={sub.isActive ? "Active" : "Inactive"}
+          title={sub.isActive ? t("badge.activeTitle") : t("badge.inactiveTitle")}
         />
         <button
           type="button"
@@ -217,11 +221,11 @@ function Row({
             ))}
             {sub.events.length > 4 && (
               <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-                +{sub.events.length - 4} more
+                {t("list.moreEvents", { count: sub.events.length - 4 })}
               </span>
             )}
             <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              · since {new Date(sub.createdAtUtc).toLocaleDateString()}
+              {t("list.since", { date: formatDate(sub.createdAtUtc) })}
             </span>
           </div>
         </button>
@@ -229,17 +233,17 @@ function Row({
           variant={sub.isActive ? "success" : "muted"}
           className="font-mono uppercase tracking-[0.14em]"
         >
-          {sub.isActive ? "Active" : "Inactive"}
+          {sub.isActive ? t("badge.active") : t("badge.inactive")}
         </Badge>
         <Button variant="outline" size="sm" onClick={onTest} disabled={busy}>
-          <Send className="mr-1 h-3.5 w-3.5" /> Test
+          <Send className="mr-1 h-3.5 w-3.5" /> {t("list.test")}
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={onDelete}
           disabled={busy}
-          aria-label={`Delete subscription to ${sub.url}`}
+          aria-label={t("list.deleteAria", { url: sub.url })}
           className="text-[var(--color-destructive)] hover:bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)]"
         >
           <Trash2 className="h-3.5 w-3.5" />

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 
 type FilterBarProps = {
@@ -14,6 +15,7 @@ type FilterBarProps = {
  * screens so it never overflows.
  */
 export function FilterBar({ children, trailing, className }: FilterBarProps) {
+  const { t } = useTranslation("common");
   return (
     <div
       className={cn(
@@ -21,7 +23,7 @@ export function FilterBar({ children, trailing, className }: FilterBarProps) {
         className,
       )}
     >
-      <span className="meta text-[var(--color-muted-foreground)]">// Filters</span>
+      <span className="meta text-[var(--color-muted-foreground)]">// {t("filterBar.filters")}</span>
       <div className="flex flex-1 flex-wrap items-center gap-2">{children}</div>
       {trailing && <div className="flex items-center gap-2">{trailing}</div>}
     </div>

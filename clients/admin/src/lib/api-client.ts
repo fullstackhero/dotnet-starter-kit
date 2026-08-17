@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import i18n from "@/i18n";
 import { tokenStore } from "@/auth/token-store";
 
 export type ApiError = {
@@ -137,6 +138,13 @@ export async function apiFetch<T = unknown>(
   const tenant = tokenStore.getTenant() ?? env.defaultTenant;
   if (tenant && !mergedHeaders.has("tenant")) {
     mergedHeaders.set("tenant", tenant);
+  }
+
+  // Tell the backend which culture to localize responses in. The active UI
+  // locale drives it; the backend resolution chain still falls through to its
+  // own default for anything unsupported.
+  if (!mergedHeaders.has("Accept-Language")) {
+    mergedHeaders.set("Accept-Language", i18n.language || "en-US");
   }
 
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;

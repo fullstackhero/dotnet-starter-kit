@@ -19,7 +19,10 @@ import {
   WebhooksPermissions,
 } from "@/lib/permissions";
 
-/** A single nav destination — label, route, icon, optional perm guard. */
+/**
+ * A single nav destination. `label` is a `nav` namespace translation key
+ * (not display text) — render sites resolve it via `t(item.label)`.
+ */
 export type NavSpec = {
   to: string;
   label: string;
@@ -28,7 +31,7 @@ export type NavSpec = {
   perms?: readonly string[];
 };
 
-/** A collapsible section that groups related NavSpecs. */
+/** A collapsible section that groups related NavSpecs. `caption` is a `nav` key. */
 export type NavSection = {
   id: string;
   caption: string;
@@ -39,11 +42,11 @@ export type NavSection = {
 // ─── Top-level singletons ────────────────────────────────────────────────────
 
 export const topNavTop: NavSpec[] = [
-  { to: "/", label: "Overview", icon: LayoutDashboard },
+  { to: "/", label: "overview", icon: LayoutDashboard },
 ];
 
 export const topNavBottom: NavSpec[] = [
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/settings", label: "settings", icon: Settings },
 ];
 
 // ─── Section accordions ──────────────────────────────────────────────────────
@@ -51,12 +54,12 @@ export const topNavBottom: NavSpec[] = [
 export const sections: NavSection[] = [
   {
     id: "multitenancy",
-    caption: "Tenants",
+    caption: "tenants",
     icon: Building2,
     items: [
       {
         to: "/tenants",
-        label: "Tenants",
+        label: "tenants",
         icon: Building2,
         perms: [MultitenancyPermissions.Tenants.View],
       },
@@ -64,24 +67,24 @@ export const sections: NavSection[] = [
   },
   {
     id: "identity",
-    caption: "Identity",
+    caption: "identity",
     icon: UsersRound,
     items: [
       {
         to: "/users",
-        label: "Users",
+        label: "users",
         icon: UsersRound,
         perms: [IdentityPermissions.Users.View],
       },
       {
         to: "/roles",
-        label: "Roles",
+        label: "roles",
         icon: ShieldCheck,
         perms: [IdentityPermissions.Roles.View],
       },
       {
         to: "/impersonation",
-        label: "Impersonation",
+        label: "impersonation",
         icon: UserCog,
         perms: [IdentityPermissions.Impersonation.View],
       },
@@ -89,30 +92,30 @@ export const sections: NavSection[] = [
   },
   {
     id: "operations",
-    caption: "Operations",
+    caption: "operations",
     icon: Activity,
     items: [
       {
         to: "/billing",
-        label: "Billing",
+        label: "billing",
         icon: Receipt,
         perms: [BillingPermissions.View],
       },
       {
         to: "/webhooks",
-        label: "Webhooks",
+        label: "webhooks",
         icon: Webhook,
         perms: [WebhooksPermissions.Subscriptions.View],
       },
       {
         to: "/audits",
-        label: "Audits",
+        label: "audits",
         icon: ScrollText,
         perms: [AuditingPermissions.AuditTrails.View],
       },
       {
         to: "/health",
-        label: "Health",
+        label: "health",
         icon: Activity,
       },
     ],

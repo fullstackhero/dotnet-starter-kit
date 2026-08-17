@@ -1,0 +1,23 @@
+{
+  "title": "Overview",
+  "greeting": ", {{name}}",
+  "description": "Operate every tenant on this instance — identity, multitenancy, billing, and the rest of the system surface.",
+  "stat.tenants": "Tenants",
+  "stat.tenantsHint": "registered on this instance",
+  "stat.plans": "Plans",
+  "stat.plansActive": "{{count}} active",
+  "stat.invoices": "Invoices",
+  "stat.invoicesHint": "{{count}} total ledger",
+  "stat.invoicesLoading": "loading…",
+  "stat.outstanding": "Outstanding",
+  "stat.outstandingHint": "issued, awaiting payment",
+  "entryPoints": "Entry points",
+  "pivot.tenants.title": "Tenants",
+  "pivot.tenants.description": "Provision, suspend, and inspect tenants.",
+  "pivot.users.title": "Users",
+  "pivot.users.description": "Root-tenant operators and role management.",
+  "pivot.billing.title": "Billing",
+  "pivot.billing.description": "Plans, subscriptions, invoices and pricing.",
+  "pivot.invoices.title": "Invoices",
+  "pivot.invoices.description": "Cross-tenant ledger. Issue, mark paid, void."
+}

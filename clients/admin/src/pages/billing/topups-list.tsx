@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   useMutation,
@@ -39,6 +40,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Select } from "@/components/list";
 import { KpiTile } from "@/components/kpi-tile";
 import { ApiRequestError } from "@/lib/api-client";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { useAuth } from "@/auth/use-auth";
 import { BillingPermissions } from "@/lib/permissions";
 
@@ -47,26 +49,6 @@ const PAGE_SIZE = 20;
 const STATUSES: TopupRequestStatus[] = ["Pending", "Approved", "Rejected", "Completed"];
 
 // ─── helpers ─────────────────────────────────────────────────────────
-
-function formatMoney(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
-}
-
-const dateShort = new Intl.DateTimeFormat(undefined, {
-  month: "short",
-  day: "2-digit",
-  year: "numeric",
-});
-
-function formatDate(iso?: string | null) {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : dateShort.format(d);
-}
 
 function statusVariant(status: TopupRequestStatus): React.ComponentProps<typeof Badge>["variant"] {
   switch (status) {
@@ -94,6 +76,9 @@ type ActionTarget = { request: TopupRequestDto; mode: "approve" | "reject" };
 // ─── component ───────────────────────────────────────────────────────
 
 export function TopupsListPage() {
+  const { t } = useTranslation("billing");
+  const statusLabel = (status: TopupRequestStatus): string =>
+    t(`status.${status.charAt(0).toLowerCase()}${status.slice(1)}`);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
@@ -159,11 +144,11 @@ export function TopupsListPage() {
     mutationFn: (vars: { id: string; note?: string }) =>
       approveTopupRequest(vars.id, vars.note),
     onSuccess: (invoiceId) => {
-      toast.success("Invoice generated", {
-        description: "A draft invoice was created for this top-up.",
+      toast.success(t("topups.toast.invoiceGenerated"), {
+        description: t("topups.toast.invoiceGeneratedDesc"),
         action: invoiceId
           ? {
-              label: "View invoice",
+              label: t("topups.toast.viewInvoice"),
               onClick: () => navigate(`/billing/invoices/${invoiceId}`),
             }
           : undefined,
@@ -172,19 +157,19 @@ export function TopupsListPage() {
       closeAction();
     },
     onError: (err) =>
-      toast.error("Approve failed", { description: describe(err, "Could not approve the request.") }),
+      toast.error(t("topups.toast.approveFailed"), { description: describe(err, t("topups.toast.approveFailedDesc")) }),
   });
 
   const rejectMutation = useMutation({
     mutationFn: (vars: { id: string; reason?: string }) =>
       rejectTopupRequest(vars.id, vars.reason),
     onSuccess: () => {
-      toast.success("Request rejected");
+      toast.success(t("topups.toast.rejected"));
       invalidate();
       closeAction();
     },
     onError: (err) =>
-      toast.error("Reject failed", { description: describe(err, "Could not reject the request.") }),
+      toast.error(t("topups.toast.rejectFailed"), { description: describe(err, t("topups.toast.rejectFailedDesc")) }),
   });
 
   const actionPending = approveMutation.isPending || rejectMutation.isPending;
@@ -203,25 +188,29 @@ export function TopupsListPage() {
       {/* KPI strip — page-scope (current page, not all-time) */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <KpiTile
-          label="Page requests"
+          label={t("topups.kpi.pageRequests")}
           value={query.isLoading ? <Skeleton className="h-7 w-16" /> : data?.items.length ?? 0}
-          subtitle={data ? `${data.totalCount.toLocaleString()} total` : "loading…"}
+          subtitle={
+            data
+              ? t("topups.kpi.totalCount", { count: data.totalCount })
+              : t("topups.kpi.loading")
+          }
         />
         <KpiTile
-          label="Pending"
+          label={t("topups.kpi.pending")}
           value={query.isLoading ? <Skeleton className="h-7 w-12" /> : totals.pendingCount}
-          subtitle="awaiting decision (this page)"
+          subtitle={t("topups.kpi.pendingHint")}
         />
         <KpiTile
-          label="Requested"
+          label={t("topups.kpi.requested")}
           value={
             query.isLoading ? (
               <Skeleton className="h-7 w-24" />
             ) : (
-              formatMoney(totals.requested, totals.currency)
+              formatCurrency(totals.requested, totals.currency)
             )
           }
-          subtitle="this page"
+          subtitle={t("topups.kpi.thisPage")}
         />
       </div>
 
@@ -231,24 +220,22 @@ export function TopupsListPage() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-[var(--color-muted-foreground)]" />
-              <span>Filters</span>
+              <span>{t("topups.filters.title")}</span>
             </CardTitle>
-            <CardDescription>
-              Review wallet top-up requests across every tenant. Approve to generate an invoice.
-            </CardDescription>
+            <CardDescription>{t("topups.filters.description")}</CardDescription>
           </div>
           {filtersDirty && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="mr-1 h-3.5 w-3.5" /> Clear
+              <X className="mr-1 h-3.5 w-3.5" /> {t("invoices.filters.clear")}
             </Button>
           )}
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="filter-tenant">Tenant</Label>
+            <Label htmlFor="filter-tenant">{t("topups.filters.tenant")}</Label>
             <Input
               id="filter-tenant"
-              placeholder="tenant identifier"
+              placeholder={t("topups.filters.tenantPlaceholder")}
               value={tenantFilter}
               onChange={(e) => {
                 setTenantFilter(e.target.value);
@@ -258,7 +245,7 @@ export function TopupsListPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="filter-status">Status</Label>
+            <Label htmlFor="filter-status">{t("topups.filters.status")}</Label>
             <Select
               id="filter-status"
               value={statusFilter}
@@ -266,8 +253,8 @@ export function TopupsListPage() {
                 setStatusFilter(v as TopupRequestStatus | "");
                 setPageNumber(1);
               }}
-              options={STATUSES.map((s) => ({ value: s, label: s }))}
-              emptyLabel="All"
+              options={STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))}
+              emptyLabel={t("status.all")}
             />
           </div>
         </CardContent>
@@ -276,23 +263,21 @@ export function TopupsListPage() {
       {/* List */}
       <Card>
         <CardHeader>
-          <CardTitle>Top-up requests</CardTitle>
+          <CardTitle>{t("topups.list.title")}</CardTitle>
           <CardDescription>
-            {data ? (
-              <>
-                Page <span className="tabular-nums">{data.pageNumber}</span> of{" "}
-                <span className="tabular-nums">{Math.max(data.totalPages, 1)}</span> ·{" "}
-                <span className="tabular-nums">{data.totalCount.toLocaleString()}</span> total
-              </>
-            ) : (
-              "Loading…"
-            )}
+            {data
+              ? t("invoices.list.summary", {
+                  page: data.pageNumber,
+                  total: Math.max(data.totalPages, 1),
+                  count: data.totalCount,
+                })
+              : t("invoices.list.loading")}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {query.isError && (
             <div className="border-t border-[var(--color-border)] px-6 py-4 text-sm text-[var(--color-destructive)]">
-              {describe(query.error, "Failed to load top-up requests.")}
+              {describe(query.error, t("topups.loadError"))}
             </div>
           )}
 
@@ -312,7 +297,7 @@ export function TopupsListPage() {
             </ul>
           ) : items.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-[var(--color-muted-foreground)]">
-              No top-up requests match the current filters.
+              {t("topups.list.empty")}
             </div>
           ) : (
             <ul>
@@ -333,23 +318,24 @@ export function TopupsListPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-display text-base font-semibold tabular-nums">
-                          {formatMoney(req.amount, req.currency)}
+                          {formatCurrency(req.amount, req.currency)}
                         </span>
-                        <Badge variant={statusVariant(req.status)}>{req.status}</Badge>
+                        <Badge variant={statusVariant(req.status)}>{statusLabel(req.status)}</Badge>
                         {req.invoiceId && (
                           <button
                             type="button"
                             onClick={() => navigate(`/billing/invoices/${req.invoiceId}`)}
                             className="inline-flex items-center gap-1 rounded font-mono text-[11px] text-[var(--color-primary)] underline-offset-2 hover:underline"
                           >
-                            <Receipt className="h-3 w-3" /> invoice
+                            <Receipt className="h-3 w-3" /> {t("topups.invoiceLink")}
                           </button>
                         )}
                       </div>
                       <div className="mt-1 truncate font-mono text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
-                        tenant <span className="text-[var(--color-foreground)]">{req.tenantId}</span> ·
-                        created {formatDate(req.createdAtUtc)}
-                        {req.decidedAtUtc && ` · decided ${formatDate(req.decidedAtUtc)}`}
+                        {t("label.tenant")}{" "}
+                        <span className="text-[var(--color-foreground)]">{req.tenantId}</span> ·{" "}
+                        {t("label.created")} {formatDate(req.createdAtUtc)}
+                        {req.decidedAtUtc && ` · ${t("label.decided")} ${formatDate(req.decidedAtUtc)}`}
                         {req.note && ` · “${req.note}”`}
                       </div>
                     </div>
@@ -366,7 +352,7 @@ export function TopupsListPage() {
                           setAction({ request: req, mode: "approve" });
                         }}
                       >
-                        <Check className="mr-1 h-3.5 w-3.5" /> Approve
+                        <Check className="mr-1 h-3.5 w-3.5" /> {t("topups.approve")}
                       </Button>
                       <Button
                         variant="outline"
@@ -377,7 +363,7 @@ export function TopupsListPage() {
                           setAction({ request: req, mode: "reject" });
                         }}
                       >
-                        <X className="mr-1 h-3.5 w-3.5" /> Reject
+                        <X className="mr-1 h-3.5 w-3.5" /> {t("topups.reject")}
                       </Button>
                     </div>
                   )}
@@ -391,7 +377,12 @@ export function TopupsListPage() {
       {/* Pagination */}
       <div className="flex items-center justify-between text-sm">
         <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-          {data ? `Page ${data.pageNumber} / ${Math.max(data.totalPages, 1)}` : ""}
+          {data
+            ? t("pagination.pageOf", {
+                page: data.pageNumber,
+                total: Math.max(data.totalPages, 1),
+              })
+            : ""}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -400,7 +391,7 @@ export function TopupsListPage() {
             disabled={!data?.hasPrevious || query.isFetching}
             onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
           >
-            <ChevronLeft className="mr-1 h-4 w-4" /> Previous
+            <ChevronLeft className="mr-1 h-4 w-4" /> {t("pagination.previous")}
           </Button>
           <Button
             variant="outline"
@@ -408,7 +399,7 @@ export function TopupsListPage() {
             disabled={!data?.hasNext || query.isFetching}
             onClick={() => setPageNumber((p) => p + 1)}
           >
-            Next <ChevronRight className="ml-1 h-4 w-4" />
+            {t("pagination.next")} <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -419,44 +410,33 @@ export function TopupsListPage() {
         onOpenChange={(open) => {
           if (!open) closeAction();
         }}
-        title={action?.mode === "reject" ? "Reject top-up request" : "Approve top-up request"}
+        title={action?.mode === "reject" ? t("topups.confirm.rejectTitle") : t("topups.confirm.approveTitle")}
         destructive={action?.mode === "reject"}
-        confirmLabel={action?.mode === "reject" ? "Reject" : "Approve & generate invoice"}
+        confirmLabel={action?.mode === "reject" ? t("topups.confirm.rejectConfirm") : t("topups.confirm.approveConfirm")}
         pending={actionPending}
         onConfirm={confirmAction}
         description={
           action ? (
             <div className="space-y-3">
               <p>
-                {action.mode === "reject" ? (
-                  <>
-                    Reject the{" "}
-                    <span className="font-semibold">
-                      {formatMoney(action.request.amount, action.request.currency)}
-                    </span>{" "}
-                    top-up for tenant{" "}
-                    <span className="font-mono">{action.request.tenantId}</span>? This cannot be undone.
-                  </>
-                ) : (
-                  <>
-                    Approve the{" "}
-                    <span className="font-semibold">
-                      {formatMoney(action.request.amount, action.request.currency)}
-                    </span>{" "}
-                    top-up for tenant{" "}
-                    <span className="font-mono">{action.request.tenantId}</span>? An invoice will be
-                    generated for the operator to mark paid.
-                  </>
-                )}
+                {action.mode === "reject"
+                  ? t("topups.confirm.rejectBody", {
+                      amount: formatCurrency(action.request.amount, action.request.currency),
+                      tenant: action.request.tenantId,
+                    })
+                  : t("topups.confirm.approveBody", {
+                      amount: formatCurrency(action.request.amount, action.request.currency),
+                      tenant: action.request.tenantId,
+                    })}
               </p>
               <div className="space-y-1.5">
                 <Label htmlFor="decision-note">
-                  {action.mode === "reject" ? "Reason" : "Note"}{" "}
-                  <span className="text-[var(--color-muted-foreground)]">(optional)</span>
+                  {action.mode === "reject" ? t("topups.confirm.reason") : t("topups.confirm.note")}{" "}
+                  <span className="text-[var(--color-muted-foreground)]">{t("topups.confirm.optional")}</span>
                 </Label>
                 <Input
                   id="decision-note"
-                  placeholder={action.mode === "reject" ? "duplicate · invalid · …" : "internal note"}
+                  placeholder={action.mode === "reject" ? t("topups.confirm.rejectPlaceholder") : t("topups.confirm.notePlaceholder")}
                   value={decisionNote}
                   onChange={(e) => setDecisionNote(e.target.value)}
                   disabled={actionPending}

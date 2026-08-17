@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 
 type LoadingRowProps = {
@@ -10,7 +11,8 @@ type LoadingRowProps = {
  * a list while the first page resolves. Subtle, no spinner — the
  * caret-style ellipsis is enough.
  */
-export function LoadingRow({ className, label = "Loading" }: LoadingRowProps) {
+export function LoadingRow({ className, label }: LoadingRowProps) {
+  const { t } = useTranslation("common");
   return (
     <div
       role="status"
@@ -19,7 +21,7 @@ export function LoadingRow({ className, label = "Loading" }: LoadingRowProps) {
         className,
       )}
     >
-      {label}
+      {label ?? t("loading.label")}
       <span className="caret text-[var(--color-accent-signal)]" aria-hidden />
     </div>
   );

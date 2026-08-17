@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { RouterProvider } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, Loader2 } from "lucide-react";
 import { queryClient } from "@/lib/query-client";
 import { AuthProvider } from "@/auth/auth-context";
@@ -10,6 +11,7 @@ import { ThemeProvider, useTheme } from "@/components/theme/theme-provider";
 import { router } from "@/routes";
 
 export function App() {
+  const { t } = useTranslation("common");
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -22,7 +24,7 @@ export function App() {
               fallback={
                 <div
                   role="status"
-                  aria-label="Loading"
+                  aria-label={t("loading.label")}
                   className="grid min-h-dvh place-items-center bg-[var(--color-background)]"
                 />
               }

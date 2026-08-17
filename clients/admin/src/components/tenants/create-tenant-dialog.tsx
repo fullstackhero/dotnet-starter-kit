@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
@@ -31,41 +32,34 @@ import {
 } from "@/components/ui/dialog";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { formatCurrency } from "@/lib/format";
 
 // ─── Schema (unchanged contract) ────────────────────────────────────────────
 
 const TENANT_ID_RE = /^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/;
 
-const schema = z.object({
-  id: z
-    .string()
-    .trim()
-    .regex(
-      TENANT_ID_RE,
-      "Lowercase letters, digits, hyphens. 3–64 chars. No leading/trailing hyphen.",
-    ),
-  name: z.string().trim().min(2, "At least 2 characters.").max(128),
-  adminEmail: z.string().trim().email("Enter a valid email."),
-  adminPassword: z
-    .string()
-    .min(8, "At least 8 characters.")
-    .max(128, "Maximum 128 characters."),
-  issuer: z.string().trim().min(2, "Required.").max(256),
-  connectionString: z.string().trim().max(2048).optional(),
-  // Optional: preselected to the default plan when plans load; if left empty the
-  // server falls back to the configured trial plan.
-  planKey: z.string().trim().optional(),
-});
+type TFn = (key: string) => string;
 
-type FormValues = z.infer<typeof schema>;
+const makeSchema = (t: TFn) =>
+  z.object({
+    id: z
+      .string()
+      .trim()
+      .regex(TENANT_ID_RE, t("create.validation.id")),
+    name: z.string().trim().min(2, t("create.validation.min2")).max(128),
+    adminEmail: z.string().trim().email(t("create.validation.email")),
+    adminPassword: z
+      .string()
+      .min(8, t("create.validation.min8"))
+      .max(128, t("create.validation.max128")),
+    issuer: z.string().trim().min(2, t("create.validation.required")).max(256),
+    connectionString: z.string().trim().max(2048).optional(),
+    // Optional: preselected to the default plan when plans load; if left empty the
+    // server falls back to the configured trial plan.
+    planKey: z.string().trim().optional(),
+  });
 
-function formatMoney(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
-}
+type FormValues = z.infer<ReturnType<typeof makeSchema>>;
 
 /** Derive a URL-safe slug from free text. Trailing/leading hyphens trimmed; capped to 64. */
 function slugify(input: string): string {
@@ -129,7 +123,8 @@ function PreviewRail({
   planLabel: string | null;
   email: string;
 }) {
-  const displayName = name.trim() || "New tenant";
+  const { t } = useTranslation("tenants");
+  const displayName = name.trim() || t("create.preview.newTenant");
   const displaySlug = slug || "tenant-id";
 
   return (
@@ -173,7 +168,7 @@ function PreviewRail({
               className="size-1.5 rounded-full bg-[var(--color-primary)] ring-2 ring-[oklch(from_var(--color-primary)_l_c_h_/_0.18)]"
             />
             <span className="text-[12px] text-[var(--color-muted-foreground)]">
-              {planLabel ?? "Default plan"}
+              {planLabel ?? t("create.preview.defaultPlan")}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -182,14 +177,14 @@ function PreviewRail({
               className="size-1.5 rounded-full bg-[var(--color-success)] ring-2 ring-[oklch(from_var(--color-success)_l_c_h_/_0.18)]"
             />
             <span className="text-[12px] text-[var(--color-muted-foreground)]">
-              Active on creation
+              {t("create.preview.activeOnCreation")}
             </span>
           </div>
         </dl>
       </div>
 
       <p className="relative mt-auto hidden pt-6 text-[11px] leading-relaxed text-[var(--color-muted-foreground)]/75 sm:block">
-        Provisioning runs in the background. You can track progress on the tenant&apos;s detail page.
+        {t("create.preview.provisioningNote")}
       </p>
     </aside>
   );
@@ -204,8 +199,10 @@ export function CreateTenantDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation("tenants");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const schema = useMemo(() => makeSchema(t), [t]);
 
   // UI-only state, reset on close.
   const [idMode, setIdMode] = useState<"auto" | "manual">("auto");
@@ -222,7 +219,7 @@ export function CreateTenantDialog({
   const planOptions: SelectOption[] = (plansQuery.data ?? []).map((p) => ({
     value: p.key,
     label: p.name,
-    hint: `${p.interval} · ${formatMoney(planTermPrice(p), p.currency)}`,
+    hint: `${p.interval} · ${formatCurrency(planTermPrice(p), p.currency)}`,
   }));
   // Prefer the conventional trial plan, else the first active plan.
   const defaultPlanKey =
@@ -261,7 +258,7 @@ export function CreateTenantDialog({
 
   const selectedPlan = plansQuery.data?.find((p) => p.key === planKey);
   const planLabel = selectedPlan
-    ? `${selectedPlan.name} · ${formatMoney(planTermPrice(selectedPlan), selectedPlan.currency)}`
+    ? `${selectedPlan.name} · ${formatCurrency(planTermPrice(selectedPlan), selectedPlan.currency)}`
     : null;
 
   // Preselect the default/trial plan once plans load (without clobbering a choice).
@@ -297,9 +294,8 @@ export function CreateTenantDialog({
         planKey: values.planKey?.trim() ? values.planKey : null,
       }),
     onSuccess: (result) => {
-      toast.success(`Tenant ${result.id} created`, {
-        description:
-          "Provisioning runs in the background. Track progress on the detail page.",
+      toast.success(t("create.toast.created", { id: result.id }), {
+        description: t("create.toast.createdDescription"),
       });
       // Fire-and-forget refresh — don't block navigation on the list refetch.
       void queryClient.invalidateQueries({ queryKey: ["tenants"] });
@@ -311,7 +307,7 @@ export function CreateTenantDialog({
         err instanceof ApiRequestError
           ? err.problem?.detail ?? err.problem?.title ?? err.message
           : (err as Error).message;
-      toast.error("Create failed", { description: detail });
+      toast.error(t("create.toast.createFailed"), { description: detail });
     },
   });
 
@@ -367,22 +363,21 @@ export function CreateTenantDialog({
             {/* Header (leave room for the close affordance, top-right) */}
             <div className="flex flex-col gap-1 px-6 pb-2 pt-6 pr-12">
               <div className="flex items-center gap-2">
-                <DialogTitle className="text-[16px]">New tenant</DialogTitle>
+                <DialogTitle className="text-[16px]">{t("create.title")}</DialogTitle>
                 <Sparkles className="size-3.5 text-[var(--color-primary)] opacity-70" aria-hidden />
               </div>
               <DialogDescription>
-                Provision a tenant and its seed admin. The identifier is the URL-safe slug used in
-                routing and JWT claims.
+                {t("create.description")}
               </DialogDescription>
             </div>
 
             {/* Fields */}
             <div className="space-y-4 px-6 py-4">
-              <Field id="ct-name" label="Display name" required error={errors.name?.message}>
+              <Field id="ct-name" label={t("create.field.name")} required error={errors.name?.message}>
                 <Input
                   id="ct-name"
                   autoComplete="off"
-                  placeholder="Acme Corp"
+                  placeholder={t("create.field.namePlaceholder")}
                   {...register("name")}
                 />
               </Field>
@@ -390,16 +385,16 @@ export function CreateTenantDialog({
               {/* Identifier — auto-derived, unlock to edit */}
               <Field
                 id="ct-id"
-                label="Identifier"
+                label={t("create.field.identifier")}
                 required
                 hint={
                   idTouched && idValid ? (
                     <span className="inline-flex items-center gap-1 text-[var(--color-success)]">
                       <CircleCheck className="size-3.5" aria-hidden />
-                      Valid format — availability is confirmed when you create.
+                      {t("create.field.identifierValid")}
                     </span>
                   ) : (
-                    "Lowercase letters, digits, and hyphens. 3–64 characters."
+                    t("create.field.identifierHint")
                   )
                 }
                 error={errors.id?.message}
@@ -426,7 +421,7 @@ export function CreateTenantDialog({
                           hover:text-[var(--color-foreground)] cursor-pointer outline-none
                           focus-visible:ring-2 focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
                       >
-                        <Pencil className="size-3" aria-hidden /> Edit
+                        <Pencil className="size-3" aria-hidden /> {t("create.identifier.edit")}
                       </button>
                     ) : (
                       <button
@@ -437,7 +432,7 @@ export function CreateTenantDialog({
                           hover:text-[var(--color-foreground)] cursor-pointer outline-none
                           focus-visible:ring-2 focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
                       >
-                        <Lock className="size-3" aria-hidden /> Auto
+                        <Lock className="size-3" aria-hidden /> {t("create.identifier.auto")}
                       </button>
                     )}
                   </div>
@@ -446,7 +441,7 @@ export function CreateTenantDialog({
 
               <Field
                 id="ct-adminEmail"
-                label="Admin email"
+                label={t("create.field.adminEmail")}
                 required
                 error={errors.adminEmail?.message}
               >
@@ -463,9 +458,9 @@ export function CreateTenantDialog({
               {/* Password — generate + show/hide */}
               <Field
                 id="ct-adminPassword"
-                label="Initial admin password"
+                label={t("create.field.password")}
                 required
-                hint="The first admin signs in with this and can rotate it after first login."
+                hint={t("create.field.passwordHint")}
                 error={errors.adminPassword?.message}
               >
                 <div className="relative">
@@ -473,16 +468,16 @@ export function CreateTenantDialog({
                     id="ct-adminPassword"
                     type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    placeholder="Min 8 characters"
+                    placeholder={t("create.field.passwordPlaceholder")}
                     className="pr-16 font-mono"
                     {...register("adminPassword")}
                   />
                   <div className="absolute inset-y-0 right-1.5 flex items-center gap-0.5">
-                    <AdornButton label="Generate strong password" onClick={fillGeneratedPassword}>
+                    <AdornButton label={t("create.password.generate")} onClick={fillGeneratedPassword}>
                       <Wand2 aria-hidden />
                     </AdornButton>
                     <AdornButton
-                      label={showPassword ? "Hide password" : "Show password"}
+                      label={showPassword ? t("create.password.hide") : t("create.password.show")}
                       onClick={() => setShowPassword((s) => !s)}
                     >
                       {showPassword ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
@@ -494,11 +489,11 @@ export function CreateTenantDialog({
               {/* Plan */}
               <Field
                 id="ct-plan"
-                label="Billing plan"
+                label={t("create.field.plan")}
                 hint={
                   plansQuery.isError
-                    ? "Could not load plans — the tenant will fall back to the default plan."
-                    : "Sets the first invoice and how long the tenant stays valid. Defaults to the trial plan."
+                    ? t("create.field.planHintError")
+                    : t("create.field.planHint")
                 }
                 error={errors.planKey?.message}
               >
@@ -513,9 +508,9 @@ export function CreateTenantDialog({
                       options={planOptions}
                       emptyLabel={
                         plansQuery.isLoading
-                          ? "Loading plans…"
+                          ? t("create.plan.loading")
                           : planOptions.length === 0
-                            ? "No active plans"
+                            ? t("create.plan.none")
                             : undefined
                       }
                       disabled={plansQuery.isLoading || planOptions.length === 0}
@@ -535,9 +530,9 @@ export function CreateTenantDialog({
                     focus-visible:ring-2 focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
                 >
                   <span className="text-[12.5px] font-medium text-[var(--color-foreground)]">
-                    Advanced
+                    {t("create.advanced.title")}
                     <span className="ml-1.5 font-normal text-[var(--color-muted-foreground)]">
-                      issuer, dedicated database
+                      {t("create.advanced.subtitle")}
                     </span>
                   </span>
                   <ChevronDown
@@ -553,9 +548,9 @@ export function CreateTenantDialog({
                   <div className="space-y-4 border-t border-[var(--color-border)] px-3 py-3.5">
                     <Field
                       id="ct-issuer"
-                      label="JWT issuer"
+                      label={t("create.field.issuer")}
                       required
-                      hint="Mirrors the identifier by default. Issued in tokens to scope sessions."
+                      hint={t("create.field.issuerHint")}
                       error={errors.issuer?.message}
                     >
                       <Input
@@ -572,8 +567,8 @@ export function CreateTenantDialog({
 
                     <Field
                       id="ct-connectionString"
-                      label="Connection string"
-                      hint="Optional. Leave blank to use the shared catalog database."
+                      label={t("create.field.connectionString")}
+                      hint={t("create.field.connectionStringHint")}
                       error={errors.connectionString?.message}
                     >
                       <Input
@@ -591,16 +586,16 @@ export function CreateTenantDialog({
             {/* Footer */}
             <DialogFooter className="px-6">
               <Button type="button" variant="outline" onClick={handleClose} disabled={submitting}>
-                Cancel
+                {t("create.cancel")}
               </Button>
               <Button type="submit" disabled={submitting} className="min-w-[8.5rem]">
                 {submitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" aria-hidden />
-                    <span>Provisioning…</span>
+                    <span>{t("create.provisioning")}</span>
                   </>
                 ) : (
-                  "Create tenant"
+                  t("create.submit")
                 )}
               </Button>
             </DialogFooter>

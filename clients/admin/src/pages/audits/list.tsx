@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { ChevronRight, RefreshCw, ScrollText, X } from "lucide-react";
@@ -27,6 +28,7 @@ import {
 } from "@/components/list";
 import { EmptyState } from "@/components/empty-state";
 import { ApiRequestError } from "@/lib/api-client";
+import { formatNumber } from "@/lib/format";
 import { AuditingPermissions } from "@/lib/permissions";
 import { AuditDetailSheet } from "@/pages/audits/detail";
 import { cn } from "@/lib/cn";
@@ -38,6 +40,7 @@ const PAGE_SIZE = 25;
 const SEARCH_DEBOUNCE_MS = 250;
 
 export function AuditsListPage() {
+  const { t } = useTranslation("audits");
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [params, setParams] = useSearchParams();
@@ -128,10 +131,10 @@ export function AuditsListPage() {
     <div className="space-y-8">
       <EntityPageHeader
         icon={ScrollText}
-        title="Audit trail"
+        title={t("list.title")}
         total={data?.totalCount ?? null}
-        unit="event"
-        description="Every security action, entity change, and exception captured by the auditing pipeline. Filter by event type, severity, or correlation id to follow a request end-to-end."
+        unit={t("list.unit")}
+        description={t("list.description")}
       >
         <Button
           variant="outline"
@@ -141,22 +144,22 @@ export function AuditsListPage() {
           className="flex-1 sm:flex-none"
         >
           <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-          Refresh
+          {t("list.refresh")}
         </Button>
       </EntityPageHeader>
 
       <StatStrip cols={4}>
-        <Stat label="Total events" value={summary.isLoading ? "—" : summaryStats.total.toLocaleString()} hint="across all event types" />
-        <Stat label="Errors + critical" value={summary.isLoading ? "—" : summaryStats.errors.toLocaleString()} hint="severity ≥ Error" tone={summaryStats.errors > 0 ? "danger" : "default"} />
-        <Stat label="Security events" value={summary.isLoading ? "—" : summaryStats.security.toLocaleString()} hint="logins, role grants, tokens" tone={summaryStats.security > 0 ? "info" : "default"} />
-        <Stat label="Exceptions" value={summary.isLoading ? "—" : summaryStats.exceptions.toLocaleString()} hint="unhandled / classified" tone={summaryStats.exceptions > 0 ? "warning" : "default"} />
+        <Stat label={t("list.stat.total")} value={summary.isLoading ? "—" : formatNumber(summaryStats.total)} hint={t("list.stat.totalHint")} />
+        <Stat label={t("list.stat.errors")} value={summary.isLoading ? "—" : formatNumber(summaryStats.errors)} hint={t("list.stat.errorsHint")} tone={summaryStats.errors > 0 ? "danger" : "default"} />
+        <Stat label={t("list.stat.security")} value={summary.isLoading ? "—" : formatNumber(summaryStats.security)} hint={t("list.stat.securityHint")} tone={summaryStats.security > 0 ? "info" : "default"} />
+        <Stat label={t("list.stat.exceptions")} value={summary.isLoading ? "—" : formatNumber(summaryStats.exceptions)} hint={t("list.stat.exceptionsHint")} tone={summaryStats.exceptions > 0 ? "warning" : "default"} />
       </StatStrip>
 
       <FilterBar
         trailing={
           activeFilters > 0 ? (
             <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs">
-              <X className="mr-1 h-3.5 w-3.5" /> Clear all ({activeFilters})
+              <X className="mr-1 h-3.5 w-3.5" /> {t("list.clearAll", { count: activeFilters })}
             </Button>
           ) : undefined
         }
@@ -165,23 +168,23 @@ export function AuditsListPage() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search user, source, correlation…"
-            aria-label="Search audit trail"
+            placeholder={t("list.searchPlaceholder")}
+            aria-label={t("list.searchAria")}
             className="h-8"
           />
         </div>
         <Select
           value={eventType}
           onValueChange={(v) => setParam("type", v || null)}
-          options={AUDIT_EVENT_TYPES.map((t) => ({ value: t, label: t }))}
-          emptyLabel="All event types"
+          options={AUDIT_EVENT_TYPES.map((type) => ({ value: type, label: type }))}
+          emptyLabel={t("list.allEventTypes")}
           className="min-w-[10rem]"
         />
         <Select
           value={severity}
           onValueChange={(v) => setParam("sev", v || null)}
           options={AUDIT_SEVERITIES.map((s) => ({ value: s, label: s }))}
-          emptyLabel="All severities"
+          emptyLabel={t("list.allSeverities")}
           className="min-w-[10rem]"
         />
         {canCrossTenant && (
@@ -189,8 +192,8 @@ export function AuditsListPage() {
             <Input
               value={tenantId}
               onChange={(e) => setParam("tenant", e.target.value || null)}
-              placeholder="Tenant id (cross-tenant)"
-              aria-label="Filter by tenant id"
+              placeholder={t("list.tenantPlaceholder")}
+              aria-label={t("list.tenantAria")}
               className="h-8 font-mono text-xs"
             />
           </div>
@@ -199,8 +202,8 @@ export function AuditsListPage() {
           <Input
             value={correlationId}
             onChange={(e) => setParam("corr", e.target.value || null)}
-            placeholder="Correlation id"
-            aria-label="Filter by correlation id"
+            placeholder={t("list.correlationPlaceholder")}
+            aria-label={t("list.correlationAria")}
             className="h-8 font-mono text-xs"
           />
         </div>
@@ -211,27 +214,27 @@ export function AuditsListPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load audit events."
+              : t("list.loadError")
           }
         />
       )}
 
-      {query.isLoading && <LoadingRow label="Loading events" />}
+      {query.isLoading && <LoadingRow label={t("list.loading")} />}
 
       {!query.isLoading && items.length === 0 && !query.isError && (
         <EmptyState
           icon={ScrollText}
-          kicker="// no events"
-          title="No audit events match your filters."
+          kicker={t("list.empty.kicker")}
+          title={t("list.empty.title")}
           description={
             activeFilters > 0
-              ? "Try clearing or relaxing a filter — the trail is broad by default."
-              : "The audit pipeline hasn't recorded anything for this tenant yet."
+              ? t("list.empty.withFilters")
+              : t("list.empty.noData")
           }
           action={
             activeFilters > 0 ? (
               <Button variant="outline" onClick={clearAll}>
-                Clear filters
+                {t("list.empty.clearFilters")}
               </Button>
             ) : undefined
           }
@@ -257,7 +260,7 @@ export function AuditsListPage() {
           hasNext={data.hasNext}
           onPrev={() => setPage(Math.max(1, pageNumber - 1))}
           onNext={() => setPage(pageNumber + 1)}
-          noun="events"
+          noun={t("list.noun")}
         />
       )}
 
@@ -268,6 +271,7 @@ export function AuditsListPage() {
 }
 
 function AuditRow({ event, onClick }: { event: AuditSummaryDto; onClick: () => void }) {
+  const { t } = useTranslation("audits");
   return (
     <li>
       <button
@@ -301,7 +305,7 @@ function AuditRow({ event, onClick }: { event: AuditSummaryDto; onClick: () => v
           </div>
           {event.correlationId && (
             <div className="mt-0.5 truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-              corr · {event.correlationId}
+              {t("row.corr", { id: event.correlationId })}
             </div>
           )}
         </div>

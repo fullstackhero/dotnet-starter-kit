@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, FileQuestion, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
  * Mounted at the root via `path: "*"`.
  */
 export function NotFoundPage() {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const location = useLocation();
   const requested = location.pathname + location.search;
@@ -35,11 +37,10 @@ export function NotFoundPage() {
         </div>
 
         <h1 className="mb-2 font-display text-[clamp(1.5rem,5vw,2rem)] font-semibold tracking-tight text-[var(--color-foreground)]">
-          Page not found
+          {t("notFound.title")}
         </h1>
         <p className="mb-2 max-w-[380px] text-[14px] leading-relaxed text-[var(--color-muted-foreground)]">
-          We couldn't find anything at that address. It may be a stale link, a
-          renamed route, or a path that never existed.
+          {t("notFound.body")}
         </p>
 
         {/* Requested path — soft inline display */}
@@ -48,7 +49,7 @@ export function NotFoundPage() {
           title={requested}
         >
           <span className="text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]">
-            Requested
+            {t("notFound.requested")}
           </span>
           <span className="truncate text-[var(--color-foreground)]">{requested}</span>
         </p>
@@ -58,7 +59,7 @@ export function NotFoundPage() {
           <Button asChild className="group h-11 px-5 text-[14px] font-semibold">
             <Link to="/">
               <Home className="size-4" />
-              <span>Back home</span>
+              <span>{t("notFound.backHome")}</span>
             </Link>
           </Button>
         </div>
@@ -70,7 +71,7 @@ export function NotFoundPage() {
           className="mt-5 inline-flex items-center gap-1.5 text-[12px] text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
         >
           <ArrowLeft className="size-3.5" />
-          <span>Go back to the previous page</span>
+          <span>{t("notFound.goBack")}</span>
         </button>
       </div>
     </div>
