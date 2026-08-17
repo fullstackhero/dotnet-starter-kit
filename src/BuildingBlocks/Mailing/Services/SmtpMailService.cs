@@ -110,7 +110,9 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
 
     private static async Task AddAttachmentsAsync(MimeMessage email, MailRequest request, CancellationToken ct)
     {
-        var builder = new BodyBuilder { HtmlBody = request.Body };
+        // Both parts when the caller supplies them: MailKit emits multipart/alternative and the client
+        // picks. HtmlBody alone leaves text-only clients with nothing.
+        var builder = new BodyBuilder { HtmlBody = request.Body, TextBody = request.TextBody };
 
         if (request.AttachmentData is not null)
         {

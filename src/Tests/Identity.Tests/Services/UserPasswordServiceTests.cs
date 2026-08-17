@@ -71,8 +71,9 @@ public sealed class UserPasswordServiceTests
         // Act
         await sut.ForgotPasswordAsync(email, "https://appbase.codefi.com.br/", CancellationToken.None);
 
-        // Assert
-        var body = CaptureSentMail().Body!;
+        // Assert — the link is asserted on the text/plain alternative, which carries the URL verbatim.
+        // The HTML part necessarily escapes '&' as '&amp;' (see the anchor test below).
+        var body = CaptureSentMail().TextBody!;
         body.ShouldContain("https://appbase.codefi.com.br/reset-password?");
         body.ShouldNotContain("//reset-password");                       // defect 3: no double slash
         body.ShouldContain($"&tenant={TenantId}");                       // defect 4: tenant present
@@ -81,6 +82,51 @@ public sealed class UserPasswordServiceTests
         // only what is required, matching GetEmailVerificationUriAsync).
         body.ShouldContain("email=marcelo%2Breset");
         body.ShouldNotContain("email=marcelo+reset");                    // raw '+' must not leak
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_Should_SendTheLinkAsAnAnchor_Not_BareText()
+    {
+        // Arrange — the body travels as text/html (BodyBuilder.HtmlBody / SendGrid htmlContent), and most
+        // clients do not auto-link a bare URL inside an HTML part: it reaches the user as dead text.
+        const string email = "operator@codefi.com.br";
+        var user = new FshUser { Email = email, UserName = email };
+        _userManager.FindByEmailAsync(email).Returns(user);
+        _userManager.GeneratePasswordResetTokenAsync(user).Returns("raw-token");
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.ForgotPasswordAsync(email, "https://adminbase.codefi.com.br", CancellationToken.None);
+
+        // Assert
+        var html = CaptureSentMail().Body!;
+        html.ShouldContain("<a href=\"https://adminbase.codefi.com.br/reset-password?");
+        // Inside HTML the query separator must be the entity, or the parser eats the following parameter.
+        html.ShouldContain("&amp;tenant=");
+        html.ShouldNotContain("&tenant=");
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_Should_SendATextAlternative_AlongsideTheHtml()
+    {
+        // Arrange — HTML-only mail leaves text-only clients with nothing and scores worse with spam filters.
+        const string email = "operator@codefi.com.br";
+        var user = new FshUser { Email = email, UserName = email };
+        _userManager.FindByEmailAsync(email).Returns(user);
+        _userManager.GeneratePasswordResetTokenAsync(user).Returns("raw-token");
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.ForgotPasswordAsync(email, "https://adminbase.codefi.com.br", CancellationToken.None);
+
+        // Assert
+        var mail = CaptureSentMail();
+        mail.TextBody.ShouldNotBeNullOrWhiteSpace();
+        mail.TextBody!.ShouldContain("https://adminbase.codefi.com.br/reset-password?");
+        mail.TextBody.ShouldNotContain("<a ");
+        mail.TextBody.ShouldNotContain("&amp;");
     }
 
     [Fact]
