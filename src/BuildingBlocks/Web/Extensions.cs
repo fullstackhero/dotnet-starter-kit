@@ -20,8 +20,10 @@ using FSH.Framework.Web.Origin;
 using FSH.Framework.Web.RateLimiting;
 using FSH.Framework.Web.Realtime;
 using FSH.Framework.Web.Security;
+using FSH.Framework.Web.TrustedProxy;
 using FSH.Framework.Web.Versioning;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +31,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Mediator;
+using System.Net;
 
 namespace FSH.Framework.Web;
 
@@ -63,6 +66,51 @@ public static class Extensions
         }
 
         builder.Services.AddHttpContextAccessor();
+
+        // The app runs behind a reverse proxy (e.g. cloudflared → Caddy → app), so the real client IP
+        // and scheme arrive via X-Forwarded-*. Without this, RemoteIpAddress is the proxy's container
+        // IP, which collapses the rate-limit partition into one bucket and records useless audit IPs.
+        // Trust is bound to the configured ingress CIDRs/proxies (see TrustedProxyOptions): forwarded
+        // headers from any other source are ignored, so a client reaching the app directly cannot forge
+        // its IP/scheme. With nothing configured, the framework default (loopback only) stands.
+        var trustedProxy = builder.Configuration
+            .GetSection(nameof(TrustedProxyOptions)).Get<TrustedProxyOptions>() ?? new TrustedProxyOptions();
+        builder.Services.Configure<ForwardedHeadersOptions>(forwarded =>
+        {
+            forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            forwarded.ForwardLimit = trustedProxy.ForwardLimit;
+
+            if (trustedProxy.KnownProxies.Length == 0 && trustedProxy.KnownNetworks.Length == 0)
+            {
+                return;
+            }
+
+            forwarded.KnownProxies.Clear();
+            forwarded.KnownIPNetworks.Clear();
+
+            foreach (var proxy in trustedProxy.KnownProxies)
+            {
+                if (!IPAddress.TryParse(proxy, out var address))
+                {
+                    throw new InvalidOperationException(
+                        $"{nameof(TrustedProxyOptions)}:{nameof(TrustedProxyOptions.KnownProxies)} contains \"{proxy}\", which is not a valid IP address (for example \"10.0.0.5\").");
+                }
+
+                forwarded.KnownProxies.Add(address);
+            }
+
+            foreach (var network in trustedProxy.KnownNetworks)
+            {
+                if (!System.Net.IPNetwork.TryParse(network, out var parsedNetwork))
+                {
+                    throw new InvalidOperationException(
+                        $"{nameof(TrustedProxyOptions)}:{nameof(TrustedProxyOptions.KnownNetworks)} contains \"{network}\", which is not a valid CIDR network (for example \"10.0.0.0/8\").");
+                }
+
+                forwarded.KnownIPNetworks.Add(parsedNetwork);
+            }
+        });
+
         builder.Services.AddHeroDatabaseOptions(builder.Configuration);
         builder.Services.AddHeroRateLimiting(builder.Configuration);
 
@@ -150,6 +198,11 @@ public static class Extensions
         var openApiEnabled = options.UseOpenApi && IsOpenApiEnabled(app.Configuration);
 
         app.UseExceptionHandler();
+
+        // Apply forwarded headers before anything reads the client IP or scheme (HTTPS redirect,
+        // rate limiting, auth, audit) so they all see the real client, not the reverse proxy.
+        app.UseForwardedHeaders();
+
         app.UseResponseCompression();
 
         // CORS MUST run before UseHttpsRedirection: preflight OPTIONS can't follow an HTTP→HTTPS redirect, so

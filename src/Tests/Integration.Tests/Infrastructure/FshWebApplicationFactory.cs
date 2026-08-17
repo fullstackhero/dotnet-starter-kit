@@ -153,6 +153,22 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
 
         builder.ConfigureServices(services =>
         {
+            // Stamp the connection IP from a test header so forwarded-headers trust checks are testable.
+            services.AddSingleton<IStartupFilter, TestRemoteIpStartupFilter>();
+
+            // The production TrustedProxyOptions read happens eagerly, before the test config overlay
+            // applies (same quirk as storage below), so bind the trusted upstream here instead. This
+            // exercises the real UseForwardedHeaders trust boundary against TestConstants.TrustedProxyIp.
+            services.PostConfigure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(forwarded =>
+            {
+                forwarded.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                    | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+                forwarded.ForwardLimit = 1;
+                forwarded.KnownProxies.Clear();
+                forwarded.KnownIPNetworks.Clear();
+                forwarded.KnownProxies.Add(System.Net.IPAddress.Parse(TestConstants.TrustedProxyIp));
+            });
+
             // Remove hosted services that need unavailable infra or race migrations (RolePermissionSync,
             // Hangfire server + stale-lock cleanup, OutboxDispatcher); we register our own InMemory server below.
             var hostedServicesToRemove = services

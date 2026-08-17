@@ -143,5 +143,12 @@
          AccessViolation). Transitive pinning is enabled, so this entry alone bumps it.
          Remove once the SignalR backplane package depends on a patched version itself. -->
     <PackageVersion Include="MessagePack" Version="2.5.301" />
+    <!-- Pulled transitively by the Testcontainers packages; versions up to 2025.1.0 fail
+         NuGet audit (NU1903, GHSA-q939-rpr3-3284 / CVE-2026-48798: ScpClient recursive
+         download writes outside the target directory), which breaks restore for the whole
+         solution under TreatWarningsAsErrors. Testcontainers 4.11.0 and 4.13.0 both depend
+         on 2025.1.0, so bumping Testcontainers does not help; 2026.0.0 is the first patched
+         release. Remove once Testcontainers depends on a patched version itself. -->
+    <PackageVersion Include="SSH.NET" Version="2026.0.0" />
   </ItemGroup>
 </Project>
