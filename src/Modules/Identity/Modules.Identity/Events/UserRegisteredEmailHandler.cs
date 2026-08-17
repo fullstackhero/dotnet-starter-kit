@@ -2,6 +2,7 @@ using FSH.Framework.Eventing.Abstractions;
 using FSH.Framework.Mailing;
 using FSH.Framework.Mailing.Services;
 using FSH.Modules.Identity.Contracts.Events;
+using FSH.Modules.Identity.Services;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Identity.Events;
@@ -34,10 +35,14 @@ public sealed class UserRegisteredEmailHandler
 
         try
         {
+            // The body is sent as text/html, so the name — user-supplied — has to be encoded or a
+            // first name containing '<' is parsed as markup instead of shown.
+            var greeting = $"Hi {@event.FirstName}, thanks for registering.";
             var mail = new MailRequest(
                 to: new System.Collections.ObjectModel.Collection<string> { @event.Email },
                 subject: "Welcome!",
-                body: $"Hi {@event.FirstName}, thanks for registering.");
+                body: EmailBodies.NoticeHtml("Welcome!", greeting),
+                textBody: greeting);
 
             await _mailService.SendAsync(mail, ct).ConfigureAwait(false);
         }

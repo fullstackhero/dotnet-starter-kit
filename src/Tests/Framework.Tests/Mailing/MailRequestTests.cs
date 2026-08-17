@@ -20,12 +20,13 @@ public sealed class MailRequestTests
         // Act
         var request = new MailRequest(
             to, "subject", "body", "from@x.com", "Sender",
-            "reply@x.com", "Reply", bcc, cc, attachments, headers);
+            "reply@x.com", "Reply", bcc, cc, attachments, headers, "plain body");
 
         // Assert
         request.To.ShouldBe(to);
         request.Subject.ShouldBe("subject");
         request.Body.ShouldBe("body");
+        request.TextBody.ShouldBe("plain body");
         request.From.ShouldBe("from@x.com");
         request.DisplayName.ShouldBe("Sender");
         request.ReplyTo.ShouldBe("reply@x.com");
@@ -48,6 +49,7 @@ public sealed class MailRequestTests
 
         // Assert — nullable collections default to empty (never null).
         request.Body.ShouldBeNull();
+        request.TextBody.ShouldBeNull();
         request.From.ShouldBeNull();
         request.Cc.ShouldNotBeNull();
         request.Cc.ShouldBeEmpty();

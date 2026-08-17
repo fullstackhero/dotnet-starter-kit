@@ -34,11 +34,13 @@ public sealed class SendGridMailService : IMailService
         }
 
         var from = CreateFromAddress(request);
+        // plainTextContent and htmlContent are distinct parts: passing Body to both shipped the HTML
+        // template as the text alternative, so a text-only client rendered raw markup.
         var msg = MailHelper.CreateSingleEmail(
             from,
             new EmailAddress(request.To[0]),
             request.Subject,
-            request.Body,
+            request.TextBody,
             request.Body);
 
         ConfigureRecipients(msg, request);
