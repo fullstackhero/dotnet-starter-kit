@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -45,7 +46,9 @@ DialogOverlay.displayName = "DialogOverlay";
 export const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const { t } = useTranslation();
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -63,7 +66,7 @@ export const DialogContent = React.forwardRef<
       {children}
       <DialogPrimitive.Close
         data-slot="dialog-close"
-        aria-label="Close"
+        aria-label={t("close")}
         className={cn(
           "absolute top-3.5 right-3.5 size-9 rounded-lg flex items-center justify-center",
           "text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)] hover:text-[var(--color-foreground)]",
@@ -76,7 +79,8 @@ export const DialogContent = React.forwardRef<
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = "DialogContent";
 
 export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
@@ -153,7 +157,9 @@ export const SheetContent = React.forwardRef<
     /** Render the built-in close button. Defaults to true. */
     showClose?: boolean;
   }
->(({ className, children, side = "right", showClose = true, ...props }, ref) => (
+>(({ className, children, side = "right", showClose = true, ...props }, ref) => {
+  const { t } = useTranslation();
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -168,7 +174,7 @@ export const SheetContent = React.forwardRef<
       {children}
       {showClose && (
         <DialogPrimitive.Close
-          aria-label="Close"
+          aria-label={t("close")}
           className={cn(
             "absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-md",
             "text-[var(--color-muted-foreground)] transition-colors",
@@ -181,7 +187,8 @@ export const SheetContent = React.forwardRef<
       )}
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 SheetContent.displayName = "SheetContent";
 
 // Aliases — when authors prefer reading <Sheet>/<SheetTrigger>/<SheetClose>

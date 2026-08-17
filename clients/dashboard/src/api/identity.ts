@@ -16,6 +16,7 @@ export type UserDto = {
   phoneNumber?: string;
   imageUrl?: string;
   twoFactorEnabled?: boolean;
+  locale?: string | null;
 };
 
 export type UserRoleDto = {
@@ -394,6 +395,8 @@ export type UpdateProfileInput = {
   firstName?: string | null;
   lastName?: string | null;
   phoneNumber?: string | null;
+  /** BCP 47 UI language tag persisted on the user (drives the JWT locale claim). */
+  locale?: string | null;
 };
 
 /**
@@ -401,7 +404,9 @@ export type UpdateProfileInput = {
  * server-side. Image and email changes go through their own dedicated
  * endpoints — this is for the editable profile fields surfaced in
  * settings/profile. Reads the current profile first so unset optional
- * fields keep their existing values instead of being nulled.
+ * fields keep their existing values instead of being nulled — the backend
+ * sets FirstName/LastName unconditionally from the command, so a locale-only
+ * save (the language switcher) would otherwise wipe the names.
  */
 export async function updateMyProfile(input: UpdateProfileInput): Promise<void> {
   const profile = await getMyProfile();
@@ -412,6 +417,7 @@ export async function updateMyProfile(input: UpdateProfileInput): Promise<void> 
       firstName: input.firstName ?? profile.firstName ?? null,
       lastName: input.lastName ?? profile.lastName ?? null,
       phoneNumber: input.phoneNumber ?? profile.phoneNumber ?? null,
+      locale: input.locale ?? profile.locale ?? null,
       email: profile.email,
       deleteCurrentImage: false,
     }),

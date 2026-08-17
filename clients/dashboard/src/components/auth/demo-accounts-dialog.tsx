@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowUpRight } from "lucide-react";
 import {
   Dialog,
@@ -30,6 +31,7 @@ interface DemoAccountsDialogProps {
 }
 
 export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsDialogProps) {
+  const { t } = useTranslation("auth");
   const tenants = DEMO_ACCOUNT_GROUPS;
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -48,9 +50,9 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="overflow-hidden rounded-2xl border-border/70 p-0 sm:max-w-[680px]">
-        <DialogTitle className="sr-only">Demo accounts</DialogTitle>
+        <DialogTitle className="sr-only">{t("demo.dialogTitle")}</DialogTitle>
         <DialogDescription className="sr-only">
-          Pick a demo tenant and account to sign in with.
+          {t("demo.dialogDescription")}
         </DialogDescription>
 
         {/* Atmospheric gradients */}
@@ -71,14 +73,14 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
               <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
             </span>
             <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/85">
-              Live demo
+              {t("demo.liveDemo")}
             </span>
           </div>
           <h2 className="font-display text-[22px] font-semibold leading-[1.15] tracking-[-0.01em] text-foreground">
-            Step into any role.
+            {t("demo.title")}
           </h2>
           <p className="mt-1.5 max-w-[80%] text-[12.5px] leading-relaxed text-muted-foreground/80">
-            Explore fullstackhero as any user across the demo tenants — we'll sign you in instantly.
+            {t("demo.subtitle")}
           </p>
         </header>
 
@@ -96,9 +98,9 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
         {/* Footer */}
         <div className="relative flex items-center justify-between border-t border-border/60 bg-background/40 px-7 py-3">
           <p className="text-[10.5px] tracking-wide text-muted-foreground/60">
-            <span className="font-mono text-muted-foreground/80">demo only</span>
+            <span className="font-mono text-muted-foreground/80">{t("demo.demoOnly")}</span>
             <span className="mx-2 text-muted-foreground/30">·</span>
-            Resets with every reseed.
+            {t("demo.resets")}
           </p>
           <kbd className="hidden items-center gap-1 rounded border border-border/60 bg-background/60 px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground/60 sm:inline-flex">
             esc
@@ -122,10 +124,11 @@ function TenantRail({
   activeIdx: number;
   onSelect: (idx: number) => void;
 }) {
+  const { t } = useTranslation("auth");
   return (
     <nav
       className="relative flex gap-1 overflow-x-auto p-3 sm:flex-col sm:overflow-visible"
-      aria-label="Demo tenants"
+      aria-label={t("demo.tenantsAria")}
     >
       {tenants.map((tenant, i) => {
         const isActive = i === activeIdx;
@@ -165,7 +168,7 @@ function TenantRail({
                 {tenant.tenantLabel}
               </span>
               <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground/55">
-                {tenant.accounts.length} users
+                {t("demo.userCount", { count: tenant.accounts.length })}
               </span>
             </span>
           </button>
@@ -184,15 +187,16 @@ function UserPane({
   tenant: DemoTenant;
   onPick: (account: DemoAccount) => void;
 }) {
+  const { t } = useTranslation("auth");
   return (
     <div className="fsh-enter max-h-[340px] overflow-y-auto p-3">
       <div className="mb-1 flex items-baseline gap-2 px-2 pb-2">
         <span className="font-mono text-[9.5px] font-semibold uppercase tabular-nums tracking-[0.18em] text-primary/55">
-          Users
+          {t("demo.users")}
         </span>
         <div className="relative top-[-2px] h-px flex-1 bg-border/70" />
         <span className="font-mono text-[9.5px] uppercase tracking-[0.15em] text-muted-foreground/50">
-          tap to sign in
+          {t("demo.tapToSignIn")}
         </span>
       </div>
       <div className="space-y-0.5">

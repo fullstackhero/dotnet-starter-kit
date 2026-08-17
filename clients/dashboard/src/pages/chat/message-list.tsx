@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDown } from "lucide-react";
@@ -67,6 +68,7 @@ export const MessageList = forwardRef<
   },
   ref,
 ) {
+  const { t } = useTranslation("chat");
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => ["chat", "messages", channelId] as const, [channelId]);
 
@@ -537,7 +539,7 @@ export const MessageList = forwardRef<
     return (
       <div className="flex h-full items-center justify-center px-6">
         <p className="text-[12px] text-[var(--color-muted-foreground)]">
-          Loading messages…
+          {t("list.loading")}
         </p>
       </div>
     );
@@ -547,10 +549,10 @@ export const MessageList = forwardRef<
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
         <p className="font-display text-[17px] font-semibold tracking-tight text-[var(--color-foreground)]">
-          No messages yet
+          {t("list.emptyTitle")}
         </p>
         <p className="max-w-sm text-[13px] text-[var(--color-muted-foreground)]">
-          This is the very beginning of the conversation. Send the first message to break the silence.
+          {t("list.emptyBody")}
         </p>
       </div>
     );
@@ -565,7 +567,7 @@ export const MessageList = forwardRef<
         role="log"
         aria-live="polite"
         aria-relevant="additions"
-        aria-label="Channel messages"
+        aria-label={t("list.logAria")}
       >
         {/* aria-hidden so these status rows aren't announced as new messages
             by the role="log" live region (it only relays additions). */}
@@ -574,7 +576,7 @@ export const MessageList = forwardRef<
             aria-hidden
             className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]"
           >
-            Loading older…
+            {t("list.loadingOlder")}
           </div>
         )}
         {!hasMoreOlder && messages.length >= 100 && (
@@ -582,7 +584,7 @@ export const MessageList = forwardRef<
             aria-hidden
             className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]"
           >
-            Beginning of the conversation
+            {t("list.beginning")}
           </div>
         )}
         <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
@@ -611,7 +613,7 @@ export const MessageList = forwardRef<
                 ) : row.kind === "unread" ? (
                   <div className="px-4">
                     <div className="chat-unread-divider">
-                      <span>New</span>
+                      <span>{t("list.new")}</span>
                     </div>
                   </div>
                 ) : (
@@ -638,12 +640,12 @@ export const MessageList = forwardRef<
             type="button"
             onClick={jumpToBottom}
             className="chat-jump-pill pointer-events-auto"
-            aria-label={`Jump to latest, ${unseenCount} unseen ${unseenCount === 1 ? "message" : "messages"}`}
+            aria-label={t("list.jumpAria", { count: unseenCount })}
           >
             <span className="chat-jump-pill-count" aria-hidden>
               {unseenCount > 99 ? "99+" : unseenCount}
             </span>
-            <span>{unseenCount === 1 ? "new message" : "new messages"}</span>
+            <span>{t("list.jump", { count: unseenCount })}</span>
             <ChevronDown className="h-3.5 w-3.5" aria-hidden />
           </button>
         </div>

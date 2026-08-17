@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Hash, Lock, MessageCircle, Plus, Search, Users2, X } from "lucide-react";
 import {
@@ -51,6 +52,7 @@ export function ChannelRail({
    *  message column can take over the screen. */
   hasActiveChannel?: boolean;
 }) {
+  const { t } = useTranslation("chat");
   const [filter, setFilter] = useState("");
   const [createChannelOpen, setCreateChannelOpen] = useState(false);
   const [newDmOpen, setNewDmOpen] = useState(false);
@@ -113,7 +115,7 @@ export function ChannelRail({
           <MessageCircle className="size-3.5" />
         </span>
         <span className="font-display text-[15px] font-bold tracking-tight text-[var(--color-foreground)]">
-          Chat
+          {t("rail.brand")}
         </span>
       </div>
 
@@ -129,7 +131,7 @@ export function ChannelRail({
             type="text"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter channels…"
+            placeholder={t("rail.filterPlaceholder")}
             spellCheck={false}
             autoComplete="off"
             className={cn(
@@ -145,7 +147,7 @@ export function ChannelRail({
             <button
               type="button"
               onClick={() => setFilter("")}
-              aria-label="Clear filter"
+              aria-label={t("rail.clearFilter")}
               className={cn(
                 "absolute right-1 top-1/2 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
                 "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -158,11 +160,11 @@ export function ChannelRail({
       </div>
 
       <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto px-2 py-2">
-        <Section caption="Channels" onAction={() => setCreateChannelOpen(true)} actionLabel="New channel">
+        <Section caption={t("rail.sectionChannels")} onAction={() => setCreateChannelOpen(true)} actionLabel={t("rail.newChannel")}>
           {channelsQuery.isLoading ? (
-            <EmptyHint>Loading…</EmptyHint>
+            <EmptyHint>{t("rail.loading")}</EmptyHint>
           ) : namedChannels.length === 0 ? (
-            <EmptyHint>{filtering ? "No matches." : "No channels yet."}</EmptyHint>
+            <EmptyHint>{filtering ? t("rail.noMatches") : t("rail.noChannels")}</EmptyHint>
           ) : (
             namedChannels.map((c) => (
               <ChannelRow
@@ -176,11 +178,11 @@ export function ChannelRail({
           )}
         </Section>
 
-        <Section caption="Direct Messages" onAction={() => setNewDmOpen(true)} actionLabel="New direct message">
+        <Section caption={t("rail.sectionDms")} onAction={() => setNewDmOpen(true)} actionLabel={t("rail.newDm")}>
           {channelsQuery.isLoading ? (
-            <EmptyHint>Loading…</EmptyHint>
+            <EmptyHint>{t("rail.loading")}</EmptyHint>
           ) : dms.length === 0 ? (
-            <EmptyHint>{filtering ? "No matches." : "No conversations."}</EmptyHint>
+            <EmptyHint>{filtering ? t("rail.noMatches") : t("rail.noConversations")}</EmptyHint>
           ) : (
             dms.map((c) => (
               <ChannelRow
@@ -199,15 +201,9 @@ export function ChannelRail({
       <div className="flex items-center justify-between gap-2 border-t border-[var(--color-border)] px-4 py-2.5">
         <RealtimeStatusPill />
         <span className="text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
-          {filtering ? (
-            <>
-              {totalShown} of {channels.length}
-            </>
-          ) : (
-            <>
-              {channels.length} channel{channels.length === 1 ? "" : "s"}
-            </>
-          )}
+          {filtering
+            ? t("rail.footerFiltered", { shown: totalShown, total: channels.length })
+            : t("rail.footerCount", { count: channels.length })}
         </span>
       </div>
 
@@ -270,6 +266,7 @@ function ChannelRow({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation("chat");
   // For 1-on-1 DMs, resolve the partner's real name. Group DMs and named
   // channels keep channelTitle's fallback formatting.
   const otherDmMember =
@@ -332,7 +329,7 @@ function ChannelRow({
       </span>
       {hasUnread && !selected && (
         <span
-          aria-label={`${channel.unreadCount} unread`}
+          aria-label={t("rail.unreadAria", { n: channel.unreadCount })}
           className={cn(
             "ml-auto shrink-0 rounded-full px-1.5 py-0.5",
             "text-[10px] font-semibold tabular-nums",
@@ -361,6 +358,7 @@ function CreateChannelDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { t } = useTranslation("chat");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -386,18 +384,18 @@ function CreateChannelDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create a channel</DialogTitle>
+          <DialogTitle>{t("rail.createTitle")}</DialogTitle>
           <DialogDescription>
-            Channels are where teams talk. Anyone in your tenant can join public channels.
+            {t("rail.createDescription")}
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="channel-name">Name</Label>
+              <Label htmlFor="channel-name">{t("rail.nameLabel")}</Label>
               <Input
                 id="channel-name"
-                placeholder="engineering, design-feedback…"
+                placeholder={t("rail.namePlaceholder")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={80}
@@ -405,10 +403,10 @@ function CreateChannelDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="channel-description">Description (optional)</Label>
+              <Label htmlFor="channel-description">{t("rail.descLabel")}</Label>
               <Input
                 id="channel-description"
-                placeholder="What's this channel about?"
+                placeholder={t("rail.descPlaceholder")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={200}
@@ -427,9 +425,9 @@ function CreateChannelDialog({
                 onChange={(e) => setIsPrivate(e.target.checked)}
               />
               <div className="flex-1">
-                <div className="text-sm font-medium">Private</div>
+                <div className="text-sm font-medium">{t("rail.privateLabel")}</div>
                 <div className="text-xs text-[var(--color-muted-foreground)]">
-                  Only invited members can find or join this channel.
+                  {t("rail.privateHint")}
                 </div>
               </div>
             </label>
@@ -437,14 +435,14 @@ function CreateChannelDialog({
         </DialogBody>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("rail.cancel")}
           </Button>
           <Button
             size="sm"
             disabled={!name.trim() || mutation.isPending}
             onClick={() => mutation.mutate()}
           >
-            Create channel
+            {t("rail.createSubmit")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -463,6 +461,7 @@ function NewDmDialog({
   selfUserId?: string;
   onCreated: (channelId: string) => void;
 }) {
+  const { t } = useTranslation("chat");
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const queryClient = useQueryClient();
@@ -515,23 +514,22 @@ function NewDmDialog({
 
   const renderUserName = (u: UserDto): string => {
     const display = [u.firstName, u.lastName].filter(Boolean).join(" ").trim();
-    return display || u.userName || u.email || "(unnamed)";
+    return display || u.userName || u.email || t("unnamed");
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New direct message</DialogTitle>
+          <DialogTitle>{t("rail.dmTitle")}</DialogTitle>
           <DialogDescription>
-            Find someone in your tenant and we&apos;ll open a DM with them.
-            Existing DMs are reused — you won&apos;t create duplicates.
+            {t("rail.dmDescription")}
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="dm-search">Search</Label>
+              <Label htmlFor="dm-search">{t("rail.dmSearchLabel")}</Label>
               <div className="relative">
                 <Search
                   aria-hidden
@@ -541,7 +539,7 @@ function NewDmDialog({
                   id="dm-search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Name, username, or email…"
+                  placeholder={t("rail.dmSearchPlaceholder")}
                   className="pl-9"
                   autoFocus
                 />
@@ -551,14 +549,14 @@ function NewDmDialog({
             <div className="min-h-[260px] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
               {activeQuery.isLoading && users.length === 0 ? (
                 <EmptyPickerState
-                  label={debounced.length >= 2 ? "Searching…" : "Loading people…"}
+                  label={debounced.length >= 2 ? t("rail.dmSearching") : t("rail.dmLoadingPeople")}
                 />
               ) : users.length === 0 ? (
                 <EmptyPickerState
                   label={
                     debounced.length >= 2
-                      ? `No one matches "${debounced}".`
-                      : "No teammates in your tenant yet."
+                      ? t("rail.dmNoMatch", { term: debounced })
+                      : t("rail.dmNoTeammates")
                   }
                 />
               ) : (
@@ -569,7 +567,7 @@ function NewDmDialog({
                       typed query takes over the list. */}
                   <div className="flex items-baseline justify-between gap-2 border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] px-3 py-2">
                     <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                      {debounced.length >= 2 ? "Search results" : "Suggested"}
+                      {debounced.length >= 2 ? t("rail.dmSearchResults") : t("rail.dmSuggested")}
                     </span>
                     <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
                       {users.length}
@@ -615,7 +613,7 @@ function NewDmDialog({
         </DialogBody>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("rail.cancel")}
           </Button>
         </DialogFooter>
       </DialogContent>

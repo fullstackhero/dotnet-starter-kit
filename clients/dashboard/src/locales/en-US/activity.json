@@ -1,0 +1,21 @@
+{
+  "title": "Live activity",
+  "unit": "event",
+  "description": "Full event log streamed from the API over Server-Sent Events.",
+  "ariaLabel": "Activity events",
+  "status.streaming": "streaming",
+  "status.offline": "offline",
+  "status.idle": "idle",
+  "status.connecting": "connecting",
+  "status.reconnecting": "reconnecting",
+  "shown_one": "{{count}} event shown",
+  "shown_other": "{{count}} events shown",
+  "totalCount": "{{total}} total",
+  "empty.listeningTitle": "Listening for activity",
+  "empty.noEventsTitle": "No events yet",
+  "empty.listeningBody": "The stream is open. Events will appear here as the backend publishes them.",
+  "empty.offlineBody": "The activity stream is not connected. Events will queue once the connection comes online.",
+  "col.action": "Action",
+  "col.entity": "Entity",
+  "col.time": "Time"
+}

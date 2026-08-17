@@ -1,0 +1,21 @@
+{
+  "title": "Atividade ao vivo",
+  "unit": "evento",
+  "description": "Log completo de eventos transmitido pela API via Server-Sent Events.",
+  "ariaLabel": "Eventos de atividade",
+  "status.streaming": "transmitindo",
+  "status.offline": "offline",
+  "status.idle": "ocioso",
+  "status.connecting": "conectando",
+  "status.reconnecting": "reconectando",
+  "shown_one": "{{count}} evento exibido",
+  "shown_other": "{{count}} eventos exibidos",
+  "totalCount": "{{total}} no total",
+  "empty.listeningTitle": "Aguardando atividade",
+  "empty.noEventsTitle": "Nenhum evento ainda",
+  "empty.listeningBody": "O stream está aberto. Os eventos aparecerão aqui conforme o backend os publica.",
+  "empty.offlineBody": "O stream de atividade não está conectado. Os eventos entrarão na fila assim que a conexão ficar online.",
+  "col.action": "Ação",
+  "col.entity": "Entidade",
+  "col.time": "Horário"
+}

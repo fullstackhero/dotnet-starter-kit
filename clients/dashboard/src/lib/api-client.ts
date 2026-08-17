@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import i18n from "@/i18n";
 import { tokenStore } from "@/auth/token-store";
 import { decodeJwt } from "@/auth/jwt";
 
@@ -9,6 +10,10 @@ export type ApiError = {
   // FluentValidation errors arrive keyed by field (Record); CustomException
   // (e.g. Identity registration failures) sends a flat string[]. Handle both.
   errors?: Record<string, string[]> | string[];
+  // Stable, culture-independent error key (the server's MessageKey) — present
+  // whenever the thrown exception carried one. `detail` is localized prose, so
+  // branch on this, never on the text.
+  code?: string;
   // Dev-only extension surfaced on 401 by ConfigureJwtBearerOptions.
   reason?: string;
   // Allow any other ProblemDetails extensions through.
@@ -26,19 +31,22 @@ export class ApiRequestError extends Error {
   }
 }
 
+/** The deactivated-tenant guard's error key (MultitenancyModule). */
+const TENANT_DEACTIVATED_CODE = "Multitenancy.TenantDeactivated";
+
 /**
- * True when an error is the API's "tenant has been deactivated" 403. The
- * deactivated-tenant guard (MultitenancyModule) rejects *every* request once a
- * tenant is switched off, so this can surface from any query/mutation while a
- * user is mid-session. There is no machine-readable code on the ProblemDetails,
- * so we match the guard's detail text. A global query/mutation error hook uses
- * this to route the user to the dedicated `/tenant-deactivated` page rather than
- * leaving the dead 403 banner stuck under a half-loaded surface.
+ * True when an error is the API's deactivated-tenant 403. The guard
+ * (MultitenancyModule) rejects *every* request once a tenant is switched off, so
+ * this can surface from any query/mutation while a user is mid-session. We match
+ * the ProblemDetails `code` — the server's MessageKey — because `detail` is
+ * localized under the request's Accept-Language and matching prose would only
+ * work for English readers. A global query/mutation error hook uses this to
+ * route the user to the dedicated `/tenant-deactivated` page rather than leaving
+ * the dead 403 banner stuck under a half-loaded surface.
  */
 export function isTenantDeactivatedError(error: unknown): boolean {
   if (!(error instanceof ApiRequestError) || error.status !== 403) return false;
-  const detail = error.problem?.detail ?? error.message ?? "";
-  return detail.toLowerCase().includes("tenant has been deactivated");
+  return error.problem?.code === TENANT_DEACTIVATED_CODE;
 }
 
 /**
@@ -184,6 +192,13 @@ export async function apiFetch<T = unknown>(
   const tenant = tokenStore.getTenant() ?? env.defaultTenant;
   if (tenant && !mergedHeaders.has("tenant")) {
     mergedHeaders.set("tenant", tenant);
+  }
+
+  // Tell the backend which culture to localize responses in. The active UI
+  // locale drives it; the backend resolution chain still falls through to its
+  // own default for anything unsupported.
+  if (!mergedHeaders.has("Accept-Language")) {
+    mergedHeaders.set("Accept-Language", i18n.language || "en-US");
   }
 
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;

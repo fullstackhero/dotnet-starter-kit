@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { Loader2, Palette, RotateCcw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,7 @@ import { cn } from "@/lib/cn";
 const THEME_QUERY_KEY = ["tenant", "theme"] as const;
 
 export function BrandingSettings() {
+  const { t } = useTranslation("settings");
   const queryClient = useQueryClient();
 
   const themeQuery = useQuery({
@@ -64,27 +67,27 @@ export function BrandingSettings() {
   const saveMutation = useMutation({
     mutationFn: (theme: TenantThemeDto) => updateTenantTheme(theme),
     onSuccess: () => {
-      toast.success("Branding saved");
+      toast.success(t("branding.toastSaved"));
       void queryClient.invalidateQueries({ queryKey: THEME_QUERY_KEY });
     },
-    onError: (err) => toast.error("Save failed", { description: apiErr(err) }),
+    onError: (err) => toast.error(t("branding.saveFailed"), { description: apiErr(err, t) }),
   });
 
   const resetMutation = useMutation({
     mutationFn: resetTenantTheme,
     onSuccess: () => {
-      toast.success("Branding reset to defaults");
+      toast.success(t("branding.toastReset"));
       void queryClient.invalidateQueries({ queryKey: THEME_QUERY_KEY });
     },
-    onError: (err) => toast.error("Reset failed", { description: apiErr(err) }),
+    onError: (err) => toast.error(t("branding.resetFailed"), { description: apiErr(err, t) }),
   });
 
   if (themeQuery.isLoading) {
     return (
-      <SettingsSection title="Branding" icon={Palette} description="Loading branding…">
+      <SettingsSection title={t("branding.title")} icon={Palette} description={t("branding.loadingDescription")}>
         <div className="flex items-center gap-2 text-[13px] text-[var(--color-muted-foreground)]">
           <Loader2 className="size-4 animate-spin" aria-hidden />
-          <span>Loading branding</span>
+          <span>{t("branding.loading")}</span>
         </div>
       </SettingsSection>
     );
@@ -92,8 +95,8 @@ export function BrandingSettings() {
 
   if (themeQuery.isError) {
     return (
-      <SettingsSection title="Branding" icon={Palette}>
-        <ErrorBand message={apiErr(themeQuery.error)} />
+      <SettingsSection title={t("branding.title")} icon={Palette}>
+        <ErrorBand message={apiErr(themeQuery.error, t)} />
       </SettingsSection>
     );
   }
@@ -115,12 +118,12 @@ export function BrandingSettings() {
       <div className="flex items-center gap-2">
         {draft.isDefault && !dirty && (
           <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
-            default
+            {t("branding.badgeDefault")}
           </Badge>
         )}
         {dirty && (
           <Badge variant="warning" className="font-mono uppercase tracking-[0.14em]">
-            unsaved
+            {t("branding.badgeUnsaved")}
           </Badge>
         )}
       </div>
@@ -130,10 +133,10 @@ export function BrandingSettings() {
           variant="ghost"
           onClick={() => resetMutation.mutate()}
           disabled={resetMutation.isPending || saveMutation.isPending}
-          aria-label="Reset branding to defaults"
+          aria-label={t("branding.resetAriaLabel")}
         >
           <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-          {resetMutation.isPending ? "Resetting…" : "Reset to defaults"}
+          {resetMutation.isPending ? t("branding.resetting") : t("branding.resetToDefaults")}
         </Button>
         <Button
           type="button"
@@ -145,7 +148,7 @@ export function BrandingSettings() {
           ) : (
             <Save className="mr-1.5 h-3.5 w-3.5" />
           )}
-          {saveMutation.isPending ? "Saving…" : "Save branding"}
+          {saveMutation.isPending ? t("branding.saving") : t("branding.save")}
         </Button>
       </div>
     </div>
@@ -153,23 +156,23 @@ export function BrandingSettings() {
 
   return (
     <SettingsSection
-      title="Branding"
+      title={t("branding.title")}
       icon={Palette}
-      description="Theme tokens consumed by your tenant's apps on sign-in. Live preview reflects the primary action with the chosen palette."
+      description={t("branding.description")}
       footer={footer}
     >
       <div className="space-y-6">
-        <ThemePreview palette={draft.lightPalette} label="Light preview" />
+        <ThemePreview palette={draft.lightPalette} label={t("branding.lightPreview")} />
 
         <div className="grid gap-5 lg:grid-cols-2">
           <PaletteEditor
-            title="Light palette"
+            title={t("branding.lightPalette")}
             palette={draft.lightPalette}
             onChange={onLight}
             defaults={DEFAULT_LIGHT_PALETTE}
           />
           <PaletteEditor
-            title="Dark palette"
+            title={t("branding.darkPalette")}
             palette={draft.darkPalette}
             onChange={onDark}
             defaults={DEFAULT_DARK_PALETTE}
@@ -186,16 +189,16 @@ export function BrandingSettings() {
 // Palette editor — color swatches paired with hex inputs
 // ─────────────────────────────────────────────────────────────────────────
 
-const PALETTE_FIELDS: ReadonlyArray<{ key: keyof PaletteDto; label: string }> = [
-  { key: "primary", label: "Primary" },
-  { key: "secondary", label: "Secondary" },
-  { key: "tertiary", label: "Tertiary" },
-  { key: "background", label: "Background" },
-  { key: "surface", label: "Surface" },
-  { key: "error", label: "Error" },
-  { key: "warning", label: "Warning" },
-  { key: "success", label: "Success" },
-  { key: "info", label: "Info" },
+const PALETTE_FIELDS: ReadonlyArray<{ key: keyof PaletteDto; labelKey: string }> = [
+  { key: "primary", labelKey: "branding.field.primary" },
+  { key: "secondary", labelKey: "branding.field.secondary" },
+  { key: "tertiary", labelKey: "branding.field.tertiary" },
+  { key: "background", labelKey: "branding.field.background" },
+  { key: "surface", labelKey: "branding.field.surface" },
+  { key: "error", labelKey: "branding.field.error" },
+  { key: "warning", labelKey: "branding.field.warning" },
+  { key: "success", labelKey: "branding.field.success" },
+  { key: "info", labelKey: "branding.field.info" },
 ];
 
 function PaletteEditor({
@@ -209,6 +212,7 @@ function PaletteEditor({
   onChange: (next: Partial<PaletteDto>) => void;
   defaults: PaletteDto;
 }) {
+  const { t } = useTranslation("settings");
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]">
       <div className="flex items-center justify-between border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] px-4 py-2.5">
@@ -221,14 +225,14 @@ function PaletteEditor({
           onClick={() => onChange(defaults)}
         >
           <RotateCcw className="h-2.5 w-2.5" aria-hidden />
-          Reset palette
+          {t("branding.resetPalette")}
         </button>
       </div>
       <div className="grid gap-2 p-4 sm:grid-cols-2">
-        {PALETTE_FIELDS.map(({ key, label }) => (
+        {PALETTE_FIELDS.map(({ key, labelKey }) => (
           <ColorRow
             key={key}
-            label={label}
+            label={t(labelKey)}
             value={palette[key]}
             onChange={(v) => onChange({ [key]: v } as Partial<PaletteDto>)}
           />
@@ -247,6 +251,7 @@ function ColorRow({
   value: string;
   onChange: (next: string) => void;
 }) {
+  const { t } = useTranslation("settings");
   const valid = /^#[0-9a-f]{6}$/i.test(value);
   return (
     <div className="flex items-center gap-2.5">
@@ -254,14 +259,14 @@ function ColorRow({
       <label
         className="relative grid h-8 w-8 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-lg shadow-sm ring-1 ring-inset ring-[var(--color-border)]"
         style={{ backgroundColor: valid ? value : undefined }}
-        title={`Pick ${label} color`}
+        title={t("branding.pickColor", { label })}
       >
         <input
           type="color"
           value={valid ? value : "#000000"}
           onChange={(e) => onChange(e.target.value.toUpperCase())}
           className="sr-only"
-          aria-label={`${label} color`}
+          aria-label={t("branding.colorAriaLabel", { label })}
         />
       </label>
       <div className="min-w-0 flex-1">
@@ -297,21 +302,21 @@ function BrandAssetsEditor({
   assets: BrandAssetsDto;
   onChange: (next: Partial<BrandAssetsDto>) => void;
 }) {
+  const { t } = useTranslation("settings");
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]">
       <div className="border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] px-4 py-2.5">
         <h4 className="text-[12.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
-          Brand assets
+          {t("branding.assets.title")}
         </h4>
         <p className="mt-0.5 text-[11.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-          URLs to your hosted brand assets. Upload via the Files module first,
-          then paste the resulting public URL here.
+          {t("branding.assets.description")}
         </p>
       </div>
       <div className="space-y-4 p-4">
         <AssetField
           id="logo-url"
-          label="Logo URL"
+          label={t("branding.assets.logo")}
           value={assets.logoUrl ?? ""}
           onChange={(v) =>
             onChange({ logoUrl: v || null, deleteLogo: v.length === 0 })
@@ -319,7 +324,7 @@ function BrandAssetsEditor({
         />
         <AssetField
           id="logo-dark-url"
-          label="Logo URL (dark mode)"
+          label={t("branding.assets.logoDark")}
           value={assets.logoDarkUrl ?? ""}
           onChange={(v) =>
             onChange({ logoDarkUrl: v || null, deleteLogoDark: v.length === 0 })
@@ -327,7 +332,7 @@ function BrandAssetsEditor({
         />
         <AssetField
           id="favicon-url"
-          label="Favicon URL"
+          label={t("branding.assets.favicon")}
           value={assets.faviconUrl ?? ""}
           onChange={(v) =>
             onChange({ faviconUrl: v || null, deleteFavicon: v.length === 0 })
@@ -349,6 +354,7 @@ function AssetField({
   value: string;
   onChange: (next: string) => void;
 }) {
+  const { t } = useTranslation("settings");
   return (
     <Field id={id} label={label}>
       <div className="flex items-center gap-2">
@@ -356,7 +362,7 @@ function AssetField({
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="https://cdn.example.com/logo.svg"
+          placeholder={t("branding.assets.placeholder")}
           spellCheck={false}
           autoComplete="off"
           className="font-mono text-[12.5px]"
@@ -383,6 +389,7 @@ function AssetField({
 // ─────────────────────────────────────────────────────────────────────────
 
 function ThemePreview({ palette, label }: { palette: PaletteDto; label: string }) {
+  const { t } = useTranslation("settings");
   return (
     <div
       className="overflow-hidden rounded-xl border border-[var(--color-border)]"
@@ -406,7 +413,7 @@ function ThemePreview({ palette, label }: { palette: PaletteDto; label: string }
           className="rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]"
           style={{ backgroundColor: palette.success, color: palette.surface }}
         >
-          live
+          {t("branding.preview.live")}
         </span>
       </div>
 
@@ -418,21 +425,20 @@ function ThemePreview({ palette, label }: { palette: PaletteDto; label: string }
               className="text-[13px] font-semibold"
               style={{ color: palette.secondary }}
             >
-              Sample tenant page
+              {t("branding.preview.samplePage")}
             </span>
             <span
               className="rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]"
               style={{ backgroundColor: palette.success, color: palette.surface }}
             >
-              active
+              {t("branding.preview.active")}
             </span>
           </div>
           <p
             className="mb-4 text-[12.5px] leading-relaxed"
             style={{ color: palette.secondary, opacity: 0.72 }}
           >
-            A short paragraph rendered with the chosen body color over the chosen
-            surface, on the chosen page background. Action buttons use the primary token.
+            {t("branding.preview.body")}
           </p>
           <div className="flex flex-wrap gap-2">
             {/* Primary action */}
@@ -440,7 +446,7 @@ function ThemePreview({ palette, label }: { palette: PaletteDto; label: string }
               className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium shadow-sm"
               style={{ backgroundColor: palette.primary, color: palette.surface }}
             >
-              Primary action
+              {t("branding.preview.primaryAction")}
             </span>
             {/* Outline secondary */}
             <span
@@ -451,21 +457,21 @@ function ThemePreview({ palette, label }: { palette: PaletteDto; label: string }
                 backgroundColor: "transparent",
               }}
             >
-              Secondary
+              {t("branding.preview.secondary")}
             </span>
             {/* Warning pill */}
             <span
               className="inline-flex items-center rounded-lg px-2.5 py-1 text-[10.5px] font-mono font-medium uppercase tracking-[0.1em]"
               style={{ backgroundColor: palette.warning, color: palette.background }}
             >
-              warn
+              {t("branding.preview.warn")}
             </span>
             {/* Error pill */}
             <span
               className="inline-flex items-center rounded-lg px-2.5 py-1 text-[10.5px] font-mono font-medium uppercase tracking-[0.1em]"
               style={{ backgroundColor: palette.error, color: palette.surface }}
             >
-              error
+              {t("branding.preview.error")}
             </span>
           </div>
         </div>
@@ -474,10 +480,10 @@ function ThemePreview({ palette, label }: { palette: PaletteDto; label: string }
   );
 }
 
-function apiErr(err: unknown): string {
+function apiErr(err: unknown, t: TFunction): string {
   if (err instanceof ApiRequestError) {
     return err.problem?.detail ?? err.problem?.title ?? err.message;
   }
   if (err instanceof Error) return err.message;
-  return "Unknown error";
+  return t("branding.unknownError");
 }

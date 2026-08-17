@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -72,16 +73,15 @@ type TabKey = TrashTabKey;
 
 const TABS: ReadonlyArray<{
   key: TabKey;
-  label: string;
   icon: React.ComponentType<{ className?: string }>;
   /** Permission gating this tab — mirrors what its trash endpoint enforces. */
   perm: string;
 }> = [
-  { key: "products", label: "Products", icon: Package, perm: TRASH_TAB_PERMISSIONS.products },
-  { key: "brands", label: "Brands", icon: Tags, perm: TRASH_TAB_PERMISSIONS.brands },
-  { key: "categories", label: "Categories", icon: FolderTree, perm: TRASH_TAB_PERMISSIONS.categories },
-  { key: "tickets", label: "Tickets", icon: Ticket, perm: TRASH_TAB_PERMISSIONS.tickets },
-  { key: "files", label: "Files", icon: FileText, perm: TRASH_TAB_PERMISSIONS.files },
+  { key: "products", icon: Package, perm: TRASH_TAB_PERMISSIONS.products },
+  { key: "brands", icon: Tags, perm: TRASH_TAB_PERMISSIONS.brands },
+  { key: "categories", icon: FolderTree, perm: TRASH_TAB_PERMISSIONS.categories },
+  { key: "tickets", icon: Ticket, perm: TRASH_TAB_PERMISSIONS.tickets },
+  { key: "files", icon: FileText, perm: TRASH_TAB_PERMISSIONS.files },
 ];
 
 // ───────────────────────────────────────────────────────────────────────
@@ -89,6 +89,7 @@ const TABS: ReadonlyArray<{
 // ───────────────────────────────────────────────────────────────────────
 
 export function TrashPage() {
+  const { t } = useTranslation("system");
   const { user } = useAuth();
   const [tab, setTab] = useState<TabKey>("products");
   const [pageNumber, setPageNumber] = useState(1);
@@ -119,24 +120,24 @@ export function TrashPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Trash2}
-        title="Recycle bin"
-        description="Soft-deleted records, kept indefinitely until you restore them. Restoring a row brings it back to its parent list with the same ID and history intact."
+        title={t("trash.title")}
+        description={t("trash.description")}
       />
 
       {visibleTabs.length === 0 ? (
         <EntityEmpty
           icon={Trash2}
-          title="No recycle bins available"
-          body="You don't have permission to restore deleted records in this tenant. Ask an administrator if you think you should."
+          title={t("trash.noAccessTitle")}
+          body={t("trash.noAccessBody")}
         />
       ) : (
         <>
       {/* Tab pills */}
       <nav
-        aria-label="Trash sections"
+        aria-label={t("trash.sections")}
         className="flex flex-wrap items-center gap-2"
       >
-        {visibleTabs.map(({ key, label, icon: Icon }) => {
+        {visibleTabs.map(({ key, icon: Icon }) => {
           const active = activeTab === key;
           return (
             <button
@@ -152,7 +153,7 @@ export function TrashPage() {
               )}
             >
               <Icon className="size-3.5" aria-hidden />
-              {label}
+              {t(`trash.tab.${key}`)}
             </button>
           );
         })}
@@ -191,6 +192,7 @@ function ProductsTab({
   pageNumber: number;
   setPageNumber: (n: number) => void;
 }) {
+  const { t } = useTranslation("system");
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["trash", "products", pageNumber],
@@ -199,7 +201,7 @@ function ProductsTab({
   const restore = useMutation({
     mutationFn: (id: string) => restoreProduct(id),
     onSuccess: () => {
-      toast.success("Product restored");
+      toast.success(t("trash.toast.products"));
       void queryClient.invalidateQueries({ queryKey: ["trash", "products"] });
       void queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
     },
@@ -207,7 +209,7 @@ function ProductsTab({
   });
   return (
     <TrashShell
-      label="Products"
+      tabKey="products"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
@@ -231,6 +233,7 @@ function BrandsTab({
   pageNumber: number;
   setPageNumber: (n: number) => void;
 }) {
+  const { t } = useTranslation("system");
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["trash", "brands", pageNumber],
@@ -239,7 +242,7 @@ function BrandsTab({
   const restore = useMutation({
     mutationFn: (id: string) => restoreBrand(id),
     onSuccess: () => {
-      toast.success("Brand restored");
+      toast.success(t("trash.toast.brands"));
       void queryClient.invalidateQueries({ queryKey: ["trash", "brands"] });
       void queryClient.invalidateQueries({ queryKey: ["catalog", "brands"] });
     },
@@ -247,7 +250,7 @@ function BrandsTab({
   });
   return (
     <TrashShell
-      label="Brands"
+      tabKey="brands"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
@@ -271,6 +274,7 @@ function CategoriesTab({
   pageNumber: number;
   setPageNumber: (n: number) => void;
 }) {
+  const { t } = useTranslation("system");
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["trash", "categories", pageNumber],
@@ -279,7 +283,7 @@ function CategoriesTab({
   const restore = useMutation({
     mutationFn: (id: string) => restoreCategory(id),
     onSuccess: () => {
-      toast.success("Category restored");
+      toast.success(t("trash.toast.categories"));
       void queryClient.invalidateQueries({ queryKey: ["trash", "categories"] });
       void queryClient.invalidateQueries({ queryKey: ["catalog", "categories"] });
     },
@@ -287,7 +291,7 @@ function CategoriesTab({
   });
   return (
     <TrashShell
-      label="Categories"
+      tabKey="categories"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
@@ -311,6 +315,7 @@ function TicketsTab({
   pageNumber: number;
   setPageNumber: (n: number) => void;
 }) {
+  const { t } = useTranslation("system");
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["trash", "tickets", pageNumber],
@@ -319,7 +324,7 @@ function TicketsTab({
   const restore = useMutation({
     mutationFn: (id: string) => restoreTicket(id),
     onSuccess: () => {
-      toast.success("Ticket restored");
+      toast.success(t("trash.toast.tickets"));
       void queryClient.invalidateQueries({ queryKey: ["trash", "tickets"] });
       void queryClient.invalidateQueries({ queryKey: ["tickets"] });
     },
@@ -327,7 +332,7 @@ function TicketsTab({
   });
   return (
     <TrashShell
-      label="Tickets"
+      tabKey="tickets"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
@@ -351,6 +356,7 @@ function FilesTab({
   pageNumber: number;
   setPageNumber: (n: number) => void;
 }) {
+  const { t } = useTranslation("system");
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["trash", "files", pageNumber],
@@ -359,7 +365,7 @@ function FilesTab({
   const restore = useMutation({
     mutationFn: (id: string) => restoreFile(id),
     onSuccess: () => {
-      toast.success("File restored");
+      toast.success(t("trash.toast.files"));
       void queryClient.invalidateQueries({ queryKey: ["trash", "files"] });
       void queryClient.invalidateQueries({ queryKey: ["files"] });
     },
@@ -367,7 +373,7 @@ function FilesTab({
   });
   return (
     <TrashShell
-      label="Files"
+      tabKey="files"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
@@ -406,24 +412,26 @@ type TrashQuery<T> = {
 };
 
 function TrashShell<T>({
-  label,
+  tabKey,
   query,
   pageNumber,
   setPageNumber,
   mapRow,
 }: {
-  label: string;
+  tabKey: TabKey;
   query: TrashQuery<T>;
   pageNumber: number;
   setPageNumber: (n: number) => void;
   mapRow: (item: T) => RowVm;
 }) {
+  const { t } = useTranslation("system");
   const navigate = useNavigate();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const items = query.data?.items ?? [];
   const total = query.data?.totalCount ?? 0;
   const rows = items.map(mapRow);
   const pendingRow = rows.find((r) => r.id === pendingId) ?? null;
+  const plural = t(`trash.entityPlural.${tabKey}`);
 
   if (query.isLoading && rows.length === 0) {
     return <EntityListLoading desktopColumns={DESKTOP_COLS} />;
@@ -444,15 +452,15 @@ function TrashShell<T>({
     return (
       <EntityEmpty
         icon={Trash2}
-        title={`The ${label.toLowerCase()} trash is empty`}
-        body={`Soft-deleted ${label.toLowerCase()} land here for as long as you want — no automatic purge. Anything you remove from the main list can be recovered.`}
+        title={t("trash.emptyTitle", { entity: plural })}
+        body={t("trash.emptyBody", { entity: plural })}
         action={
           <Button
             variant="outline"
-            onClick={() => navigate(`/${tabPath(label)}`)}
+            onClick={() => navigate(`/${tabPath(tabKey)}`)}
             className="h-9 rounded-lg px-4 text-[13px]"
           >
-            Back to {label.toLowerCase()}
+            {t("trash.backTo", { entity: plural })}
           </Button>
         }
       />
@@ -463,8 +471,7 @@ function TrashShell<T>({
     <div>
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
-          {total} {label.toLowerCase()}
-          {total !== 1 ? "" : ""} in trash
+          {t("trash.count", { n: total, entity: plural })}
         </p>
       </div>
 
@@ -482,10 +489,10 @@ function TrashShell<T>({
       {/* Desktop list */}
       <EntityListCard className="hidden md:block">
         <EntityListHeader className={DESKTOP_COLS}>
-          <span>Entity</span>
-          <span>Deleted by</span>
-          <span>Deleted at</span>
-          <span className="text-right">Actions</span>
+          <span>{t("trash.col.entity")}</span>
+          <span>{t("trash.col.deletedBy")}</span>
+          <span>{t("trash.col.deletedAt")}</span>
+          <span className="text-right">{t("trash.col.actions")}</span>
         </EntityListHeader>
         {rows.map((row, i) => (
           <TrashDesktopRow
@@ -508,7 +515,7 @@ function TrashShell<T>({
 
       <RestoreConfirmDialog
         row={pendingRow}
-        label={label}
+        tabKey={tabKey}
         onClose={() => setPendingId(null)}
         onConfirm={() => {
           pendingRow?.onRestore();
@@ -525,35 +532,36 @@ function TrashShell<T>({
 
 function RestoreConfirmDialog({
   row,
-  label,
+  tabKey,
   onClose,
   onConfirm,
 }: {
   row: RowVm | null;
-  label: string;
+  tabKey: TabKey;
   onClose: () => void;
   onConfirm: () => void;
 }) {
-  const singular = label.replace(/s$/, "").toLowerCase();
+  const { t } = useTranslation("system");
+  const singular = t(`trash.entitySingular.${tabKey}`);
   return (
     <Dialog open={row !== null} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Restore {singular}?</DialogTitle>
+          <DialogTitle>{t("trash.restore.title", { entity: singular })}</DialogTitle>
           <DialogDescription>
             <span className="font-medium text-[var(--color-foreground)]">{row?.title}</span>{" "}
-            will be moved back to its {singular} list with the same ID and history intact.
+            {t("trash.restore.body", { entity: singular })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              Cancel
+              {t("trash.restore.cancel")}
             </Button>
           </DialogClose>
           <Button type="button" onClick={onConfirm} className="gap-1.5">
             <RotateCcw className="size-3.5" />
-            Restore {singular}
+            {t("trash.restore.confirm", { entity: singular })}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -561,13 +569,13 @@ function RestoreConfirmDialog({
   );
 }
 
-function tabPath(label: string): string {
-  switch (label) {
-    case "Products": return "catalog/products";
-    case "Brands": return "catalog/brands";
-    case "Categories": return "catalog/categories";
-    case "Tickets": return "tickets";
-    case "Files": return "files";
+function tabPath(tabKey: TabKey): string {
+  switch (tabKey) {
+    case "products": return "catalog/products";
+    case "brands": return "catalog/brands";
+    case "categories": return "catalog/categories";
+    case "tickets": return "tickets";
+    case "files": return "files";
     default: return "";
   }
 }
@@ -583,6 +591,7 @@ function TrashMobileCard({
   row: RowVm;
   onRequestRestore: () => void;
 }) {
+  const { t } = useTranslation("system");
   return (
     <div
       className={cn(
@@ -610,7 +619,7 @@ function TrashMobileCard({
           className="shrink-0 gap-1.5"
         >
           <RotateCcw className={cn("size-3.5", row.isRestoring && "animate-spin")} />
-          {row.isRestoring ? "…" : "Restore"}
+          {row.isRestoring ? "…" : t("trash.action.restore")}
         </Button>
       </div>
       <div className="mt-2 ml-[52px] flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-[var(--color-muted-foreground)]">
@@ -621,7 +630,7 @@ function TrashMobileCard({
           <span className="opacity-60">({formatDateMono(row.deletedOnUtc)})</span>
         )}
         {row.deletedBy && (
-          <code className="font-mono">by {row.deletedBy.slice(0, 8)}…</code>
+          <code className="font-mono">{t("trash.by", { id: row.deletedBy.slice(0, 8) })}</code>
         )}
       </div>
     </div>
@@ -641,6 +650,7 @@ function TrashDesktopRow({
   isLast: boolean;
   onRequestRestore: () => void;
 }) {
+  const { t } = useTranslation("system");
   return (
     <EntityListRow className={DESKTOP_COLS} isLast={isLast}>
       {/* Entity */}
@@ -683,7 +693,7 @@ function TrashDesktopRow({
           className="gap-1.5"
         >
           <RotateCcw className={cn("size-3.5", row.isRestoring && "animate-spin")} />
-          {row.isRestoring ? "Restoring…" : "Restore"}
+          {row.isRestoring ? t("trash.action.restoring") : t("trash.action.restore")}
         </Button>
       </div>
     </EntityListRow>

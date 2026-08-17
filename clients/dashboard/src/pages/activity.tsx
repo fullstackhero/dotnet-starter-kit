@@ -1,6 +1,9 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Activity, Inbox } from "lucide-react";
+import i18n from "@/i18n";
 import { useSseEvents, useSseStatus, type SseEvent } from "@/sse/sse-context";
+import { formatNumber } from "@/lib/list-helpers";
 import { Badge } from "@/components/ui/badge";
 import {
   EntityEmpty,
@@ -12,15 +15,14 @@ import {
   type EntityStatusTone,
 } from "@/components/list";
 
-const timeFmt = new Intl.DateTimeFormat("en-US", {
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-});
-
 function formatTime(ts: number) {
-  return timeFmt.format(new Date(ts));
+  // 24h hh:mm:ss in the active locale — no list-helper covers second precision.
+  return new Intl.DateTimeFormat(i18n.language, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(new Date(ts));
 }
 
 function payloadSummary(data: unknown, raw: string): string {
@@ -67,6 +69,7 @@ function entityLabel(data: unknown): string {
 const DESKTOP_GRID = "grid-cols-[1fr_240px_120px]";
 
 export function ActivityPage() {
+  const { t } = useTranslation("activity");
   const { status, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
@@ -77,37 +80,37 @@ export function ActivityPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Activity}
-        title="Live activity"
+        title={t("title")}
         total={eventCount}
-        unit="event"
-        description="Full event log streamed from the API over Server-Sent Events."
+        unit={t("unit")}
+        description={t("description")}
       >
         {isLive ? (
-          <Badge variant="success">streaming</Badge>
+          <Badge variant="success">{t("status.streaming")}</Badge>
         ) : status === "error" ? (
-          <Badge variant="danger">offline</Badge>
+          <Badge variant="danger">{t("status.offline")}</Badge>
         ) : (
-          <Badge variant="default">{status}</Badge>
+          <Badge variant="default">{t(`status.${status}`)}</Badge>
         )}
       </EntityPageHeader>
 
       {items.length === 0 ? (
         <EntityEmpty
           icon={Inbox}
-          title={isLive ? "Listening for activity" : "No events yet"}
+          title={isLive ? t("empty.listeningTitle") : t("empty.noEventsTitle")}
           body={
             isLive
-              ? "The stream is open. Events will appear here as the backend publishes them."
-              : "The activity stream is not connected. Events will queue once the connection comes online."
+              ? t("empty.listeningBody")
+              : t("empty.offlineBody")
           }
         />
       ) : (
         <div>
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
-              {items.length} event{items.length === 1 ? "" : "s"} shown
+              {t("shown", { count: items.length })}
               <span className="ml-2 opacity-60">
-                · {new Intl.NumberFormat("en-US").format(eventCount)} total
+                · {t("totalCount", { total: formatNumber(eventCount) })}
               </span>
             </p>
           </div>
@@ -118,7 +121,7 @@ export function ActivityPage() {
             role="log"
             aria-live="polite"
             aria-relevant="additions"
-            aria-label="Activity events"
+            aria-label={t("ariaLabel")}
           >
             {items.map((ev) => (
               <MobileCard key={ev.id} ev={ev} />
@@ -131,12 +134,12 @@ export function ActivityPage() {
             role="log"
             aria-live="polite"
             aria-relevant="additions"
-            aria-label="Activity events"
+            aria-label={t("ariaLabel")}
           >
             <EntityListHeader className={DESKTOP_GRID}>
-              <span>Action</span>
-              <span>Entity</span>
-              <span className="text-right">Time</span>
+              <span>{t("col.action")}</span>
+              <span>{t("col.entity")}</span>
+              <span className="text-right">{t("col.time")}</span>
             </EntityListHeader>
             {items.map((ev, i) => (
               <DesktopRow

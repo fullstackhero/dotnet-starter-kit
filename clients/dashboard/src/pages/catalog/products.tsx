@@ -24,6 +24,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   adjustProductStock,
@@ -103,10 +104,11 @@ function FilterRow({
   activeFilter: boolean | null;
   setActiveFilter: (v: boolean | null) => void;
 }) {
+  const { t } = useTranslation("catalog");
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Combobox
-        label="Brand"
+        label={t("filter.brand")}
         value={brandFilter}
         onChange={setBrandFilter}
         options={brands.map((b) => ({ value: b.id, label: b.name }))}
@@ -115,7 +117,7 @@ function FilterRow({
         clearable
       />
       <Combobox
-        label="Category"
+        label={t("filter.category")}
         value={categoryFilter}
         onChange={setCategoryFilter}
         options={categories.map((c) => ({ value: c.id, label: c.name }))}
@@ -135,16 +137,17 @@ function ActivePill({
   value: boolean | null;
   onChange: (v: boolean | null) => void;
 }) {
+  const { t } = useTranslation("catalog");
   return (
     <div
       role="group"
-      aria-label="Active filter"
+      aria-label={t("filter.activeLabel")}
       className="inline-flex h-8 items-center rounded-full border border-[var(--color-border)] bg-[var(--color-card)] p-0.5 text-[11px] font-semibold uppercase tracking-wider"
     >
       {[
-        { v: null, label: "All" },
-        { v: true, label: "Active" },
-        { v: false, label: "Hidden" },
+        { v: null, label: t("filter.all") },
+        { v: true, label: t("filter.active") },
+        { v: false, label: t("filter.hidden") },
       ].map((opt) => {
         const isActive = value === opt.v;
         return (
@@ -173,6 +176,7 @@ function ActivePill({
 // ───────────────────────────────────────────────────────────────────────
 
 export function ProductsPage() {
+  const { t } = useTranslation("catalog");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -255,16 +259,16 @@ export function ProductsPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Package}
-        title="Products"
+        title={t("products.title")}
         total={data?.totalCount ?? null}
-        description="Browse and manage the catalog. Each product carries a SKU, brand, category, price, and live stock count."
+        description={t("products.description")}
       >
         <Button
           onClick={() => setEditor({ mode: "create" })}
           className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
         >
           <Plus className="size-4" />
-          New product
+          {t("action.newProduct")}
         </Button>
       </EntityPageHeader>
 
@@ -273,7 +277,7 @@ export function ProductsPage() {
         <Search className="absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]" />
         <input
           type="text"
-          placeholder="Search by name, SKU, or slug…"
+          placeholder={t("products.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className={cn(
@@ -290,7 +294,7 @@ export function ProductsPage() {
             onClick={() => setSearch("")}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)] transition-colors hover:text-[var(--color-muted-foreground)]"
           >
-            Clear
+            {t("action.clear")}
           </button>
         )}
       </div>
@@ -326,8 +330,7 @@ export function ProductsPage() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
-              {data?.totalCount ?? 0} product
-              {(data?.totalCount ?? 0) !== 1 ? "s" : ""} found
+              {t("products.count", { count: data?.totalCount ?? 0 })}
             </p>
           </div>
 
@@ -348,10 +351,10 @@ export function ProductsPage() {
           <div className="hidden overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs md:block">
             {/* Header */}
             <div className="grid grid-cols-[1fr_120px_24px] gap-3 border-b border-[var(--color-border)] bg-[oklch(from_var(--color-muted)_l_c_h_/_0.4)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:grid-cols-[1fr_140px_110px_120px_90px]">
-              <span>Product</span>
-              <span>SKU</span>
-              <span className="hidden lg:block">Brand</span>
-              <span className="hidden lg:block">Price</span>
+              <span>{t("col.product")}</span>
+              <span>{t("col.sku")}</span>
+              <span className="hidden lg:block">{t("col.brand")}</span>
+              <span className="hidden lg:block">{t("col.price")}</span>
               <span />
             </div>
 
@@ -420,10 +423,11 @@ function MobileCard({
   category: CategoryDto | undefined;
   onEdit: () => void;
 }) {
+  const { t } = useTranslation("catalog");
   return (
     <Link
       to={`/catalog/products/${product.id}`}
-      aria-label={`Open product ${product.name}`}
+      aria-label={t("aria.openProduct", { name: product.name })}
       className={cn(
         "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
         "shadow-xs",
@@ -445,7 +449,7 @@ function MobileCard({
               </p>
               {!product.isActive && (
                 <span className="inline-flex h-4 items-center rounded-full border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.20)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-destructive)]">
-                  Hidden
+                  {t("badge.hidden")}
                 </span>
               )}
             </div>
@@ -459,7 +463,7 @@ function MobileCard({
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            aria-label={`Edit ${product.name}`}
+            aria-label={t("aria.editProduct", { name: product.name })}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -516,6 +520,7 @@ function DesktopRow({
   onPriceChange: () => void;
   onStockAdjust: () => void;
 }) {
+  const { t } = useTranslation("catalog");
   return (
     <div
       className={cn(
@@ -541,7 +546,7 @@ function DesktopRow({
         </span>
         {!product.isActive && (
           <span className="inline-flex h-4 shrink-0 items-center rounded-full border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.20)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-destructive)]">
-            Hidden
+            {t("badge.hidden")}
           </span>
         )}
       </Link>
@@ -577,7 +582,7 @@ function DesktopRow({
         <button
           type="button"
           onClick={onPriceChange}
-          title="Change price"
+          title={t("action.changePrice")}
           className="cursor-pointer rounded-md px-1.5 py-0.5 text-left font-display text-[14px] font-semibold tabular-nums transition-colors hover:bg-[var(--color-muted)]"
         >
           {formatMoney(product.price.amount, product.price.currency)}
@@ -589,7 +594,7 @@ function DesktopRow({
       <div className="flex items-center justify-end gap-1">
         <button
           type="button"
-          aria-label={`Edit ${product.name}`}
+          aria-label={t("aria.editProduct", { name: product.name })}
           onClick={onEdit}
           className="grid size-7 cursor-pointer place-items-center rounded-md text-[var(--color-muted-foreground)] opacity-0 transition-all hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)] group-hover:opacity-100"
         >
@@ -597,7 +602,7 @@ function DesktopRow({
         </button>
         <button
           type="button"
-          aria-label={`Delete ${product.name}`}
+          aria-label={t("aria.deleteProduct", { name: product.name })}
           onClick={onDelete}
           className="grid size-7 cursor-pointer place-items-center rounded-md text-[var(--color-muted-foreground)] opacity-0 transition-all hover:bg-[var(--color-muted)] hover:text-[var(--color-destructive)] group-hover:opacity-100"
         >
@@ -624,6 +629,7 @@ function EmptyResults({
   onCreate: () => void;
   onClear: () => void;
 }) {
+  const { t } = useTranslation("catalog");
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--color-muted)]">
@@ -634,23 +640,23 @@ function EmptyResults({
         )}
       </div>
       <h3 className="mb-1.5 font-display text-[17px] font-semibold text-[var(--color-foreground)]">
-        {searchActive ? "No products found" : "No products yet"}
+        {searchActive ? t("empty.products.searchTitle") : t("empty.products.title")}
       </h3>
       <p className="mb-6 max-w-[320px] text-[13px] text-[var(--color-muted-foreground)]">
         {searchActive
           ? search
-            ? `Nothing matches "${search}". Try a different term or clear the filters.`
-            : "No products match the current filters."
-          : "Add your first product to start selling. Each carries its own SKU, price, stock, and image."}
+            ? t("empty.products.searchBodyTerm", { term: search })
+            : t("empty.products.searchBody")
+          : t("empty.products.body")}
       </p>
       {searchActive ? (
         <Button variant="outline" onClick={onClear} className="h-9 rounded-lg px-4 text-[13px]">
-          Clear filters
+          {t("action.clearFilters")}
         </Button>
       ) : (
         <Button onClick={onCreate} className="h-9 rounded-lg px-4 text-[13px]">
           <Plus className="mr-1.5 size-4" />
-          Add product
+          {t("action.addProduct")}
         </Button>
       )}
     </div>
@@ -713,6 +719,7 @@ function StockChip({
   stock: number;
   onClick?: () => void;
 }) {
+  const { t } = useTranslation("catalog");
   const tone =
     stock === 0 ? "danger" : stock < LOW_STOCK ? "warning" : "default";
   const tones = {
@@ -727,7 +734,7 @@ function StockChip({
   return (
     <Comp
       onClick={onClick}
-      title={onClick ? "Adjust stock" : undefined}
+      title={onClick ? t("action.adjustStock") : undefined}
       className={cn(
         "inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] font-semibold tabular-nums transition-colors",
         onClick && "cursor-pointer",
@@ -819,6 +826,7 @@ function ProductEditorDialog({
   brands: BrandDto[];
   categories: CategoryDto[];
 }) {
+  const { t } = useTranslation("catalog");
   const isOpen = state.mode === "create" || state.mode === "edit";
   const product = state.mode === "edit" ? state.product : undefined;
   const queryClient = useQueryClient();
@@ -865,21 +873,21 @@ function ProductEditorDialog({
   const createMutation = useMutation({
     mutationFn: (input: CreateProductInput) => createProduct(input),
     onSuccess: () => {
-      toast.success("Product created");
+      toast.success(t("toast.productCreated"));
       queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
       onClose();
     },
-    onError: (err) => toast.error("Create failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("toast.createFailed"), { description: describe(err) }),
   });
 
   const updateMutation = useMutation({
     mutationFn: (input: UpdateProductInput) => updateProduct(input),
     onSuccess: () => {
-      toast.success("Product updated");
+      toast.success(t("toast.productUpdated"));
       queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
       onClose();
     },
-    onError: (err) => toast.error("Update failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("toast.updateFailed"), { description: describe(err) }),
   });
 
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -930,33 +938,33 @@ function ProductEditorDialog({
       <DialogContent className="!max-w-xl">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>{product ? "Edit product" : "Add a product"}</DialogTitle>
+            <DialogTitle>{product ? t("productEditor.editTitle") : t("productEditor.addTitle")}</DialogTitle>
             <DialogDescription>
               {product
-                ? `Update details for ${product.name}. Use the inline price/stock chips on the row to change those — they emit domain events.`
-                : "Add a product to your catalog. Price and stock can be adjusted inline after creation."}
+                ? t("productEditor.editDesc", { name: product.name })
+                : t("productEditor.addDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field id="product-name" label="Name" required>
+              <Field id="product-name" label={t("field.name")} required>
                 <Input
                   id="product-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Classic Cotton Tee"
+                  placeholder={t("placeholder.productName")}
                   autoFocus
                   required
                   maxLength={200}
                 />
               </Field>
-              <Field id="product-sku" label="SKU" required={!product} hint={product ? "SKU is fixed after creation." : "Stock-keeping unit. Becomes the canonical identifier."}>
+              <Field id="product-sku" label={t("field.sku")} required={!product} hint={product ? t("hint.skuFixed") : t("hint.skuNew")}>
                 <Input
                   id="product-sku"
                   value={sku}
                   onChange={(e) => setSku(e.target.value.toUpperCase())}
-                  placeholder="ACM-TS-001"
+                  placeholder={t("placeholder.sku")}
                   required={!product}
                   disabled={!!product}
                   maxLength={64}
@@ -966,11 +974,11 @@ function ProductEditorDialog({
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field id="product-brand" label="Brand" required>
+              <Field id="product-brand" label={t("field.brand")} required>
                 <Combobox
                   id="product-brand"
-                  label="Brand"
-                  placeholder="Select a brand…"
+                  label={t("field.brand")}
+                  placeholder={t("placeholder.selectBrand")}
                   value={brandId || null}
                   onChange={(v) => setBrandId(v ?? "")}
                   options={brands.map((b) => ({ value: b.id, label: b.name }))}
@@ -978,11 +986,11 @@ function ProductEditorDialog({
                   required
                 />
               </Field>
-              <Field id="product-category" label="Category" required>
+              <Field id="product-category" label={t("field.category")} required>
                 <Combobox
                   id="product-category"
-                  label="Category"
-                  placeholder="Select a category…"
+                  label={t("field.category")}
+                  placeholder={t("placeholder.selectCategory")}
                   value={categoryId || null}
                   onChange={(v) => setCategoryId(v ?? "")}
                   options={categories.map((c) => ({ value: c.id, label: c.name }))}
@@ -994,7 +1002,7 @@ function ProductEditorDialog({
 
             {!product && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Field id="product-price" label="Price" required>
+                <Field id="product-price" label={t("field.price")} required>
                   <Input
                     id="product-price"
                     type="number"
@@ -1007,7 +1015,7 @@ function ProductEditorDialog({
                     className="tabular-nums"
                   />
                 </Field>
-                <Field id="product-currency" label="Currency" required>
+                <Field id="product-currency" label={t("field.currency")} required>
                   <Input
                     id="product-currency"
                     value={priceCurrency}
@@ -1017,7 +1025,7 @@ function ProductEditorDialog({
                     className="font-mono uppercase tracking-tight"
                   />
                 </Field>
-                <Field id="product-stock" label="Stock" required>
+                <Field id="product-stock" label={t("field.stock")} required>
                   <Input
                     id="product-stock"
                     type="number"
@@ -1033,7 +1041,7 @@ function ProductEditorDialog({
               </div>
             )}
 
-            <Field id="product-description" label="Description" hint="Shown on listing and product detail pages.">
+            <Field id="product-description" label={t("field.description")} hint={t("hint.description")}>
               <textarea
                 id="product-description"
                 value={description}
@@ -1045,7 +1053,7 @@ function ProductEditorDialog({
                   "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]",
                   "focus-visible:border-[var(--color-ring)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
                 )}
-                placeholder="100% organic cotton crew-neck."
+                placeholder={t("placeholder.productDescription")}
               />
             </Field>
 
@@ -1053,13 +1061,13 @@ function ProductEditorDialog({
               <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3">
                 <div>
                   <div className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                    Visibility
+                    {t("visibility.title")}
                   </div>
                   <div className="mt-0.5 text-[12.5px] text-[var(--color-muted-foreground)]">
-                    {isActive ? "Listed for customers." : "Hidden from listings."}
+                    {isActive ? t("visibility.listed") : t("visibility.hidden")}
                   </div>
                 </div>
-                <Switch checked={isActive} onCheckedChange={setIsActive} aria-label="Active" />
+                <Switch checked={isActive} onCheckedChange={setIsActive} aria-label={t("visibility.active")} />
               </div>
             )}
           </DialogBody>
@@ -1067,11 +1075,11 @@ function ProductEditorDialog({
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline" disabled={isPending}>
-                Cancel
+                {t("action.cancel")}
               </Button>
             </DialogClose>
             <Button type="submit" disabled={isPending || !valid}>
-              {isPending ? "Saving…" : product ? "Save changes" : "Add product"}
+              {isPending ? t("action.saving") : product ? t("action.saveChanges") : t("action.addProduct")}
             </Button>
           </DialogFooter>
         </form>
@@ -1091,6 +1099,7 @@ function PriceDialog({
   state: EditorState;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("catalog");
   const isOpen = state.mode === "price";
   const product = state.mode === "price" ? state.product : undefined;
   const queryClient = useQueryClient();
@@ -1108,11 +1117,11 @@ function PriceDialog({
   const mutation = useMutation({
     mutationFn: (input: ChangeProductPriceInput) => changeProductPrice(input),
     onSuccess: () => {
-      toast.success("Price updated");
+      toast.success(t("toast.priceUpdated"));
       queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
       onClose();
     },
-    onError: (err) => toast.error("Price change failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("toast.priceChangeFailed"), { description: describe(err) }),
   });
 
   const newAmount = Number.parseFloat(amount);
@@ -1133,17 +1142,19 @@ function PriceDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CircleDollarSign className="size-4 text-[var(--color-primary)]" />
-              Change price
+              {t("price.title")}
             </DialogTitle>
             <DialogDescription>
-              Emits a <code className="font-mono text-[11px]">ProductPriceChanged</code> domain event for {product?.name}.
+              {t("price.emitsPrefix")}
+              <code className="font-mono text-[11px]">ProductPriceChanged</code>
+              {t("price.emitsSuffix", { name: product?.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="space-y-4">
             <div className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3">
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                  Was
+                  {t("price.was")}
                 </div>
                 <div className="mt-1 font-display text-[18px] font-semibold tabular-nums">
                   {product && formatMoney(product.price.amount, product.price.currency)}
@@ -1152,7 +1163,7 @@ function PriceDialog({
               <ArrowDown className="size-4 -rotate-90 text-[var(--color-muted-foreground)]" />
               <div className="text-right">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-primary)]">
-                  Becomes
+                  {t("price.becomes")}
                 </div>
                 <div
                   className={cn(
@@ -1171,7 +1182,7 @@ function PriceDialog({
               </div>
             </div>
             <div className="grid grid-cols-[1fr_auto] gap-3">
-              <Field id="price-amount" label="New amount" required>
+              <Field id="price-amount" label={t("field.newAmount")} required>
                 <Input
                   id="price-amount"
                   type="number"
@@ -1184,7 +1195,7 @@ function PriceDialog({
                   autoFocus
                 />
               </Field>
-              <Field id="price-currency" label="Currency" required>
+              <Field id="price-currency" label={t("field.currency")} required>
                 <Input
                   id="price-currency"
                   value={currency}
@@ -1199,11 +1210,11 @@ function PriceDialog({
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline" disabled={mutation.isPending}>
-                Cancel
+                {t("action.cancel")}
               </Button>
             </DialogClose>
             <Button type="submit" disabled={mutation.isPending || !valid}>
-              {mutation.isPending ? "Saving…" : "Change price"}
+              {mutation.isPending ? t("action.saving") : t("action.changePrice")}
             </Button>
           </DialogFooter>
         </form>
@@ -1219,6 +1230,7 @@ function StockDialog({
   state: EditorState;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("catalog");
   const isOpen = state.mode === "stock";
   const product = state.mode === "stock" ? state.product : undefined;
   const queryClient = useQueryClient();
@@ -1232,11 +1244,11 @@ function StockDialog({
   const mutation = useMutation({
     mutationFn: (input: AdjustProductStockInput) => adjustProductStock(input),
     onSuccess: () => {
-      toast.success("Stock adjusted");
+      toast.success(t("toast.stockAdjusted"));
       queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
       onClose();
     },
-    onError: (err) => toast.error("Adjustment failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("toast.adjustmentFailed"), { description: describe(err) }),
   });
 
   const deltaNum = Number.parseInt(delta, 10);
@@ -1257,18 +1269,19 @@ function StockDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="size-4 text-[var(--color-primary)]" />
-              Adjust stock
+              {t("stock.title")}
             </DialogTitle>
             <DialogDescription>
-              Add or remove units for {product?.name}. Emits a{" "}
-              <code className="font-mono text-[11px]">ProductStockAdjusted</code> event.
+              {t("stock.emitsPrefix", { name: product?.name })}
+              <code className="font-mono text-[11px]">ProductStockAdjusted</code>
+              {t("stock.emitsSuffix")}
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="space-y-4">
             <div className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3 tabular-nums">
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                  Current
+                  {t("stock.current")}
                 </div>
                 <div className="mt-1 font-display text-[18px] font-semibold">
                   {product?.stock ?? 0}
@@ -1277,7 +1290,7 @@ function StockDialog({
               <ArrowDown className="size-4 -rotate-90 text-[var(--color-muted-foreground)]" />
               <div className="text-right">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-primary)]">
-                  Becomes
+                  {t("stock.becomes")}
                 </div>
                 <div
                   className={cn(
@@ -1311,7 +1324,7 @@ function StockDialog({
                 type="number"
                 step="1"
                 className="text-center font-mono text-[15px] tabular-nums"
-                aria-label="Delta"
+                aria-label={t("stock.deltaLabel")}
               />
               <Button
                 type="button"
@@ -1327,8 +1340,9 @@ function StockDialog({
               <div className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.20)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-[12.5px] text-[var(--color-destructive)]">
                 <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                 <span>
-                  Stock cannot go negative. Maximum decrement is{" "}
-                  <span className="font-mono">{product?.stock ?? 0}</span>.
+                  {t("stock.negativePrefix")}
+                  <span className="font-mono">{product?.stock ?? 0}</span>
+                  {t("stock.negativeSuffix")}
                 </span>
               </div>
             )}
@@ -1336,11 +1350,11 @@ function StockDialog({
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline" disabled={mutation.isPending}>
-                Cancel
+                {t("action.cancel")}
               </Button>
             </DialogClose>
             <Button type="submit" disabled={mutation.isPending || !valid || willGoNegative}>
-              {mutation.isPending ? "Adjusting…" : "Adjust stock"}
+              {mutation.isPending ? t("action.adjusting") : t("action.adjustStock")}
             </Button>
           </DialogFooter>
         </form>
@@ -1360,6 +1374,7 @@ function DeleteProductDialog({
   state: EditorState;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("catalog");
   const isOpen = state.mode === "delete";
   const product = state.mode === "delete" ? state.product : undefined;
   const queryClient = useQueryClient();
@@ -1367,32 +1382,32 @@ function DeleteProductDialog({
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteProduct(id),
     onSuccess: () => {
-      toast.success("Product deleted");
+      toast.success(t("toast.productDeleted"));
       queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
       queryClient.invalidateQueries({ queryKey: ["trash", "products"] });
       onClose();
     },
-    onError: (err) => toast.error("Delete failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("toast.deleteFailed"), { description: describe(err) }),
   });
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-[var(--color-destructive)]">Delete product</DialogTitle>
+          <DialogTitle className="text-[var(--color-destructive)]">{t("delete.productTitle")}</DialogTitle>
           <DialogDescription>
-            This permanently removes{" "}
+            {t("delete.removesPrefix")}
             <span className="font-medium text-[var(--color-foreground)]">{product?.name}</span>{" "}
             <span className="opacity-70">
-              (created {product && formatDate(product.createdAtUtc)})
+              {t("delete.createdOn", { date: product ? formatDate(product.createdAtUtc) : "" })}
             </span>
-            . The product will no longer appear in any listing or report.
+            {t("delete.productBody")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline" disabled={deleteMutation.isPending}>
-              Cancel
+              {t("action.cancel")}
             </Button>
           </DialogClose>
           <Button
@@ -1400,7 +1415,7 @@ function DeleteProductDialog({
             onClick={() => product && deleteMutation.mutate(product.id)}
             disabled={deleteMutation.isPending || !product}
           >
-            {deleteMutation.isPending ? "Deleting…" : "Delete product"}
+            {deleteMutation.isPending ? t("action.deleting") : t("delete.productTitle")}
           </Button>
         </DialogFooter>
       </DialogContent>

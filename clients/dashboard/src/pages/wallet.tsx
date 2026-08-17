@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
   keepPreviousData,
@@ -71,6 +72,7 @@ function statusTone(status: TopupRequestStatus): EntityStatusTone {
 // ────────────────────────────────────────────────────────────────────
 
 export function WalletPage() {
+  const { t } = useTranslation("subscription");
   const [pageNumber, setPageNumber] = useState(1);
 
   const walletQuery = useQuery({
@@ -99,8 +101,8 @@ export function WalletPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Wallet}
-        title="WhatsApp wallet"
-        description="Your prepaid balance for WhatsApp messaging. Request a top-up and we'll raise an invoice to credit your wallet."
+        title={t("wallet.title")}
+        description={t("wallet.description")}
       />
 
       {walletError && <ErrorBand message={walletError} />}
@@ -116,7 +118,7 @@ export function WalletPage() {
 
       <section className="space-y-3">
         <h2 className="font-display text-[15px] font-semibold tracking-tight text-[var(--color-foreground)]">
-          My top-up requests
+          {t("wallet.requestsTitle")}
         </h2>
 
         {requestsError && <ErrorBand message={requestsError} />}
@@ -126,8 +128,8 @@ export function WalletPage() {
         ) : requests.length === 0 ? (
           <EntityEmpty
             icon={Wallet}
-            title="No top-up requests yet"
-            body="Once you request a top-up it will appear here with its status — pending, invoiced, or completed."
+            title={t("wallet.emptyTitle")}
+            body={t("wallet.emptyBody")}
           />
         ) : (
           <div>
@@ -141,10 +143,10 @@ export function WalletPage() {
             {/* Desktop: table */}
             <EntityListCard className="hidden md:block">
               <EntityListHeader className={DESKTOP_GRID}>
-                <span>Requested</span>
-                <span className="text-right">Amount</span>
-                <span>Status</span>
-                <span>Invoice</span>
+                <span>{t("wallet.col.requested")}</span>
+                <span className="text-right">{t("wallet.col.amount")}</span>
+                <span>{t("wallet.col.status")}</span>
+                <span>{t("wallet.col.invoice")}</span>
               </EntityListHeader>
               {requests.map((request, i) => (
                 <DesktopRow
@@ -183,13 +185,14 @@ function BalanceCard({
   balance: number | null;
   currency: string;
 }) {
+  const { t } = useTranslation("subscription");
   const isLow = balance !== null && balance <= LOW_BALANCE_THRESHOLD;
 
   return (
     <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-xs">
       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
         <Wallet className="size-3.5" />
-        Current balance
+        {t("wallet.currentBalance")}
       </div>
 
       {loading ? (
@@ -207,8 +210,8 @@ function BalanceCard({
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
           <span>
             {balance !== null && balance <= 0
-              ? "Your wallet is empty. Request a top-up to keep sending WhatsApp messages."
-              : "Your balance is running low. Consider requesting a top-up soon."}
+              ? t("wallet.lowEmpty")
+              : t("wallet.lowSoon")}
           </span>
         </div>
       )}
@@ -221,6 +224,7 @@ function BalanceCard({
 // ────────────────────────────────────────────────────────────────────
 
 function TopupRequestForm({ currency }: { currency: string }) {
+  const { t } = useTranslation("subscription");
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -228,8 +232,8 @@ function TopupRequestForm({ currency }: { currency: string }) {
   const mutation = useMutation({
     mutationFn: (input: CreateTopupRequestInput) => createTopupRequest(input),
     onSuccess: () => {
-      toast.success("Top-up requested", {
-        description: "We'll raise an invoice to credit your wallet shortly.",
+      toast.success(t("wallet.toastRequested"), {
+        description: t("wallet.toastRequestedDesc"),
       });
       queryClient.invalidateQueries({ queryKey: WALLET_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOPUP_REQUESTS_QUERY_KEY });
@@ -237,7 +241,7 @@ function TopupRequestForm({ currency }: { currency: string }) {
       setNote("");
     },
     onError: (err) =>
-      toast.error("Top-up request failed", { description: describe(err) }),
+      toast.error(t("wallet.toastFailed"), { description: describe(err) }),
   });
 
   const amountNum = Number(amount);
@@ -258,15 +262,15 @@ function TopupRequestForm({ currency }: { currency: string }) {
     <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-xs">
       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
         <Send className="size-3.5" />
-        Request a top-up
+        {t("wallet.requestTitle")}
       </div>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-4">
         <Field
           id="topup-amount"
-          label="Amount"
+          label={t("wallet.amountLabel")}
           required
-          hint={`How much to add to your wallet, in ${currency}.`}
+          hint={t("wallet.amountHint", { currency })}
         >
           <Input
             id="topup-amount"
@@ -276,7 +280,7 @@ function TopupRequestForm({ currency }: { currency: string }) {
             min="0"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="100.00"
+            placeholder={t("wallet.amountPlaceholder")}
             className="tabular-nums"
             required
           />
@@ -284,8 +288,8 @@ function TopupRequestForm({ currency }: { currency: string }) {
 
         <Field
           id="topup-note"
-          label="Note"
-          hint="Optional — anything we should know about this top-up."
+          label={t("wallet.noteLabel")}
+          hint={t("wallet.noteHint")}
         >
           <textarea
             id="topup-note"
@@ -293,7 +297,7 @@ function TopupRequestForm({ currency }: { currency: string }) {
             onChange={(e) => setNote(e.target.value)}
             rows={3}
             maxLength={1000}
-            placeholder="e.g. budget for the June campaign"
+            placeholder={t("wallet.notePlaceholder")}
             className={cn(
               "flex w-full rounded-lg border border-[var(--color-input)] bg-transparent px-3 py-2 text-sm shadow-xs",
               "placeholder:text-[var(--color-muted-foreground)]",
@@ -308,7 +312,7 @@ function TopupRequestForm({ currency }: { currency: string }) {
           className="w-full gap-1.5"
         >
           <Send className="size-4" />
-          {mutation.isPending ? "Submitting…" : "Request top-up"}
+          {mutation.isPending ? t("wallet.submitting") : t("wallet.submit")}
         </Button>
       </form>
     </div>
@@ -320,6 +324,7 @@ function TopupRequestForm({ currency }: { currency: string }) {
 // ────────────────────────────────────────────────────────────────────
 
 function MobileCard({ request }: { request: TopupRequestDto }) {
+  const { t } = useTranslation("subscription");
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs">
       <div className="flex items-start justify-between gap-3">
@@ -336,7 +341,7 @@ function MobileCard({ request }: { request: TopupRequestDto }) {
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <EntityStatusBadge tone={statusTone(request.status)}>
-            {request.status}
+            {t(`wallet.status.${request.status}`)}
           </EntityStatusBadge>
           {request.invoiceId && (
             <Link
@@ -344,7 +349,7 @@ function MobileCard({ request }: { request: TopupRequestDto }) {
               className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-primary)] hover:underline"
             >
               <Receipt className="size-3" />
-              Invoice
+              {t("wallet.invoiceLink")}
             </Link>
           )}
         </div>
@@ -365,6 +370,7 @@ function DesktopRow({
   request: TopupRequestDto;
   isLast: boolean;
 }) {
+  const { t } = useTranslation("subscription");
   return (
     <EntityListRow className={DESKTOP_GRID} isLast={isLast}>
       {/* Requested date + optional note */}
@@ -387,7 +393,7 @@ function DesktopRow({
       {/* Status */}
       <span>
         <EntityStatusBadge tone={statusTone(request.status)}>
-          {request.status}
+          {t(`wallet.status.${request.status}`)}
         </EntityStatusBadge>
       </span>
 
@@ -399,7 +405,7 @@ function DesktopRow({
             className="inline-flex items-center gap-1 font-medium text-[var(--color-primary)] hover:underline"
           >
             <Receipt className="size-3.5" />
-            View invoice
+            {t("wallet.viewInvoice")}
           </Link>
         ) : (
           "—"
