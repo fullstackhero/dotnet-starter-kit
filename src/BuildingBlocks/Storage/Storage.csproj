@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Storage</RootNamespace>
 		<AssemblyName>FSH.Framework.Storage</AssemblyName>
+		<PackageId>FSH.Framework.Storage</PackageId>
+		<!-- Opt-in framework packaging: inert unless -p:PackFshFramework=true.
+		     Keeps Directory.Build.props's IsPackable=false source-ownership guard intact. -->
+		<IsPackable Condition="'$(PackFshFramework)' == 'true'">true</IsPackable>
 		<NoWarn>$(NoWarn);CA1031;CA1056;CA1002;CA2227;CA1812;CA1308;CA1062</NoWarn>
 	</PropertyGroup>
 	

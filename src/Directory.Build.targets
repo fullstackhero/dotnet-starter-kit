@@ -1,0 +1,85 @@
+<Project>
+
+	<!--
+	  Opt-in framework packaging (UseFrameworkPackages=true).
+
+	  Rewrites every ProjectReference that points into src/BuildingBlocks into the
+	  equivalent PackageReference, so a generated project can consume the kernel as
+	  FSH.Framework.* NuGets instead of carrying a copy of its source. Nothing here
+	  runs unless UseFrameworkPackages is set, so the default source-ownership
+	  distribution model (see Directory.Build.props) is completely untouched.
+
+	  Why this file rather than #if blocks in 33 csproj files: Directory.Build.targets
+	  is imported AFTER the project body, so @(ProjectReference) is fully populated and
+	  can be transformed once, centrally. New modules get it for free and cannot forget
+	  the pattern.
+
+	  The id mapping needs no lookup table — %(Filename) of
+	  ..\..\..\BuildingBlocks\Core\Core.csproj is "Core", and every BuildingBlocks
+	  project already sets AssemblyName = FSH.Framework.<Filename>. That holds for the
+	  dotted one too (Eventing.Abstractions -> FSH.Framework.Eventing.Abstractions).
+
+	  Match on %(RelativeDir), not %(Identity): MSBuild normalises path separators
+	  per-platform (forward slashes on macOS/Linux), so a separator-bearing needle is not
+	  portable. RelativeDir is also immune to a repo checked out under a parent directory
+	  whose name happens to contain "BuildingBlocks", which %(FullPath) would not be.
+
+	  Versions come from the FshFrameworkVersion property via central package
+	  management; see Directory.Packages.props.
+	-->
+	<!--
+	  Default the switch from the shape of the tree rather than from a template symbol.
+
+	  A scaffold created with framework packaging simply has no src/BuildingBlocks directory,
+	  and a project with no kernel source must get the kernel from packages — so absence IS
+	  the signal, and it cannot drift out of sync with what was actually scaffolded. The
+	  starter-kit repo itself always has the directory, so the swap stays off there.
+
+	  An explicit -p:UseFrameworkPackages=true still wins (that is what the "== ''" guard is
+	  for), which is how the kit tests package mode against its own source.
+	-->
+	<PropertyGroup>
+		<UseFrameworkPackages Condition="'$(UseFrameworkPackages)' == '' AND !Exists('$(MSBuildThisFileDirectory)BuildingBlocks')">true</UseFrameworkPackages>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(UseFrameworkPackages)' == 'true'">
+		<!-- Tag the framework references. Update+glob and WithMetadataValue are both
+		     evaluation-time constructs; %(...) batching in an ItemGroup Condition is NOT
+		     (it is legal only inside a target), which is why this is written as a tag-then-
+		     filter rather than a filtered Include. Depths 1-4 cover every layout in the repo:
+		     src/Tests/* and src/Host/* are 2 up, src/Modules/<Area>/<Project> is 3 up. -->
+		<ProjectReference Update="..\BuildingBlocks\**\*.csproj;..\..\BuildingBlocks\**\*.csproj;..\..\..\BuildingBlocks\**\*.csproj;..\..\..\..\BuildingBlocks\**\*.csproj"
+		                  FshFramework="true" />
+		<_FshFrameworkProjectRef Include="@(ProjectReference->WithMetadataValue('FshFramework','true'))" />
+		<ProjectReference Remove="@(_FshFrameworkProjectRef)" />
+		<PackageReference Include="@(_FshFrameworkProjectRef->'FSH.Framework.%(Filename)')" />
+	</ItemGroup>
+
+	<!-- Reproducible, debuggable packages for every project that actually ships:
+	     the CLI, and the FSH.Framework.* packages when framework packing is on. -->
+	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(IsPackable)' == 'true'">
+		<!-- Include root README.md in NuGet packages -->
+		<None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="/" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+	</ItemGroup>
+	<!--
+	  Local-feed profile, part 2: suppress the symbol package.
+
+	  This half must live here, after the shipping block above sets IncludeSymbols=true —
+	  the DLL carries an embedded PDB, so there is nothing left for a .snupkg to contain.
+	  The debug switches themselves are set in Directory.Build.props; see the note there.
+	-->
+	<PropertyGroup Condition="'$(PackFshFramework)' == 'true' and '$(FshLocalPack)' == 'true'">
+		<IncludeSymbols>false</IncludeSymbols>
+	</PropertyGroup>
+
+</Project>

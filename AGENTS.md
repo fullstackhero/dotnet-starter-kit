@@ -31,6 +31,7 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 | `src/Tests/` | Per-module tests, `Architecture.Tests` (NetArchTest), `Integration.Tests` (Testcontainers). |
 | `src/Tools/CLI` | The `fsh` CLI (Spectre.Console). |
 | `clients/admin`, `clients/dashboard` | The two React apps. |
+| `README-CLI.md` | `fsh` CLI guide: scaffolding from a fork, shipping `.agents`, and the opt-in framework packages. |
 | `deploy/` | Infra (docker, terraform, dokploy). |
 
 ## Tech stack
@@ -60,6 +61,14 @@ dotnet test src/FSH.Starter.slnx                    # tests — integration test
 
 cd clients/admin && npm install && npm run dev       # → http://localhost:5173
 cd clients/dashboard && npm install && npm run dev   # → http://localhost:5174
+```
+
+Optional, off by default — the kernel as NuGet packages instead of scaffolded source
+(`README-CLI.md` has the full workflow):
+```bash
+dotnet run --project src/Tools/CLI -- self install             # install `fsh` built from this source
+fsh framework pack --push                                      # build FSH.Framework.* into a local feed
+fsh new MyApp --framework-packages --agents -o ../my-app       # scaffold against it, with the .agents kit
 ```
 
 Migrations / seed (DbMigrator, separate step):

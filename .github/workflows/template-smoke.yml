@@ -85,6 +85,77 @@ jobs:
       - name: Run Architecture tests on scaffolded output
         run: dotnet test "$RUNNER_TEMP/smoke/src/Tests/Architecture.Tests" -c Release --no-build
 
+  scaffold-framework-packages:
+    name: Scaffold (framework packages + agents) and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      # The scaffold has no BuildingBlocks source, so the framework packages must exist
+      # before it can restore. Build them into a folder feed first.
+      - name: Pack the FSH.Framework.* packages
+        run: |
+          dotnet run --project src/Tools/CLI -- framework pack \
+            --feed "$RUNNER_TEMP/feed" --version 0.0.1-ci --push
+
+      - name: Install template
+        run: dotnet new install .
+
+      # Guards the (frameworkPackages) and (agents) gating: BuildingBlocks and
+      # Framework.Tests must be absent, .agents and AGENTS.md must be present, and the
+      # ProjectReference -> PackageReference swap in Directory.Build.targets must hold.
+      - name: Scaffold with framework packages and the agents kit
+        run: |
+          dotnet new fsh -n Smoke.Fx -o "$RUNNER_TEMP/fx" \
+            --aspire false --frontend false --skipRestore true \
+            --agents true --frameworkPackages true --frameworkVersion 0.0.1-ci
+
+      # Written as a file rather than `dotnet nuget add source`, which would mutate
+      # user-level NuGet state; this keeps the job hermetic. `fsh new --framework-packages`
+      # writes the equivalent file for real projects.
+      - name: Point the scaffold at the feed
+        run: |
+          cat > "$RUNNER_TEMP/fx/NuGet.config" <<XML
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+              <add key="fsh-local" value="$RUNNER_TEMP/feed" />
+            </packageSources>
+          </configuration>
+          XML
+
+      - name: Assert the scaffold has the right shape
+        run: |
+          cd "$RUNNER_TEMP/fx"
+          test ! -d src/BuildingBlocks        || { echo "BuildingBlocks should not be scaffolded"; exit 1; }
+          test ! -d src/Tests/Framework.Tests || { echo "Framework.Tests should not be scaffolded"; exit 1; }
+          test -f AGENTS.md                   || { echo "AGENTS.md missing"; exit 1; }
+          test -d .agents                     || { echo ".agents missing"; exit 1; }
+
+      # Restore explicitly before building. The scaffold is created with --skipRestore, and
+      # letting the first build restore implicitly has it evaluate analyzer configuration
+      # before the assets file exists, which spuriously escalates suppressed rules.
+      - name: Restore against the framework packages
+        run: dotnet restore "$RUNNER_TEMP/fx/src/Smoke.Fx.slnx"
+
+      - name: Build against the framework packages (warnings as errors)
+        run: dotnet build "$RUNNER_TEMP/fx/src/Smoke.Fx.slnx" -c Release -warnaserror --no-restore
+
   scaffold-minimal:
     name: Scaffold (no Aspire, no React) and build
     runs-on: ubuntu-latest

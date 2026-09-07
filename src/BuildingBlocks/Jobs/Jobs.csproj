@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Jobs</RootNamespace>
 		<AssemblyName>FSH.Framework.Jobs</AssemblyName>
+		<PackageId>FSH.Framework.Jobs</PackageId>
+		<!-- Opt-in framework packaging: inert unless -p:PackFshFramework=true.
+		     Keeps Directory.Build.props's IsPackable=false source-ownership guard intact. -->
+		<IsPackable Condition="'$(PackFshFramework)' == 'true'">true</IsPackable>
 		<NoWarn>$(NoWarn);CA1031;S3376;S3993</NoWarn>
 	</PropertyGroup>
 	

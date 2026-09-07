@@ -77,10 +77,14 @@ internal static class ProcessRunner
                 catch { /* process may have already exited */ }
             });
 
-            string output = await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+            // Drain both pipes concurrently. stderr is redirected, so leaving it unread can
+            // deadlock a child that writes enough to fill the pipe buffer.
+            Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+            await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
-            return (process.ExitCode == 0, output.Trim());
+            return (process.ExitCode == 0, (await outputTask.ConfigureAwait(false)).Trim());
         }
         catch (OperationCanceledException)
         {
@@ -90,6 +94,44 @@ internal static class ProcessRunner
         {
             return (false, string.Empty);
         }
+    }
+
+    /// <summary>
+    /// Runs a process and captures stdout, stderr and the exit code separately, for callers
+    /// that need to show the user why something failed rather than just that it did.
+    /// </summary>
+    internal static async Task<(int exitCode, string output, string error)> CaptureWithErrorAsync(
+        string fileName,
+        string arguments,
+        string? workingDirectory = null,
+        CancellationToken cancellationToken = default)
+    {
+        var psi = new ProcessStartInfo(fileName, arguments)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WorkingDirectory = workingDirectory ?? Directory.GetCurrentDirectory()
+        };
+
+        using var process = Process.Start(psi);
+        if (process is null) return (1, string.Empty, string.Empty);
+
+        using var registration = cancellationToken.Register(() =>
+        {
+            try { process.Kill(entireProcessTree: true); }
+            catch { /* process may have already exited */ }
+        });
+
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
+        await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+
+        return (process.ExitCode,
+                (await outputTask.ConfigureAwait(false)).Trim(),
+                (await errorTask.ConfigureAwait(false)).Trim());
     }
 
     private static async Task StreamOutputAsync(StreamReader reader, string color)

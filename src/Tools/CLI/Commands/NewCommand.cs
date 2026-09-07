@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Reflection;
 using System.Security.Cryptography;
 using FSH.CLI.Infrastructure;
 using Spectre.Console;
@@ -47,6 +48,56 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         [CommandOption("--dry-run")]
         [DefaultValue(false)]
         public bool DryRun { get; init; }
+
+        [Description("Install the template from a local directory or .nupkg instead of NuGet. Env: FSH_TEMPLATE_PATH.")]
+        [CommandOption("--template-path")]
+        public string? TemplatePath { get; init; }
+
+        [Description("Install a specific template version from NuGet. Env: FSH_TEMPLATE_VERSION.")]
+        [CommandOption("--template-version")]
+        public string? TemplateVersion { get; init; }
+
+        [Description("Additional NuGet source to install the template from. Env: FSH_TEMPLATE_SOURCE.")]
+        [CommandOption("--template-source")]
+        public string? TemplateSource { get; init; }
+
+        [Description("Re-install the template even if one is already installed.")]
+        [CommandOption("--refresh-template")]
+        [DefaultValue(false)]
+        public bool RefreshTemplate { get; init; }
+
+        [Description("Include the .agents AI rules/skills kit and AGENTS.md. Env: FSH_AGENTS=1.")]
+        [CommandOption("--agents [VALUE]")]
+        public FlagValue<bool?> Agents { get; init; } = new();
+
+        [Description("Consume BuildingBlocks as FSH.Framework.* NuGet packages instead of scaffolding their source.")]
+        [CommandOption("--framework-packages [VALUE]")]
+        public FlagValue<bool?> FrameworkPackages { get; init; } = new();
+
+        /// <summary>
+        /// True when the flag was passed, either bare (<c>--framework-packages</c>) or with an
+        /// explicit value (<c>--framework-packages true</c>).
+        /// </summary>
+        internal bool WantsFrameworkPackages => IsFlagSet(FrameworkPackages);
+
+        /// <summary>
+        /// True when the flag was passed and not explicitly negated.
+        /// </summary>
+        /// <remarks>
+        /// The underlying value is <c>bool?</c>, not <c>bool</c>, on purpose: Spectre leaves the
+        /// value at its default when a flag is passed bare, so with <c>bool</c> a plain
+        /// <c>--agents</c> would be indistinguishable from <c>--agents false</c>. With
+        /// <c>bool?</c>, bare means null, which reads as "yes".
+        /// </remarks>
+        internal static bool IsFlagSet(FlagValue<bool?> flag) => flag is { IsSet: true } && (flag.Value ?? true);
+
+        [Description("Version of the FSH.Framework.* packages to pin. Defaults to the newest in the feed.")]
+        [CommandOption("--framework-version")]
+        public string? FrameworkVersion { get; init; }
+
+        [Description("Local NuGet feed serving the FSH.Framework.* packages. Env: FSH_LOCAL_FEED.")]
+        [CommandOption("--framework-feed")]
+        public string? FrameworkFeedPath { get; init; }
     }
 
     protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
@@ -69,6 +120,20 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
         bool frontend = await ResolveFrontendAsync(settings, cancellationToken).ConfigureAwait(false);
 
+        bool agents = await ResolveAgentsAsync(settings, cancellationToken).ConfigureAwait(false);
+
+        // Framework packaging is opt-in and never prompted for: it is a deliberate, project-wide
+        // architecture choice, not a per-scaffold convenience.
+        string? frameworkFeed = settings.WantsFrameworkPackages ? FrameworkFeed.Resolve(settings.FrameworkFeedPath) : null;
+        string? frameworkVersion = settings.WantsFrameworkPackages
+            ? settings.FrameworkVersion
+              ?? FrameworkFeed.GetLatestVersion(frameworkFeed!)
+              ?? "0.0.0-local"
+            : null;
+
+        if (settings.WantsFrameworkPackages && !ValidateFrameworkFeed(frameworkFeed!, settings.FrameworkVersion))
+            return 1;
+
         string output = settings.Output ?? Path.GetFullPath(name);
 
         // 2. Check for existing directory
@@ -89,7 +154,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         }
 
         // 3. Print summary
-        PrintSummary(name, aspire, frontend, output, settings.DryRun);
+        PrintSummary(name, aspire, frontend, agents, output, frameworkVersion, frameworkFeed, settings.DryRun);
 
         if (settings.DryRun)
         {
@@ -98,11 +163,16 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         }
 
         // 4. Ensure template is installed
-        if (!await EnsureTemplateInstalledAsync(cancellationToken).ConfigureAwait(false))
+        if (!await TemplateInstaller.EnsureInstalledAsync(
+                settings.TemplatePath, settings.TemplateVersion, settings.TemplateSource,
+                settings.RefreshTemplate, cancellationToken).ConfigureAwait(false))
+        {
             return 1;
+        }
 
         // 5. Scaffold project
-        int result = await ScaffoldProjectAsync(name, aspire, frontend, output, cancellationToken).ConfigureAwait(false);
+        int result = await ScaffoldProjectAsync(
+            name, aspire, frontend, agents, frameworkVersion, output, cancellationToken).ConfigureAwait(false);
         if (result != 0)
         {
             AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]Scaffolding failed. Check the output above for errors.[/]");
@@ -112,6 +182,10 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         // 6. Generate per-project dev secrets + a ready-to-run docker-compose .env
         GenerateDevSecrets(name, output);
         bool dockerEnvReady = GenerateDockerEnv(output);
+
+        // 6b. Point the project at the feed serving its framework packages.
+        if (frameworkFeed is not null)
+            GenerateNuGetConfig(output, frameworkFeed);
 
         // 7. Install frontend dependencies (npm install in both React apps)
         if (frontend && !settings.SkipInstall)
@@ -129,7 +203,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         await CheckForUpdatesAsync(cancellationToken).ConfigureAwait(false);
 
         // 10. Print next steps
-        PrintNextSteps(name, aspire, frontend, settings.SkipInstall, dockerEnvReady);
+        PrintNextSteps(name, aspire, frontend, settings.SkipInstall, dockerEnvReady, frameworkFeed);
 
         return 0;
     }
@@ -179,7 +253,46 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
     }
 
-    private static void PrintSummary(string name, bool aspire, bool frontend, string output, bool dryRun)
+    private static async Task<bool> ResolveAgentsAsync(Settings settings, CancellationToken cancellationToken)
+    {
+        if (Settings.IsFlagSet(settings.Agents)) return true;
+
+        string? fromEnvironment = Environment.GetEnvironmentVariable(FshConstants.AgentsEnvVar);
+        if (fromEnvironment is "1" or "true" or "TRUE" or "True") return true;
+
+        if (settings.NonInteractive) return false;
+
+        return await new ConfirmationPrompt($"[{FshConstants.AccentColor}]Include the .agents AI rules kit (AGENTS.md + rules/skills)?[/]")
+            { DefaultValue = false }
+            .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Warns early when framework packaging is requested but the feed cannot serve it — a
+    /// scaffold that cannot restore is far more confusing than a message here.
+    /// </summary>
+    private static bool ValidateFrameworkFeed(string feed, string? explicitVersion)
+    {
+        if (!Directory.Exists(feed))
+        {
+            AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]Framework feed not found:[/] {feed.EscapeMarkup()}");
+            AnsiConsole.MarkupLine($"[{FshConstants.DimColor}]Build the packages first, from a starter-kit clone: fsh framework pack --push[/]");
+            return false;
+        }
+
+        if (explicitVersion is null && FrameworkFeed.GetLatestVersion(feed) is null)
+        {
+            AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]No {FshConstants.FrameworkPackagePrefix}* packages in[/] {feed.EscapeMarkup()}");
+            AnsiConsole.MarkupLine($"[{FshConstants.DimColor}]Build them first, from a starter-kit clone: fsh framework pack --push[/]");
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void PrintSummary(
+        string name, bool aspire, bool frontend, bool agents, string output,
+        string? frameworkVersion, string? frameworkFeed, bool dryRun)
     {
         AnsiConsole.WriteLine();
 
@@ -187,44 +300,21 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         AnsiConsole.MarkupLine($"[bold]Creating project:[/] {name.EscapeMarkup()}{mode}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Aspire:[/]    {(aspire ? "yes" : "no")}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Frontend:[/]  {(frontend ? "yes (admin + dashboard)" : "no")}");
+        AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Agents:[/]    {(agents ? "yes (.agents + AGENTS.md)" : "no")}");
+        AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Framework:[/] {(frameworkVersion is null
+            ? "owned source (src/BuildingBlocks)"
+            : $"packages {frameworkVersion.EscapeMarkup()}")}");
+
+        if (frameworkFeed is not null)
+            AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Feed:[/]      {frameworkFeed.EscapeMarkup()}");
+
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Output:[/]    {output.EscapeMarkup()}");
         AnsiConsole.WriteLine();
     }
 
-    private static async Task<bool> EnsureTemplateInstalledAsync(CancellationToken cancellationToken)
-    {
-        // Check if the template is already available. dotnet new list may return
-        // non-zero due to workload warnings, so check stdout content regardless.
-        (_, string listOutput) = await ProcessRunner.CaptureAsync(
-            "dotnet", $"new list {FshConstants.TemplateShortName}",
-            cancellationToken).ConfigureAwait(false);
-
-        bool installed = listOutput.Contains(FshConstants.TemplateShortName, StringComparison.OrdinalIgnoreCase)
-            && listOutput.Contains("FullStackHero", StringComparison.OrdinalIgnoreCase);
-
-        if (installed) return true;
-
-        AnsiConsole.MarkupLine($"[{FshConstants.WarningColor}]FSH template not found. Installing...[/]");
-        await ProcessRunner.RunAsync(
-            "dotnet", $"new install {FshConstants.TemplatePackageId}",
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        // Verify it actually installed (ignore exit code — workload warnings cause non-zero)
-        (_, string verifyOutput) = await ProcessRunner.CaptureAsync(
-            "dotnet", $"new list {FshConstants.TemplateShortName}",
-            cancellationToken).ConfigureAwait(false);
-
-        bool nowInstalled = verifyOutput.Contains("FullStackHero", StringComparison.OrdinalIgnoreCase);
-        if (!nowInstalled)
-        {
-            AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]Failed to install template. Run manually:[/] dotnet new install {FshConstants.TemplatePackageId}");
-        }
-
-        return nowInstalled;
-    }
-
     private static async Task<int> ScaffoldProjectAsync(
-        string name, bool aspire, bool frontend, string output, CancellationToken cancellationToken)
+        string name, bool aspire, bool frontend, bool agents, string? frameworkVersion,
+        string output, CancellationToken cancellationToken)
     {
         return await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
@@ -233,8 +323,19 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             {
                 string aspireFlag = aspire ? "true" : "false";
                 string frontendFlag = frontend ? "true" : "false";
-                string args = $"new {FshConstants.TemplateShortName} -n {name} -o \"{output}\" --aspire {aspireFlag} --frontend {frontendFlag} --force";
-                await ProcessRunner.RunAsync("dotnet", args, showOutput: false, cancellationToken: cancellationToken)
+                string agentsFlag = agents ? "true" : "false";
+                string args =
+                    $"new {FshConstants.TemplateShortName} -n \"{name}\" -o \"{output}\" " +
+                    $"--aspire {aspireFlag} --frontend {frontendFlag} --agents {agentsFlag}" +
+                    (frameworkVersion is not null
+                        ? $" --frameworkPackages true --frameworkVersion {frameworkVersion}"
+                        : string.Empty) +
+                    " --force";
+
+                // Named, not deconstructed with a discard: the enclosing status lambda already
+                // binds "_" to its StatusContext.
+                var scaffold = await ProcessRunner
+                    .CaptureWithErrorAsync("dotnet", args, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
                 // dotnet new may return non-zero due to workload warnings even on success.
@@ -247,7 +348,18 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
                 bool anySolution = Directory.Exists(Path.Combine(output, "src"))
                     && Directory.GetFiles(Path.Combine(output, "src"), "*.slnx").Length > 0;
 
-                return anySolution ? 0 : 1;
+                if (anySolution) return 0;
+
+                // Genuinely failed — show what dotnet new said. Swallowing this leaves the user
+                // with a bare "Scaffolding failed" and no way to find out why.
+                IEnumerable<string> diagnostics = $"{scaffold.output}\n{scaffold.error}"
+                    .Split('\n')
+                    .Where(line => !string.IsNullOrWhiteSpace(line));
+
+                foreach (string line in diagnostics)
+                    AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]{line.TrimEnd().EscapeMarkup()}[/]");
+
+                return 1;
             }).ConfigureAwait(false);
     }
 
@@ -394,6 +506,44 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         return new string(chars);
     }
 
+    /// <summary>
+    /// Writes a NuGet.config pointing the scaffolded project at the feed serving its
+    /// FSH.Framework.* packages.
+    /// </summary>
+    /// <remarks>
+    /// Written here rather than shipped in the template for two reasons: the feed path is only
+    /// known at scaffold time, and a NuGet.config living at the starter kit's own root would
+    /// hijack restore for the kit itself. Same post-scaffold approach as the docker .env.
+    /// </remarks>
+    private static void GenerateNuGetConfig(string output, string feed)
+    {
+        string path = Path.Combine(output, "NuGet.config");
+        if (File.Exists(path)) return;
+
+        // <clear /> so an inherited machine-level config cannot shadow the local feed.
+        string content = $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <configuration>
+              <packageSources>
+                <clear />
+                <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+                <add key="{FshConstants.LocalFeedSourceName}" value="{feed}" />
+              </packageSources>
+            </configuration>
+
+            """;
+
+        try
+        {
+            File.WriteAllText(path, content);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            AnsiConsole.MarkupLine($"[{FshConstants.WarningColor}]Could not write NuGet.config: {ex.Message.EscapeMarkup()}[/]");
+            AnsiConsole.MarkupLine($"[{FshConstants.DimColor}]Add the feed manually: dotnet nuget add source \"{feed.EscapeMarkup()}\"[/]");
+        }
+    }
+
     private static async Task CheckForUpdatesAsync(CancellationToken cancellationToken)
     {
         try
@@ -401,7 +551,14 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             string? latest = await NuGetClient.GetLatestVersionAsync(
                 FshConstants.CliPackageId, cancellationToken).ConfigureAwait(false);
 
-            string currentVersion = typeof(NewCommand).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+            // Use the informational version (CI injects the real package version there), not
+            // AssemblyVersion, which is pinned to 10.0.0.0 in the csproj and would make every
+            // patch build nag about an "update" to itself.
+            string currentVersion = typeof(NewCommand).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion?.Split('+')[0]
+                ?? typeof(NewCommand).Assembly.GetName().Version?.ToString(3)
+                ?? "0.0.0";
 
             if (VersionComparer.IsNewer(latest, currentVersion))
             {
@@ -416,7 +573,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         }
     }
 
-    private static void PrintNextSteps(string name, bool aspire, bool frontend, bool skipInstall, bool dockerEnvReady)
+    private static void PrintNextSteps(
+        string name, bool aspire, bool frontend, bool skipInstall, bool dockerEnvReady, string? frameworkFeed)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.Write(new Rule($"[{FshConstants.SuccessColor}]Project created successfully![/]").RuleStyle(FshConstants.SuccessColor));
@@ -450,6 +608,13 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
         if (dockerEnvReady)
             tree.AddNode($"[{FshConstants.DimColor}]Self-host:[/]        cd deploy/docker && docker compose up -d --build  [{FshConstants.DimColor}](secrets pre-generated in .env)[/]");
+
+        if (frameworkFeed is not null)
+        {
+            tree.AddNode($"[{FshConstants.DimColor}]Framework feed:[/]   {frameworkFeed.EscapeMarkup()}  [{FshConstants.DimColor}](see NuGet.config)[/]");
+            // Everyone hits this once: without it the debugger silently steps over framework code.
+            tree.AddNode($"[{FshConstants.DimColor}]To step into framework code, turn OFF \"Just My Code\" in your debugger.[/]");
+        }
 
         tree.AddNode($"[{FshConstants.DimColor}]Documentation:[/]    {FshConstants.DocsUrl}");
 

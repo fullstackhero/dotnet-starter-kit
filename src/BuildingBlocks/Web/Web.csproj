@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Web</RootNamespace>
 		<AssemblyName>FSH.Framework.Web</AssemblyName>
+		<PackageId>FSH.Framework.Web</PackageId>
+		<!-- Opt-in framework packaging: inert unless -p:PackFshFramework=true.
+		     Keeps Directory.Build.props's IsPackable=false source-ownership guard intact. -->
+		<IsPackable Condition="'$(PackFshFramework)' == 'true'">true</IsPackable>
 		<NoWarn>$(NoWarn);CA1805;CA1307;CA1308;S1854;CA1812;CA1305;CA2000</NoWarn>
 	</PropertyGroup>
 

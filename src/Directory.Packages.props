@@ -145,4 +145,30 @@
          Remove once the SignalR backplane package depends on a patched version itself. -->
     <PackageVersion Include="MessagePack" Version="2.5.301" />
   </ItemGroup>
+  <PropertyGroup>
+    <!-- Version of the FSH.Framework.* packages consumed when UseFrameworkPackages=true
+         (see Directory.Build.targets). Change it to adopt a newer kernel build, or override it
+         for one build with -p:FshFrameworkVersion=<version>.
+
+         The default is a placeholder that the template rewrites when scaffolding with framework
+         packages. Deliberately NOT the repo Version (10.0.0): the template replaces by literal
+         text, and that string also appears in Version and ContainerImageTags. Keep this comment
+         free of the placeholder text itself, or it gets rewritten too. -->
+    <FshFrameworkVersion Condition="'$(FshFrameworkVersion)' == ''">0.0.0-local</FshFrameworkVersion>
+  </PropertyGroup>
+  <ItemGroup Label="FSH Framework (opt-in; inert unless UseFrameworkPackages=true)">
+    <!-- Central package management requires a PackageVersion for every PackageReference.
+         CPM ignores entries nothing references, so these are dead weight in source mode. -->
+    <PackageVersion Include="FSH.Framework.Core" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Shared" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Caching" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Mailing" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Persistence" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Quota" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Jobs" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Storage" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Eventing.Abstractions" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Eventing" Version="$(FshFrameworkVersion)" />
+    <PackageVersion Include="FSH.Framework.Web" Version="$(FshFrameworkVersion)" />
+  </ItemGroup>
 </Project>
