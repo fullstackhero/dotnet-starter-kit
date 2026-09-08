@@ -1,9 +1,11 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetExceptionAudits;
 using FSH.Modules.Auditing.Persistence;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using static FSH.Modules.Auditing.Persistence.AuditJsonbFunctions;
 
 namespace FSH.Modules.Auditing.Features.v1.GetExceptionAudits;
@@ -27,7 +29,7 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
         var audits = GetBaseQuery();
         audits = ApplyDateFilters(audits, query);
         audits = ApplySeverityFilter(audits, query);
-        audits = ApplyPayloadFilters(audits, query);
+        audits = ApplyPayloadFilters(audits, query, _dbContext.Database);
 
         // Cap server-side so an unpaged call can't materialize a tenant's whole exception history.
         var take = query.Take is >= 1 and <= MaxPageSize ? query.Take.Value : DefaultPageSize;
@@ -68,27 +70,34 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
         return audits;
     }
 
-    private static IQueryable<AuditRecord> ApplyPayloadFilters(IQueryable<AuditRecord> audits, GetExceptionAuditsQuery query)
+    private static IQueryable<AuditRecord> ApplyPayloadFilters(
+        IQueryable<AuditRecord> audits,
+        GetExceptionAuditsQuery query,
+        DatabaseFacade database)
     {
         if (query.Area.HasValue && query.Area.Value != ExceptionArea.None)
         {
             string areaValue = query.Area.Value.ToString();
-            // PostgreSQL renders jsonb::text in canonical form with a space after the
-            // colon ({"area": "Value"}), so the patterns must include that space.
-            audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"area\": \"{areaValue}\"%"));
+            audits = audits.WhereLike(
+                database,
+                ProviderQueryExtensions.JsonTextPropertyPattern(database, "area", areaValue),
+                a => AsText(a.PayloadJson));
         }
 
         if (!string.IsNullOrWhiteSpace(query.ExceptionType))
         {
-            audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"exceptionType\": \"{query.ExceptionType}%"));
+            audits = audits.WhereLike(
+                database,
+                ProviderQueryExtensions.JsonTextPropertyPattern(database, "exceptionType", query.ExceptionType, exact: false),
+                a => AsText(a.PayloadJson));
         }
 
         if (!string.IsNullOrWhiteSpace(query.RouteOrLocation))
         {
-            audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"routeOrLocation\": \"{query.RouteOrLocation}%"));
+            audits = audits.WhereLike(
+                database,
+                ProviderQueryExtensions.JsonTextPropertyPattern(database, "routeOrLocation", query.RouteOrLocation, exact: false),
+                a => AsText(a.PayloadJson));
         }
 
         return audits;

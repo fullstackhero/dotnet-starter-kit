@@ -43,11 +43,11 @@ public sealed class ListMessageRepliesQueryHandler(
 
         if (query.Before is { } beforeId)
         {
-            q = q.Where(m => m.Id.CompareTo(beforeId) < 0);
+            q = q.WhereOlderThan(db, beforeId);
         }
 
         var rows = await q
-            .OrderByDescending(m => m.Id)
+            .OrderByNewest(db)
             .Take(query.PageSize)
             .Include(m => m.Attachments)
             .Include(m => m.Mentions)

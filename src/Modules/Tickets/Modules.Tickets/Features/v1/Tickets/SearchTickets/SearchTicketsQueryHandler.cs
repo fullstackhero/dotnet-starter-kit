@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Tickets.Contracts.Dtos;
 using FSH.Modules.Tickets.Contracts.v1.Tickets;
@@ -39,10 +40,7 @@ public sealed class SearchTicketsQueryHandler(TicketsDbContext dbContext)
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search.Trim();
-            q = q.Where(t =>
-                EF.Functions.ILike(t.Title, $"%{term}%") ||
-                EF.Functions.ILike(t.Number, $"%{term}%") ||
-                (t.Description != null && EF.Functions.ILike(t.Description, $"%{term}%")));
+            q = q.WhereSearch(dbContext.Database, term, t => t.Title, t => t.Number, t => t.Description);
         }
 
         q = ApplySort(q, query.SortBy, query.SortDir);

@@ -73,10 +73,37 @@ public sealed partial class EfCoreOutboxStore : IOutboxStore
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var until = now.Add(lease);
 
+        if (_dbContext.Database.IsSqlServer())
+        {
+            // SQL Server's equivalent of SKIP LOCKED: READPAST walks past rows another transaction
+            // already holds, UPDLOCK takes the update lock up front so two dispatchers cannot both
+            // select the same row, and OUTPUT returns the rows this statement actually claimed.
+            // The CTE preserves the ORDER BY that a bare UPDATE TOP(n) would not guarantee.
+            var sqlServerClaim = $$"""
+                WITH c AS (
+                    SELECT TOP({3}) *
+                    FROM [{{EventingConstants.SchemaName}}].[OutboxMessages] WITH (UPDLOCK, READPAST, ROWLOCK)
+                    WHERE [IsDead] = 0
+                      AND [ProcessedOnUtc] IS NULL
+                      AND ([NextRetryAt] IS NULL OR [NextRetryAt] <= {0})
+                      AND ([ClaimedUntilUtc] IS NULL OR [ClaimedUntilUtc] < {0})
+                    ORDER BY [CreatedOnUtc]
+                )
+                UPDATE c
+                SET [ClaimedUntilUtc] = {1}, [ClaimedBy] = {2}
+                OUTPUT INSERTED.*
+                """;
+
+            return await _dbContext.Set<OutboxMessage>()
+                .FromSqlRaw(sqlServerClaim, now, until, claimedBy, batchSize)
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+        }
+
         if (!_dbContext.Database.IsNpgsql())
         {
-            // No portable SKIP LOCKED outside Postgres. Fall back to an unclaimed read, which is
-            // safe only while a single dispatcher instance runs.
+            // No portable SKIP LOCKED outside Postgres and SQL Server. Fall back to an unclaimed
+            // read, which is safe only while a single dispatcher instance runs.
             LogClaimUnsupported(_dbContext.Database.ProviderName);
             return await _dbContext.Set<OutboxMessage>()
                 .Where(m => !m.IsDead

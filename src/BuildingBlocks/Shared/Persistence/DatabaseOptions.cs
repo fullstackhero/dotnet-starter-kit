@@ -29,5 +29,15 @@ public sealed class DatabaseOptions : IValidatableObject
         {
             yield return new ValidationResult("connection string cannot be empty.", new[] { nameof(ConnectionString) });
         }
+
+        // Fail at startup on an unrecognized provider rather than deep inside a provider switch on
+        // the first query — a typo in DatabaseOptions__Provider is otherwise invisible until traffic.
+        if (!string.Equals(Provider, DbProviders.PostgreSQL, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(Provider, DbProviders.MSSQL, StringComparison.OrdinalIgnoreCase))
+        {
+            yield return new ValidationResult(
+                $"'{Provider}' is not a supported database provider. Use '{DbProviders.PostgreSQL}' or '{DbProviders.MSSQL}'.",
+                new[] { nameof(Provider) });
+        }
     }
 }

@@ -17,6 +17,7 @@ using FSH.Modules.Multitenancy.Data;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
 using FSH.Modules.Tickets;
 using FSH.Modules.Webhooks;
+using FSH.Framework.Shared.Persistence;
 using FSH.Starter.DbMigrator;
 using FSH.Starter.DbMigrator.DemoSeed;
 using Finbuckle.MultiTenant.Abstractions;
@@ -170,25 +171,29 @@ await host.StartAsync().ConfigureAwait(false);
 try
 {
     // ── Step 0 — wait for the database to come up ────────────────────────
-    // Postgres may still be initialising on cold-start; exp. backoff (≤2 min), then TimeoutException + exit 1.
-    var connectionString = host.Services.GetRequiredService<IConfiguration>()["DatabaseOptions:ConnectionString"]
+    // The server may still be initialising on cold-start; exp. backoff (≤2 min), then TimeoutException + exit 1.
+    var migratorConfiguration = host.Services.GetRequiredService<IConfiguration>();
+    var connectionString = migratorConfiguration["DatabaseOptions:ConnectionString"]
         ?? throw new InvalidOperationException("DatabaseOptions:ConnectionString is not configured.");
-    await Console.Out.WriteLineAsync("[migrator] waiting for postgres…").ConfigureAwait(false);
-    await PostgresMigratorLock.WaitForDatabaseAsync(connectionString, logger, CancellationToken.None)
+    var dbProvider = migratorConfiguration["DatabaseOptions:Provider"] ?? DbProviders.PostgreSQL;
+    var providerLock = MigratorLockFactory.Create(dbProvider);
+
+    await Console.Out.WriteLineAsync($"[migrator] waiting for {providerLock.ProviderDisplayName}…").ConfigureAwait(false);
+    await providerLock.WaitForDatabaseAsync(connectionString, logger, CancellationToken.None)
         .ConfigureAwait(false);
-    await Console.Out.WriteLineAsync("[migrator] postgres ready").ConfigureAwait(false);
+    await Console.Out.WriteLineAsync($"[migrator] {providerLock.ProviderDisplayName} ready").ConfigureAwait(false);
 
-    // Log the connected role + database so a misconfigured low-priv connection string surfaces now,
+    // Log the connected login + database so a misconfigured low-priv connection string surfaces now,
     // not as "permission denied for schema public" during MigrateAsync.
-    await LogConnectionIdentityAsync(connectionString).ConfigureAwait(false);
+    await LogConnectionIdentityAsync(providerLock, connectionString).ConfigureAwait(false);
 
-    // ── Step 0b — acquire the advisory lock ──────────────────────────────
-    // Session-level lock: concurrent runs block here; auto-releases on connection close (no orphan on crash).
-    await Console.Out.WriteLineAsync("[migrator] acquiring advisory lock…").ConfigureAwait(false);
-    await using var migratorLock = await PostgresMigratorLock
+    // ── Step 0b — acquire the migrator lock ──────────────────────────────
+    // Session-scoped lock: concurrent runs block here; auto-releases on connection close (no orphan on crash).
+    await Console.Out.WriteLineAsync("[migrator] acquiring migrator lock…").ConfigureAwait(false);
+    await using var migratorLock = await providerLock
         .AcquireAsync(connectionString, logger, CancellationToken.None)
         .ConfigureAwait(false);
-    await Console.Out.WriteLineAsync("[migrator] advisory lock acquired").ConfigureAwait(false);
+    await Console.Out.WriteLineAsync("[migrator] migrator lock acquired").ConfigureAwait(false);
 
     // ── Step 1 — tenant catalog ───────────────────────────────────────────
     // Always applied first: the per-tenant migrator below reads every tenant out of this database.
@@ -333,20 +338,17 @@ finally
     await host.StopAsync().ConfigureAwait(false);
 }
 
-static async Task LogConnectionIdentityAsync(string connectionString)
+static async Task LogConnectionIdentityAsync(IMigratorLock providerLock, string connectionString)
 {
     // Best-effort identity probe — never fail the migrator over a logging step.
     try
     {
-        await using var conn = new Npgsql.NpgsqlConnection(connectionString);
-        await conn.OpenAsync().ConfigureAwait(false);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT current_user, current_database()";
-        await using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
-        if (await reader.ReadAsync().ConfigureAwait(false))
+        var (role, db) = await providerLock
+            .GetConnectionIdentityAsync(connectionString, CancellationToken.None)
+            .ConfigureAwait(false);
+
+        if (!string.IsNullOrEmpty(role))
         {
-            var role = reader.GetString(0);
-            var db = reader.GetString(1);
             await Console.Out.WriteLineAsync(string.Create(
                 System.Globalization.CultureInfo.InvariantCulture,
                 $"[migrator] connected as role={role} database={db}")).ConfigureAwait(false);

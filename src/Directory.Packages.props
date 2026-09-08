@@ -15,6 +15,7 @@
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.4.0" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.0" />
     <PackageVersion Include="Aspire.Hosting.Redis" Version="13.4.0" />
+    <PackageVersion Include="Aspire.Hosting.SqlServer" Version="13.4.0" />
     <PackageVersion Include="coverlet.collector" Version="10.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -30,6 +31,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.0-beta.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.15.2" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.15.0-beta.1" />
     <PackageVersion Include="QuestPDF" Version="2026.5.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
@@ -54,6 +56,10 @@
     <PackageVersion Include="Hangfire.InMemory" Version="1.0.0" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1" />
+    <!-- Ships inside the Hangfire metapackage, but Jobs/Extensions.cs calls UseSqlServerStorage
+         directly for the MSSQL provider — reference it explicitly rather than leaning on the
+         metapackage's transitive graph. Keep in lockstep with Hangfire/Hangfire.Core. -->
+    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.23" />
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.2" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.2" />
@@ -61,6 +67,11 @@
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.3.9" />
+    <!-- Pinned explicitly because Jobs and DbMigrator use SqlConnection directly for the MSSQL
+         provider (Hangfire lock cleanup, migrator application lock) without referencing EF Core's
+         SqlServer provider. 7.0.1 is the floor Aspire.Hosting.SqlServer requires; EF Core 10.0.8's
+         SqlServer provider only needs >= 6.1.1, so a single pin satisfies both. -->
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.8" />
@@ -122,9 +133,13 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.11.0" />
-    <PackageVersion Include="Testcontainers.Redis" Version="4.11.0" />
-    <PackageVersion Include="Testcontainers.Minio" Version="4.11.0" />
+    <!-- 4.14.0, not 4.11.0: the older line drags in SSH.NET 2025.1.0, which carries a
+         high-severity advisory (GHSA-q939-rpr3-3284) and fails NuGetAudit under
+         TreatWarningsAsErrors — main does not currently build because of it. -->
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.14.0" />
+    <PackageVersion Include="Testcontainers.Minio" Version="4.14.0" />
   </ItemGroup>
   <ItemGroup Label="AWS">
     <PackageVersion Include="AWSSDK.S3" Version="4.0.23.4" />

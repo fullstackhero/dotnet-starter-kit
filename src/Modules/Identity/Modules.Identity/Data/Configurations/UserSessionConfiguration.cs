@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -64,7 +65,7 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
 
         builder
             .Property(s => s.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            .HasUtcNowDefault();
 
         builder
             .HasOne(s => s.User)

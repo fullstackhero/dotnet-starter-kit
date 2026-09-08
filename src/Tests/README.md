@@ -19,6 +19,13 @@ This folder contains solution-wide architecture tests for the FullStackHero .NET
 - Run all tests (including architecture tests): `dotnet test src/FSH.Starter.slnx`.
 - Architecture tests are lightweight and rely only on project and file structure; they do not require any external services or databases.
 
+## Migration drift
+
+`MigrationDriftTests` checks that every DbContext's migrations are up to date with its model, per
+database provider — the in-process equivalent of `dotnet ef migrations has-pending-model-changes`. It
+needs no database. Which providers *fail* the build is set by `FshMaintainedDbProviders` in
+`src/Directory.Build.props`; the rest only report. See the `verify-migrations` skill.
+
 ## Extending the Rules
 
 - Add new rules as additional test classes inside `Architecture.Tests`, following the existing patterns (using NetArchTest for type-level rules and reflection or project file inspection where appropriate).

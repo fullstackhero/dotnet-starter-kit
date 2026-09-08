@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Billing.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -32,7 +33,7 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         // ad-hoc and may repeat within a period, so exclude them from the uniqueness filter.
         builder.HasIndex(x => new { x.TenantId, x.PeriodYear, x.PeriodMonth, x.Purpose })
             .IsUnique()
-            .HasFilter($"\"Purpose\" <> {(int)Contracts.InvoicePurpose.Topup}")
+            .HasNotEqualsFilter("Purpose", (int)Contracts.InvoicePurpose.Topup)
             .HasDatabaseName("ux_invoices_tenant_period_purpose");
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.InvoiceNumber).IsUnique();

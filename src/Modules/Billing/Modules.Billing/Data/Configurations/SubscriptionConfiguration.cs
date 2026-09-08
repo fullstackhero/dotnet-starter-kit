@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subscri
 
         builder.HasIndex(x => new { x.TenantId, x.Status });
         builder.HasIndex(x => x.TenantId)
-            .HasFilter($"\"Status\" = {(int)SubscriptionStatus.Active}")
+            .HasEqualsFilter("Status", (int)SubscriptionStatus.Active)
             .IsUnique()
             .HasDatabaseName("ux_subscriptions_tenantid_active");
 

@@ -23,6 +23,19 @@
 		<NoWarn>$(NoWarn);CS1591;MSG0005;CA1054;CA1056</NoWarn>
 		<!-- Suppress warning about missing XML docs -->
 
+		<!-- Which database providers this project keeps migrations for.
+		     `both` | `POSTGRESQL` | `MSSQL`.
+
+		     Read by Architecture.Tests' MigrationDriftTests: a maintained provider
+		     FAILS the build when its migrations fall behind the model; an unmaintained
+		     one only reports the drift. Ships as `both` because the modules that come
+		     with the kit are kept in sync for both engines. Once a project settles on
+		     one engine, narrow this and the other becomes advisory — nothing breaks
+		     because of migrations for a provider you do not use.
+
+		     Override for a single run with the FSH_MIGRATIONS_PROVIDERS env var. -->
+		<FshMaintainedDbProviders>both</FshMaintainedDbProviders>
+
 		<!-- Container tags (if using container builds) -->
 		<ContainerImageTags>10.0.0;latest</ContainerImageTags>
 

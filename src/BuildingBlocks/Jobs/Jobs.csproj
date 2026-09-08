@@ -10,6 +10,8 @@
 		<PackageReference Include="Hangfire" />
 		<PackageReference Include="Hangfire.MemoryStorage" />
 		<PackageReference Include="Hangfire.PostgreSql" />
+		<PackageReference Include="Hangfire.SqlServer" />
+		<PackageReference Include="Microsoft.Data.SqlClient" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
 		<PackageReference Include="Microsoft.Extensions.Options" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />

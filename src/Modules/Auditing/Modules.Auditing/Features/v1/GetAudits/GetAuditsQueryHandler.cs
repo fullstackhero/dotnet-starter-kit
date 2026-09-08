@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Authorization;
@@ -100,12 +101,15 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search;
-            // ILIKE on PayloadJson is sequential; the (TenantId, OccurredAtUtc) index
-            // scopes the scan — add a GIN index on PayloadJson in prod for fast search.
-            audits = audits.Where(a =>
-                (a.PayloadJson != null && EF.Functions.ILike(AsText(a.PayloadJson), $"%{term}%")) ||
-                (a.Source != null && EF.Functions.ILike(a.Source, $"%{term}%")) ||
-                (a.UserName != null && EF.Functions.ILike(a.UserName, $"%{term}%")));
+            // Substring search over the raw JSON text is sequential on both providers; the
+            // (TenantId, OccurredAtUtc) index scopes the scan. Source/UserName are served by the
+            // trigram GIN indexes on PostgreSQL, and scan on SQL Server (see AuditRecordConfiguration).
+            audits = audits.WhereSearch(
+                _dbContext.Database,
+                term,
+                a => AsText(a.PayloadJson),
+                a => a.Source,
+                a => a.UserName);
         }
 
         audits = audits.OrderByDescending(a => a.OccurredAtUtc);

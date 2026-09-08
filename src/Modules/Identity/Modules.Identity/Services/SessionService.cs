@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
@@ -146,10 +147,12 @@ public sealed class SessionService : ISessionService
         if (!string.IsNullOrWhiteSpace(search))
         {
             string term = search.Trim();
-            q = q.Where(s =>
-                (s.User != null && s.User.UserName != null && EF.Functions.ILike(s.User.UserName, $"%{term}%"))
-                || (s.User != null && s.User.Email != null && EF.Functions.ILike(s.User.Email, $"%{term}%"))
-                || (s.IpAddress != null && EF.Functions.ILike(s.IpAddress, $"%{term}%")));
+            q = q.WhereSearch(
+                _db.Database,
+                term,
+                s => s.User!.UserName,
+                s => s.User!.Email,
+                s => s.IpAddress);
         }
 
         long total = await q.LongCountAsync(cancellationToken);

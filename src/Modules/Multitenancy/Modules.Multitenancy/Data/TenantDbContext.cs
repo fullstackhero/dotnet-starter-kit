@@ -1,4 +1,5 @@
 using Finbuckle.MultiTenant.EntityFrameworkCore.Stores;
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Multitenancy.Domain;
 using FSH.Modules.Multitenancy.Provisioning;
@@ -30,5 +31,16 @@ public class TenantDbContext : EFCoreStoreDbContext<AppTenantInfo>
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TenantDbContext).Assembly);
+    }
+
+    /// <summary>
+    /// This context does not derive from BaseDbContext, so it registers the framework's provider
+    /// conventions itself — without them the portable column intent is never resolved.
+    /// </summary>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(configurationBuilder);
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.AddHeroProviderConventions(DbProviderResolver.FromEfProviderName(Database.ProviderName));
     }
 }

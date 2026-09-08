@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using FSH.CLI.Infrastructure;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -47,6 +49,26 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         [CommandOption("--dry-run")]
         [DefaultValue(false)]
         public bool DryRun { get; init; }
+
+        [Description("Default database provider: postgresql (default) or mssql. mssql requires SQL Server 2025 or Azure SQL. Env: FSH_DB_PROVIDER.")]
+        [CommandOption("--db-provider <PROVIDER>")]
+        public DbProviderChoice? DbProvider { get; init; }
+    }
+
+    /// <summary>
+    /// Database provider a scaffolded project defaults to.
+    /// </summary>
+    /// <remarks>
+    /// This only picks the default written into configuration — both migrations projects ship in
+    /// every scaffold, so switching later is a config change, not a rescaffold.
+    /// </remarks>
+    public enum DbProviderChoice
+    {
+        /// <summary>PostgreSQL (the default).</summary>
+        Postgresql,
+
+        /// <summary>Microsoft SQL Server. Requires SQL Server 2025 (17.x) or Azure SQL.</summary>
+        Mssql
     }
 
     protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
@@ -69,6 +91,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
         bool frontend = await ResolveFrontendAsync(settings, cancellationToken).ConfigureAwait(false);
 
+        DbProviderChoice dbProvider = await ResolveDbProviderAsync(settings, cancellationToken).ConfigureAwait(false);
+
         string output = settings.Output ?? Path.GetFullPath(name);
 
         // 2. Check for existing directory
@@ -89,7 +113,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         }
 
         // 3. Print summary
-        PrintSummary(name, aspire, frontend, output, settings.DryRun);
+        PrintSummary(name, aspire, frontend, dbProvider, output, settings.DryRun);
 
         if (settings.DryRun)
         {
@@ -111,6 +135,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
         // 6. Generate per-project dev secrets + a ready-to-run docker-compose .env
         GenerateDevSecrets(name, output);
+        ApplyDbProvider(name, output, dbProvider);
         bool dockerEnvReady = GenerateDockerEnv(output);
 
         // 7. Install frontend dependencies (npm install in both React apps)
@@ -179,7 +204,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
     }
 
-    private static void PrintSummary(string name, bool aspire, bool frontend, string output, bool dryRun)
+    private static void PrintSummary(string name, bool aspire, bool frontend, DbProviderChoice dbProvider, string output, bool dryRun)
     {
         AnsiConsole.WriteLine();
 
@@ -187,6 +212,9 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         AnsiConsole.MarkupLine($"[bold]Creating project:[/] {name.EscapeMarkup()}{mode}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Aspire:[/]    {(aspire ? "yes" : "no")}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Frontend:[/]  {(frontend ? "yes (admin + dashboard)" : "no")}");
+        AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Database:[/]  {(dbProvider == DbProviderChoice.Mssql
+            ? "SQL Server [yellow](requires SQL Server 2025 or Azure SQL)[/]"
+            : "PostgreSQL")}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Output:[/]    {output.EscapeMarkup()}");
         AnsiConsole.WriteLine();
     }
@@ -312,6 +340,68 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
     // Replace the shared dev signing-key placeholder with a unique per-project key so two
     // freshly scaffolded projects never mint interchangeable tokens in development.
+    /// <summary>
+    /// Resolves the default database provider: flag -> env var -> prompt -> postgresql.
+    /// </summary>
+    private static async Task<DbProviderChoice> ResolveDbProviderAsync(Settings settings, CancellationToken cancellationToken)
+    {
+        if (settings.DbProvider is { } explicitChoice) return explicitChoice;
+
+        string? fromEnvironment = Environment.GetEnvironmentVariable(FshConstants.DbProviderEnvVar);
+        if (Enum.TryParse(fromEnvironment, ignoreCase: true, out DbProviderChoice parsed)) return parsed;
+
+        if (settings.NonInteractive) return DbProviderChoice.Postgresql;
+
+        string selection = await new SelectionPrompt<string>()
+            .Title($"[{FshConstants.AccentColor}]Default database provider?[/]")
+            .AddChoices("PostgreSQL", "SQL Server (requires SQL Server 2025 or Azure SQL)")
+            .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
+
+        return selection.StartsWith("SQL Server", StringComparison.Ordinal)
+            ? DbProviderChoice.Mssql
+            : DbProviderChoice.Postgresql;
+    }
+
+    /// <summary>
+    /// Writes the chosen provider into the scaffolded project's configuration.
+    /// </summary>
+    /// <remarks>
+    /// Both migrations projects ship regardless, so this only sets the default: switching a
+    /// scaffolded project later is editing these same values, with no file surgery. Edited as JSON
+    /// rather than by string replacement because the three values must stay consistent with each
+    /// other — a provider without its matching MigrationsAssembly fails at startup.
+    /// </remarks>
+    private static void ApplyDbProvider(string name, string output, DbProviderChoice dbProvider)
+    {
+        if (dbProvider != DbProviderChoice.Mssql) return;
+
+        string appsettings = Path.Combine(output, "src", "Host", $"{name}.Api", "appsettings.json");
+        if (File.Exists(appsettings))
+        {
+            var root = JsonNode.Parse(File.ReadAllText(appsettings))?.AsObject();
+            if (root?["DatabaseOptions"] is JsonObject db)
+            {
+                db["Provider"] = "MSSQL";
+                db["MigrationsAssembly"] = $"{name}.Migrations.MSSQL";
+                db["ConnectionString"] =
+                    "Server=localhost,1433;Database=fsh;User Id=sa;Password=Str0ng_Dev_Pwd!;TrustServerCertificate=True;Min Pool Size=5";
+                File.WriteAllText(appsettings, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            }
+        }
+
+        // The Aspire host reads DbProvider to decide which container to run.
+        string appHostSettings = Path.Combine(output, "src", "Host", $"{name}.AppHost", "appsettings.json");
+        if (File.Exists(appHostSettings))
+        {
+            var root = JsonNode.Parse(File.ReadAllText(appHostSettings))?.AsObject();
+            if (root is not null)
+            {
+                root["DbProvider"] = "mssql";
+                File.WriteAllText(appHostSettings, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            }
+        }
+    }
+
     private static void GenerateDevSecrets(string name, string output)
     {
         string appsettingsDev = Path.Combine(output, "src", "Host", $"{name}.Api", "appsettings.Development.json");
@@ -341,6 +431,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             ["HANGFIRE_USERNAME"] = "admin",
             ["HANGFIRE_PASSWORD"] = GenerateSecret(20),
             ["POSTGRES_PASSWORD"] = GenerateSecret(24),
+            ["MSSQL_SA_PASSWORD"] = GenerateSecret(24),
             ["REDIS_PASSWORD"] = GenerateSecret(24),
             ["MINIO_ROOT_USER"] = "minioadmin",
             ["MINIO_ROOT_PASSWORD"] = GenerateSecret(24),

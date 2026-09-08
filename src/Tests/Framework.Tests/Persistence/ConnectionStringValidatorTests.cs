@@ -60,16 +60,18 @@ public sealed class ConnectionStringValidatorTests
     #region Edge Cases
 
     [Fact]
-    public void TryValidate_Should_ReturnTrue_When_ProviderUnknown()
+    public void TryValidate_Should_ReturnFalse_When_ProviderUnknown()
     {
-        // Arrange — unknown provider falls through default arm without parsing.
+        // Arrange — an unsupported provider means nothing validated the string. Reporting success
+        // would let a typo'd DatabaseOptions:Provider sail past tenant creation and only fail on
+        // the first query.
         var sut = Build("SQLITE");
 
         // Act
         var result = sut.TryValidate("any-string");
 
         // Assert
-        result.ShouldBeTrue();
+        result.ShouldBeFalse();
     }
 
     [Fact]

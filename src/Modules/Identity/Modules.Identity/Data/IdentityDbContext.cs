@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.Identity.EntityFrameworkCore;
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Persistence;
@@ -62,6 +63,17 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
         // Default-on tenant isolation: non-IGlobalEntity entities get IsMultiTenant() automatically (ImpersonationGrant opts out).
         // Identity tables are already IsMultiTenant in IdentityConfigurations.cs; auto-apply detects that annotation and skips them.
         builder.ApplyTenantIsolationByDefault();
+    }
+
+    /// <summary>
+    /// This context does not derive from BaseDbContext, so it registers the framework's provider
+    /// conventions itself — without them the portable column intent is never resolved.
+    /// </summary>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(configurationBuilder);
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.AddHeroProviderConventions(DbProviderResolver.FromEfProviderName(Database.ProviderName));
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

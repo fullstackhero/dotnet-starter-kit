@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using Finbuckle.MultiTenant.EntityFrameworkCore.Extensions;
 using FSH.Modules.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,7 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder
             .Property(g => g.CreatedOnUtc)
             .HasColumnName("CreatedAt")
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            .HasUtcNowDefault();
 
         builder
             .Property(g => g.LastModifiedOnUtc)

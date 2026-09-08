@@ -9,6 +9,7 @@ This brings up the full stack on a single host:
 | `dashboard` | `fsh/dashboard:local` | `FSH_DASHBOARD_PORT` (default 8082) | Tenant dashboard (nginx + React) |
 | `migrator` | `fsh/dbmigrator:local` | — | One-shot: applies EF migrations + seeds the root tenant + creates the default admin user |
 | `postgres` | `postgres:17-alpine` | (internal) | Identity, tenant catalog, module schemas |
+| `sqlserver` | `mcr.microsoft.com/mssql/server:2025-latest` | (internal) | Same, when running the `mssql` profile instead of `postgres` |
 | `redis` | `redis:7-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
 | `minio` | `minio/minio:latest` | (internal) | S3-compatible blob store for the Files module |
 
@@ -91,6 +92,28 @@ docker run --rm \
 ```
 
 ## Swapping in managed services
+
+### Running on SQL Server instead
+
+SQL Server ships as an opt-in compose profile. It requires **SQL Server 2025 or Azure SQL** — the
+model maps JSON columns to the native `json` type, which does not exist on 2019/2022.
+
+```bash
+# set MSSQL_SA_PASSWORD in .env first
+docker compose --profile mssql up -d sqlserver
+```
+
+Then point the `migrator` and `api` services at it by overriding three variables (the provider and
+its migrations assembly must always change together):
+
+```yaml
+DatabaseOptions__Provider: MSSQL
+DatabaseOptions__MigrationsAssembly: FSH.Starter.Migrations.MSSQL
+DatabaseOptions__ConnectionString: "Server=sqlserver,1433;Database=fsh;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+```
+
+Note `postgres-init/` (the `pgcrypto` / `uuid-ossp` / `pg_trgm` extensions) is PostgreSQL-only and is
+simply not used on this path.
 
 Single-host compose is the default story; production deployments often point at managed Postgres / Redis / S3. To do that:
 

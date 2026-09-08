@@ -33,6 +33,7 @@
     <ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
     <ProjectReference Include="..\..\Modules\Multitenancy\Modules.Multitenancy\Modules.Multitenancy.csproj" />
     <ProjectReference Include="..\FSH.Starter.Migrations.PostgreSQL\FSH.Starter.Migrations.PostgreSQL.csproj" />
+    <ProjectReference Include="..\FSH.Starter.Migrations.MSSQL\FSH.Starter.Migrations.MSSQL.csproj" />
     <ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" />
     <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
     <ProjectReference Include="..\..\Modules\Billing\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />

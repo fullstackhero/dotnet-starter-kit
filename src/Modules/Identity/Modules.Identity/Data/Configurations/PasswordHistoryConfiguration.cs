@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -25,7 +26,7 @@ public class PasswordHistoryConfiguration : IEntityTypeConfiguration<PasswordHis
 
         builder
             .Property(ph => ph.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            .HasUtcNowDefault();
 
         // Configure the foreign key relationship
         builder

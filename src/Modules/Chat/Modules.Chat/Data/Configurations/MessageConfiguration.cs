@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Chat.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,7 +16,7 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.Property(x => x.ChannelId).IsRequired();
         builder.Property(x => x.AuthorUserId).IsRequired().HasMaxLength(64);
-        builder.Property(x => x.Body).HasColumnType("text");
+        builder.Property(x => x.Body).HasUnboundedTextColumn();
         builder.Property(x => x.ParentMessageId);
         builder.Property(x => x.ReplyCount).IsRequired();
         builder.Property(x => x.EditedAtUtc);
@@ -28,12 +29,12 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
         // Partial index on pinned messages — small set per channel, used by
         // GetPinnedMessages query (filters by ChannelId).
         builder.HasIndex(x => new { x.ChannelId, x.IsPinned })
-            .HasFilter("\"IsPinned\" = true");
+            .HasBoolFilter("IsPinned", true);
 
         // Reverse-chronological paging by (ChannelId, Id) — Guid v7 is monotonically sortable
         // so Id desc is the time order. Index is descending on Id only.
         builder.HasIndex(x => new { x.ChannelId, x.Id }).IsDescending(false, true);
-        builder.HasIndex(x => x.ParentMessageId).HasFilter("\"ParentMessageId\" IS NOT NULL");
+        builder.HasIndex(x => x.ParentMessageId).HasNotNullFilter("ParentMessageId");
 
         builder.HasOne<ChatChannel>()
             .WithMany()

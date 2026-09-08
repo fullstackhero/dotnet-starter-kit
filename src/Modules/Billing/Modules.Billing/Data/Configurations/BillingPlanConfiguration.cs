@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -41,9 +42,9 @@ public sealed class BillingPlanConfiguration : IEntityTypeConfiguration<BillingP
                     ? new Dictionary<QuotaResource, decimal>()
                     : JsonSerializer.Deserialize<Dictionary<QuotaResource, decimal>>(v, (JsonSerializerOptions?)null)
                         ?? new Dictionary<QuotaResource, decimal>())
-            .HasColumnType("jsonb")
+            .HasJsonColumn()
             .HasColumnName("OverageRates")
-            .HasDefaultValueSql("'{}'::jsonb")
+            .HasJsonDefaultEmptyObject()
             .Metadata.SetValueComparer(new ValueComparer<Dictionary<QuotaResource, decimal>>(
                 (a, b) => ReferenceEquals(a, b) || (a != null && b != null && a.SequenceEqual(b)),
                 v => v.Aggregate(0, (h, kv) => HashCode.Combine(h, (int)kv.Key, kv.Value.GetHashCode())),

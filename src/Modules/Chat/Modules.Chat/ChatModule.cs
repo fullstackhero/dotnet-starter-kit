@@ -53,6 +53,9 @@ public sealed class ChatModule : IModule
 
         builder.Services.AddHeroDbContext<ChatDbContext>();
         builder.Services.AddScoped<IDbInitializer, ChatDbInitializer>();
+        // Singleton: the full-text index probe is a one-off server capability check, cached for the
+        // process rather than re-queried per search.
+        builder.Services.AddSingleton<Features.v1.Search.SqlServerFullTextAvailability>();
         builder.Services.AddValidatorsFromAssembly(typeof(ChatModule).Assembly);
 
         // Realtime adapters consumed by AppHub (BuildingBlocks/Web). These let the shared hub
