@@ -22,7 +22,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Testcontainers.Minio;
-using Testcontainers.PostgreSql;
 
 namespace Integration.Tests.Infrastructure;
 
@@ -33,13 +32,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
     private const string MinioBucket = "fsh-integration-test-uploads";
 
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
-        .WithDatabase("fsh_integration_tests")
-        .WithUsername("postgres")
-        .WithPassword("integration_test_pwd")
-        .WithAutoRemove(true)
-        .WithCleanUp(true)
-        .Build();
+    private readonly TestDatabase _database = TestDatabase.Create("fsh_integration_tests");
 
     private readonly MinioContainer _minio = new MinioBuilder("minio/minio:latest")
         .WithUsername(MinioAccessKey)
@@ -50,7 +43,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
 
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(_postgres.StartAsync(), _minio.StartAsync());
+        await Task.WhenAll(_database.StartAsync(), _minio.StartAsync());
         await CreateMinioBucketAsync();
 
         // Force host creation via the Server property (no leaked HttpClient)
@@ -72,7 +65,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
     public new async Task DisposeAsync()
     {
         await base.DisposeAsync();
-        await _postgres.DisposeAsync();
+        await _database.DisposeAsync();
         await _minio.DisposeAsync();
     }
 
@@ -113,9 +106,9 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["DatabaseOptions:Provider"] = "POSTGRESQL",
-                ["DatabaseOptions:ConnectionString"] = _postgres.GetConnectionString(),
-                ["DatabaseOptions:MigrationsAssembly"] = "FSH.Starter.Migrations.PostgreSQL",
+                ["DatabaseOptions:Provider"] = _database.Provider,
+                ["DatabaseOptions:ConnectionString"] = _database.GetConnectionString(),
+                ["DatabaseOptions:MigrationsAssembly"] = _database.MigrationsAssembly,
                 ["CachingOptions:Redis"] = "",
                 ["JwtOptions:Issuer"] = TestConstants.JwtIssuer,
                 ["JwtOptions:Audience"] = TestConstants.JwtAudience,

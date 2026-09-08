@@ -21,7 +21,7 @@ the shared code lives in `src/BuildingBlocks` and is yours to change.
 dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
-Aspire starts Postgres, Redis, and MinIO, runs database migrations, then launches the API
+Aspire starts the database (Postgres by default; `DbProvider=MSSQL` runs SQL Server 2025 instead), Redis, and MinIO, runs database migrations, then launches the API
 **and both React apps**.
 
 | Surface | URL |

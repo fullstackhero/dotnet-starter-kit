@@ -11,6 +11,22 @@ namespace FSH.Framework.Persistence;
 public static class OptionsBuilderExtensions
 {
     /// <summary>
+    /// SQL Server compatibility level the MSSQL provider targets: 170 (SQL Server 2025 / Azure SQL).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Required for the native <c>json</c> column type the framework's portable JSON columns map to
+    /// — <c>UseSqlServer</c> otherwise defaults to level 150 (SQL Server 2019), where EF Core emits
+    /// <c>nvarchar(max)</c> instead and the generated migrations would no longer match the model.
+    /// </para>
+    /// <para>
+    /// This is the reason MSSQL support requires SQL Server 2025 (17.x) or Azure SQL. Earlier
+    /// versions have no <c>json</c> type and the migrations will not apply to them.
+    /// </para>
+    /// </remarks>
+    private const int MssqlCompatibilityLevel = 170;
+
+    /// <summary>
     /// Configures the database provider and connection for the Hero framework.
     /// </summary>
     /// <param name="builder">The DbContextOptionsBuilder to configure.</param>
@@ -43,10 +59,13 @@ public static class OptionsBuilderExtensions
                 break;
 
             case DbProviders.MSSQL:
+                // Deliberately no EnableRetryOnFailure: the retrying execution strategy refuses
+                // user-initiated transactions, and the outbox joins the business transaction via
+                // Database.UseTransactionAsync. Enabling it here breaks every transactional publish.
                 builder.UseSqlServer(connectionString, e =>
                 {
                     e.MigrationsAssembly(migrationsAssembly);
-                    e.EnableRetryOnFailure();
+                    e.UseCompatibilityLevel(MssqlCompatibilityLevel);
                 });
                 break;
 
@@ -90,10 +109,13 @@ public static class OptionsBuilderExtensions
                 break;
 
             case DbProviders.MSSQL:
+                // Deliberately no EnableRetryOnFailure: the retrying execution strategy refuses
+                // user-initiated transactions, and the outbox joins the business transaction via
+                // Database.UseTransactionAsync. Enabling it here breaks every transactional publish.
                 builder.UseSqlServer(connection, contextOwnsConnection: false, e =>
                 {
                     e.MigrationsAssembly(migrationsAssembly);
-                    e.EnableRetryOnFailure();
+                    e.UseCompatibilityLevel(MssqlCompatibilityLevel);
                 });
                 break;
 

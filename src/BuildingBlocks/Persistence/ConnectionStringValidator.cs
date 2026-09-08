@@ -34,7 +34,12 @@ public sealed class ConnectionStringValidator(IOptions<DatabaseOptions> dbSettin
                     _ = new SqlConnectionStringBuilder(connectionString);
                     break;
                 default:
-                    break;
+                    // An unknown provider means nothing validated the string. Reporting success here
+                    // would let a typo'd provider sail past tenant creation and fail on first query.
+                    _logger.LogError(
+                        "Connection String Validation failed: '{Provider}' is not a supported database provider.",
+                        dbProvider);
+                    return false;
             }
 
             return true;

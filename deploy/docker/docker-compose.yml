@@ -30,6 +30,32 @@ services:
     # ports:
     #   - "5432:5432"
 
+  # Opt-in SQL Server, started only with `--profile mssql`. Pair it with
+  #   DatabaseOptions__Provider=MSSQL
+  #   DatabaseOptions__MigrationsAssembly=FSH.Starter.Migrations.MSSQL
+  #   DatabaseOptions__ConnectionString=Server=sqlserver,1433;Database=fsh;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+  # on the migrator and api services. The 2025 tag is required: JSON columns map to the native
+  # json type, which does not exist on 2019/2022.
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: fsh-sqlserver
+    profiles: ["mssql"]
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?MSSQL_SA_PASSWORD is required}
+      MSSQL_PID: Developer
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    # Uncomment to expose for host sqlcmd / SSMS access:
+    # ports:
+    #   - "1433:1433"
+
   redis:
     image: valkey/valkey:9.1.0-alpine
     container_name: fsh-redis
@@ -176,6 +202,7 @@ services:
       - "${FSH_DASHBOARD_PORT:-8082}:80"
 
 volumes:
+  mssql_data:
   pg_data:
   redis_data:
   minio_data:

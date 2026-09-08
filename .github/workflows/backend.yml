@@ -172,6 +172,50 @@ jobs:
           path: '**/*.trx'
           retention-days: 7
 
+  integration-test-mssql:
+    name: Integration Tests (SQL Server)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    # Same suite, other provider. Testcontainers starts SQL Server 2025 from TestDatabase; no
+    # service container here because the harness owns the lifetime. Coverage is collected by the
+    # PostgreSQL job only — this leg exists to catch provider-specific breakage, not to add lines.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore src/FSH.Starter.slnx
+
+      - name: Run integration tests against SQL Server
+        env:
+          FSH_TEST_DB_PROVIDER: MSSQL
+        run: |
+          dotnet test src/Tests/Integration.Tests -c Release \
+            --results-directory ./TestResults --logger "trx;LogFileName=Integration.Tests.MSSQL.trx"
+          dotnet test src/Tests/Integration.Middleware.Tests -c Release \
+            --results-directory ./TestResults --logger "trx;LogFileName=Integration.Middleware.Tests.MSSQL.trx"
+
+      - name: Upload SQL Server integration test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-integration-mssql
+          path: '**/*.trx'
+          retention-days: 7
+
   migrator-smoke:
     name: DbMigrator Container Smoke
     needs: changes
@@ -227,6 +271,63 @@ jobs:
             fsh-db-migrator:smoke apply --catalog-only \
             | tee migrator.log
           grep -q "finished successfully" migrator.log
+
+  migrator-smoke-mssql:
+    name: DbMigrator Container Smoke (SQL Server)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    # Same smoke as the Postgres job, against the other provider: proves the MSSQL migrations
+    # assembly applies from empty and that sp_getapplock coordination works. Pinned to 2025 —
+    # JSON columns map to the native json type, which does not exist on 2019/2022.
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2025-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: Migrator_Smoke_Pwd1
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Migrator_Smoke_Pwd1 -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Publish DbMigrator container (local daemon)
+        run: |
+          dotnet publish src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj \
+            -c Release -r linux-x64 \
+            /t:PublishContainer \
+            -p:ContainerRepository=fsh-db-migrator \
+            -p:ContainerImageTags=smoke-mssql
+
+      - name: Run DbMigrator against ephemeral SQL Server
+        run: |
+          docker run --rm --network host \
+            -e DatabaseOptions__Provider=MSSQL \
+            -e DatabaseOptions__ConnectionString="Server=localhost,1433;Database=fsh_migrator_smoke;User Id=sa;Password=Migrator_Smoke_Pwd1;TrustServerCertificate=True;Encrypt=False" \
+            -e DatabaseOptions__MigrationsAssembly=FSH.Starter.Migrations.MSSQL \
+            fsh-db-migrator:smoke-mssql apply --catalog-only \
+            | tee migrator-mssql.log
+          grep -q "finished successfully" migrator-mssql.log
 
   coverage:
     name: Coverage Gate
@@ -416,7 +517,7 @@ jobs:
   # job it depends on actually failed or was cancelled — skipped is fine.
   backend-ci:
     name: Backend CI
-    needs: [changes, test, integration-test, migrator-smoke, coverage]
+    needs: [changes, test, integration-test, integration-test-mssql, migrator-smoke, migrator-smoke-mssql, coverage]
     if: always()
     runs-on: ubuntu-latest
     steps:

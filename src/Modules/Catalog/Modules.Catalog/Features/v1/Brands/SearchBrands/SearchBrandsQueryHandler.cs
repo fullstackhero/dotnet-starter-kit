@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Catalog.Contracts.Dtos;
 using FSH.Modules.Catalog.Contracts.v1.Brands;
@@ -23,9 +24,7 @@ public sealed class SearchBrandsQueryHandler(CatalogDbContext dbContext)
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search.Trim();
-            q = q.Where(b =>
-                EF.Functions.ILike(b.Name, $"%{term}%") ||
-                EF.Functions.ILike(b.Slug, $"%{term}%"));
+            q = q.WhereSearch(dbContext.Database, term, b => b.Name, b => b.Slug);
         }
 
         q = ApplySort(q, query.SortBy, query.SortDir);

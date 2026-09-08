@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Files.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -42,7 +43,7 @@ public sealed class FileAssetConfiguration : IEntityTypeConfiguration<FileAsset>
         // a subsequent upload that happens to choose the same path (rare, but possible).
         builder.HasIndex(x => x.StorageKey)
             .IsUnique()
-            .HasFilter("\"IsDeleted\" = FALSE")
+            .HasNotDeletedFilter()
             .HasDatabaseName("UX_FileAsset_StorageKey");
 
         builder.Ignore(x => x.DomainEvents);

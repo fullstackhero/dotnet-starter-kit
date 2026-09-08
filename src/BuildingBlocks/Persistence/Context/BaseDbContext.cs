@@ -1,6 +1,7 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.Framework.Core.Domain;
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,17 @@ public class BaseDbContext(IMultiTenantContextAccessor<AppTenantInfo> multiTenan
         // Default-on tenant isolation: entities not marked IGlobalEntity get IsMultiTenant().
         // Subclasses must call base.OnModelCreating AFTER ApplyConfigurationsFromAssembly so per-entity configs are in place.
         modelBuilder.ApplyTenantIsolationByDefault();
+    }
+
+    /// <summary>
+    /// Registers the framework's provider conventions, which resolve portable column and index
+    /// intent into provider-specific SQL when the model is finalized.
+    /// </summary>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(configurationBuilder);
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.AddHeroProviderConventions(DbProviderResolver.FromEfProviderName(Database.ProviderName));
     }
 
     /// <summary>

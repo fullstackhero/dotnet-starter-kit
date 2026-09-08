@@ -86,6 +86,10 @@ public static class Extensions
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddNpgsqlInstrumentation()
+                    // Both driver instrumentations are registered unconditionally: each only emits
+                    // for its own driver, so whichever provider DatabaseOptions selects is covered
+                    // without the observability wiring needing to know which one it is.
+                    .AddSqlClientInstrumentation()
                     .AddRuntimeInstrumentation();
 
                 // Apply histogram buckets for HTTP server duration
@@ -147,6 +151,7 @@ public static class Extensions
                     })
                     .AddHttpClientInstrumentation()
                     .AddNpgsql()
+                    .AddSqlClientInstrumentation()
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddRedisInstrumentation(redis =>
                     {

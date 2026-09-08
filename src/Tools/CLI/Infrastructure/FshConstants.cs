@@ -7,6 +7,9 @@ internal static class FshConstants
     internal const string TemplatePackageId = "FullStackHero.NET.StarterKit";
     internal const string TemplateShortName = "fsh";
 
+    /// <summary>Env var selecting the default database provider for `fsh new` (postgresql | mssql).</summary>
+    public const string DbProviderEnvVar = "FSH_DB_PROVIDER";
+
     // URLs
     internal const string NuGetFlatContainerUrl = "https://api.nuget.org/v3-flatcontainer";
     internal const string GitHubRepoUrl = "https://github.com/fullstackhero/dotnet-starter-kit";

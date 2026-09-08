@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Contracts.v1.Queries;
 using FSH.Modules.Chat.Data;
@@ -34,9 +35,7 @@ public sealed class DiscoverChannelsQueryHandler(
         if (!string.IsNullOrWhiteSpace(q.Search))
         {
             var term = q.Search.Trim();
-            query = query.Where(c =>
-                EF.Functions.ILike(c.Name!, $"%{term}%")
-                || EF.Functions.ILike(c.Slug!, $"%{term}%"));
+            query = query.WhereSearch(db.Database, term, c => c.Name, c => c.Slug);
         }
 
         var channels = await query

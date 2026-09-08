@@ -9,6 +9,11 @@
     <NoWarn>$(NoWarn);CA1515;CA1861;CA1707;CA1307;S125</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Surfaces the repo-wide knob from Directory.Build.props to MigrationDriftTests.
+         Kept local to this project so the attribute does not land in every assembly. -->
+    <AssemblyMetadata Include="FshMaintainedDbProviders" Value="$(FshMaintainedDbProviders)" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -40,5 +45,6 @@
     <ProjectReference Include="..\..\Modules\Chat\Modules.Chat.Contracts\Modules.Chat.Contracts.csproj" />
     <ProjectReference Include="..\..\Host\FSH.Starter.Api\FSH.Starter.Api.csproj" />
     <ProjectReference Include="..\..\Host\FSH.Starter.Migrations.PostgreSQL\FSH.Starter.Migrations.PostgreSQL.csproj" />
+    <ProjectReference Include="..\..\Host\FSH.Starter.Migrations.MSSQL\FSH.Starter.Migrations.MSSQL.csproj" />
   </ItemGroup>
 </Project>

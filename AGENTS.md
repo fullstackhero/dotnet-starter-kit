@@ -27,7 +27,8 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 | `src/Host/FSH.Starter.Api` | Composition-root Web API host. |
 | `src/Host/FSH.Starter.AppHost` | .NET Aspire orchestrator (Postgres, Redis, MinIO, migrator, API, **both React apps**). |
 | `src/Host/FSH.Starter.DbMigrator` | One-shot migrate/seed runner. DB is **not** migrated at API startup. |
-| `src/Host/FSH.Starter.Migrations.PostgreSQL` | All EF migrations, organized per-module by folder. |
+| `src/Host/FSH.Starter.Migrations.PostgreSQL` | PostgreSQL EF migrations, organized per-module by folder. |
+| `src/Host/FSH.Starter.Migrations.MSSQL` | SQL Server EF migrations, same per-module layout. **Requires SQL Server 2025 / Azure SQL.** |
 | `src/Tests/` | Per-module tests, `Architecture.Tests` (NetArchTest), `Integration.Tests` (Testcontainers). |
 | `src/Tools/CLI` | The `fsh` CLI (Spectre.Console). |
 | `clients/admin`, `clients/dashboard` | The two React apps. |
@@ -40,7 +41,7 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 | Framework | .NET 10 / C# latest | Framework | React 19 + Vite 7 + TS 5.x |
 | CQRS | Mediator 3.x (source-gen) | Data | TanStack Query v5 |
 | Validation | FluentValidation 12.x | Routing | React Router 7 |
-| ORM / DB | EF Core 10 / PostgreSQL (Npgsql) | UI | Radix + Tailwind v4 + CVA (shadcn) |
+| ORM / DB | EF Core 10 / PostgreSQL (Npgsql) or SQL Server 2025 | UI | Radix + Tailwind v4 + CVA (shadcn) |
 | Auth | JWT Bearer + ASP.NET Identity | Forms | react-hook-form + zod (**admin only**) |
 | Multitenancy | Finbuckle 10.x | Realtime | `@microsoft/signalr`, SSE (dashboard) |
 | Cache / Jobs | Redis, Hangfire | Tests | Playwright (route-mocked) |
@@ -127,7 +128,7 @@ records for DTOs/events/value objects · `default!` for required non-nullable st
 ## Adding things (quick pointers)
 
 - **Feature** — Contracts command/query → handler → validator → endpoint → wire in module `MapEndpoints()` → tests. Details: `api-conventions.md`.
-- **Module** — new `Modules.{Name}` + `.Contracts`, implement `IModule` w/ assembly-level `[assembly: FshModule(typeof(XModule), order)]`, register in **all four places**, add migration folder + tests. Details: `architecture.md`.
+- **Module** — new `Modules.{Name}` + `.Contracts`, implement `IModule` w/ assembly-level `[assembly: FshModule(typeof(XModule), order)]`, register in **all four places**, add a migration folder in **both** migrations projects (PostgreSQL + MSSQL) + tests. Details: `architecture.md`.
 - **React page** — API module (`src/api/`) → page → register lazy route → (admin) mirror permission + RouteGuard → Playwright test. Details: `frontend/shared.md`.
 
 ## AI tooling resources

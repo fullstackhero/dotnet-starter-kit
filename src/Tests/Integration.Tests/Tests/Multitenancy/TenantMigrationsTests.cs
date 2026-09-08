@@ -53,7 +53,8 @@ public sealed class TenantMigrationsTests
         root.ShouldNotBeNull("root tenant must appear in the migration report");
         root.Error.ShouldBeNull();
         root.Provider.ShouldNotBeNullOrEmpty();
-        root.Provider.ShouldContain("Npgsql");
+        // The report surfaces EF's provider assembly name, which differs per provider.
+        root.Provider.ShouldContain(TestDatabase.SelectedProviderIsPostgres ? "Npgsql" : "SqlServer");
         root.HasPendingMigrations.ShouldBeFalse();
         root.LastAppliedMigration.ShouldNotBeNullOrEmpty();
         root.PendingMigrations.ShouldBeEmpty();

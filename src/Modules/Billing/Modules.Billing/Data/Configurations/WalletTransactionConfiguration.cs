@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Billing.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -30,7 +31,7 @@ public sealed class WalletTransactionConfiguration : IEntityTypeConfiguration<Wa
         // A concurrent second MarkInvoicePaid on the same invoice fails this constraint and rolls back.
         builder.HasIndex(x => x.ReferenceId)
             .IsUnique()
-            .HasFilter($"\"Kind\" = {(int)Contracts.WalletTransactionKind.Topup}")
+            .HasEqualsFilter("Kind", (int)Contracts.WalletTransactionKind.Topup)
             .HasDatabaseName("ux_wallet_transactions_topup_reference");
     }
 }

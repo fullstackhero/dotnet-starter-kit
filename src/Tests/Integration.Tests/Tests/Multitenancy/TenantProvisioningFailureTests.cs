@@ -32,9 +32,10 @@ public sealed class TenantProvisioningFailureTests
     };
 
     // Well-formed (passes ConnectionStringValidator) but unreachable: port 1 refuses
-    // connections immediately, and the short timeouts keep the failing job fast.
-    private const string UnreachableConnectionString =
-        "Host=127.0.0.1;Port=1;Database=does_not_exist;Username=postgres;Password=x;Timeout=3;Command Timeout=3";
+    // connections immediately, and the short timeouts keep the failing job fast. Shaped for
+    // whichever provider the suite is running against — the validator parses it with that
+    // provider's own connection-string builder.
+    private static string UnreachableConnectionString => TestDatabase.UnreachableConnectionString;
 
     private readonly FshWebApplicationFactory _factory;
     private readonly AuthHelper _auth;

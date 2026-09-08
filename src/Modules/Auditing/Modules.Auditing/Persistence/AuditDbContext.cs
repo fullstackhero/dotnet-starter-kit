@@ -28,13 +28,19 @@ public sealed class AuditDbContext : BaseDbContext
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
         // Required for the trigram GIN indexes on Source/UserName. Idempotent (IF NOT EXISTS); the
-        // migration role needs CREATE permission on the database.
-        modelBuilder.HasPostgresExtension("pg_trgm");
+        // migration role needs CREATE permission on the database. Postgres-only API — on SQL Server
+        // the trigram indexes do not exist at all, so there is nothing to enable.
+        if (Database.IsNpgsql())
+        {
+            modelBuilder.HasPostgresExtension("pg_trgm");
+        }
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuditDbContext).Assembly);
 
-        // Map AuditJsonbFunctions.AsText to `CAST(x AS text)` so jsonb PayloadJson is ILIKE-searchable.
-        // Without the cast, ILIKE on jsonb throws ("like_escape(jsonb, unknown) does not exist") → HTTP 500.
+        // Map AuditJsonbFunctions.AsText to a cast to text so the JSON PayloadJson column is
+        // substring-searchable. Needed on both providers: PostgreSQL's jsonb has no LIKE operator
+        // ("like_escape(jsonb, unknown) does not exist" → HTTP 500) and SQL Server's native json
+        // type likewise has to be cast to nvarchar before LIKE will accept it.
         var textMapping = this.GetService<IRelationalTypeMappingSource>().FindMapping(typeof(string))!;
         var asTextMethod = typeof(AuditJsonbFunctions)
             .GetMethod(nameof(AuditJsonbFunctions.AsText), BindingFlags.Public | BindingFlags.Static)!;

@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Notifications.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -18,7 +19,7 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
         builder.Property(x => x.Body).HasMaxLength(1024);
         builder.Property(x => x.Link).HasMaxLength(512);
         builder.Property(x => x.Source).HasMaxLength(64).IsRequired();
-        builder.Property(x => x.MetadataJson).HasColumnType("jsonb").IsRequired();
+        builder.Property(x => x.MetadataJson).HasJsonColumn().IsRequired();
         builder.Property(x => x.CreatedAtUtc).IsRequired();
         builder.Property(x => x.ReadAtUtc);
 

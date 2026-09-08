@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Billing.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,5 +31,17 @@ public sealed class BillingDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BillingDbContext).Assembly);
+    }
+
+    /// <summary>
+    /// This context derives from <see cref="DbContext"/> rather than <c>BaseDbContext</c> (billing is
+    /// deliberately cross-tenant), so it registers the framework's provider conventions itself —
+    /// without them the portable column and index intent is never resolved.
+    /// </summary>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(configurationBuilder);
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.AddHeroProviderConventions(DbProviderResolver.FromEfProviderName(Database.ProviderName));
     }
 }

@@ -4,7 +4,7 @@
 
 ## Harness
 
-`WebApplicationFactory` over **real** infra via Testcontainers — PostgreSQL + Redis + MinIO. **Docker must be running**; if it isn't, tests fail fast with `DockerUnavailableException` (environmental, not a regression — run the unit projects instead).
+`WebApplicationFactory` over **real** infra via Testcontainers — PostgreSQL + Redis + MinIO. Set `FSH_TEST_DB_PROVIDER=MSSQL` to run the same suite against SQL Server 2025 instead of PostgreSQL; the default is unchanged. **Docker must be running**; if it isn't, tests fail fast with `DockerUnavailableException` (environmental, not a regression — run the unit projects instead).
 
 `FshWebApplicationFactory` (`Integration.Tests/Infrastructure/`) boots the containers, overlays in-memory config, swaps `IMailService` → `NoOpMailService`, and rewires storage to MinIO.
 

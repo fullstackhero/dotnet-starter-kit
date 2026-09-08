@@ -30,17 +30,19 @@ public sealed class ListChannelMessagesQueryHandler(
             ?? throw new NotFoundException("Channel not found.");
         channel.RequireMember(currentUserId);
 
-        // Top-level only (no thread replies). Guid v7 monotonic → Id desc = time desc.
+        // Top-level only (no thread replies). Newest-first via the provider's chronological key —
+        // see MessageOrdering: Guid v7 is monotonic in byte order, which PostgreSQL sorts by and
+        // SQL Server does not.
         IQueryable<Domain.Message> q = db.Messages
             .Where(m => m.ChannelId == query.ChannelId && m.ParentMessageId == null);
 
         if (query.Before is { } beforeId)
         {
-            q = q.Where(m => m.Id.CompareTo(beforeId) < 0);
+            q = q.WhereOlderThan(db, beforeId);
         }
 
         var rows = await q
-            .OrderByDescending(m => m.Id)
+            .OrderByNewest(db)
             .Take(query.PageSize)
             .Include(m => m.Attachments)
             .AsNoTracking()

@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetSecurityAudits;
@@ -46,10 +47,10 @@ public sealed class GetSecurityAuditsQueryHandler : IQueryHandler<GetSecurityAud
         if (query.Action.HasValue && query.Action.Value != SecurityAction.None)
         {
             string actionValue = query.Action.Value.ToString();
-            // PostgreSQL renders jsonb::text in canonical form with a space after the
-            // colon ({"action": "Value"}), so the pattern must include that space.
-            audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"action\": \"{actionValue}\"%"));
+            audits = audits.WhereLike(
+                _dbContext.Database,
+                ProviderQueryExtensions.JsonTextPropertyPattern(_dbContext.Database, "action", actionValue),
+                a => AsText(a.PayloadJson));
         }
 
         // Cap server-side so an unpaged call can't materialize a tenant's whole audit history.

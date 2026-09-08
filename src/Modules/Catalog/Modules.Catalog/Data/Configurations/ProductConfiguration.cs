@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Catalog.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,11 +16,11 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         // unique-per-tenant, so two tenants can share "ABC-001". Opt out via IGlobalEntity.
 
         builder.Property(x => x.Sku).IsRequired().HasMaxLength(64);
-        builder.HasIndex(x => x.Sku).IsUnique().HasFilter("\"IsDeleted\" = FALSE");
+        builder.HasIndex(x => x.Sku).IsUnique().HasNotDeletedFilter();
 
         builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Slug).IsRequired().HasMaxLength(220);
-        builder.HasIndex(x => x.Slug).IsUnique().HasFilter("\"IsDeleted\" = FALSE");
+        builder.HasIndex(x => x.Slug).IsUnique().HasNotDeletedFilter();
 
         builder.Property(x => x.Description).HasMaxLength(4000);
 

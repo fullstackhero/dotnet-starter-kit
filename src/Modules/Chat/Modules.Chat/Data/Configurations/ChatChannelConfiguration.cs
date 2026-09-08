@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence.Providers;
 using FSH.Modules.Chat.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -20,14 +21,14 @@ public sealed class ChatChannelConfiguration : IEntityTypeConfiguration<ChatChan
         builder.Property(x => x.Slug).HasMaxLength(220);
         builder.HasIndex(x => x.Slug)
             .IsUnique()
-            .HasFilter("\"Slug\" IS NOT NULL AND \"IsDeleted\" = FALSE");
+            .HasNotNullFilter("Slug").HasNotDeletedFilter();
 
         builder.Property(x => x.Description).HasMaxLength(2000);
         builder.Property(x => x.IsPrivate).IsRequired();
         builder.Property(x => x.DirectKey).HasMaxLength(80);
         builder.HasIndex(x => x.DirectKey)
             .IsUnique()
-            .HasFilter("\"Type\" = 0 AND \"IsDeleted\" = FALSE");
+            .HasEqualsFilter("Type", 0).HasNotDeletedFilter();
 
         builder.Property(x => x.CreatedByUserId).IsRequired().HasMaxLength(64);
         builder.Property(x => x.CreatedAtUtc).IsRequired();

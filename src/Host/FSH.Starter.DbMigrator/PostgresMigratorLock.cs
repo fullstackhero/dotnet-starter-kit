@@ -12,8 +12,10 @@ namespace FSH.Starter.DbMigrator;
 /// no extra infrastructure required — and the lock auto-releases when the
 /// holding connection is disposed (or if the migrator process crashes mid-run).
 /// </summary>
-internal static partial class PostgresMigratorLock
+internal sealed partial class PostgresMigratorLock : IMigratorLock
 {
+    public string ProviderDisplayName => "postgres";
+
     // Arbitrary 64-bit key (spottable in pg_locks) for the fsh-db-migrator session lock.
     // Held at server level, so the target database doesn't affect instance-wide coordination.
     private const long MigratorAdvisoryLockKey = unchecked((long)0xFE514EC0_DEB1ADE4UL);
@@ -32,7 +34,7 @@ internal static partial class PostgresMigratorLock
     ///   · the connection fails with SQLSTATE 3D000 "database does not exist"
     ///     — server is reachable; EF will create the database on Migrate.
     /// </summary>
-    public static async Task WaitForDatabaseAsync(
+    public async Task WaitForDatabaseAsync(
         string connectionString,
         ILogger logger,
         CancellationToken cancellationToken)
@@ -83,7 +85,7 @@ internal static partial class PostgresMigratorLock
     /// a no-op holder — there's nothing to protect yet, EF will create the
     /// database on MigrateAsync, and subsequent runs get the real lock.
     /// </summary>
-    public static async Task<IAsyncDisposable> AcquireAsync(
+    public async Task<IAsyncDisposable> AcquireAsync(
         string connectionString,
         ILogger logger,
         CancellationToken cancellationToken)
@@ -99,7 +101,7 @@ internal static partial class PostgresMigratorLock
         {
             LogSkipLockForMissingDb(logger, ex);
             await conn.DisposeAsync().ConfigureAwait(false);
-            return NoopLock.Instance;
+            return NoopMigratorLock.Instance;
         }
 
         await using (var cmd = conn.CreateCommand())
@@ -149,10 +151,23 @@ internal static partial class PostgresMigratorLock
         }
     }
 
-    private sealed class NoopLock : IAsyncDisposable
+    public async Task<(string User, string Database)> GetConnectionIdentityAsync(
+        string connectionString,
+        CancellationToken cancellationToken)
     {
-        public static readonly NoopLock Instance = new();
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT current_user, current_database()";
+
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return (string.Empty, string.Empty);
+        }
+
+        return (reader.GetString(0), reader.GetString(1));
     }
 
     // LoggerMessage source-gen: compile-time templates avoid CA1873 (eager arg eval)

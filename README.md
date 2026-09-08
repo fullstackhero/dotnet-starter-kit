@@ -78,6 +78,7 @@ The wizard asks what to include (Aspire AppHost, the React apps). Non-interactiv
 
 ```bash
 fsh new MyApp --non-interactive          # full stack, Postgres
+fsh new MyApp --db-provider mssql         # same, defaulting to SQL Server 2025
 fsh new MyApp --no-frontend              # backend-only
 fsh new MyApp --no-aspire --no-frontend  # minimal API + migrator
 ```
@@ -127,7 +128,7 @@ dotnet run --project src/Host/FSH.Starter.AppHost
 | `src/BuildingBlocks/` | Shared framework libraries (Core, Persistence, Web, Caching, Eventing, Storage, Quota…) |
 | `src/Modules/{Name}/` | Bounded contexts — each with a runtime project + a `.Contracts` project (its public API) |
 | `src/Host/FSH.Starter.Api` | Composition-root Web API host |
-| `src/Host/FSH.Starter.AppHost` | .NET Aspire orchestrator (Postgres, Valkey, MinIO, migrator, API, both React apps) |
+| `src/Host/FSH.Starter.AppHost` | .NET Aspire orchestrator (Postgres or SQL Server, Valkey, MinIO, migrator, API, both React apps) |
 | `src/Host/FSH.Starter.DbMigrator` | One-shot migrate/seed runner (DB is **not** migrated at API startup) |
 | `src/Tools/CLI` | The `fsh` CLI (Spectre.Console) |
 | `clients/admin`, `clients/dashboard` | The two React apps |
@@ -162,7 +163,7 @@ cd clients/admin     && npm run test:e2e # Playwright (operator app)
 cd clients/dashboard && npm run test:e2e # Playwright (tenant app)
 ```
 
-> Integration tests require Docker (Testcontainers spins real Postgres). Architecture tests enforce module boundaries.
+> Integration tests require Docker (Testcontainers spins real Postgres; `FSH_TEST_DB_PROVIDER=MSSQL` runs the suite against SQL Server 2025 instead). Architecture tests enforce module boundaries.
 
 ---
 

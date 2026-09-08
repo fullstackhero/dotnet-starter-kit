@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FSH.Framework.Persistence.Providers;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Quota;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,7 @@ public class AppTenantInfoConfiguration : IEntityTypeConfiguration<AppTenantInfo
                     ? new Dictionary<QuotaResource, long>()
                     : JsonSerializer.Deserialize<Dictionary<QuotaResource, long>>(v, (JsonSerializerOptions?)null)
                         ?? new Dictionary<QuotaResource, long>())
-            .HasColumnType("jsonb")
+            .HasJsonColumn()
             .Metadata.SetValueComparer(new ValueComparer<Dictionary<QuotaResource, long>>(
                 (a, b) => ReferenceEquals(a, b) || (a != null && b != null && a.SequenceEqual(b)),
                 v => v.Aggregate(0, (h, kv) => HashCode.Combine(h, (int)kv.Key, kv.Value.GetHashCode())),
