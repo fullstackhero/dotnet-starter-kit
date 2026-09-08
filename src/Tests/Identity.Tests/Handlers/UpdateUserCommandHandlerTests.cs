@@ -39,7 +39,8 @@ public sealed class UpdateUserCommandHandlerTests
             command.LastName ?? string.Empty,
             command.PhoneNumber ?? string.Empty,
             command.Image!,
-            command.DeleteCurrentImage);
+            command.DeleteCurrentImage,
+            command.Locale);
     }
 
     [Fact]
@@ -66,7 +67,8 @@ public sealed class UpdateUserCommandHandlerTests
             string.Empty,
             string.Empty,
             null!,
-            true);
+            true,
+            command.Locale);
     }
 
     [Fact]
@@ -83,7 +85,7 @@ public sealed class UpdateUserCommandHandlerTests
         // Arrange
         var command = _fixture.Create<UpdateUserCommand>();
         var expectedExceptionMessage = "Update failed";
-        _userService.UpdateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FSH.Framework.Shared.Storage.FileUploadRequest>(), Arg.Any<bool>())
+        _userService.UpdateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FSH.Framework.Shared.Storage.FileUploadRequest>(), Arg.Any<bool>(), Arg.Any<string?>())
             .Returns(x => throw new InvalidOperationException(expectedExceptionMessage));
 
         // Act & Assert

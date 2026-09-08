@@ -69,7 +69,11 @@ internal sealed class QuotaMeteredStorageService : IStorageService
             throw new CustomException(
                 $"Storage quota exceeded ({check.CurrentUsage}/{check.Limit} bytes).",
                 errors: null,
-                HttpStatusCode.InsufficientStorage);
+                HttpStatusCode.InsufficientStorage)
+            {
+                MessageKey = "Storage.QuotaExceeded",
+                MessageArgs = [check.CurrentUsage, check.Limit],
+            };
         }
 
         try

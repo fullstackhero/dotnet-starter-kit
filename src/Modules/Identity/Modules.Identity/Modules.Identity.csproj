@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Identity</RootNamespace>
 		<AssemblyName>FSH.Modules.Identity</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1812;CA2208;S3267;S3928;CA1062;CA1304;CA1308;CA1311;CA1862;CA2227</NoWarn>
+		<NoWarn>$(NoWarn);CA1031;CA1812;CA2208;S3267;S3928;CA1062;CA1304;CA1308;CA1311;CA1862;CA2227;S2094</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
