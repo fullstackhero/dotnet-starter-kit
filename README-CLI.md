@@ -13,7 +13,7 @@ This is the maintainer guide for three opt-in capabilities of the `fsh` CLI:
 **Contents** — [Why](#why-framework-packages) · [Setup](#one-time-setup) · [Install `fsh`](#installing-fsh-from-this-source) · [Daily loop](#the-everyday-loop) ·
 [Fork scaffolding](#scaffolding-from-your-own-fork) · [Agents](#shipping-the-agents-kit) ·
 [Debugging](#debugging-into-buildingblocks) · [Troubleshooting](#troubleshooting) ·
-[Reference](#command-reference) · [Upgrading](#updating-an-existing-project-to-a-newer-template) · [Swapping modes](#swapping-an-existing-project-between-the-two-modes)
+[Reference](#command-reference) · [Upgrading](#updating-an-existing-project-to-a-newer-template) · [Runbook](#runbook-upgrading-a-project-end-to-end) · [Swapping modes](#swapping-an-existing-project-between-the-two-modes)
 
 ---
 
@@ -323,6 +323,8 @@ That produces a normal DLL plus a `.snupkg` with SourceLink, which is what nuget
 | `Sequence contains more than one matching element` | two template packages share the FSH template identity | `dotnet new uninstall FullStackHero.NET.StarterKit`, then re-install (the CLI now does this for you) |
 | Project scaffolds with `src/BuildingBlocks` and no `NuGet.config` despite passing the flags | template symbol names (`--frameworkPackages`) were used instead of CLI option names (`--framework-packages`) | use the CLI spelling; unknown options are now a hard error rather than silently ignored |
 | `Framework feed not found: ~/.fsh/local-nuget` | no feed configured and packages live elsewhere | pass `--framework-feed <path>` or `export FSH_LOCAL_FEED=<path>` |
+| Upgraded project no longer compiles | the template merge landed but the kernel packages were not republished | do step 1 of the [runbook](#runbook-upgrading-a-project-end-to-end), then bump `FshFrameworkVersion` |
+| `pack --push` reports success but the project restores old packages | `FSH_LOCAL_FEED` unset, so it published to `~/.fsh/local-nuget` | export it, re-pack, and delete the stray feed |
 | `Could not find the original scaffold commit` | project created with `--git false`, or history squashed | `fsh upgrade --from-scaffold <ref>` |
 | `Working tree has uncommitted changes` | upgrade lands as a merge and needs a clean start | commit or stash first |
 | `fsh` runs but lacks the new options | the globally installed tool is the published build, not your fork | `dotnet run --project src/Tools/CLI -- self install` |
@@ -481,6 +483,92 @@ the shared placeholder, so both are carried forward from the baseline and never 
 A git repository with a clean working tree, and the original scaffold commit still in history. If
 `fsh new --git false` was used, or history was squashed, point at the right commit with
 `--from-scaffold`.
+
+---
+
+## Runbook: upgrading a project end to end
+
+`fsh upgrade` moves the **owned source** — modules, hosts, tests, infrastructure. For a project on
+framework packages, that is only part of the story: the kernel arrives through the feed, not
+through the merge. Doing only one half is the most common way to end up with a project that will
+not compile.
+
+A real example: the change that added SQL Server support touched 145 files, of which **19 were
+BuildingBlocks**. Merging the other 126 without republishing those 19 leaves the merged code
+calling framework APIs that the pinned packages do not have.
+
+So there are three steps, in this order.
+
+### 0. Set the environment once
+
+```bash
+# ~/.zshrc or ~/.bashrc
+export FSH_LOCAL_FEED=/Users/you/dev/nuget-local          # where the framework packages live
+export FSH_TEMPLATE_PATH=/Users/you/dev/dotnet-starter-kit # scaffold/upgrade from your fork
+```
+
+Do not skip this. Without `FSH_LOCAL_FEED`, `fsh framework pack --push` publishes to the default
+`~/.fsh/local-nuget` while your project's `NuGet.config` keeps pointing somewhere else — the pack
+reports success and the project restores the old packages. If it happens, delete the stray feed so
+it cannot be picked up later.
+
+### 1. Republish the kernel — in the starter-kit clone
+
+```bash
+cd ~/dev/dotnet-starter-kit
+git pull                                   # get the changes you want
+fsh self install                           # only if the CLI itself changed
+fsh framework pack --push --clear-cache
+#   -> Published 11 package(s) to /Users/you/dev/nuget-local
+#   -> 10.0.0-local.20260909T192142        <- note this version
+```
+
+Keep that version string; step 3 needs it. `--clear-cache` matters: NuGet caches by id+version, and
+without it a rebuilt package can be served from cache instead of the feed.
+
+### 2. Merge the template changes — in the project
+
+```bash
+cd ~/dev/falconsoft/fs-proxy
+fsh upgrade --dry-run     # confirm the detected scaffold commit and options
+fsh upgrade               # puts the template diff on fsh/template-upgrade
+git merge fsh/template-upgrade
+```
+
+Your checkout is untouched until that `git merge`. Conflicts are ordinary git conflicts, and they
+cluster where you customised something the template also changed — `DbMigrator/Program.cs` is the
+usual one, since registering a module edits it (golden rule 2). Resolve, `git add`, `git commit`.
+
+Add `--merge` to have the command run the merge for you.
+
+### 3. Move to the new kernel — in the project
+
+```bash
+# src/Directory.Packages.props
+<FshFrameworkVersion Condition="'$(FshFrameworkVersion)' == ''">10.0.0-local.20260909T192142</FshFrameworkVersion>
+```
+
+That is the version from step 1. Then verify:
+
+```bash
+dotnet build src/<Project>.slnx -warnaserror
+dotnet test  src/Tests/Architecture.Tests
+```
+
+### Reading the result
+
+Some test failures after an upgrade are the point, not a regression. `MigrationDriftTests` will
+fail for every `DbContext` you own that has no migrations for a newly added provider — that is the
+suite telling you what work the upgrade created, and it is the natural next task.
+
+Tests marked `[KernelSourceOnlyFact]` report as **skipped** on a package-mode project. That is
+correct: they read the BuildingBlocks `.csproj` files, which do not exist when the kernel ships as
+packages. The assembly-level architecture checks still run.
+
+### If a project is on owned source instead
+
+Steps 1 and 3 do not apply — the kernel comes in through the merge with everything else. Run step 2
+alone.
 
 ---
 

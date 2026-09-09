@@ -69,7 +69,11 @@ Optional, off by default — the kernel as NuGet packages instead of scaffolded 
 dotnet run --project src/Tools/CLI -- self install             # install `fsh` built from this source
 fsh framework pack --push                                      # build FSH.Framework.* into a local feed
 fsh new MyApp --framework-packages --agents -o ../my-app       # scaffold against it, with the .agents kit
+fsh upgrade                                                    # bring an existing project up to date
 ```
+
+Upgrading a project needs the kernel republished *and* the template merged; `README-CLI.md`
+has the end-to-end runbook.
 
 Migrations / seed (DbMigrator, separate step):
 ```bash
