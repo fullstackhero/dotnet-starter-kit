@@ -127,14 +127,14 @@ public sealed class FrameworkPackCommand : AsyncCommand<FrameworkPackCommand.Set
             // run the build targets is free here, since the build above just ran.
             var step = await ProcessRunner
                 .CaptureWithErrorAsync("dotnet", $"build \"{projectPath}\" -c Release --no-incremental --nologo {properties}",
-                                       repoRoot, cancellationToken)
+                                       repoRoot, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
             if (step.exitCode == 0)
             {
                 step = await ProcessRunner
                     .CaptureWithErrorAsync("dotnet", $"pack \"{projectPath}\" -c Release --nologo {properties} -o \"{output}\"",
-                                           repoRoot, cancellationToken)
+                                           repoRoot, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
 

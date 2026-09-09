@@ -65,7 +65,7 @@ public sealed class SelfInstallCommand : AsyncCommand<SelfInstallCommand.Setting
             // which is what `fsh --version` prints. Without it a locally installed build reports
             // the repo's 10.0.0 and is indistinguishable from the published tool.
             $"pack \"{projectPath}\" -c Release --nologo -p:Version={version} -p:PackageVersion={version} -o \"{output}\"",
-            repoRoot, cancellationToken).ConfigureAwait(false);
+            repoRoot, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (pack.exitCode != 0)
         {
@@ -80,7 +80,7 @@ public sealed class SelfInstallCommand : AsyncCommand<SelfInstallCommand.Setting
         var install = await ProcessRunner.CaptureWithErrorAsync(
             "dotnet",
             $"tool update -g {FshConstants.CliPackageId} --version {version} --add-source \"{output}\"",
-            repoRoot, cancellationToken).ConfigureAwait(false);
+            repoRoot, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (install.exitCode != 0)
         {

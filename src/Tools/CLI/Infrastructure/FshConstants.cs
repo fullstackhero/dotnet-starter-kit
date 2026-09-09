@@ -8,6 +8,14 @@ internal static class FshConstants
     internal const string TemplateShortName = "fsh";
     internal const string ToolCommandName = "fsh";
 
+    // Written by `fsh new` when it initialises the repository. `fsh upgrade` looks for this
+    // message to find the pristine scaffold commit to diff against.
+    internal const string InitialCommitMessage = "Initial project from FullStackHero .NET Starter Kit";
+
+    // Shared placeholder in appsettings.Development.json that `fsh new` replaces with a unique
+    // per-project key. Upgrades must preserve the project's key, not reintroduce the placeholder.
+    internal const string DevSigningKeyPlaceholder = "fsh-dev-only-do-not-use-in-prod-32+chars-min";
+
     // URLs
     internal const string NuGetFlatContainerUrl = "https://api.nuget.org/v3-flatcontainer";
     internal const string GitHubRepoUrl = "https://github.com/fullstackhero/dotnet-starter-kit";

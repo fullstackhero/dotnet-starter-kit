@@ -13,7 +13,7 @@ This is the maintainer guide for three opt-in capabilities of the `fsh` CLI:
 **Contents** — [Why](#why-framework-packages) · [Setup](#one-time-setup) · [Install `fsh`](#installing-fsh-from-this-source) · [Daily loop](#the-everyday-loop) ·
 [Fork scaffolding](#scaffolding-from-your-own-fork) · [Agents](#shipping-the-agents-kit) ·
 [Debugging](#debugging-into-buildingblocks) · [Troubleshooting](#troubleshooting) ·
-[Reference](#command-reference) · [Swapping modes](#swapping-an-existing-project-between-the-two-modes)
+[Reference](#command-reference) · [Upgrading](#updating-an-existing-project-to-a-newer-template) · [Swapping modes](#swapping-an-existing-project-between-the-two-modes)
 
 ---
 
@@ -323,6 +323,8 @@ That produces a normal DLL plus a `.snupkg` with SourceLink, which is what nuget
 | `Sequence contains more than one matching element` | two template packages share the FSH template identity | `dotnet new uninstall FullStackHero.NET.StarterKit`, then re-install (the CLI now does this for you) |
 | Project scaffolds with `src/BuildingBlocks` and no `NuGet.config` despite passing the flags | template symbol names (`--frameworkPackages`) were used instead of CLI option names (`--framework-packages`) | use the CLI spelling; unknown options are now a hard error rather than silently ignored |
 | `Framework feed not found: ~/.fsh/local-nuget` | no feed configured and packages live elsewhere | pass `--framework-feed <path>` or `export FSH_LOCAL_FEED=<path>` |
+| `Could not find the original scaffold commit` | project created with `--git false`, or history squashed | `fsh upgrade --from-scaffold <ref>` |
+| `Working tree has uncommitted changes` | upgrade lands as a merge and needs a clean start | commit or stash first |
 | `fsh` runs but lacks the new options | the globally installed tool is the published build, not your fork | `dotnet run --project src/Tools/CLI -- self install` |
 | `fsh: command not found` right after installing | `~/.dotnet/tools` is not on `PATH` | add it to your shell profile; `fsh self install` prints the exact line |
 | Project was created inside the starter-kit clone | `fsh new` defaults to the current directory | pass `-o /path/to/project` |
@@ -355,6 +357,21 @@ starter-kit clone.
 |---|---|
 | `-f, --feed <path>` | `$FSH_LOCAL_FEED`, else `~/.fsh/local-nuget` |
 | `--all` | off — show only the newest version of each package |
+
+### `fsh upgrade`
+
+Updates an existing project to a newer template as a reviewable git merge. Runs inside the
+**project**.
+
+| Option | Default | Notes |
+|---|---|---|
+| `--project <path>` | current directory | project to upgrade |
+| `--from-scaffold <ref>` | the commit `fsh new` made | common ancestor for the merge |
+| `-b, --branch <name>` | `fsh/template-upgrade` | branch the template changes land on |
+| `--template-path <path>` | `$FSH_TEMPLATE_PATH` | template to upgrade *to* |
+| `--template-version <ver>` | `$FSH_TEMPLATE_VERSION` | version to upgrade *to* |
+| `--merge` | off | merge into the current branch instead of stopping at the branch |
+| `--dry-run` | off | print the plan and stop |
 
 ### `fsh framework swap`
 
@@ -416,6 +433,54 @@ The CLI only forwards template symbols, so the template works standalone:
 dotnet new fsh -n MyApp --agents true --frameworkPackages true --frameworkVersion 10.0.0-local.20260901T194030
 dotnet nuget add source ~/dev/nuget-local --name fsh-local   # the CLI does this part for you
 ```
+
+---
+
+## Updating an existing project to a newer template
+
+`fsh new` creates a project; `fsh upgrade` brings one that already exists up to date with a newer
+template — new modules, provider support, infrastructure changes — without losing your work.
+
+```bash
+cd /Users/you/dev/falconsoft/fs-proxy
+fsh upgrade --dry-run                                    # what it would regenerate
+fsh upgrade --template-path ~/dev/dotnet-starter-kit     # put the changes on a branch
+fsh upgrade --merge                                      # ...and merge them straight away
+```
+
+### Why it is a merge, not a re-scaffold
+
+Re-generating over a project that has moved on would overwrite it. Instead the upgrade is a
+genuine three-way merge, and git does the hard part:
+
+- **The common ancestor** is the pristine scaffold commit `fsh new` created (found by its message,
+  or given with `--from-scaffold <ref>`).
+- **The new state** is a fresh scaffold of the *same* project — same name, same options — from the
+  new template.
+- Committing that on a branch rooted at the ancestor and merging it forward preserves your changes
+  and surfaces genuine collisions as ordinary conflicts, instead of silently clobbering them.
+
+Everything happens in a temporary git worktree, so your checkout is untouched until you merge. The
+command stops at the branch by default and prints the `git merge` to run.
+
+### It recovers the original options itself
+
+You do not restate how the project was scaffolded — that would be a chance to regenerate a
+differently-shaped project. The options are read back from the shape of the baseline commit:
+`src/Host/<Name>.AppHost/` means aspire, `clients/` means frontend, `.agents/` means the agents kit,
+and a missing `src/BuildingBlocks/` means framework packages (pinned to the version the project
+currently uses).
+
+Two files get special handling, because `fsh new` writes them *after* the template runs and they
+are committed in the baseline: `NuGet.config` and the per-project dev signing key in
+`appsettings.Development.json`. A plain regeneration would delete the first and revert the second to
+the shared placeholder, so both are carried forward from the baseline and never appear in the diff.
+
+### Requirements
+
+A git repository with a clean working tree, and the original scaffold commit still in history. If
+`fsh new --git false` was used, or history was squashed, point at the right commit with
+`--from-scaffold`.
 
 ---
 

@@ -148,6 +148,21 @@ internal sealed partial class ScaffoldedProject
         return true;
     }
 
+    /// <summary>Reads the currently pinned FSH.Framework.* version, if the project has one.</summary>
+    internal string? GetFrameworkVersion()
+    {
+        if (!File.Exists(PackagesPropsPath)) return null;
+
+        Match match = FrameworkVersionElement.Match(File.ReadAllText(PackagesPropsPath));
+        if (!match.Success) return null;
+
+        string value = match.Value;
+        int start = value.IndexOf('>', StringComparison.Ordinal) + 1;
+        int end = value.LastIndexOf('<');
+
+        return end > start ? value[start..end] : null;
+    }
+
     /// <summary>Pins the version of the FSH.Framework.* packages the project consumes.</summary>
     internal bool SetFrameworkVersion(string version)
     {

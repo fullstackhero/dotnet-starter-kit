@@ -381,7 +381,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
                     .ConfigureAwait(false);
                 await ProcessRunner.RunAsync("git", "add -A", output, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
-                await ProcessRunner.RunAsync("git", "commit -m \"Initial project from FullStackHero .NET Starter Kit\"", output, showOutput: false, cancellationToken: cancellationToken)
+                await ProcessRunner.RunAsync("git", $"commit -m \"{FshConstants.InitialCommitMessage}\"", output, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
@@ -429,7 +429,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         string appsettingsDev = Path.Combine(output, "src", "Host", $"{name}.Api", "appsettings.Development.json");
         if (!File.Exists(appsettingsDev)) return;
 
-        const string placeholder = "fsh-dev-only-do-not-use-in-prod-32+chars-min";
+        const string placeholder = FshConstants.DevSigningKeyPlaceholder;
         string content = File.ReadAllText(appsettingsDev);
         if (!content.Contains(placeholder, StringComparison.Ordinal)) return;
 

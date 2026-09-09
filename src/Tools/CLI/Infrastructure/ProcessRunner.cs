@@ -100,10 +100,15 @@ internal static class ProcessRunner
     /// Runs a process and captures stdout, stderr and the exit code separately, for callers
     /// that need to show the user why something failed rather than just that it did.
     /// </summary>
+    /// <param name="trimOutput">
+    /// Trim surrounding whitespace from the captured streams. Pass <see langword="false"/> when
+    /// the output is file content being written back to disk, where a trailing newline matters.
+    /// </param>
     internal static async Task<(int exitCode, string output, string error)> CaptureWithErrorAsync(
         string fileName,
         string arguments,
         string? workingDirectory = null,
+        bool trimOutput = true,
         CancellationToken cancellationToken = default)
     {
         var psi = new ProcessStartInfo(fileName, arguments)
@@ -129,9 +134,12 @@ internal static class ProcessRunner
         await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
         await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
+        string output = await outputTask.ConfigureAwait(false);
+        string error = await errorTask.ConfigureAwait(false);
+
         return (process.ExitCode,
-                (await outputTask.ConfigureAwait(false)).Trim(),
-                (await errorTask.ConfigureAwait(false)).Trim());
+                trimOutput ? output.Trim() : output,
+                trimOutput ? error.Trim() : error);
     }
 
     private static async Task StreamOutputAsync(StreamReader reader, string color)

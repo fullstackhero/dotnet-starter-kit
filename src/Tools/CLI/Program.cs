@@ -34,6 +34,11 @@ app.Configure(config =>
     config.AddCommand<InfoCommand>("info")
         .WithDescription("Show CLI and template version information.");
 
+    config.AddCommand<UpgradeCommand>("upgrade")
+        .WithDescription("Update an existing project to the latest template, as a reviewable git merge.")
+        .WithExample("upgrade", "--dry-run")
+        .WithExample("upgrade", "--project", "../my-app", "--merge");
+
     config.AddCommand<UpdateCommand>("update")
         .WithDescription("Update the FSH CLI tool and dotnet new template to the latest version.");
 
