@@ -18,6 +18,9 @@ public class BuildingBlocksIndependenceTests
 {
     private static readonly string SolutionRoot = ModuleArchitectureTestsFixture.SolutionRoot;
 
+    private static readonly string BuildingBlocksRoot = Path.Combine(SolutionRoot, "src", "BuildingBlocks");
+
+
     private static readonly Assembly[] BuildingBlockAssemblies =
     [
         typeof(IFshCore).Assembly,               // Core
@@ -69,13 +72,11 @@ public class BuildingBlocksIndependenceTests
         }
     }
 
-    [Fact]
+    [KernelSourceOnlyFact]
     public void BuildingBlocks_Projects_Should_Not_Reference_Modules_Directly()
     {
-        string buildingBlocksRoot = Path.Combine(SolutionRoot, "src", "BuildingBlocks");
-
         var projects = Directory
-            .GetFiles(buildingBlocksRoot, "*.csproj", SearchOption.AllDirectories)
+            .GetFiles(BuildingBlocksRoot, "*.csproj", SearchOption.AllDirectories)
             .ToArray();
 
         projects.Length.ShouldBeGreaterThan(0);
@@ -117,7 +118,7 @@ public class BuildingBlocksIndependenceTests
             $"Violations: {string.Join(", ", violations)}");
     }
 
-    [Fact]
+    [KernelSourceOnlyFact]
     public void Core_BuildingBlock_Should_Be_Dependency_Free()
     {
         // Core should only depend on .NET BCL and Mediator abstractions
@@ -130,7 +131,7 @@ public class BuildingBlocksIndependenceTests
             "mscorlib"
         ];
 
-        string coreProjectPath = Path.Combine(SolutionRoot, "src", "BuildingBlocks", "Core", "Core.csproj");
+        string coreProjectPath = Path.Combine(BuildingBlocksRoot, "Core", "Core.csproj");
         var document = XDocument.Load(coreProjectPath);
 
         var packageReferences = document
@@ -210,7 +211,7 @@ public class BuildingBlocksIndependenceTests
         string[] allowedDependencies,
         List<string> violations)
     {
-        string projectPath = Path.Combine(SolutionRoot, "src", "BuildingBlocks", projectName, $"{projectName}.csproj");
+        string projectPath = Path.Combine(BuildingBlocksRoot, projectName, $"{projectName}.csproj");
 
         if (!File.Exists(projectPath))
         {

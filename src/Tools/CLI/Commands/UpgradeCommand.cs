@@ -119,6 +119,11 @@ public sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
         string worktree = Path.Combine(Path.GetTempPath(), $"fsh-worktree-{Guid.NewGuid():N}");
         string branch = settings.Branch ?? "fsh/template-upgrade";
 
+        // Remembered so the caller's checkout can be put back no matter how this exits. A tool
+        // that creates worktrees and branches in someone's repository must never leave them on a
+        // branch they did not ask for, and "it shouldn't happen" is not a guarantee.
+        string? originalBranch = await GitRunner.CurrentBranchAsync(project.Root, cancellationToken).ConfigureAwait(false);
+
         try
         {
             if (!await GenerateScaffoldAsync(project, options, staging, cancellationToken).ConfigureAwait(false))
@@ -134,6 +139,8 @@ public sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
             await GitRunner.RunAsync(project.Root, $"worktree remove --force \"{worktree}\"", cancellationToken).ConfigureAwait(false);
             TryDelete(staging);
             TryDelete(worktree);
+
+            await RestoreBranchAsync(project.Root, originalBranch, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -342,6 +349,29 @@ public sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
         AnsiConsole.MarkupLine($"[{FshConstants.WarningColor}]Merge stopped on conflicts.[/] Resolve them, then 'git commit'.");
         AnsiConsole.MarkupLine($"[{FshConstants.DimColor}]To back out entirely: git merge --abort[/]");
         return 1;
+    }
+
+    /// <summary>
+    /// Puts the repository back on the branch it started on, if anything moved it.
+    /// </summary>
+    /// <remarks>
+    /// A successful <c>--merge</c> already ends on the original branch, so this is a no-op there.
+    /// </remarks>
+    private static async Task RestoreBranchAsync(
+        string repository, string? originalBranch, CancellationToken cancellationToken)
+    {
+        if (originalBranch is null or "HEAD") return;
+
+        string? current = await GitRunner.CurrentBranchAsync(repository, cancellationToken).ConfigureAwait(false);
+        if (current is null || string.Equals(current, originalBranch, StringComparison.Ordinal)) return;
+
+        (bool ok, _) = await GitRunner
+            .RunAsync(repository, $"checkout {originalBranch}", cancellationToken).ConfigureAwait(false);
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine(ok
+            ? $"[{FshConstants.DimColor}]Restored the checkout to '{originalBranch.EscapeMarkup()}'.[/]"
+            : $"[{FshConstants.WarningColor}]Left on '{current.EscapeMarkup()}'; expected '{originalBranch.EscapeMarkup()}'. Run: git checkout {originalBranch.EscapeMarkup()}[/]");
     }
 
     private static void TryDelete(string directory)
