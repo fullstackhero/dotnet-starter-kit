@@ -1,3 +1,4 @@
+using FSH.Framework.Core.DataProtection;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
@@ -60,9 +61,21 @@ public static class Extensions
 
             // Persist Data Protection keys (auth cookies, reset/confirmation tokens, antiforgery) to
             // Redis so multi-instance hosts share a key ring and tokens survive rolling restarts.
-            services.AddDataProtection()
-                .PersistKeysToStackExchangeRedis(sharedMultiplexer, "DataProtection-Keys")
-                .SetApplicationName("FSH.Starter");
+            // Skipped when the database store is selected: AddHeroPlatform wires the key ring to
+            // DataProtectionKeysDbContext instead. Configuring both would leave the last
+            // PersistKeysTo call silently deciding where keys actually land.
+            //
+            // The application name comes from configuration (see #1372): a literal here would ship
+            // inside the compiled FSH.Framework.Caching package, where the template cannot rename
+            // it, making every project on that package share one key ring.
+            if (!DataProtectionStores.UsesDatabase(configuration[DataProtectionStores.ConfigurationKey]))
+            {
+                services.AddDataProtection()
+                    .PersistKeysToStackExchangeRedis(sharedMultiplexer, "DataProtection-Keys")
+                    .SetApplicationName(
+                        DataProtectionApplicationName.Resolve(
+                            configuration[DataProtectionApplicationName.ConfigurationKey]));
+            }
         }
 
         // HybridCache auto-composes with whatever IDistributedCache is registered above.

@@ -1,16 +1,17 @@
 ﻿using FSH.Framework.Caching;
+using FSH.Framework.Core.DataProtection;
 using FSH.Framework.Jobs;
 using FSH.Framework.Mailing;
 using FSH.Framework.Persistence;
+using FSH.Framework.Persistence.DataProtection;
 using FSH.Framework.Quota;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Auth;
 using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
 using FSH.Framework.Web.FeatureFlags;
-using FSH.Framework.Web.Idempotency;
-using FSH.Framework.Web.Sse;
 using FSH.Framework.Web.Health;
+using FSH.Framework.Web.Idempotency;
 using FSH.Framework.Web.Mediator.Behaviors;
 using FSH.Framework.Web.Modules;
 using FSH.Framework.Web.Observability.Logging.Serilog;
@@ -20,15 +21,19 @@ using FSH.Framework.Web.Origin;
 using FSH.Framework.Web.RateLimiting;
 using FSH.Framework.Web.Realtime;
 using FSH.Framework.Web.Security;
+using FSH.Framework.Web.Sse;
 using FSH.Framework.Web.Versioning;
+using Mediator;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Mediator;
 
 namespace FSH.Framework.Web;
 
@@ -102,6 +107,27 @@ public static class Extensions
             {
                 builder.Services.AddHealthChecks().AddCheck<RedisHealthCheck>("redis");
             }
+        }
+
+        // Data Protection keys in the database rather than Redis. Wired here because this is the
+        // only place that sees both Caching (which owns the Redis store) and Persistence (which
+        // owns the context); Caching skips its own wiring when this store is selected.
+        //
+        // Worth choosing when the hosts that protect and unprotect data do not reliably share a
+        // Redis instance - the DbMigrator is normally run standalone, outside the AppHost wiring
+        // that injects a Redis connection string - or when Redis is a cache with eviction, where
+        // losing a key evicts every session and pending reset token with it.
+        if (DataProtectionStores.UsesDatabase(builder.Configuration[DataProtectionStores.ConfigurationKey]))
+        {
+            builder.Services.AddHeroDbContext<DataProtectionKeysDbContext>();
+            builder.Services.TryAddEnumerable(
+                ServiceDescriptor.Scoped<IDbInitializer, DataProtectionKeysDbInitializer>());
+
+            builder.Services.AddDataProtection()
+                .PersistKeysToDbContext<DataProtectionKeysDbContext>()
+                .SetApplicationName(
+                    DataProtectionApplicationName.Resolve(
+                        builder.Configuration[DataProtectionApplicationName.ConfigurationKey]));
         }
 
         if (options.EnableFeatureFlags)
