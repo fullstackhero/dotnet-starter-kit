@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Shared</RootNamespace>
 		<AssemblyName>FSH.Framework.Shared</AssemblyName>
+		<PackageId>FSH.Framework.Shared</PackageId>
+		<!-- Opt-in framework packaging: inert unless -p:PackFshFramework=true.
+		     Keeps Directory.Build.props's IsPackable=false source-ownership guard intact. -->
+		<IsPackable Condition="'$(PackFshFramework)' == 'true'">true</IsPackable>
 		<NoWarn>$(NoWarn);CA1716;CA1711;CA1019;CA1305;CA1002;CA2227</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>

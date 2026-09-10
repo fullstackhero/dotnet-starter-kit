@@ -275,7 +275,9 @@ internal sealed class DemoSeeder
             name: MultitenancyConstants.Root.Name,
             connectionString: string.Empty,
             adminEmail: MultitenancyConstants.Root.EmailAddress,
-            issuer: MultitenancyConstants.Root.Issuer);
+            // See DbMigrator/Program.cs: the constant is only the fallback, since it cannot be
+            // renamed inside a compiled package.
+            issuer: _config["Multitenancy:RootIssuer"] ?? MultitenancyConstants.Root.Issuer);
 
         await SeedUsersInTenantAsync(rootTenant, BuildRootUsers(), [], cancellationToken).ConfigureAwait(false);
     }

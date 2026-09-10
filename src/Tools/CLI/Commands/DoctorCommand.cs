@@ -75,7 +75,13 @@ public sealed class DoctorCommand : AsyncCommand
 
         if (!ok) return new(".NET SDK", CheckStatus.Fail, "Not found. Install from https://dotnet.microsoft.com");
 
-        bool supported = version.StartsWith("10.", StringComparison.Ordinal);
+        // Parse the major version rather than matching "10." — the message promises .NET 10+,
+        // and a literal prefix check would fail a perfectly good .NET 11 SDK.
+        bool supported = int.TryParse(
+            version.Split('.')[0],
+            System.Globalization.NumberStyles.Integer,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out int major) && major >= 10;
         return new(".NET SDK", supported ? CheckStatus.Pass : CheckStatus.Fail,
             supported ? $"v{version}" : $"v{version} (requires .NET 10+)");
     }

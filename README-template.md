@@ -67,6 +67,26 @@ deploy/
   terraform/           AWS infrastructure (ECS, RDS, ElastiCache, S3)
 ```
 
+<!--#if (frameworkPackages) -->
+## Framework packages
+
+This project consumes the FSH kernel as **`FSH.Framework.*` NuGet packages** rather than carrying
+`src/BuildingBlocks` as source. The modules under `src/Modules` are still fully yours.
+
+- The feed serving those packages is listed in `NuGet.config` at the repository root.
+- The version is pinned by `FshFrameworkVersion` in `src/Directory.Packages.props`. To move to a
+  newer build of the kernel, change that one value and restore.
+- `src/Directory.Build.targets` maps the kernel references onto packages automatically; there are
+  no `PackageReference` lines to maintain.
+
+**To step into framework code**, turn **off** "Just My Code" in your debugger (VS/Rider: Debugging
+settings; VS Code: `"justMyCode": false` in `.vscode/launch.json`). The packages ship an embedded
+PDB with the sources inside, so no symbol server or source checkout is needed.
+
+Rebuilding or republishing the kernel is done from a starter-kit clone with `fsh framework pack` —
+see `README-CLI.md` there.
+
+<!--#endif -->
 ## Database
 
 Migrations run automatically under Aspire. To apply them yourself:

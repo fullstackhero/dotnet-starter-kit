@@ -47,6 +47,25 @@
             "description": "Internal: keep the fsh CLI project in the solution (FSH repo only).",
             "defaultValue": "false"
         },
+        "agents": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Include the .agents AI rules/skills kit and AGENTS.md, CLAUDE.md, GEMINI.md.",
+            "defaultValue": "false"
+        },
+        "frameworkPackages": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Consume BuildingBlocks as FSH.Framework.* NuGet packages instead of scaffolding their source.",
+            "defaultValue": "false"
+        },
+        "frameworkVersion": {
+            "type": "parameter",
+            "datatype": "string",
+            "description": "Version of the FSH.Framework.* packages to consume (only used with frameworkPackages).",
+            "defaultValue": "0.0.0-local",
+            "replaces": "0.0.0-local"
+        },
         "contactEmail": {
             "type": "parameter",
             "datatype": "string",
@@ -122,7 +141,6 @@
                 "**/.vscode/**",
                 "**/.vs/**",
                 ".github/**",
-                ".agents/**",
                 ".claude/**",
                 ".devcontainer/**",
                 ".git/**",
@@ -150,8 +168,7 @@
                 "**/obj/**",
                 ".mcp.json",
                 "global.json",
-                "CLAUDE.md",
-                "GEMINI.md",
+                "README-CLI.md",
                 "README.md",
                 "LICENSE"
             ],
@@ -169,6 +186,22 @@
                     "condition": "(!frontend)",
                     "exclude": [
                         "clients/**"
+                    ]
+                },
+                {
+                    "condition": "(!agents)",
+                    "exclude": [
+                        ".agents/**",
+                        "AGENTS.md",
+                        "CLAUDE.md",
+                        "GEMINI.md"
+                    ]
+                },
+                {
+                    "condition": "(frameworkPackages)",
+                    "exclude": [
+                        "src/BuildingBlocks/**",
+                        "src/Tests/Framework.Tests/**"
                     ]
                 }
             ]

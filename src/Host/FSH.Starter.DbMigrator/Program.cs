@@ -235,7 +235,11 @@ try
                 MultitenancyConstants.Root.Name,
                 connectionString: string.Empty,
                 MultitenancyConstants.Root.EmailAddress,
-                issuer: MultitenancyConstants.Root.Issuer);
+                // From configuration, not the framework constant: BuildingBlocks also ships as a
+                // compiled package where the template cannot rename a literal, so the constant is
+                // only the last-resort default. appsettings.json is scaffolded source and is
+                // renamed per project in both modes.
+                issuer: builder.Configuration["Multitenancy:RootIssuer"] ?? MultitenancyConstants.Root.Issuer);
             rootTenant.SetValidity(TimeProvider.System.GetUtcNow().UtcDateTime.AddYears(1));
             await tenantDb.TenantInfo.AddAsync(rootTenant, CancellationToken.None).ConfigureAwait(false);
             await tenantDb.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);

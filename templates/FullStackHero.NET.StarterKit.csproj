@@ -58,12 +58,16 @@
     *.tfstate, audit-dlq dumps, release-nupkgs, .claude worktrees, *.user). The previous
     `..\**\*` filesystem glob with a denylist shipped 583 MB incl. Terraform state.
     Filtering is pushed into git via :(exclude) pathspecs — on top of git-tracking we
-    drop this pack project (templates/), the docs leftover, and repo-internal AI/CI
-    tooling (.github, .agents, .vscode, .devcontainer, superpowers) a consumer's
-    scaffold doesn't need. The root .template.config IS tracked, so it ships.
+    drop this pack project (templates/), the docs leftover, and repo-internal CI/editor
+    tooling (.github, .vscode, .devcontainer, superpowers) a consumer's scaffold doesn't
+    need. The root .template.config IS tracked, so it ships.
+
+    .agents/ DOES ship in the package (it is the AI rules/skills kit that AGENTS.md
+    indexes) but reaches a scaffold only when the `agents` symbol is on; template.json
+    gates it there, together with AGENTS.md, CLAUDE.md and GEMINI.md.
   -->
   <Target Name="CollectGitTrackedTemplateContent" BeforeTargets="_GetPackageFiles">
-    <Exec Command="git -c core.quotePath=false ls-files -- . &quot;:(exclude).github&quot; &quot;:(exclude).agents&quot; &quot;:(exclude).vscode&quot; &quot;:(exclude).devcontainer&quot; &quot;:(exclude)docs&quot; &quot;:(exclude)templates&quot; &quot;:(exclude)superpowers&quot;"
+    <Exec Command="git -c core.quotePath=false ls-files -- . &quot;:(exclude).github&quot; &quot;:(exclude).vscode&quot; &quot;:(exclude).devcontainer&quot; &quot;:(exclude)docs&quot; &quot;:(exclude)templates&quot; &quot;:(exclude)superpowers&quot;"
           WorkingDirectory="$(MSBuildThisFileDirectory).."
           ConsoleToMSBuild="true"
           StandardOutputImportance="low">

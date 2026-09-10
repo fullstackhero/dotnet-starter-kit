@@ -30,6 +30,31 @@
 		<NoDefaultExcludes>true</NoDefaultExcludes>
 	</PropertyGroup>
 
+	<!--
+	  Local-feed profile for the opt-in FSH.Framework.* packages
+	  (`fsh framework pack`, PackFshFramework=true + FshLocalPack=true).
+
+	  A folder feed serves .nupkg only — .snupkg is resolved through the NuGet.org symbol
+	  server, so the snupkg profile cannot give step-into debugging locally. Embedding the
+	  PDB *and* the sources inside the DLL does: F11 lands in real framework source with no
+	  symbol server, no source checkout and no network. Consumers must still turn OFF
+	  "Just My Code" — see README-CLI.md.
+
+	  These must be set HERE, not in Directory.Build.targets: the SDK derives DebugSymbols
+	  (and thus whether a standalone .pdb is expected on disk) from DebugType before
+	  Directory.Build.targets is imported. Setting DebugType late leaves the SDK expecting a
+	  .pdb that the compiler embedded instead, and pack then fails with NU5026.
+	-->
+	<PropertyGroup Condition="'$(PackFshFramework)' == 'true' and '$(FshLocalPack)' == 'true'">
+		<DebugType>embedded</DebugType>
+		<EmbedAllSources>true</EmbedAllSources>
+		<!-- EmbedAllSources already puts the sources in the PDB, so SourceLink adds nothing
+		     here — and it warns on any remote it cannot map to github.com (SSH aliases,
+		     self-hosted forks), which would be pure noise on every local pack. -->
+		<EnableSourceLink>false</EnableSourceLink>
+		<EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- Sonar Analyzer for deep static analysis -->
 		<PackageReference Include="SonarAnalyzer.CSharp">
@@ -61,19 +86,13 @@
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
-	<!-- Reproducible, debuggable packages for the projects that DO ship (CLI). -->
-	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
-		<Deterministic>true</Deterministic>
-		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	</PropertyGroup>
+	<!--
+	  NOTE: packaging settings that key off $(IsPackable) live in Directory.Build.targets,
+	  not here. This file is imported BEFORE the project body, so a csproj that sets
+	  IsPackable=true does so too late for any PropertyGroup condition here to see it —
+	  which is exactly how FullStackHero.CLI ended up shipping without a .snupkg despite
+	  IncludeSymbols appearing to be set. Directory.Build.targets is imported after the
+	  project body, where IsPackable has its final value.
+	-->
 
-	<ItemGroup Condition="'$(IsPackable)' == 'true'">
-		<!-- Include root README.md in NuGet packages -->
-		<None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="/" />
-		<PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
-	</ItemGroup>
 </Project>

@@ -6,6 +6,10 @@
 		<Nullable>enable</Nullable>
 		<RootNamespace>FSH.Framework.Eventing.Abstractions</RootNamespace>
 		<AssemblyName>FSH.Framework.Eventing.Abstractions</AssemblyName>
+		<PackageId>FSH.Framework.Eventing.Abstractions</PackageId>
+		<!-- Opt-in framework packaging: inert unless -p:PackFshFramework=true.
+		     Keeps Directory.Build.props's IsPackable=false source-ownership guard intact. -->
+		<IsPackable Condition="'$(PackFshFramework)' == 'true'">true</IsPackable>
 		<Description>Lightweight abstractions for FSH eventing - interfaces only, no implementation dependencies</Description>
 		<NoWarn>$(NoWarn);CA1711;CA1716</NoWarn>
 	</PropertyGroup>

@@ -1,4 +1,7 @@
 <Solution>
+  <!--#if (!frameworkPackages) -->
+  <!-- With frameworkPackages the kernel is consumed as FSH.Framework.* NuGets and its
+       source is not scaffolded at all; see src/Directory.Build.targets. -->
   <Folder Name="/BuildingBlocks/">
 <Project Path="BuildingBlocks/Caching/Caching.csproj" />
     <Project Path="BuildingBlocks/Core/Core.csproj" />
@@ -12,6 +15,7 @@
     <Project Path="BuildingBlocks/Storage/Storage.csproj" />
     <Project Path="BuildingBlocks/Web/Web.csproj" />
   </Folder>
+  <!--#endif -->
   <Folder Name="/Modules/" />
   <Folder Name="/Modules/Auditing/">
     <Project Path="Modules/Auditing/Modules.Auditing.Contracts/Modules.Auditing.Contracts.csproj" />
@@ -73,7 +77,9 @@
     <Project Path="Tests/Chat.Tests/Chat.Tests.csproj" />
     <Project Path="Tests/Webhooks.Tests/Webhooks.Tests.csproj" />
     <Project Path="Tests/Files.Tests/Files.Tests.csproj" />
+    <!--#if (!frameworkPackages) -->
     <Project Path="Tests/Framework.Tests/Framework.Tests.csproj" />
+    <!--#endif -->
     <Project Path="Tests/Caching.Tests/Caching.Tests.csproj" />
     <Project Path="Tests/Generic.Tests/Generic.Tests.csproj" />
     <Project Path="Tests/Identity.Tests/Identity.Tests.csproj" />

@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Quota</RootNamespace>
 		<AssemblyName>FSH.Framework.Quota</AssemblyName>
+		<PackageId>FSH.Framework.Quota</PackageId>
+		<!-- Opt-in framework packaging: inert unless -p:PackFshFramework=true.
+		     Keeps Directory.Build.props's IsPackable=false source-ownership guard intact. -->
+		<IsPackable Condition="'$(PackFshFramework)' == 'true'">true</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>
