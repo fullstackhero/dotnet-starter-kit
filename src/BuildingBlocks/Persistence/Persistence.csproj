@@ -7,6 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
 	  <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" />
