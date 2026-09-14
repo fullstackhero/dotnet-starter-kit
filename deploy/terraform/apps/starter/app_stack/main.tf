@@ -339,6 +339,21 @@ locals {
     for idx, origin in local.cors_allowed_origins :
     "CorsOptions__AllowedOrigins__${idx}" => origin
   }
+
+  # Origins allowed inside e-mail links. Not the CORS list: the API domain must stay off it.
+  frontend_allowed_origins = compact(concat(
+    [local.admin_url, local.dashboard_url],
+    var.api_extra_cors_origins,
+  ))
+
+  frontend_environment_variables = merge(
+    {
+      for idx, origin in local.frontend_allowed_origins :
+      "FrontendOptions__AllowedOrigins__${idx}" => origin
+    },
+    # Empty when the stack hosts neither: the API keeps resolving links to OriginOptions__OriginUrl.
+    { FrontendOptions__DefaultOrigin = try(coalesce(local.dashboard_url, local.admin_url), "") }
+  )
 }
 
 ################################################################################
@@ -635,6 +650,7 @@ module "api_service" {
     # CorsOptions__AllowedOrigins__0..N — the React SPA origins plus the app
     # domain, so browsers on those origins can call the API cross-origin.
     local.cors_environment_variables,
+    local.frontend_environment_variables,
     var.api_extra_environment_variables
   )
 
