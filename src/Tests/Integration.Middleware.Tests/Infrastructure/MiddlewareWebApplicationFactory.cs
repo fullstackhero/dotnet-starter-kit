@@ -55,7 +55,8 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         .WithCleanUp(true)
         .Build();
 
-    private readonly MinioContainer _minio = new MinioBuilder("minio/minio:latest")
+    // quay.io: minio/minio is gone from Docker Hub. Tag pinned; quay stopped moving :latest.
+    private readonly MinioContainer _minio = new MinioBuilder("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z")
         .WithUsername(MinioAccessKey)
         .WithPassword(MinioSecretKey)
         .WithAutoRemove(true)

@@ -52,7 +52,10 @@ const string DashboardOrigin = "http://localhost:5174";
 var minioUser = builder.AddParameter("minio-user", "minioadmin");
 var minioPassword = builder.AddParameter("minio-password", "minioadmin", secret: true);
 
+// quay.io: minio/minio is gone from Docker Hub. Tag pinned; quay stopped moving :latest.
 var minio = builder.AddContainer("minio", "minio/minio")
+    .WithImageRegistry("quay.io")
+    .WithImageTag("RELEASE.2025-09-07T16-13-09Z")
     .WithArgs("server", "/data", "--console-address", ":9001")
     .WithHttpEndpoint(port: 9000, targetPort: 9000, name: "api")
     .WithHttpEndpoint(port: 9001, targetPort: 9001, name: "console")
