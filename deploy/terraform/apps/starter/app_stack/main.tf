@@ -340,11 +340,12 @@ locals {
     "CorsOptions__AllowedOrigins__${idx}" => origin
   }
 
-  # Origins allowed inside e-mail links. Not the CORS list: the API domain must stay off it.
-  frontend_allowed_origins = compact(concat(
-    [local.admin_url, local.dashboard_url],
-    var.api_extra_cors_origins,
-  ))
+  # Origins allowed inside e-mail links. Not the CORS list: the API domain must stay off it, and
+  # api_extra_cors_origins must stay out of it. That variable grants permission to CALL the API;
+  # copying it here would also let those origins receive a password-reset or confirmation URL with
+  # the token in it, turning a CORS grant into a credential-link grant. An origin that must appear
+  # in an e-mail link belongs to a SPA this stack hosts, so it arrives via admin_url/dashboard_url.
+  frontend_allowed_origins = compact([local.admin_url, local.dashboard_url])
 
   frontend_environment_variables = merge(
     {
