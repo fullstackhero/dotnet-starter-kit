@@ -164,7 +164,14 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
             // Mediator behaviour), the exception leaves the filter with nothing to store, and the
             // client's retry re-executes the side effect: the exact duplicate this filter is for.
             // The trade is that a client disconnect no longer aborts an idempotent handler.
+            // RequestAborted alone does not detach the handler: minimal-API parameter binding resolves
+            // a CancellationToken parameter from RequestAborted BEFORE endpoint filters run, so the
+            // handler already holds a copy of the original token and reassigning the property here
+            // never reaches it. The bound argument has to be replaced as well. RequestAborted still
+            // gets reassigned for everything downstream that reads it directly rather than taking it
+            // as a parameter.
             var originalAborted = httpContext.RequestAborted;
+            DetachBoundCancellationTokens(context);
             object? result;
             try
             {
@@ -232,6 +239,20 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
         finally
         {
             await ReleaseReservationAsync(multiplexer, reservationKey, reservation, logger, idempotencyKey).ConfigureAwait(false);
+        }
+    }
+
+    // Swap every bound CancellationToken argument for a non-cancellable one. Not restored afterwards:
+    // the handler has already run by then, so putting the original back changes nothing for it and
+    // would only hand the live token to whatever filter sits after this one on the way out.
+    private static void DetachBoundCancellationTokens(EndpointFilterInvocationContext context)
+    {
+        for (var i = 0; i < context.Arguments.Count; i++)
+        {
+            if (context.Arguments[i] is CancellationToken)
+            {
+                context.Arguments[i] = CancellationToken.None;
+            }
         }
     }
 
