@@ -1,7 +1,6 @@
 using System.Net;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Web.Frontend;
-using FSH.Framework.Web.Origin;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -13,25 +12,21 @@ namespace Framework.Tests.Web;
 
 /// <summary>
 /// Tests for FrontendOriginResolver — resolves the SPA origin for user-facing links, validating the
-/// request Origin header against the allow-list, falling back to the configured default and, when
-/// that is unset, to the API's own origin.
+/// request Origin header against the allow-list and falling back to the configured default. There
+/// is no tier below that: with neither an allow-list match nor a default, resolution fails.
 /// </summary>
 public sealed class FrontendOriginResolverTests
 {
     private readonly IHttpContextAccessor _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 
-    private FrontendOriginResolver CreateResolver(string[] allowedOrigins, string? defaultOrigin = null, string? apiOrigin = null)
+    private FrontendOriginResolver CreateResolver(string[] allowedOrigins, string? defaultOrigin = null)
     {
         var options = Options.Create(new FrontendOptions
         {
             AllowedOrigins = allowedOrigins,
             DefaultOrigin = defaultOrigin,
         });
-        var originOptions = Options.Create(new OriginOptions
-        {
-            OriginUrl = apiOrigin is null ? null : new Uri(apiOrigin, UriKind.RelativeOrAbsolute),
-        });
-        return new FrontendOriginResolver(_httpContextAccessor, options, originOptions, NullLogger<FrontendOriginResolver>.Instance);
+        return new FrontendOriginResolver(_httpContextAccessor, options, NullLogger<FrontendOriginResolver>.Instance);
     }
 
     private void SetOriginHeader(string? origin)
@@ -202,63 +197,30 @@ public sealed class FrontendOriginResolverTests
     }
 
     [Fact]
-    public void ResolveDefault_Should_FallBackToApiOrigin_When_DefaultNotConfigured()
+    public void ResolveDefault_Should_Throw_When_DefaultIsEmptyString()
     {
-        // An upgrader who never sets DefaultOrigin must keep booting and keep sending links: they
-        // land on the API's own origin instead of the SPA, and startup warns about the degradation.
-        var resolver = CreateResolver([], defaultOrigin: null, apiOrigin: "https://api.example.com");
-
-        resolver.ResolveDefault().ShouldBe("https://api.example.com");
-    }
-
-    [Fact]
-    public void ResolveDefault_Should_FallBackToApiOrigin_When_DefaultIsEmptyString()
-    {
-        // appsettings.Production.json ships "DefaultOrigin": "" — the empty string must take the
-        // same fallback path as an absent key, not resolve to an empty link.
-        var resolver = CreateResolver([], defaultOrigin: "", apiOrigin: "https://api.example.com/");
-
-        resolver.ResolveDefault().ShouldBe("https://api.example.com");
-    }
-
-    [Fact]
-    public void ResolveDefault_Should_PreferConfiguredDefault_Over_ApiOrigin()
-    {
-        var resolver = CreateResolver([], defaultOrigin: "https://app.example.com", apiOrigin: "https://api.example.com");
-
-        resolver.ResolveDefault().ShouldBe("https://app.example.com");
-    }
-
-    [Fact]
-    public void ResolveDefault_Should_IgnoreApiOrigin_When_NotAbsolute()
-    {
-        // OriginOptions:OriginUrl also ships as "" in Production, which binds to a relative Uri.
+        // appsettings.Production.json ships "DefaultOrigin": "" — the empty string takes the same
+        // path as an absent key, and there is no longer an API-origin tier under it to catch it.
         _httpContextAccessor.HttpContext.Returns((HttpContext?)null);
-        var resolver = CreateResolver([], defaultOrigin: null, apiOrigin: "");
+        var resolver = CreateResolver([], defaultOrigin: "");
 
         var ex = Should.Throw<CustomException>(() => resolver.ResolveDefault());
         ex.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
     }
 
     [Fact]
-    public void ResolveDefault_Should_FallBackToRequestHost_When_NothingConfigured()
+    public void ResolveDefault_Should_NotFallBackToRequestHost_When_NothingConfigured()
     {
-        // The both-empty upgrade case: appsettings.Production.json ships DefaultOrigin AND
-        // OriginUrl empty, so the link still has to resolve — to the API's own host, which is
-        // where register / self-register / resend built their links before this resolver existed.
-        SetRequestHost("https", "api.example.com");
+        // The link paths address the SPA (/confirm-email, /reset-password), so the request host is
+        // not a serviceable substitute — and it is caller-supplied: honouring it mails a live reset
+        // token to whatever domain the attacker put in the Host header. Fail instead, and do not
+        // name the attacker's host in the message that reaches the caller.
+        SetRequestHost("https", "evil.example.com");
         var resolver = CreateResolver([], defaultOrigin: null);
 
-        resolver.ResolveDefault().ShouldBe("https://api.example.com");
-    }
-
-    [Fact]
-    public void ResolveDefault_Should_PreferApiOrigin_Over_RequestHost()
-    {
-        SetRequestHost("https", "internal.cluster.local");
-        var resolver = CreateResolver([], defaultOrigin: null, apiOrigin: "https://api.example.com");
-
-        resolver.ResolveDefault().ShouldBe("https://api.example.com");
+        var ex = Should.Throw<CustomException>(() => resolver.ResolveDefault());
+        ex.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+        ex.Message.ShouldNotContain("evil.example.com");
     }
 
     [Fact]
@@ -273,22 +235,23 @@ public sealed class FrontendOriginResolverTests
     }
 
     [Fact]
-    public void ResolveForCurrentRequest_Should_FallBackToApiOrigin_When_NoHeaderAndNoDefault()
+    public void ResolveForCurrentRequest_Should_Throw_When_NoHeaderAndNoDefault()
     {
-        // The no-header path routes through ResolveDefault, so it inherits the same fallback.
+        // The no-header path routes through ResolveDefault, so it inherits the same failure.
         SetOriginHeader(null);
-        var resolver = CreateResolver(["http://localhost:5173"], defaultOrigin: null, apiOrigin: "https://api.example.com");
+        var resolver = CreateResolver(["http://localhost:5173"], defaultOrigin: null);
 
-        resolver.ResolveForCurrentRequest().ShouldBe("https://api.example.com");
+        var ex = Should.Throw<CustomException>(() => resolver.ResolveForCurrentRequest());
+        ex.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
     }
 
     [Fact]
     public void ResolveForCurrentRequest_Should_StillReject_ForgedHeader_When_NoDefault()
     {
-        // The boot-safety fallback must not soften the security contract: a present-but-unlisted
-        // Origin is still a 400, never quietly swapped for the API origin.
+        // A present-but-unlisted Origin is a 400 — the caller's fault — and stays a 400 even when
+        // the deployment is also missing its default. The two failures must not blur into one.
         SetOriginHeader("https://evil.example.com");
-        var resolver = CreateResolver(["http://localhost:5173"], defaultOrigin: null, apiOrigin: "https://api.example.com");
+        var resolver = CreateResolver(["http://localhost:5173"], defaultOrigin: null);
 
         var ex = Should.Throw<CustomException>(() => resolver.ResolveForCurrentRequest());
         ex.StatusCode.ShouldBe(HttpStatusCode.BadRequest);

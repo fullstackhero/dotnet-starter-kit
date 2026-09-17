@@ -1,6 +1,5 @@
 using System.Net;
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Web.Origin;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,7 +9,6 @@ namespace FSH.Framework.Web.Frontend;
 internal sealed class FrontendOriginResolver(
     IHttpContextAccessor httpContextAccessor,
     IOptions<FrontendOptions> options,
-    IOptions<OriginOptions> originOptions,
     ILogger<FrontendOriginResolver> logger) : IFrontendOriginResolver
 {
     // Normalize the allow-list once at construction: parse to Uri so matching is component-wise
@@ -18,11 +16,6 @@ internal sealed class FrontendOriginResolver(
     // form would silently fail.
     private readonly Uri[] _allowed = Normalize(options.Value.AllowedOrigins);
     private readonly string? _default = options.Value.DefaultOrigin?.TrimEnd('/');
-    // IsAbsoluteUri guard: OriginUrl is operator-supplied, and only an absolute Uri has an
-    // AbsoluteUri to read.
-    private readonly string? _apiOrigin = originOptions.Value.OriginUrl is { IsAbsoluteUri: true } api
-        ? api.AbsoluteUri.TrimEnd('/')
-        : null;
 
     public string ResolveForCurrentRequest()
     {
@@ -74,31 +67,17 @@ internal sealed class FrontendOriginResolver(
             return _default;
         }
 
-        // No DefaultOrigin: fall back to the API's own origin rather than taking the host down at
-        // boot over a setting a deployment may never exercise. Links then land on the API — which
-        // is where register / self-register / resend derived them from before the resolver existed
-        // — and startup logs a single Warning naming what degrades. The configured value first, the
-        // request host second: appsettings.Production.json ships OriginUrl empty too, and a
-        // deployment that set neither must still send a usable link.
+        // No usable origin, and deliberately nothing to fall back on. The two tiers that used to
+        // sit here — the API's own origin, then the request host — both produce a broken or unsafe
+        // link now that these paths address the SPA (/confirm-email, /reset-password) rather than
+        // the API route: the API origin returns 404 for them, and the request host is whatever the
+        // caller put in the Host header, which turns a password-reset e-mail into a token delivered
+        // to an attacker's domain. Failing here is the only outcome that is neither.
         //
-        // Note this is the API's own host, never the caller's Origin header: an operator-driven
-        // link must not point at the admin SPA the request came from, which is the whole reason
-        // ResolveDefault exists apart from ResolveForCurrentRequest.
-        if (!string.IsNullOrWhiteSpace(_apiOrigin))
-        {
-            return _apiOrigin;
-        }
-
-        var request = httpContextAccessor.HttpContext?.Request;
-        if (request is not null && !string.IsNullOrWhiteSpace(request.Scheme) && request.Host.HasValue)
-        {
-            return $"{request.Scheme}://{request.Host.Value}{request.PathBase}".TrimEnd('/');
-        }
-
-        // Nothing configured and no request to derive from (a background job): there is no origin
-        // to build a link out of.
+        // Callers surface this as a 500, which is honest: the deployment is missing a setting,
+        // the user's request was fine. Startup logs an Error naming the setting.
         throw new CustomException(
-            "No front-end origin is configured: set FrontendOptions:DefaultOrigin (or OriginOptions:OriginUrl as a fallback).",
+            "No front-end origin is configured: set FrontendOptions:DefaultOrigin to the URL of the app that should receive these links.",
             errors: null,
             HttpStatusCode.InternalServerError);
     }

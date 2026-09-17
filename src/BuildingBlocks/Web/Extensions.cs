@@ -274,19 +274,12 @@ public static class Extensions
             return;
         }
 
-        // Same absolute-Uri guard the resolver applies.
-        var apiOrigin = app.Services.GetRequiredService<IOptions<OriginOptions>>().Value.OriginUrl;
-        if (apiOrigin is { IsAbsoluteUri: true })
-        {
-            app.Logger.LogWarning(
-                "FrontendOptions:DefaultOrigin is not set (appsettings.{Environment}.json). Auth e-mail links for operator-driven flows (admin register, resend confirmation) and for callers that send no Origin header will point at the API origin {ApiOrigin} instead of the front-end app. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
-                app.Environment.EnvironmentName,
-                apiOrigin);
-            return;
-        }
-
-        app.Logger.LogWarning(
-            "Neither FrontendOptions:DefaultOrigin nor OriginOptions:OriginUrl is set (appsettings.{Environment}.json). Auth e-mail links for operator-driven flows (admin register, resend confirmation) and for callers that send no Origin header will point at this API's own request host instead of the front-end app, and will fail outright in a background job, which has no request to derive a host from. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
+        // Error, not Warning: without a default there is nothing left to build these links out of.
+        // The resolver used to fall back to the API origin and then to the request host; both are
+        // gone, because the links now address SPA paths (the API origin 404s them) and the request
+        // host is caller-controlled (it hands the reset token to whoever set the Host header).
+        app.Logger.LogError(
+            "FrontendOptions:DefaultOrigin is not set (appsettings.{Environment}.json). Admin register, resend confirmation, self-registration and password reset will return 500 for any caller that does not match FrontendOptions:AllowedOrigins, including every background job. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
             app.Environment.EnvironmentName);
     }
 }

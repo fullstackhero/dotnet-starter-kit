@@ -23,16 +23,14 @@ public sealed class FrontendOptions
     /// operator-driven flows whose link must land on the recipient's app rather than the caller's,
     /// and for background jobs that run without an HTTP request. Typically the tenant dashboard URL.
     /// <para>
-    /// <b>Strongly recommended, not required.</b> Every deployment resolves through this at some
-    /// point (operator flows, non-browser callers, jobs). Left unset, the host still starts, logs a
-    /// single startup <c>Warning</c> and falls back to the API's own origin
-    /// (<c>OriginOptions:OriginUrl</c>, or the current request's host when that is empty too): links
-    /// then land on the API rather than the SPA — serviceable, and the same place register /
-    /// self-register / resend derived them from before this option existed, but not where a user
-    /// expects to arrive. A background job, having no request, fails instead.
-    /// <see cref="AllowedOrigins"/> is additive: it only
-    /// widens which request origins may be echoed into self-service links, and cannot substitute for
-    /// the default.
+    /// <b>Required in practice.</b> Every deployment resolves through this at some point (operator
+    /// flows, non-browser callers, jobs). Left unset, the host still starts and logs a startup
+    /// <c>Error</c>, but those flows return 500: there is no safe origin to substitute. The API's
+    /// own origin 404s, because these links address SPA routes (<c>/confirm-email</c>,
+    /// <c>/reset-password</c>) rather than API routes; the request host is whatever the caller put
+    /// in the <c>Host</c> header, which would mail a live reset token to a domain the attacker
+    /// chose. <see cref="AllowedOrigins"/> is additive: it only widens which request origins may be
+    /// echoed into self-service links, and cannot substitute for the default.
     /// </para>
     /// <para>
     /// This is a single global value, not per-tenant or custom-domain aware: operator-driven
