@@ -11,6 +11,7 @@ This brings up the full stack on a single host:
 | `postgres` | `postgres:18-alpine` | (internal) | Identity, tenant catalog, module schemas |
 | `redis` | `valkey/valkey:9.1.0-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
 | `minio` | `quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z` | (internal) | S3-compatible blob store for the Files module |
+| `minio-init` | `quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z` | — | One-shot: creates the `fsh` bucket the Files module writes to |
 
 The compose file does **not** include a reverse proxy or TLS terminator. You bring your own edge — Cloudflare Tunnel, AWS ALB, Tailscale Funnel, your existing nginx, anything that can route a TLS subdomain to a host:port on this machine.
 
