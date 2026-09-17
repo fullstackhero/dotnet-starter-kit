@@ -1,6 +1,5 @@
 {
   "page.title": "Files",
-  "page.unit": "file",
   "page.description": "Drop images, documents, or archives. Uploads are private to you by default; flip a file to public from its preview to make it visible to the rest of the tenant under Shared.",
   "tabs.aria": "File scopes",
   "tabs.mine": "My files",

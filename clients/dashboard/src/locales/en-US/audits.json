@@ -19,7 +19,6 @@
   "tag.auth": "Auth",
   "tag.authz": "Authz",
   "page.title": "Audit trail",
-  "page.unit": "event",
   "page.description": "Activity, security, entity-change, and exception events across the platform. Window enforced server-side; max 90 days.",
   "page.refresh": "Refresh",
   "page.searchPlaceholder": "Search payload, source, user…",

@@ -129,7 +129,7 @@ export function TicketsPage() {
         icon={TicketIcon}
         title={t("list.title")}
         total={data?.totalCount ?? null}
-        unit={t("list.unit")}
+        unit="ticket"
         description={t("list.description")}
       >
         <Button

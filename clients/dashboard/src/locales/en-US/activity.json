@@ -1,6 +1,5 @@
 {
   "title": "Live activity",
-  "unit": "event",
   "description": "Full event log streamed from the API over Server-Sent Events.",
   "ariaLabel": "Activity events",
   "status.streaming": "streaming",

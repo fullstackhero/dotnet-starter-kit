@@ -11,6 +11,24 @@ import { ToneIconTile, type ToneIconTileTone } from "./tone-icon-tile";
 //  Matches the dentalOS patient-page header rhythm.
 // ───────────────────────────────────────────────────────────────────────
 
+/** The `unit.*` plural keys common.json declares. A union rather than `string`
+ *  because the chip translates the token itself: handing it an already
+ *  translated word builds a key that exists in no catalogue, and the header
+ *  renders the raw key. That only shows up outside en-US, where the English
+ *  translation happens to equal the token. */
+export type EntityUnit =
+  | "brand"
+  | "category"
+  | "event"
+  | "file"
+  | "group"
+  | "invoice"
+  | "item"
+  | "role"
+  | "session"
+  | "ticket"
+  | "user";
+
 export function EntityPageHeader({
   icon,
   title,
@@ -26,7 +44,7 @@ export function EntityPageHeader({
    *  for pages where the rose tile fights the page's own accent. */
   tone?: ToneIconTileTone;
   total?: number | null;
-  unit?: string;
+  unit?: EntityUnit;
   description?: React.ReactNode;
   /** Action buttons rendered on the right (stack full-width on mobile). */
   children?: React.ReactNode;

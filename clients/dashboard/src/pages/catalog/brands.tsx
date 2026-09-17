@@ -117,7 +117,7 @@ export function BrandsPage() {
         icon={Tag}
         title={t("brands.title")}
         total={data?.totalCount ?? null}
-        unit={t("brands.unit")}
+        unit="brand"
         description={t("brands.description")}
       >
         <Button

@@ -82,7 +82,7 @@ export function ActivityPage() {
         icon={Activity}
         title={t("title")}
         total={eventCount}
-        unit={t("unit")}
+        unit="event"
         description={t("description")}
       >
         {isLive ? (

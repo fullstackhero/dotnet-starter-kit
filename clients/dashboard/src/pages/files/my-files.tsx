@@ -192,7 +192,7 @@ export function MyFilesPage() {
         icon={Files}
         title={t("page.title")}
         total={allFiles.length}
-        unit={t("page.unit")}
+        unit="file"
         description={t("page.description")}
       />
 

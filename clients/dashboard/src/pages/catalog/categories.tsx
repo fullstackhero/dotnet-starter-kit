@@ -161,7 +161,7 @@ export function CategoriesPage() {
         icon={Layers}
         title={t("categories.title")}
         total={data?.totalCount ?? null}
-        unit={t("categories.unit")}
+        unit="category"
         description={t("categories.description")}
       >
         <Button

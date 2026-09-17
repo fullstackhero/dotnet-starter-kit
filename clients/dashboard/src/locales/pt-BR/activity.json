@@ -1,6 +1,5 @@
 {
   "title": "Atividade ao vivo",
-  "unit": "evento",
   "description": "Log completo de eventos transmitido pela API via Server-Sent Events.",
   "ariaLabel": "Eventos de atividade",
   "status.streaming": "transmitindo",

@@ -8,7 +8,6 @@
   "priority.High": "Alta",
   "priority.Critical": "Crítica",
   "list.title": "Chamados",
-  "list.unit": "chamado",
   "list.description": "Trabalho em aberto, ordenado por prioridade. A central onde os problemas chegam, ganham dono e são entregues.",
   "list.new": "Novo chamado",
   "list.searchPlaceholder": "Busque por número, título ou descrição…",

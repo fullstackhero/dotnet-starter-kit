@@ -19,7 +19,6 @@
   "tag.auth": "Autenticação",
   "tag.authz": "Autorização",
   "page.title": "Trilha de auditoria",
-  "page.unit": "evento",
   "page.description": "Eventos de atividade, segurança, mudança de entidade e exceções em toda a plataforma. Janela imposta no servidor; máximo de 90 dias.",
   "page.refresh": "Atualizar",
   "page.searchPlaceholder": "Buscar payload, origem, usuário…",

@@ -35,7 +35,6 @@
   "recent.loadError": "Couldn't load invoices. Try refreshing.",
 
   "invoices.title": "Invoices",
-  "invoices.unit": "invoice",
   "invoices.description": "Your tenant's billing history, newest first.",
   "invoices.searchPlaceholder": "Search by invoice number, status, or period…",
   "invoices.loadError": "Failed to load invoices.",

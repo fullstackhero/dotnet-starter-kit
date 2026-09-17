@@ -311,7 +311,7 @@ export function AuditsPage() {
         icon={ScrollText}
         title={t("page.title")}
         total={paged?.totalCount ?? null}
-        unit={t("page.unit")}
+        unit="event"
         description={t("page.description")}
       >
         <Button

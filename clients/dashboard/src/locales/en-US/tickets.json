@@ -8,7 +8,6 @@
   "priority.High": "High",
   "priority.Critical": "Critical",
   "list.title": "Tickets",
-  "list.unit": "ticket",
   "list.description": "Open work, ranked by priority. The desk where issues land, get owned, and ship.",
   "list.new": "New ticket",
   "list.searchPlaceholder": "Find by number, title, or description…",

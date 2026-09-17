@@ -120,7 +120,7 @@ export function InvoicesPage() {
         icon={Receipt}
         title={t("invoices.title")}
         total={query.data?.totalCount ?? null}
-        unit={t("invoices.unit")}
+        unit="invoice"
         description={t("invoices.description")}
       />
 

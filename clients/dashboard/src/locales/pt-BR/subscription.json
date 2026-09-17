@@ -30,7 +30,6 @@
   "recent.seeAll": "Ver todas",
   "recent.loadError": "Não foi possível carregar as faturas. Tente atualizar.",
   "invoices.title": "Faturas",
-  "invoices.unit": "fatura",
   "invoices.description": "O histórico de cobrança da sua organização, da mais recente para a mais antiga.",
   "invoices.searchPlaceholder": "Buscar por número da fatura, status ou período…",
   "invoices.loadError": "Falha ao carregar as faturas.",
