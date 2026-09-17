@@ -80,13 +80,24 @@ public static class Extensions
             forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             forwarded.ForwardLimit = trustedProxy.ForwardLimit;
 
-            if (trustedProxy.KnownProxies.Length == 0 && trustedProxy.KnownNetworks.Length == 0)
-            {
-                return;
-            }
-
+            // The trust list is always rebuilt from scratch, never appended to. Whatever is in the
+            // options when this runs depends on who configured them first, and with
+            // ASPNETCORE_FORWARDEDHEADERS_ENABLED=true that is ForwardedHeadersOptionsSetup, which
+            // empties both lists. An empty list is not "trust nobody" in ForwardedHeadersMiddleware:
+            // it only validates the peer when at least one entry exists, so empty means the app
+            // rewrites RemoteIpAddress from an X-Forwarded-For sent by anyone at all.
             forwarded.KnownProxies.Clear();
             forwarded.KnownIPNetworks.Clear();
+
+            if (trustedProxy.KnownProxies.Length == 0 && trustedProxy.KnownNetworks.Length == 0)
+            {
+                // Nothing configured: restate the framework's own default rather than inherit it,
+                // for the same reason. Local development runs behind Kestrel on loopback and still
+                // needs its forwarded headers honoured.
+                forwarded.KnownProxies.Add(IPAddress.IPv6Loopback);
+                forwarded.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Loopback, 8));
+                return;
+            }
 
             foreach (var proxy in trustedProxy.KnownProxies)
             {
