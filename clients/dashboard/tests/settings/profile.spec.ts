@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockJsonResponse, mockProblemDetails } from "../helpers/api-mocks";
+import { mockJsonResponse } from "../helpers/api-mocks";
 import { seedAuthedSession, TEST_USER } from "../helpers/auth-seed";
 
 const PROFILE = {
@@ -94,9 +94,23 @@ test.describe("settings/profile — wired to PUT /identity/profile", () => {
   });
 
   test("surfaces a destructive toast on server error", async ({ page }) => {
-    await mockProblemDetails(page, "**/api/v1/identity/profile", 400, {
-      title: "Validation failed",
-      detail: "First name cannot be empty.",
+    // The 400 belongs to the PUT. The GET has to keep working: the save is built from the
+    // profile that read returned, so failing it would test "cannot save yet", not "save failed".
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() !== "PUT") {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 400,
+        headers: { "Content-Type": "application/problem+json" },
+        body: JSON.stringify({
+          type: "https://httpstatuses.io/400",
+          title: "Validation failed",
+          status: 400,
+          detail: "First name cannot be empty.",
+        }),
+      });
     });
 
     await page.goto("/settings/profile");
@@ -157,18 +171,65 @@ test.describe("settings/profile — wired to PUT /identity/profile", () => {
     expect(putReq.headers()["if-match"]).toBe(etag);
   });
 
-  test("refetches and retries once when the save is rejected with 412", async ({ page }) => {
-    // The token also rotates on writes the user never sees as profile edits (a password
-    // change, a failed sign-in, a new avatar), so a single 412 has to resolve itself
-    // against a fresh read instead of surfacing as a failed save.
+  test("the If-Match comes from the read that seeded the form, not from a read at save time", async ({
+    page,
+  }) => {
+    // The lost update happens between the user seeing the values and pressing save. A tag read
+    // inside the save is always current by construction, so it matches whatever the other writer
+    // just stored and the overwrite goes through. Here the server moves on after the form is
+    // seeded: the save must still carry the seeded tag, which is what lets the server say 412.
     const sentIfMatch: string[] = [];
-    let getCount = 0;
+    let currentStamp = 1;
 
     await page.route("**/api/v1/identity/profile", async (route) => {
       const request = route.request();
       if (request.method() === "PUT") {
         sentIfMatch.push(request.headers()["if-match"] ?? "");
-        if (sentIfMatch.length === 1) {
+        await route.fulfill({
+          status: 412,
+          headers: { "Content-Type": "application/problem+json" },
+          body: JSON.stringify({
+            status: 412,
+            title: "CustomException",
+            detail: "The profile changed since you loaded it.",
+          }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        headers: { ...ETAG_CORS_HEADERS, ETag: `"stamp-${currentStamp}"` },
+        body: JSON.stringify(PROFILE),
+      });
+    });
+
+    await page.goto("/settings/profile");
+    await expect(page.getByLabel("First name")).toHaveValue("Alice");
+
+    // Someone else writes the profile while the user is typing.
+    currentStamp = 2;
+
+    await page.getByLabel("First name").fill("Alicia");
+    await page.getByRole("button", { name: /save changes/i }).click();
+
+    await expect(page.getByText(/profile changed elsewhere/i)).toBeVisible();
+    expect(sentIfMatch[0]).toBe('"stamp-1"');
+  });
+
+  test("a 412 warns and keeps the edits instead of resending the stale body", async ({ page }) => {
+    // Retrying the same body against a fresh tag performs exactly the overwrite the 412 just
+    // prevented. The save stops, the user's typing stays on screen, and a deliberate second save
+    // goes out against the version they were just told about.
+    const sentIfMatch: string[] = [];
+    let currentStamp = 1;
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const request = route.request();
+      if (request.method() === "PUT") {
+        const ifMatch = request.headers()["if-match"] ?? "";
+        sentIfMatch.push(ifMatch);
+        if (ifMatch !== `"stamp-${currentStamp}"`) {
           await route.fulfill({
             status: 412,
             headers: { "Content-Type": "application/problem+json" },
@@ -188,11 +249,9 @@ test.describe("settings/profile — wired to PUT /identity/profile", () => {
         return;
       }
 
-      // Every read hands out a fresh token, so the retry provably carries a re-read one.
-      getCount += 1;
       await route.fulfill({
         status: 200,
-        headers: { ...ETAG_CORS_HEADERS, ETag: `"stamp-${getCount}"` },
+        headers: { ...ETAG_CORS_HEADERS, ETag: `"stamp-${currentStamp}"` },
         body: JSON.stringify(PROFILE),
       });
     });
@@ -200,14 +259,22 @@ test.describe("settings/profile — wired to PUT /identity/profile", () => {
     await page.goto("/settings/profile");
     await expect(page.getByLabel("First name")).toHaveValue("Alice");
 
+    currentStamp = 2;
     await page.getByLabel("First name").fill("Alicia");
     await page.getByRole("button", { name: /save changes/i }).click();
 
+    await expect(page.getByText(/profile changed elsewhere/i)).toBeVisible();
+    await expect(page.getByText(/profile saved/i)).toBeHidden();
+    // One PUT only: no silent retry behind the user's back.
+    expect(sentIfMatch).toHaveLength(1);
+    // The typing survived the rejection — nothing to retype.
+    await expect(page.getByLabel("First name")).toHaveValue("Alicia");
+
+    // Saving again now carries the version the warning told the user about.
+    await page.getByRole("button", { name: /save changes/i }).click();
     await expect(page.getByText(/profile saved/i)).toBeVisible();
-    await expect(page.getByText(/save failed/i)).toBeHidden();
     expect(sentIfMatch).toHaveLength(2);
-    expect(sentIfMatch[0]).not.toBe("");
-    expect(sentIfMatch[1]).not.toBe(sentIfMatch[0]);
+    expect(sentIfMatch[1]).toBe('"stamp-2"');
   });
 
   test("Reset button reverts edits to the original profile values", async ({ page }) => {
