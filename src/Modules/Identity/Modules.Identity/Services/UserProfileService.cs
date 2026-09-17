@@ -111,9 +111,13 @@ internal sealed class UserProfileService(
 
         user.FirstName = firstName;
         user.LastName = lastName;
-        // Null locale means "not provided by this update" — preserve the existing value so a
-        // text-only profile edit never clears a language the user already chose.
-        if (locale is not null)
+        // An absent locale means "not provided by this update" — preserve the existing value so a
+        // text-only profile edit never clears a language the user already chose. Blank counts as
+        // absent, matching the validator: its allow-list rule is guarded by
+        // .When(!IsNullOrWhiteSpace), so "" never reaches the allow-list and must not reach the
+        // user either. A form that serialises its untouched locale field as "" would otherwise
+        // wipe the preference on every unrelated save.
+        if (!string.IsNullOrWhiteSpace(locale))
         {
             user.Locale = locale;
         }
