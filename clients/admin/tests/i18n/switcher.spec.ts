@@ -196,4 +196,79 @@ test.describe("language switcher", () => {
     expect(putBody.firstName).toBe("Root");
     expect(putBody.lastName).toBe("Admin");
   });
+
+  // Regression (session loss): the server rotates the refresh token on every refresh, so a
+  // second refresh started while the first is still open sends a token the server has already
+  // spent. It comes back 401, and apiFetch's failure path calls tokenStore.clear() — the
+  // operator is signed out mid-work, silently, because the switcher swallows the error. Two
+  // language switches in a row are enough to line that up.
+  test("two quick switches issue one token refresh and keep the session", async ({ page }) => {
+    let refreshCount = 0;
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "u-test-1",
+          firstName: "Root",
+          lastName: "Admin",
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      refreshCount += 1;
+      if (refreshCount > 1) {
+        // The server's view of a replayed refresh token: already rotated, so 401.
+        await route.fulfill({ status: 401, body: "" });
+        return;
+      }
+      // Hold the first refresh open long enough for the second switch to land while
+      // it is still in flight — the whole point of the single-flight.
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const token = fakeJwt({
+        sub: "u-test-1",
+        email: TEST_USER.email,
+        name: "Root Admin",
+        tenant: "root",
+        permissions: [...ADMIN_PERMS],
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+      });
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, refreshToken: "fresh-refresh-token" }),
+      });
+    });
+
+    await page.goto("/");
+
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await expect(page.getByText("Language", { exact: true })).toBeVisible();
+
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    await page.getByRole("menuitem", { name: "English (US)" }).click();
+    await expect(page.getByText("Language", { exact: true })).toBeVisible();
+
+    // Let the held refresh resolve and anything it triggers settle.
+    await page.waitForTimeout(3000);
+
+    expect(refreshCount).toBe(1);
+    // Still signed in: a cleared token store routes the app to /login.
+    expect(new URL(page.url()).pathname).not.toBe("/login");
+    expect(
+      await page.evaluate(() => window.localStorage.getItem("fsh.admin.accessToken")),
+    ).not.toBeNull();
+  });
 });

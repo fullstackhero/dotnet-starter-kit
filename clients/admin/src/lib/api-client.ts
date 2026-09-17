@@ -52,7 +52,23 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 
 let refreshPromise: Promise<void> | null = null;
 
-export async function refreshAccessToken() {
+/**
+ * Refresh the access token, at most one call in flight at a time.
+ *
+ * The single-flight is part of this function rather than of any one caller because the server
+ * rotates the refresh token on every successful call: a second refresh started while the first is
+ * still open sends a token the server has already spent, gets a 401, and `clear()`s the session out
+ * from under a signed-in user. Three call sites reach this (the 401 retry below, session bootstrap,
+ * the language switcher), and any two of them overlapping is enough.
+ */
+export function refreshAccessToken(): Promise<void> {
+  refreshPromise ??= runRefresh().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
+async function runRefresh(): Promise<void> {
   const refreshToken = tokenStore.getRefreshToken();
   const accessToken = tokenStore.getAccessToken();
   if (!refreshToken || !accessToken) {
@@ -155,12 +171,8 @@ export async function apiFetch<T = unknown>(
   });
 
   if (response.status === 401 && !skipAuth && tokenStore.getRefreshToken()) {
-    refreshPromise ??= refreshAccessToken().finally(() => {
-      refreshPromise = null;
-    });
-
     try {
-      await refreshPromise;
+      await refreshAccessToken();
     } catch (e) {
       throw e instanceof ApiRequestError
         ? e
