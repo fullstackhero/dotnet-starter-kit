@@ -349,7 +349,7 @@ function RoleRow({
           {changed && (
             <span
               className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]"
-              aria-label="modified"
+              aria-label={t("detail.roles.modified")}
             />
           )}
         </div>

@@ -1,6 +1,5 @@
 {
   "list.title": "Trilha de auditoria",
-  "list.unit": "evento",
   "list.description": "Toda ação de segurança, alteração de entidade e exceção capturada pela pipeline de auditoria. Filtre por tipo de evento, severidade ou id de correlação para acompanhar uma requisição de ponta a ponta.",
   "list.refresh": "Atualizar",
   "list.stat.total": "Total de eventos",
@@ -11,7 +10,7 @@
   "list.stat.securityHint": "logins, concessões de papel, tokens",
   "list.stat.exceptions": "Exceções",
   "list.stat.exceptionsHint": "não tratadas / classificadas",
-  "list.clearAll": "Limpar tudo ({{count}})",
+  "list.clearAll": "Limpar tudo ({{count, number}})",
   "list.searchPlaceholder": "Buscar usuário, origem, correlação…",
   "list.searchAria": "Buscar na trilha de auditoria",
   "list.allEventTypes": "Todos os tipos de evento",
@@ -53,7 +52,7 @@
   "detail.tile.source": "Origem",
   "detail.tile.tags": "Tags",
   "detail.payload": "Payload",
-  "detail.payloadLines": "· {{count}} linhas",
+  "detail.payloadLines": "· {{count, number}} linhas",
   "detail.copied": "Copiado",
   "detail.copyShort": "Copiar"
 }

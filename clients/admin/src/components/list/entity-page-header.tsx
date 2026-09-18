@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ToneIconTile, type ToneIconTileTone } from "./tone-icon-tile";
 
 // ───────────────────────────────────────────────────────────────────────
@@ -8,6 +9,20 @@ import { ToneIconTile, type ToneIconTileTone } from "./tone-icon-tile";
 //  Replaces the dashboard-divergent FormShell page-title area with the
 //  unified header rhythm used across the dashboard app.
 // ───────────────────────────────────────────────────────────────────────
+
+/** The `unit.*` plural keys common.json declares. A union rather than `string` because the chip
+ *  translates the token itself: handing it an already translated word builds a key that exists in
+ *  no catalogue and the header renders the raw key. The count cannot be pluralized here either —
+ *  the previous `${unit}s` is an English rule, and "organização" + "s" is not a word. */
+export type EntityUnit =
+  | "account"
+  | "event"
+  | "grant"
+  | "item"
+  | "notification"
+  | "role"
+  | "subscription"
+  | "tenant";
 
 export function EntityPageHeader({
   icon,
@@ -25,11 +40,12 @@ export function EntityPageHeader({
    *  fights the page's own accent. */
   tone?: ToneIconTileTone;
   total?: number | null;
-  unit?: string;
+  unit?: EntityUnit;
   description?: React.ReactNode;
   /** Action buttons rendered on the right (stack full-width on mobile). */
   children?: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex items-start gap-3.5">
@@ -41,7 +57,7 @@ export function EntityPageHeader({
             </h1>
             {total !== undefined && total !== null && (
               <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
-                {total} {total === 1 ? unit : `${unit}s`}
+                {t(`unit.${unit}`, { count: total })}
               </span>
             )}
           </div>

@@ -1,7 +1,7 @@
 {
   "header.title": "Directory",
-  "header.count_one": "{{count}} account on this tenant.",
-  "header.count_other": "{{count}} accounts on this tenant.",
+  "header.count_one": "{{count, number}} account on this tenant.",
+  "header.count_other": "{{count, number}} accounts on this tenant.",
   "header.loadingRoster": "Loading the roster…",
   "newUser": "New user",
   "search.placeholder": "Search name, username, email…",
@@ -21,9 +21,9 @@
   "empty.withFilters": "Adjust filters or invite a new user.",
   "empty.noData": "Register the first member to seed this tenant.",
   "clearFilters": "Clear filters",
-  "found_one": "{{count}} user found",
-  "found_other": "{{count}} users found",
-  "page": "Page {{page}} of {{total}}",
+  "found_one": "{{count, number}} user found",
+  "found_other": "{{count, number}} users found",
+  "page": "Page {{page}} of {{total, number}}",
   "previous": "Previous",
   "next": "Next",
   "col.name": "Name",
@@ -39,7 +39,6 @@
   "badge.emailPending": "Email pending",
   "badge.confirmed": "Confirmed",
   "badge.pending": "Pending",
-
   "detail.back": "Directory",
   "detail.loading": "Loading account",
   "detail.badge.active": "Active",
@@ -65,8 +64,8 @@
   "detail.status.yes": "Yes",
   "detail.status.pendingConfirmation": "Pending confirmation",
   "detail.roles.title": "Role assignment",
-  "detail.roles.pending_one": "{{count}} pending change — review and save when ready.",
-  "detail.roles.pending_other": "{{count}} pending changes — review and save when ready.",
+  "detail.roles.pending_one": "{{count, number}} pending change — review and save when ready.",
+  "detail.roles.pending_other": "{{count, number}} pending changes — review and save when ready.",
   "detail.roles.hint": "Tap any role to toggle. Changes are batched — review and save when ready.",
   "detail.roles.saving": "Saving…",
   "detail.roles.saveChanges": "Save changes",
@@ -79,7 +78,6 @@
   "detail.roles.off": "Off",
   "detail.roles.updated": "Roles updated",
   "detail.roles.updateFailed": "Role update failed",
-
   "create.title": "New account",
   "create.description": "The new user is created in the current tenant and emailed a confirmation link. Roles can be assigned from the detail page after creation.",
   "create.section.identity.title": "Identity",
@@ -104,5 +102,6 @@
   "create.validation.username": "3–32 chars. Letters, digits, dot, dash, underscore. Start with a letter.",
   "create.validation.email": "Enter a valid email.",
   "create.validation.min8": "At least 8 characters.",
-  "create.validation.mismatch": "Passwords don't match."
+  "create.validation.mismatch": "Passwords don't match.",
+  "detail.roles.modified": "modified"
 }

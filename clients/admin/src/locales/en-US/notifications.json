@@ -1,6 +1,5 @@
 {
   "inbox.title": "Notifications",
-  "inbox.unit": "item",
   "inbox.description": "Events the system has surfaced for you. Live-updates as new notifications arrive — no refresh needed.",
   "inbox.refresh": "Refresh",
   "inbox.marking": "Marking…",
@@ -18,11 +17,10 @@
   "row.markRead": "Mark read",
   "toast.markReadFailed": "Mark read failed",
   "toast.markAllFailed": "Mark all failed",
-  "toast.marked_one": "{{count}} notification marked read",
-  "toast.marked_other": "{{count}} notifications marked read",
-
-  "bell.ariaUnread_one": "{{count}} unread notification",
-  "bell.ariaUnread_other": "{{count}} unread notifications",
+  "toast.marked_one": "{{count, number}} notification marked read",
+  "toast.marked_other": "{{count, number}} notifications marked read",
+  "bell.ariaUnread_one": "{{count, number}} unread notification",
+  "bell.ariaUnread_other": "{{count, number}} unread notifications",
   "bell.ariaDefault": "Notifications",
   "bell.heading": "// Notifications",
   "bell.markAllRead": "Mark all read",

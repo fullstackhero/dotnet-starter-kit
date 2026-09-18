@@ -71,7 +71,7 @@ export function NotificationsInboxPage() {
         icon={Bell}
         title={t("inbox.title")}
         total={items.length}
-        unit={t("inbox.unit")}
+        unit="notification"
         description={t("inbox.description")}
       >
         <Button

@@ -90,7 +90,7 @@ export function WebhooksListPage() {
         icon={Webhook}
         title={t("list.title")}
         total={data?.totalCount ?? null}
-        unit={t("list.unit")}
+        unit="subscription"
         description={t("list.description")}
       >
         <Button

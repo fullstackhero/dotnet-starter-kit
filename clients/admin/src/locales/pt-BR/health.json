@@ -11,7 +11,7 @@
   "stat.readiness": "Readiness",
   "stat.readinessHint": "dependências acessíveis",
   "stat.checksHealthy": "Verificações saudáveis",
-  "stat.checksHealthyHint": "de {{total}} registradas",
+  "stat.checksHealthyHint": "de {{total, number}} registradas",
   "stat.checksFailing": "Verificações falhando",
   "stat.checksFailingHint": "{{failing}} não saudáveis",
   "stat.checksFailingHintDegraded": "{{degraded}} degradadas · {{failing}} não saudáveis",

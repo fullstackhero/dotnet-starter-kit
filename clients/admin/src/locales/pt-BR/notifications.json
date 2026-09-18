@@ -1,6 +1,5 @@
 {
   "inbox.title": "Notificações",
-  "inbox.unit": "item",
   "inbox.description": "Eventos que o sistema destacou para você. Atualiza ao vivo conforme novas notificações chegam — sem precisar recarregar.",
   "inbox.refresh": "Atualizar",
   "inbox.marking": "Marcando…",
@@ -18,11 +17,10 @@
   "row.markRead": "Marcar como lida",
   "toast.markReadFailed": "Falha ao marcar como lida",
   "toast.markAllFailed": "Falha ao marcar todas",
-  "toast.marked_one": "{{count}} notificação marcada como lida",
-  "toast.marked_other": "{{count}} notificações marcadas como lidas",
-
-  "bell.ariaUnread_one": "{{count}} notificação não lida",
-  "bell.ariaUnread_other": "{{count}} notificações não lidas",
+  "toast.marked_one": "{{count, number}} notificação marcada como lida",
+  "toast.marked_other": "{{count, number}} notificações marcadas como lidas",
+  "bell.ariaUnread_one": "{{count, number}} notificação não lida",
+  "bell.ariaUnread_other": "{{count, number}} notificações não lidas",
   "bell.ariaDefault": "Notificações",
   "bell.heading": "// Notificações",
   "bell.markAllRead": "Marcar todas como lidas",

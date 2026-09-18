@@ -1,7 +1,7 @@
 {
   "header.title": "Diretório",
-  "header.count_one": "{{count}} conta nesta organização.",
-  "header.count_other": "{{count}} contas nesta organização.",
+  "header.count_one": "{{count, number}} conta nesta organização.",
+  "header.count_other": "{{count, number}} contas nesta organização.",
   "header.loadingRoster": "Carregando a lista…",
   "newUser": "Novo usuário",
   "search.placeholder": "Buscar nome, usuário, email…",
@@ -21,9 +21,9 @@
   "empty.withFilters": "Ajuste os filtros ou convide um novo usuário.",
   "empty.noData": "Cadastre o primeiro membro para popular esta organização.",
   "clearFilters": "Limpar filtros",
-  "found_one": "{{count}} usuário encontrado",
-  "found_other": "{{count}} usuários encontrados",
-  "page": "Página {{page}} de {{total}}",
+  "found_one": "{{count, number}} usuário encontrado",
+  "found_other": "{{count, number}} usuários encontrados",
+  "page": "Página {{page}} de {{total, number}}",
   "previous": "Anterior",
   "next": "Próxima",
   "col.name": "Nome",
@@ -64,8 +64,8 @@
   "detail.status.yes": "Sim",
   "detail.status.pendingConfirmation": "Confirmação pendente",
   "detail.roles.title": "Atribuição de papéis",
-  "detail.roles.pending_one": "{{count}} alteração pendente — revise e salve quando estiver pronto.",
-  "detail.roles.pending_other": "{{count}} alterações pendentes — revise e salve quando estiver pronto.",
+  "detail.roles.pending_one": "{{count, number}} alteração pendente — revise e salve quando estiver pronto.",
+  "detail.roles.pending_other": "{{count, number}} alterações pendentes — revise e salve quando estiver pronto.",
   "detail.roles.hint": "Toque em qualquer papel para alternar. As alterações são agrupadas — revise e salve quando estiver pronto.",
   "detail.roles.saving": "Salvando…",
   "detail.roles.saveChanges": "Salvar alterações",
@@ -102,5 +102,6 @@
   "create.validation.username": "3–32 caracteres. Letras, dígitos, ponto, traço, sublinhado. Comece com uma letra.",
   "create.validation.email": "Digite um email válido.",
   "create.validation.min8": "No mínimo 8 caracteres.",
-  "create.validation.mismatch": "As senhas não conferem."
+  "create.validation.mismatch": "As senhas não conferem.",
+  "detail.roles.modified": "modificado"
 }

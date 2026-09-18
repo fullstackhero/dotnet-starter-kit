@@ -1,6 +1,5 @@
 {
   "list.title": "Audit trail",
-  "list.unit": "event",
   "list.description": "Every security action, entity change, and exception captured by the auditing pipeline. Filter by event type, severity, or correlation id to follow a request end-to-end.",
   "list.refresh": "Refresh",
   "list.stat.total": "Total events",
@@ -11,7 +10,7 @@
   "list.stat.securityHint": "logins, role grants, tokens",
   "list.stat.exceptions": "Exceptions",
   "list.stat.exceptionsHint": "unhandled / classified",
-  "list.clearAll": "Clear all ({{count}})",
+  "list.clearAll": "Clear all ({{count, number}})",
   "list.searchPlaceholder": "Search user, source, correlation…",
   "list.searchAria": "Search audit trail",
   "list.allEventTypes": "All event types",
@@ -29,7 +28,6 @@
   "list.empty.clearFilters": "Clear filters",
   "list.noun": "events",
   "row.corr": "corr · {{id}}",
-
   "detail.eventTitle": "{{type}} event",
   "detail.eventFallback": "Audit event",
   "detail.loadingTs": "Loading…",
@@ -54,7 +52,7 @@
   "detail.tile.source": "Source",
   "detail.tile.tags": "Tags",
   "detail.payload": "Payload",
-  "detail.payloadLines": "· {{count}} lines",
+  "detail.payloadLines": "· {{count, number}} lines",
   "detail.copied": "Copied",
   "detail.copyShort": "Copy"
 }

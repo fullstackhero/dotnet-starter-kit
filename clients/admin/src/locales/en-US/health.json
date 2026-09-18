@@ -11,7 +11,7 @@
   "stat.readiness": "Readiness",
   "stat.readinessHint": "Dependencies reachable",
   "stat.checksHealthy": "Checks healthy",
-  "stat.checksHealthyHint": "of {{total}} registered",
+  "stat.checksHealthyHint": "of {{total, number}} registered",
   "stat.checksFailing": "Checks failing",
   "stat.checksFailingHint": "{{failing}} unhealthy",
   "stat.checksFailingHintDegraded": "{{degraded}} degraded · {{failing}} unhealthy",

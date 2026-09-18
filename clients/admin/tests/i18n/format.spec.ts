@@ -83,4 +83,18 @@ test.describe("format.ts", () => {
     expect(out.date).toContain("2026");
     expect(out.date).not.toMatch(/Jan\b/);
   });
+
+  test("a list count is grouped and pluralized by the locale, not by English rules", async ({ page }) => {
+    // Two separate defects met in this one chip. The count reached i18next as a raw number, so a
+    // Portuguese UI read "1234" beside currency and dates that were correctly grouped. And the
+    // header pluralized by appending "s" to the unit, which is an English rule: "organização" + "s"
+    // is not a word. Both are the catalog's job now, so both are asserted on the rendered chip.
+    await mockJsonResponse(page, "**/api/v1/tenants**", paged([], { totalCount: 1234, pageSize: 20 }));
+
+    await page.goto("/tenants?culture=pt-BR");
+    await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
+
+    await expect(page.getByText("1.234 organizações", { exact: true })).toBeVisible();
+    await expect(page.getByText("1.234 organizações registradas nesta instância.")).toBeVisible();
+  });
 });
