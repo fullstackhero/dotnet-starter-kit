@@ -115,9 +115,13 @@ export function initI18n(deploymentDefault: string) {
         return missingKeyFallback(key, defaultValue);
       },
       detection: {
-        // NO cookie — localStorage only (the library default; key i18nextLng).
+        // NO cookie — localStorage only, under this app's own key. The detector's default is the
+        // bare "i18nextLng", which both apps would claim on a shared origin and which collides with
+        // any other i18next app deployed beside them; every other persisted value here is already
+        // namespaced the same way (fsh.<app>.*).
         order: ["querystring", "localStorage", "navigator"],
         caches: ["localStorage"],
+        lookupLocalStorage: "fsh.dashboard.lng",
         lookupQuerystring: "culture",
         convertDetectedLanguage: toCanonical, // pt/pt-PT->pt-BR, en/en-GB->en-US
       },

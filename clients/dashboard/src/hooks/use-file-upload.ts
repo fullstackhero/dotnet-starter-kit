@@ -282,9 +282,18 @@ export function describeUploadError(e: unknown, t: TFunction, fallback?: string)
   }
 
   if (e instanceof ApiRequestError) {
+    // ProblemDetails comes back in the caller's language: apiFetch sends Accept-Language from
+    // i18n.language and the API negotiates on it, so this text is already localized.
     return e.problem?.detail ?? e.problem?.title ?? e.message;
   }
-  if (e instanceof Error) return e.message;
+
+  // Anything else is a runtime Error whose message the platform wrote in English -- a presign step
+  // that never reached the server throws TypeError("Failed to fetch"), and returning e.message put
+  // that on screen under a Portuguese UI. The message still reaches the console for diagnosis; the
+  // user gets the catalog string.
+  if (e instanceof Error) {
+    console.error("[upload] unhandled failure", e);
+  }
   return fallback ?? t("common:upload.unknownError");
 }
 

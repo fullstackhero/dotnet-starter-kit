@@ -7,7 +7,7 @@ import { installShellMocks } from "../helpers/shell-mocks";
 // StartImpersonationCommandHandler strips the target's `locale` claim on purpose,
 // so the API has nothing to negotiate from. The dashboard normally runs on a
 // different origin than admin and therefore cannot read admin's persisted
-// `i18nextLng`. Before the `locale` handoff parameter existed, the API culture
+// language (`fsh.admin.lng`). Before the `locale` handoff parameter existed, the API culture
 // fell through to the dashboard's own browser detection: the operator picked
 // Português in admin, then read English error details here.
 //
