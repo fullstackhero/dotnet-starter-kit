@@ -238,4 +238,41 @@ public sealed class GlobalExceptionHandlerLocalizationTests
 
         title.ShouldBe(nameof(CustomException));
     }
+
+    // The lookup is by "{EnumType}.{Member}" against the message own catalog. SharedResources ships
+    // no enum of its own, so these two stand in for the two outcomes: a member whose name happens to
+    // match an existing key (translated) and one that matches nothing (kept as the C# name).
+    private enum Error { Unauthorized }
+
+    private enum Untranslated { Member }
+
+    // Without this, a pt-BR reader gets a translated sentence ending in an English enum name:
+    // "um chamado no status Closed".
+    [Fact]
+    public async Task An_enum_argument_is_translated_through_the_same_catalog()
+    {
+        var exception = new CustomException("english fallback", [], HttpStatusCode.BadRequest)
+        {
+            MessageKey = "Validation.ImpersonationTakeRange",
+            MessageArgs = [Error.Unauthorized],
+        };
+
+        var (_, detail) = await HandleAsync(exception, "pt-BR");
+
+        detail.ShouldBe("O valor de Take deve estar entre 1 e Não autorizado.");
+    }
+
+    [Fact]
+    public async Task An_enum_argument_with_no_entry_keeps_its_member_name()
+    {
+        var exception = new CustomException("english fallback", [], HttpStatusCode.BadRequest)
+        {
+            MessageKey = "Validation.ImpersonationTakeRange",
+            MessageArgs = [Untranslated.Member],
+        };
+
+        var (_, detail) = await HandleAsync(exception, "pt-BR");
+
+        detail.ShouldBe("O valor de Take deve estar entre 1 e Member.");
+    }
 }

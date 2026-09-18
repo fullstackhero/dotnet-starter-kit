@@ -88,4 +88,19 @@
   <data name="Billing.TopupRequestCannotBeRejected" xml:space="preserve">
     <value>Não é possível rejeitar a solicitação de recarga {0} porque ela está {1} (somente solicitações Pendentes podem ser rejeitadas).</value>
   </data>
+  <data name="TopupRequestStatus.Pending" xml:space="preserve">
+    <value>Pendente</value>
+  </data>
+  <data name="TopupRequestStatus.Invoiced" xml:space="preserve">
+    <value>Faturada</value>
+  </data>
+  <data name="TopupRequestStatus.Completed" xml:space="preserve">
+    <value>Concluída</value>
+  </data>
+  <data name="TopupRequestStatus.Rejected" xml:space="preserve">
+    <value>Rejeitada</value>
+  </data>
+  <data name="TopupRequestStatus.Cancelled" xml:space="preserve">
+    <value>Cancelada</value>
+  </data>
 </root>

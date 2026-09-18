@@ -142,4 +142,16 @@
   <data name="Validation.DefaultElevationRange" xml:space="preserve">
     <value>DefaultElevation deve estar entre 0 e 24.</value>
   </data>
+  <data name="TenantProvisioningStatus.Pending" xml:space="preserve">
+    <value>Pendente</value>
+  </data>
+  <data name="TenantProvisioningStatus.Running" xml:space="preserve">
+    <value>Em execução</value>
+  </data>
+  <data name="TenantProvisioningStatus.Completed" xml:space="preserve">
+    <value>Concluído</value>
+  </data>
+  <data name="TenantProvisioningStatus.Failed" xml:space="preserve">
+    <value>Falhou</value>
+  </data>
 </root>

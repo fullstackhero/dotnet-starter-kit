@@ -115,4 +115,19 @@
   <data name="Files.VisibilityInvalid" xml:space="preserve">
     <value>A visibilidade deve ser Pública ou Privada.</value>
   </data>
+  <data name="FileAssetStatus.PendingUpload" xml:space="preserve">
+    <value>Aguardando envio</value>
+  </data>
+  <data name="FileAssetStatus.Available" xml:space="preserve">
+    <value>Disponível</value>
+  </data>
+  <data name="FileAssetStatus.Quarantined" xml:space="preserve">
+    <value>Em quarentena</value>
+  </data>
+  <data name="Visibility.Public" xml:space="preserve">
+    <value>Público</value>
+  </data>
+  <data name="Visibility.Private" xml:space="preserve">
+    <value>Privado</value>
+  </data>
 </root>

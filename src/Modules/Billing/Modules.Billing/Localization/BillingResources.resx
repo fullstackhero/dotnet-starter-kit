@@ -88,4 +88,19 @@
   <data name="Billing.TopupRequestCannotBeRejected" xml:space="preserve">
     <value>Top-up request {0} cannot be rejected because it is {1} (only Pending requests can be rejected).</value>
   </data>
+  <data name="TopupRequestStatus.Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="TopupRequestStatus.Invoiced" xml:space="preserve">
+    <value>Invoiced</value>
+  </data>
+  <data name="TopupRequestStatus.Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="TopupRequestStatus.Rejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="TopupRequestStatus.Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
 </root>

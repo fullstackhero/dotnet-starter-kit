@@ -1,4 +1,6 @@
+using System;
 using System.Globalization;
+using FSH.Modules.Billing.Contracts;
 using System.Linq;
 using FSH.Modules.Billing.Localization;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,6 +77,26 @@ public sealed class BillingResourcesTests
         finally
         {
             CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    // An enum handed to a message as an argument is looked up as "{EnumType}.{Member}" by
+    // GlobalExceptionHandler. A member with no entry falls back to its C# name, which puts an
+    // English word inside an otherwise translated sentence, so every member needs both entries.
+    [Theory]
+    [InlineData(typeof(TopupRequestStatus))]
+    public void Every_enum_member_that_reaches_a_message_is_translated(Type enumType)
+    {
+        ArgumentNullException.ThrowIfNull(enumType);
+
+        var neutral = KeysFor(string.Empty);
+        var pt = KeysFor("pt-BR");
+
+        foreach (var member in Enum.GetNames(enumType))
+        {
+            var key = $"{enumType.Name}.{member}";
+            neutral.ShouldContain(key);
+            pt.ShouldContain(key);
         }
     }
 }

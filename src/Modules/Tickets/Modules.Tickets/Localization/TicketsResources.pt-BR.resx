@@ -73,13 +73,25 @@
   <data name="Tickets.ClosedCannotComment" xml:space="preserve">
     <value>Um chamado fechado não aceita novos comentários. Reabra-o primeiro.</value>
   </data>
-  <data name="Tickets.CannotActionInStatus" xml:space="preserve">
-    <value>Não é possível {0} um chamado no status {1}. Reabra-o primeiro.</value>
+  <data name="Tickets.CannotAssignInStatus" xml:space="preserve">
+    <value>Não é possível atribuir um chamado no status {0}. Reabra-o primeiro.</value>
   </data>
   <data name="Tickets.CommentAuthorRequired" xml:space="preserve">
     <value>Não é possível publicar um comentário sem um autor autenticado.</value>
   </data>
   <data name="Tickets.ReporterRequired" xml:space="preserve">
     <value>Não é possível criar um chamado sem um solicitante autenticado.</value>
+  </data>
+  <data name="TicketStatus.Open" xml:space="preserve">
+    <value>Aberto</value>
+  </data>
+  <data name="TicketStatus.InProgress" xml:space="preserve">
+    <value>Em andamento</value>
+  </data>
+  <data name="TicketStatus.Resolved" xml:space="preserve">
+    <value>Resolvido</value>
+  </data>
+  <data name="TicketStatus.Closed" xml:space="preserve">
+    <value>Fechado</value>
   </data>
 </root>

@@ -52,13 +52,36 @@ public class GlobalExceptionHandler(
         {
             var message = localizable.MessageArgs.Count == 0
                 ? moduleLocalizer[localizable.MessageKey]
-                : moduleLocalizer[localizable.MessageKey, localizable.MessageArgs.ToArray()];
+                : moduleLocalizer[localizable.MessageKey, LocalizeArguments(localizable.MessageArgs, moduleLocalizer)];
             return message.ResourceNotFound ? fallbackMessage : message.Value;
         }
         catch (FormatException)
         {
             return fallbackMessage;
         }
+    }
+
+    // An enum argument would otherwise reach the user as its C# member name, leaving a translated
+    // sentence ending in an English word ("um chamado no status Closed"). Each member is looked up as
+    // "{EnumType}.{Member}" in the same catalog as the message itself. A member with no entry keeps
+    // ToString(), which is what every argument does today.
+    private static object[] LocalizeArguments(IReadOnlyList<object> args, IStringLocalizer localizer)
+    {
+        var localized = new object[args.Count];
+        for (var i = 0; i < args.Count; i++)
+        {
+            if (args[i] is Enum member)
+            {
+                var entry = localizer[$"{member.GetType().Name}.{member}"];
+                localized[i] = entry.ResourceNotFound ? member.ToString() : entry.Value;
+            }
+            else
+            {
+                localized[i] = args[i];
+            }
+        }
+
+        return localized;
     }
 
     // Writes the localized Detail and, when the exception carries a MessageKey, surfaces that key as a

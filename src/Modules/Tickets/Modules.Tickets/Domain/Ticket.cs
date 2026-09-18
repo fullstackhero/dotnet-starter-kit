@@ -88,7 +88,7 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
 
     public void Assign(Guid? assigneeUserId)
     {
-        ThrowIfClosedOrResolved("assign");
+        ThrowIfNotAssignable();
 
         if (assigneeUserId == AssignedToUserId)
         {
@@ -245,17 +245,17 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
             (id, ts) => new TicketStatusChangedDomainEvent(Id, previous, next, id, ts)));
     }
 
-    private void ThrowIfClosedOrResolved(string action)
+    private void ThrowIfNotAssignable()
     {
         if (Status is TicketStatus.Closed or TicketStatus.Resolved)
         {
             throw new CustomException(
-                $"Cannot {action} a ticket in status {Status} — reopen it first.",
+                $"Cannot assign a ticket in status {Status} — reopen it first.",
                 (IEnumerable<string>?)null,
                 HttpStatusCode.Conflict)
             {
-                MessageKey = "Tickets.CannotActionInStatus",
-                MessageArgs = [action, Status],
+                MessageKey = "Tickets.CannotAssignInStatus",
+                MessageArgs = [Status],
                 ResourceSource = typeof(TicketsResources),
             };
         }

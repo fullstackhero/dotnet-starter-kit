@@ -1,4 +1,6 @@
+using System;
 using System.Globalization;
+using FSH.Modules.Tickets.Contracts.Dtos;
 using System.Linq;
 using FSH.Modules.Tickets.Localization;
 using Microsoft.Extensions.DependencyInjection;
@@ -92,12 +94,35 @@ public sealed class TicketsResourcesTests
 
             CultureInfo.CurrentUICulture = new CultureInfo("pt-BR");
             localizer["Tickets.TicketNotFound", "abc"].Value.ShouldBe("Chamado abc não encontrado.");
-            localizer["Tickets.OnlyResolvedCanClose", "Open"].Value
-                .ShouldBe("Somente um chamado resolvido pode ser fechado. O status atual é Open. Resolva-o primeiro.");
+            // The status argument arrives already localized: GlobalExceptionHandler resolves an enum
+            // argument through this same catalog before formatting, so asserting the raw "Open" here
+            // would pin a sentence no user ever sees.
+            localizer["Tickets.OnlyResolvedCanClose", localizer["TicketStatus.Open"].Value].Value
+                .ShouldBe("Somente um chamado resolvido pode ser fechado. O status atual é Aberto. Resolva-o primeiro.");
         }
         finally
         {
             CultureInfo.CurrentUICulture = previous;
+        }
+    }
+
+    // An enum handed to a message as an argument is looked up as "{EnumType}.{Member}" by
+    // GlobalExceptionHandler. A member with no entry falls back to its C# name, which puts an
+    // English word inside an otherwise translated sentence, so every member needs both entries.
+    [Theory]
+    [InlineData(typeof(TicketStatus))]
+    public void Every_enum_member_that_reaches_a_message_is_translated(Type enumType)
+    {
+        ArgumentNullException.ThrowIfNull(enumType);
+
+        var neutral = KeysFor(string.Empty);
+        var pt = KeysFor("pt-BR");
+
+        foreach (var member in Enum.GetNames(enumType))
+        {
+            var key = $"{enumType.Name}.{member}";
+            neutral.ShouldContain(key);
+            pt.ShouldContain(key);
         }
     }
 }
