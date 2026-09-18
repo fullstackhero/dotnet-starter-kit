@@ -39,4 +39,29 @@ test.describe("i18n catalog parity", () => {
       expect(Object.keys(en).sort()).toEqual(Object.keys(pt).sort());
     });
   }
+
+  // Matching key sets are not enough: a translation that drops or renames an
+  // interpolation renders the placeholder as literal text ("Olá, {{name}}") or
+  // silently loses the value, and neither shows up as a missing key. i18next
+  // resolves `{{name}}` and `{{count, number}}` alike, so the variable name is
+  // taken up to the first comma and the formatter is ignored.
+  const placeholders = (value: string): string[] =>
+    [...value.matchAll(/{{\s*([^},]+?)\s*(?:,[^}]*)?}}/g)].map((m) => m[1]).sort();
+
+  for (const ns of NAMESPACES) {
+    test(`${ns}: en-US and pt-BR interpolate the same variables`, () => {
+      const en = load("en-US", ns);
+      const pt = load("pt-BR", ns);
+      const divergent = Object.keys(en)
+        .filter((key) => typeof en[key] === "string" && typeof pt[key] === "string")
+        .map((key) => ({
+          key,
+          en: placeholders(en[key]),
+          pt: placeholders(pt[key]),
+        }))
+        .filter(({ en: a, pt: b }) => a.join("|") !== b.join("|"));
+
+      expect(divergent).toEqual([]);
+    });
+  }
 });
