@@ -256,4 +256,28 @@ public sealed class FrontendOriginResolverTests
         var ex = Should.Throw<CustomException>(() => resolver.ResolveForCurrentRequest());
         ex.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public void ResolveDefault_Should_Throw_When_DefaultOriginHasNoScheme()
+    {
+        // Startup logs a value like this as the same failure as an unset one. That has to hold at
+        // run time too: returning it would put a relative URL in the e-mail, which no mail client
+        // turns into a link, and nothing would report a problem.
+        _httpContextAccessor.HttpContext.Returns((HttpContext?)null);
+        var resolver = CreateResolver([], defaultOrigin: "app.example.com");
+
+        var ex = Should.Throw<CustomException>(() => resolver.ResolveDefault());
+        ex.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+    }
+
+    [Fact]
+    public void ResolveDefault_Should_KeepBasePath_When_TheDefaultCarriesOne()
+    {
+        // A deployment serving the SPA under a sub-path configures it here. Validation must not
+        // collapse the value to its authority: /reset-password would then 404.
+        _httpContextAccessor.HttpContext.Returns((HttpContext?)null);
+        var resolver = CreateResolver([], defaultOrigin: "https://example.com/app/");
+
+        resolver.ResolveDefault().ShouldBe("https://example.com/app");
+    }
 }

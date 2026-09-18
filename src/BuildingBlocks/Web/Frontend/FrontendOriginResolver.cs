@@ -15,7 +15,7 @@ internal sealed class FrontendOriginResolver(
     // (scheme + host + port) instead of a raw string compare that an entry like ":443" or an IDN
     // form would silently fail.
     private readonly Uri[] _allowed = Normalize(options.Value.AllowedOrigins);
-    private readonly string? _default = options.Value.DefaultOrigin?.TrimEnd('/');
+    private readonly string? _default = NormalizeDefault(options.Value.DefaultOrigin);
 
     public string ResolveForCurrentRequest()
     {
@@ -117,6 +117,16 @@ internal sealed class FrontendOriginResolver(
         return string.Equals(candidate.Scheme, allowed.Scheme, StringComparison.OrdinalIgnoreCase)
             && string.Equals(candidate.IdnHost, allowed.IdnHost, StringComparison.OrdinalIgnoreCase)
             && candidate.Port == allowed.Port;
+    }
+
+    // The same rule the allow-list gets, for the same reason. "app.example.com" (no scheme, the
+    // usual .env slip) is not something a mail client can make clickable, so carrying it would
+    // mean every link silently broke while the resolver reported success. Dropped here, it fails
+    // exactly the way an unset value does, which is what startup already logs it as.
+    private static string? NormalizeDefault(string? configured)
+    {
+        var trimmed = configured?.TrimEnd('/');
+        return Uri.TryCreate(trimmed, UriKind.Absolute, out _) ? trimmed : null;
     }
 
     // Internal so the startup warning reports the list the resolver will actually match against,

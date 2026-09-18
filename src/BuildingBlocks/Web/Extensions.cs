@@ -277,14 +277,13 @@ public static class Extensions
 
         // Absolute, not merely non-empty: "app.example.com" (no scheme, a common .env slip) binds
         // fine and then every link in every e-mail is a relative URL no mail client makes clickable.
-        // Same failure class as an unset value, so it gets the same Error.
-
-        // Error, not Warning: without a default there is nothing left to build these links out of.
+        // Same failure class as an unset value, so it gets the same Error, not Warning: without a
+        // usable default there is nothing left to build these links out of.
         // The resolver used to fall back to the API origin and then to the request host; both are
         // gone, because the links now address SPA paths (the API origin 404s them) and the request
         // host is caller-controlled (it hands the reset token to whoever set the Host header).
         app.Logger.LogError(
-            "FrontendOptions:DefaultOrigin is not set (appsettings.{Environment}.json). Admin register, resend confirmation, self-registration and password reset will return 500 for any caller that does not match FrontendOptions:AllowedOrigins, including every background job. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
+            "FrontendOptions:DefaultOrigin is not set to an absolute URL (appsettings.{Environment}.json). Admin register, resend confirmation, self-registration and password reset will return 500 for any caller that does not match FrontendOptions:AllowedOrigins, including every background job. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
             app.Environment.EnvironmentName);
     }
 }
