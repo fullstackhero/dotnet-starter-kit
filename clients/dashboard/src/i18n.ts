@@ -104,6 +104,17 @@ export function initI18n(deploymentDefault: string) {
       ns: NAMESPACES,
       defaultNS: "common",
       interpolation: { escapeValue: false },
+      // Several keys are built from a server value (`status.${x}`), so a value the catalog has not
+      // caught up with would render the key itself on screen ("status.invoiced"). Degrade to the
+      // last segment instead, which is the readable name the UI showed before it was localized,
+      // and make the gap loud in development.
+      parseMissingKeyHandler: (key: string) => {
+        if (import.meta.env.DEV) {
+          console.warn(`[i18n] missing key: ${key}`);
+        }
+        const segment = key.split(/[.:]/).pop() ?? key;
+        return segment.charAt(0).toUpperCase() + segment.slice(1);
+      },
       detection: {
         // NO cookie — localStorage only (the library default; key i18nextLng).
         order: ["querystring", "localStorage", "navigator"],
