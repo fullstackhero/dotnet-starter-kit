@@ -3,9 +3,12 @@ using System.Net;
 namespace FSH.Framework.Mailing;
 
 /// <summary>
-/// The single HTML shell and the single encoder for outbound mail. Bodies are sent as
+/// The shared HTML shell and the single encoder for outbound mail. Bodies are sent as
 /// <c>text/html</c>, so any value reaching the markup has to be encoded or it is parsed as markup
-/// rather than shown. Keeping both here means a module cannot ship its own weaker escaping.
+/// rather than shown. Keeping the encoder here means a module cannot ship its own weaker escaping.
+/// The shell is not yet universal: <c>UserRegistrationService.BuildConfirmationEmailHtml</c> still
+/// builds its own document, because migrating it changes the layout of the most-seen e-mail in the
+/// product and deserves its own review.
 /// </summary>
 /// <remarks>
 /// Pair every HTML body with a <c>text/plain</c> alternative on <see cref="MailRequest.TextBody"/>:
