@@ -90,6 +90,11 @@ internal sealed class UserProfileService(
         // the deleteCurrentImage path it must not remove the avatar with no database change.
         EnsureConcurrencyStampMatches(user, expectedConcurrencyStamps);
 
+        // The old blob is only deleted once the database write has gone through. UpdateAsync can
+        // still lose a race here — the If-Match check above is not the last word, because another
+        // writer can land between it and the save — and deleting first would leave AspNetUsers
+        // pointing at a blob that no longer exists, which no retry can repair.
+        string? replacedBlob = null;
         Uri imageUri = user.ImageUrl ?? null!;
         // image is optional: text-only edits forward a null FileUploadRequest, so guard before
         // dereferencing Data or the common no-image update path NREs.
@@ -99,12 +104,12 @@ internal sealed class UserProfileService(
             user.ImageUrl = new Uri(imageString, UriKind.RelativeOrAbsolute);
             if (deleteCurrentImage && imageUri != null)
             {
-                await storageService.RemoveAsync(imageUri.ToString(), cancellationToken);
+                replacedBlob = imageUri.ToString();
             }
         }
         else if (deleteCurrentImage && imageUri != null)
         {
-            await storageService.RemoveAsync(imageUri.ToString(), cancellationToken);
+            replacedBlob = imageUri.ToString();
             user.ImageUrl = null;
         }
 
@@ -130,6 +135,11 @@ internal sealed class UserProfileService(
             }
 
             throw new CustomException("Update profile failed");
+        }
+
+        if (replacedBlob is not null)
+        {
+            await storageService.RemoveAsync(replacedBlob, cancellationToken);
         }
 
         await signInManager.RefreshSignInAsync(user);

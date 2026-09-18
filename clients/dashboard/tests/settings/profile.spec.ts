@@ -289,4 +289,79 @@ test.describe("settings/profile — wired to PUT /identity/profile", () => {
     await expect(page.getByLabel("First name")).toHaveValue("Alice");
     await expect(page.getByLabel("Phone")).toHaveValue("");
   });
+
+  // A compressing edge re-encodes the response and downgrades the validator it forwards:
+  // Cloudflare does exactly this by default once Brotli/gzip is on. The endpoint only ever emits a
+  // strong tag, so a weak one reaching the client is a transport artefact — and echoing it back
+  // unchanged means the server drops it under the strong comparison If-Match mandates and answers
+  // 412 to every save, forever, on a profile nobody else is touching.
+  test("sends a strong If-Match even when the edge downgraded the ETag to a weak one", async ({
+    page,
+  }) => {
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({ status: 200, headers: { "Content-Type": "application/json" }, body: '""' });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { ...ETAG_CORS_HEADERS, ETag: 'W/"stamp-1"' },
+        body: JSON.stringify(PROFILE),
+      });
+    });
+
+    await page.goto("/settings/profile");
+    await expect(page.getByLabel("First name")).toHaveValue("Alice");
+    await page.getByLabel("First name").fill("Alicia");
+
+    const putReqPromise = page.waitForRequest(
+      (req) =>
+        req.url().includes("/api/v1/identity/profile") &&
+        req.method() === "PUT" &&
+        !req.url().includes("/image"),
+      { timeout: 5_000 },
+    );
+    await page.getByRole("button", { name: /save changes/i }).click();
+    const putReq = await putReqPromise;
+
+    expect(putReq.headers()["if-match"]).toBe('"stamp-1"');
+  });
+
+  // Setting the image is a second write to the same row, so Identity rotates the concurrency stamp.
+  // Without adopting the new version the next save carries the pre-image tag, gets a 412, and the
+  // user is told someone else edited their profile — on a profile only they touched.
+  test("a save after changing the avatar carries the tag the image write produced", async ({ page }) => {
+    let currentStamp = 1;
+    const sentIfMatch: string[] = [];
+
+    await page.route("**/api/v1/identity/profile/image", async (route) => {
+      currentStamp += 1;
+      await route.fulfill({ status: 200, headers: { "Content-Type": "application/json" }, body: '""' });
+    });
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const request = route.request();
+      if (request.method() === "PUT") {
+        sentIfMatch.push(request.headers()["if-match"] ?? "");
+        await route.fulfill({ status: 200, headers: { "Content-Type": "application/json" }, body: '""' });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { ...ETAG_CORS_HEADERS, ETag: `"stamp-${currentStamp}"` },
+        body: JSON.stringify({ ...PROFILE, imageUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" }),
+      });
+    });
+
+    await page.goto("/settings/profile");
+    await expect(page.getByLabel("First name")).toHaveValue("Alice");
+
+    await page.getByRole("button", { name: /^remove$/i }).click();
+    await expect(page.getByText(/profile image updated/i)).toBeVisible();
+
+    await page.getByLabel("First name").fill("Alicia");
+    await page.getByRole("button", { name: /save changes/i }).click();
+
+    await expect.poll(() => sentIfMatch).toEqual(['"stamp-2"']);
+  });
 });

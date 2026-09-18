@@ -134,9 +134,13 @@ export function ProfileSettings() {
 
   const imageMutation = useMutation({
     mutationFn: (url: string | null) => setProfileImage(url),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Profile image updated");
-      queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
+      // Setting the image is a second write to the same row, so ASP.NET Identity rotates the
+      // concurrency stamp and the tag this form is holding is spent. Adopting the new version (which
+      // also refreshes the cache, so the topbar avatar still updates) keeps the next save from
+      // answering 412 and telling the user someone else edited their profile.
+      await adoptCurrentVersion();
     },
     onError: (e: unknown) => {
       const message =

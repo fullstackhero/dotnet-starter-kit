@@ -412,7 +412,13 @@ export async function getMyProfileWithETag(): Promise<{ profile: UserDto; etag: 
   let etag: string | null = null;
   const profile = await apiFetch<UserDto>("/api/v1/identity/profile", {
     onResponse: (response) => {
-      etag = response.headers.get("ETag");
+      // Strip a `W/` prefix rather than pass it through. The endpoint only ever emits a strong
+      // validator, so a weak one is an artefact of the transport: a compressing edge (Cloudflare
+      // does this by default once it re-encodes a response) downgrades the tag it forwards. Sending
+      // it back as-is means the server drops it under the strong comparison `If-Match` mandates and
+      // answers 412 forever, which is a profile the user can never save.
+      const header = response.headers.get("ETag");
+      etag = header ? header.replace(/^W\//, "") : null;
     },
   });
   return { profile, etag };
