@@ -97,4 +97,108 @@ test.describe("format.ts", () => {
     await expect(page.getByText("1.234 organizações", { exact: true })).toBeVisible();
     await expect(page.getByText("1.234 organizações registradas nesta instância.")).toBeVisible();
   });
+
+  // `resolveLocale` reads `i18n.language` at call time, so a date formatted on a previous render
+  // keeps the old locale until something re-renders the component. Nothing in format.ts subscribes
+  // to `languageChanged`; what makes the switch reach a mounted list is that every component that
+  // formats also calls useTranslation, and that subscription is easy to drop in a refactor with no
+  // test noticing. Driving the real switcher against an already-rendered date is what notices.
+  test("reformats a date already on screen when the language changes under it", async ({ page }) => {
+    let invoiceReads = 0;
+    await page.route("**/api/v1/billing/invoices?*", async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.fallback();
+        return;
+      }
+      invoiceReads += 1;
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          paged([
+            {
+              id: "inv-1",
+              tenantId: "acme",
+              invoiceNumber: "INV-2026-0001",
+              periodYear: 2026,
+              periodMonth: 5,
+              currency: "USD",
+              subtotalAmount: 129.5,
+              status: "Draft",
+              // Midday UTC so the rendered day is May 1 whatever timezone the runner sits in.
+              createdAtUtc: "2026-05-01T12:00:00Z",
+              issuedAtUtc: null,
+              dueAtUtc: null,
+              paidAtUtc: null,
+              voidedAtUtc: null,
+              notes: null,
+              lineItems: [],
+            },
+          ]),
+        ),
+      });
+    });
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "u-test-1",
+          firstName: "Root",
+          lastName: "Admin",
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+    // The token re-mint is covered by switcher.spec.ts and is not what this asserts; it still has
+    // to succeed, because the failure path clears the session and takes the list off screen.
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      const b64url = (obj: unknown) =>
+        btoa(JSON.stringify(obj)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+      const now = Math.floor(Date.now() / 1000);
+      const token = [
+        b64url({ alg: "HS256", typ: "JWT" }),
+        b64url({
+          sub: "u-test-1",
+          email: TEST_USER.email,
+          name: "Root Admin",
+          tenant: "root",
+          locale: "pt-BR",
+          permissions: [...ADMIN_PERMS],
+          exp: now + 3600,
+          iat: now,
+        }),
+        "sig",
+      ].join(".");
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, refreshToken: "fresh-refresh-token" }),
+      });
+    });
+
+    await page.goto("/billing/invoices");
+
+    const main = page.getByRole("main");
+    await expect(main.getByText("INV-2026-0001", { exact: true })).toBeVisible({ timeout: 10_000 });
+    // "May 01, 2026" under en-US. The invoice date is the only date this list renders.
+    await expect(main).toContainText("May");
+
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+
+    // "01 de mai. de 2026". Not a remount: the route never changed and the list was read once.
+    await expect(main).toContainText("mai.");
+    await expect(main).not.toContainText("May");
+    expect(invoiceReads).toBe(1);
+  });
 });

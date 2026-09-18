@@ -9,7 +9,8 @@ import { mockJsonResponse } from "../helpers/api-mocks";
 // but nothing asserted that this app actually PUTS the operator's locale in the URL —
 // dropping `params.set("locale", …)` left every suite green. The dashboard cannot recover
 // the operator's language on its own: the server strips the target's `locale` claim, and
-// the two apps normally sit on different origins so `i18nextLng` is not shared.
+// the two apps normally sit on different origins, and each persists its language under its own
+// key (`fsh.admin.lng` / `fsh.dashboard.lng`), so neither can read the other's.
 //
 // window.open is stubbed rather than allowed to open a tab: the handoff URL is the thing
 // under test, and the real dashboard origin is not served in this suite.

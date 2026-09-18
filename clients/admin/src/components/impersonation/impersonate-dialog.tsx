@@ -453,7 +453,7 @@ function SelectedUserCard({
  * server deliberately strips the target's `locale` claim so the operator keeps
  * reading in their own language (StartImpersonationCommandHandler), but the
  * dashboard usually runs on a different origin and therefore cannot read this
- * app's persisted `i18nextLng`. Without this parameter the API culture falls
+ * app's persisted language (`fsh.admin.lng`). Without this parameter the API culture falls
  * through to the dashboard's own detected locale, so the shell would be in the
  * operator's language while API errors came back in another.
  */
