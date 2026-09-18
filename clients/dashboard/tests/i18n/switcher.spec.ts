@@ -327,3 +327,41 @@ test.describe("language switcher when the token re-mint fails", () => {
     expect(await page.evaluate(() => window.localStorage.getItem("fsh.dashboard.accessToken"))).not.toBeNull();
   });
 });
+
+// The UI switches on click and the save is what can fail. Without an onError the language
+// silently reverts on the next fresh mount, which reads as the app forgetting the choice.
+test.describe("language switcher when the save fails", () => {
+  test("the save failure is surfaced to the user", async ({ page }) => {
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({
+          status: 500,
+          headers: { "Content-Type": "application/problem+json" },
+          body: JSON.stringify({ status: 500, title: "Server Error" }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "u-test-1",
+          firstName: "Alice",
+          lastName: "Nguyen",
+          phoneNumber: "",
+          email: TEST_USER.email,
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+    // The switch still applies locally…
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    // …and the user is told it did not stick.
+    await expect(page.getByText("Idioma não salvo")).toBeVisible();
+  });
+});
