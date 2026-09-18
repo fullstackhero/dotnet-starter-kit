@@ -55,7 +55,9 @@ internal sealed class FrontendOriginResolver(
         // from the list) already surfaces loudly as a 400 to that SPA's own users.
         if (logger.IsEnabled(LogLevel.Debug))
         {
-            logger.LogDebug("Rejected front-end origin {Origin}: not in FrontendOptions:AllowedOrigins", header);
+            logger.LogDebug(
+                "Rejected front-end origin {Origin}: not in FrontendOptions:AllowedOrigins",
+                SanitizeForLog(header));
         }
         throw new CustomException(
             "The request origin is not an allowed front-end origin.",
@@ -83,6 +85,16 @@ internal sealed class FrontendOriginResolver(
             "No front-end origin is configured: set FrontendOptions:DefaultOrigin to the URL of the app that should receive these links.",
             errors: null,
             HttpStatusCode.InternalServerError);
+    }
+
+    // The header is caller-controlled, so it is truncated and stripped of line breaks before it
+    // reaches a text sink: a newline in it would otherwise forge log lines. Same treatment the
+    // global exception handler gives the request path.
+    private static string SanitizeForLog(string value)
+    {
+        var single = value.Replace("\r", string.Empty, StringComparison.Ordinal)
+            .Replace("\n", string.Empty, StringComparison.Ordinal);
+        return single.Length <= 200 ? single : single[..200];
     }
 
     private string? MatchAllowed(string header)

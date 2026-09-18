@@ -139,9 +139,10 @@ public static class Extensions
         builder.Services.AddOptions<SecurityHeadersOptions>().BindConfiguration(nameof(SecurityHeadersOptions));
 
         // Front-end origin resolution for user-facing links in e-mails/notifications. DefaultOrigin
-        // is not validated at startup on purpose: a deployment that never sends such a link must not
-        // be taken down by the setting. Unset, the resolver falls back to the API's own origin and
-        // UseHeroPlatform logs one Warning naming the setting and what degrades without it.
+        // is not validated with ValidateOnStart on purpose: a deployment that never sends such a
+        // link must not be taken down by the setting. There is no fallback tier — the resolver
+        // throws when it is unset — so UseHeroPlatform logs one Error at startup naming the setting
+        // and the flows that will answer 500 without it.
         builder.Services.AddOptions<FrontendOptions>().BindConfiguration(nameof(FrontendOptions));
         builder.Services.AddScoped<IFrontendOriginResolver, FrontendOriginResolver>();
 
@@ -269,10 +270,14 @@ public static class Extensions
                 app.Environment.EnvironmentName);
         }
 
-        if (!string.IsNullOrWhiteSpace(frontend.DefaultOrigin))
+        if (Uri.TryCreate(frontend.DefaultOrigin, UriKind.Absolute, out _))
         {
             return;
         }
+
+        // Absolute, not merely non-empty: "app.example.com" (no scheme, a common .env slip) binds
+        // fine and then every link in every e-mail is a relative URL no mail client makes clickable.
+        // Same failure class as an unset value, so it gets the same Error.
 
         // Error, not Warning: without a default there is nothing left to build these links out of.
         // The resolver used to fall back to the API origin and then to the request host; both are
