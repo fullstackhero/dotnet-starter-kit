@@ -158,8 +158,12 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
             services.AddSingleton<IStartupFilter, TestRemoteIpStartupFilter>();
 
             // The production TrustedProxyOptions read happens eagerly, before the test config overlay
-            // applies (same quirk as storage below), so bind the trusted upstream here instead. This
-            // exercises the real UseForwardedHeaders trust boundary against TestConstants.TrustedProxyIp.
+            // applies (same quirk as storage below), so bind the trusted upstream here instead. Note what
+            // that leaves these tests covering: overwriting the flags, the forward limit and both trust
+            // lists wholesale replaces whatever the TrustedProxyOptions binding produced, so what runs
+            // against TestConstants.TrustedProxyIp is the real middleware and the real placement of
+            // UseForwardedHeaders, not the binding that feeds them in production. That binding is gated
+            // separately, by Framework.Tests/Web/TrustedProxyOptionsBindingTests.
             services.PostConfigure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(forwarded =>
             {
                 forwarded.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
