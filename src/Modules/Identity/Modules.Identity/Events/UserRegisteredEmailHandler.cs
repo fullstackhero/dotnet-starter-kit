@@ -2,7 +2,6 @@ using FSH.Framework.Eventing.Abstractions;
 using FSH.Framework.Mailing;
 using FSH.Framework.Mailing.Services;
 using FSH.Modules.Identity.Contracts.Events;
-using FSH.Modules.Identity.Services;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Identity.Events;

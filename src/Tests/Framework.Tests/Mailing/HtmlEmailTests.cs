@@ -33,9 +33,12 @@ public sealed class HtmlEmailTests
     }
 
     [Fact]
-    public void Encode_Should_EncodeOnce_When_ValueIsAlreadyEscaped()
+    public void Encode_Should_TreatInputAsText_When_ItLooksLikeAnEntity()
     {
-        // Guards against a second pass turning &amp; into &amp;amp; and showing the entity to the user.
+        // The input is text, not markup, so "&amp;" is five characters a user typed and the ampersand
+        // has to be escaped like any other. Double-encoding is the correct answer here, not a bug —
+        // the previous name and comment claimed this test guarded against exactly what it asserts,
+        // which would invite someone to "fix" the encoder into leaving raw ampersands in the markup.
 
         // Act
         var encoded = HtmlEmail.Encode("Tom &amp; Jerry");

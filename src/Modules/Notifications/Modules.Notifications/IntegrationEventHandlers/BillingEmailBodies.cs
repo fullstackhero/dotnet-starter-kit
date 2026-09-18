@@ -101,10 +101,11 @@ internal static class BillingEmailBodies
     /// </summary>
     private static string Text(string heading, params string[] paragraphs)
     {
-        var lines = new List<string> { heading, string.Empty };
+        // The blank entries this used to add were filtered straight back out by the Join, which is
+        // what actually separates the paragraphs.
+        var lines = new List<string> { heading };
         lines.AddRange(paragraphs.Where(p => !string.IsNullOrWhiteSpace(p)));
-        lines.Add(string.Empty);
         lines.Add("This is an automated message.");
-        return string.Join(Environment.NewLine + Environment.NewLine, lines.Where(l => l.Length > 0));
+        return string.Join(Environment.NewLine + Environment.NewLine, lines);
     }
 }
