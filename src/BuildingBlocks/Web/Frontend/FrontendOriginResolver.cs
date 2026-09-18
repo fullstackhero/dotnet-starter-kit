@@ -34,7 +34,10 @@ internal sealed class FrontendOriginResolver(
             // No allow-list configured: there is nothing to validate the header against, so trust
             // the server-side default instead of rejecting. Browsers attach Origin to these POSTs
             // even same-origin, so matching an empty list would 400 every legitimate reset on the
-            // single-SPA and reverse-proxy topologies — and on the shipped Production config.
+            // single-SPA and reverse-proxy topologies. The shipped Production config reaches this
+            // branch because the dev origins live in appsettings.Development.json: an empty array in
+            // an environment overlay does NOT clear the base file's entries, so leaving them in
+            // appsettings.json put localhost in every production trust list (ShippedConfigurationTests).
             // The header is discarded, never echoed, so this cannot leak a client-chosen origin.
             return ResolveDefault();
         }
