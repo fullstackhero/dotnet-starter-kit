@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/format";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShieldOff } from "lucide-react";
@@ -154,7 +155,7 @@ function GrantSummary({ grant }: { grant: ImpersonationGrantDto }) {
         <span className="text-[var(--color-muted-foreground)]">{grant.reason || "—"}</span>
       </Row>
       <Row label={t("revokeDialog.summary.expires")}>
-        <code className="code-chip">{new Date(grant.expiresAtUtc).toLocaleString()}</code>
+        <code className="code-chip">{formatDateTime(grant.expiresAtUtc)}</code>
       </Row>
     </div>
   );

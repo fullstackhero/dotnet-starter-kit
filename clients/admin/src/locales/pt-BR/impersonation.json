@@ -83,5 +83,6 @@
   "card.description": "Operadores atualmente conectados como usuários desta organização. Revogar invalida imediatamente o token emitido; a aba do dashboard receberá 401 na próxima requisição.",
   "card.activeSession": "Sessão ativa",
   "card.viewOnly": "somente leitura",
-  "card.reopenTooltip": "Emita um novo token de personificação. Use quando você perdeu a aba original do dashboard."
+  "card.reopenTooltip": "Emita um novo token de personificação. Use quando você perdeu a aba original do dashboard.",
+  "card.window": "iniciada às {{started}} · expira às {{expires}}"
 }

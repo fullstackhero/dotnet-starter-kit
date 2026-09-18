@@ -39,7 +39,6 @@
   "detail.revokedAt": "Revoked at",
   "detail.revokedBy": "Revoked by",
   "detail.revokeReason": "Revoke reason",
-
   "dialog.title": "Impersonate user",
   "dialog.tenant": "Tenant",
   "dialog.descPick": "pick a user to impersonate.",
@@ -65,7 +64,6 @@
   "dialog.toast.startedDesc": "Opened the dashboard as {{name}}. End impersonation from inside the dashboard tab.",
   "dialog.toast.failed": "Impersonation failed",
   "dialog.unnamedUser": "Unnamed user",
-
   "revokeDialog.title": "Revoke impersonation grant",
   "revokeDialog.description": "The issued token will be rejected on the next authenticated request (within ~1 second of cache TTL). The session in the dashboard tab is killed without warning.",
   "revokeDialog.reasonLabel": "Reason (optional)",
@@ -81,10 +79,10 @@
   "revokeDialog.summary.startedBy": "Started by",
   "revokeDialog.summary.reason": "Reason",
   "revokeDialog.summary.expires": "Expires",
-
   "card.title": "Active impersonations",
   "card.description": "Operators currently signed in as users in this tenant. Revoking immediately invalidates the issued token; the dashboard tab will 401 on its next request.",
   "card.activeSession": "Active session",
   "card.viewOnly": "view-only",
-  "card.reopenTooltip": "Issue a fresh impersonation token — use when you lost the original dashboard tab."
+  "card.reopenTooltip": "Issue a fresh impersonation token — use when you lost the original dashboard tab.",
+  "card.window": "started {{started}} · expires {{expires}}"
 }

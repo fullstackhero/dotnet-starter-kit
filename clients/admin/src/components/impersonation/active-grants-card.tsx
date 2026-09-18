@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatTime } from "@/lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldOff, UserCog } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -150,8 +151,10 @@ function GrantRow({
           </Badge>
         </div>
         <div className="mt-0.5 truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-          started {new Date(g.startedAtUtc).toLocaleTimeString()} · expires{" "}
-          {new Date(g.expiresAtUtc).toLocaleTimeString()}
+          {t("card.window", {
+            started: formatTime(g.startedAtUtc),
+            expires: formatTime(g.expiresAtUtc),
+          })}
           {g.reason && <> · {truncate(g.reason, 80)}</>}
         </div>
       </div>

@@ -351,7 +351,7 @@ function PermissionEditor({ role, disabled }: { role: RoleDto; disabled: boolean
           const someOn = groupCount > 0 && groupCount < group.entries.length;
           return (
             <div
-              key={group.category}
+              key={t(`perm.group.${group.key}`, { defaultValue: group.category })}
               className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-muted)]/40 px-4 py-3">
@@ -365,7 +365,7 @@ function PermissionEditor({ role, disabled }: { role: RoleDto; disabled: boolean
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11.5px] text-[var(--color-muted-foreground)]">
-                    {group.blurb}
+                    {t(`perm.blurb.${group.key}`, { defaultValue: group.blurb })}
                   </p>
                 </div>
                 <button
@@ -428,7 +428,7 @@ function PermissionEditor({ role, disabled }: { role: RoleDto; disabled: boolean
                                 checked ? "text-[var(--color-foreground)]" : "text-[var(--color-muted-foreground)]",
                               )}
                             >
-                              {entry.description}
+                              {t(`perm.entry.${entry.name}`, { defaultValue: entry.description })}
                             </span>
                             {entry.root && (
                               <span className="rounded-full bg-[oklch(from_var(--color-warning)_l_c_h_/_0.16)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--color-warning)]">

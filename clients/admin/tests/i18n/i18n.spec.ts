@@ -100,3 +100,16 @@ test.describe("i18n", () => {
     expect(headers["accept-language"]).toBe("pt-BR");
   });
 });
+
+// The `languageChanged` listener that keeps html[lang] in sync had no test: deleting it left the
+// suite green while the PR claimed screen readers and browser translation now see the real
+// language.
+test.describe("document language", () => {
+  test("html[lang] follows the active locale", async ({ page }) => {
+    await page.goto("/?culture=pt-BR");
+    await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
+
+    await page.goto("/?culture=en-US");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en-US");
+  });
+});

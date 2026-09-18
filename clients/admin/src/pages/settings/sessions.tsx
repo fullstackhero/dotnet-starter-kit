@@ -228,7 +228,7 @@ function formatRelative(value: string | null | undefined, t: TFn): string {
   if (hr < 24) return t("relative.hoursAgo", { n: hr });
   const day = Math.round(hr / 24);
   if (day < 14) return t("relative.daysAgo", { n: day });
-  return d.toLocaleDateString();
+  return formatDate(d.toISOString());
 }
 
 function describe(err: unknown): string {

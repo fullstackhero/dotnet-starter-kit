@@ -61,4 +61,26 @@ test.describe("format.ts", () => {
     expect(out.dateBad).toBe("not-a-date");
     expect(out.curBad).toBe("10.00 NOTACUR");
   });
+
+  // Every assertion above passes an explicit locale, so `resolveLocale` — the branch every
+  // production call site actually takes — was never exercised: replacing it with `() => "en-US"`
+  // kept the spec green while pt-BR users saw 1,234,567.89.
+  test("formatters follow the active locale with no locale argument", async ({ page }) => {
+    await page.goto("/?culture=pt-BR");
+    // The profile-menu label is itself translated, so wait on something language-neutral.
+    await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
+
+    const out = await page.evaluate(async () => {
+      const formatModuleUrl = "/src/lib/format.ts";
+      const m = await import(/* @vite-ignore */ formatModuleUrl);
+      return {
+        num: m.formatNumber(1234567.89),
+        date: m.formatDate("2026-01-15T12:00:00Z"),
+      };
+    });
+
+    expect(out.num).toBe("1.234.567,89");
+    expect(out.date).toContain("2026");
+    expect(out.date).not.toMatch(/Jan\b/);
+  });
 });

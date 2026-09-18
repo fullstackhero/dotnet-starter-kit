@@ -27,6 +27,28 @@ export function formatCurrency(amount: number, currency: string, locale?: string
   }
 }
 
+/** Date and time under the active UI locale. `toLocaleString()` with no argument uses the
+ *  browser's locale instead, which puts 5/23/2026 next to Portuguese labels. */
+export function formatDateTime(iso?: string | null, locale?: string): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime())
+    ? iso
+    : new Intl.DateTimeFormat(resolveLocale(locale), {
+        dateStyle: "short",
+        timeStyle: "medium",
+      }).format(date);
+}
+
+/** Time of day under the active UI locale. */
+export function formatTime(iso?: string | null, locale?: string): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime())
+    ? iso
+    : new Intl.DateTimeFormat(resolveLocale(locale), { timeStyle: "medium" }).format(date);
+}
+
 export function formatDate(iso?: string | null, locale?: string): string {
   if (!iso) return "—";
   const date = new Date(iso);

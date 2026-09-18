@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatDateTime } from "@/lib/format";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Clock, RefreshCw, ShieldOff, UserCog } from "lucide-react";
@@ -308,11 +309,11 @@ function Details({ grant }: { grant: ImpersonationGrantDto }) {
       <DRow label={t("detail.actor")}><code className="code-chip">{grant.actorUserId}</code> @ {grant.actorTenantId}</DRow>
       <DRow label={t("detail.impersonated")}><code className="code-chip">{grant.impersonatedUserId}</code></DRow>
       {grant.endedAtUtc && (
-        <DRow label={t("detail.endedAt")}>{new Date(grant.endedAtUtc).toLocaleString()}</DRow>
+        <DRow label={t("detail.endedAt")}>{formatDateTime(grant.endedAtUtc)}</DRow>
       )}
       {grant.revokedAtUtc && (
         <>
-          <DRow label={t("detail.revokedAt")}>{new Date(grant.revokedAtUtc).toLocaleString()}</DRow>
+          <DRow label={t("detail.revokedAt")}>{formatDateTime(grant.revokedAtUtc)}</DRow>
           <DRow label={t("detail.revokedBy")}>{grant.revokedByUserName ?? grant.revokedByUserId ?? "—"}</DRow>
           <DRow label={t("detail.revokeReason")} wide>
             <span className="text-[var(--color-muted-foreground)]">{grant.revokeReason || "—"}</span>
