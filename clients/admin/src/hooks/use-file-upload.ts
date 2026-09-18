@@ -276,7 +276,9 @@ function xhrPut(
  */
 export function describeUploadError(e: unknown, t: TFunction, fallback?: string): string {
   if (e instanceof UploadError) {
-    return t(e.messageKey, { ...e.params, defaultValue: e.messageKey });
+    // No defaultValue: it would render the key itself ("common:upload.cancelled") if the catalog
+    // ever lost the entry. Falling through to the missing-key handler gives "Cancelled" instead.
+    return t(e.messageKey, { ...e.params });
   }
 
   if (e instanceof ApiRequestError) {
