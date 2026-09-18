@@ -72,11 +72,15 @@ export function ProfileSettings() {
 
   const saveMutation = useMutation({
     mutationFn: updateMyProfile,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Profile saved");
       // The save moved the profile on, so the tag the form holds is spent: adopt the new one or
-      // a second save in the same sitting would 412 against the user's own write.
-      void adoptCurrentVersion();
+      // a second save in the same sitting would 412 against the user's own write. Awaited rather
+      // than fire-and-forget: isPending has to stay true until the new tag is in hand, or the
+      // button re-enables over a spent one and a quick second click 412s against the user's own
+      // save. It also keeps a failed refetch from becoming an unhandled rejection that would
+      // strand the form on a tag the server has already rejected.
+      await adoptCurrentVersion();
     },
     onError: async (err: unknown) => {
       // 412 means someone else wrote the profile after this form was seeded. Do NOT resend: the

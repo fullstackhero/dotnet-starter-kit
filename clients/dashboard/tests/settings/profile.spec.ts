@@ -364,4 +364,26 @@ test.describe("settings/profile — wired to PUT /identity/profile", () => {
 
     await expect.poll(() => sentIfMatch).toEqual(['"stamp-2"']);
   });
+
+  // Without the profile read there is no ETag and no unedited-field values, so a save would either
+  // be a silent no-op or blank the fields it cannot see. The button is disabled and says why —
+  // which nothing exercised, so re-enabling it would not have failed anything.
+  test("saving is disabled while the profile read is failing", async ({ page }) => {
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          status: 500,
+          headers: { "Content-Type": "application/problem+json" },
+          body: JSON.stringify({ status: 500, title: "Server Error" }),
+        });
+        return;
+      }
+      throw new Error("no write may be attempted while the read is failing");
+    });
+
+    await page.goto("/settings/profile");
+
+    await expect(page.getByText(/saving is disabled/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /save changes/i })).toBeDisabled();
+  });
 });
