@@ -67,6 +67,9 @@
   <data name="Error.Unauthorized" xml:space="preserve">
     <value>Unauthorized</value>
   </data>
+  <data name="Error.AuthenticationRequired" xml:space="preserve">
+    <value>Authentication is required to access this resource.</value>
+  </data>
   <data name="Error.NotFound" xml:space="preserve">
     <value>Not Found</value>
   </data>

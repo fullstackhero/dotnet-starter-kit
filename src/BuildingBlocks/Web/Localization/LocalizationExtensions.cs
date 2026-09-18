@@ -47,7 +47,7 @@ public static class LocalizationExtensions
             // React apps already format at the presentation layer. See #1344 review.
             o.DefaultRequestCulture = new RequestCulture(CultureInfo.InvariantCulture, new CultureInfo(defaultCulture));
             o.SupportedCultures = null;
-            o.AddSupportedUICultures(SupportedCultures.Tags);
+            o.AddSupportedUICultures([.. SupportedCultures.Tags]);
             o.ApplyCurrentCultureToResponseHeaders = true;
 
             // Default order is [Query(0), Cookie(1), AcceptLanguage(2)]. Drop the cookie provider by
