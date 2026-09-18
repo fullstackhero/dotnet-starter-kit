@@ -29,6 +29,14 @@ public sealed class TrustedProxyOptions
     /// which yields the nearest proxy's IP (or an attacker-injected value) in a multi-hop topology.
     /// Must be at least 1: anything lower is rejected at startup, since 0 would silently stop
     /// forwarded-header processing and a negative value would fail every request.
+    /// <para>
+    /// Setting it higher than the real hop count is what turns this into a vulnerability: the
+    /// middleware trusts one entry per hop, counting from the right, and only the peer itself is
+    /// checked against the trust list. A limit of 2 with a single proxy in front means the value the
+    /// proxy appended is discarded in favour of the one the client sent, so the caller picks its own
+    /// RemoteIpAddress and every IP-based rate limit and audit entry follows it. Count the proxies
+    /// that actually rewrite the header, not the ones in the diagram.
+    /// </para>
     /// </summary>
     public int ForwardLimit { get; init; } = 1;
 }
