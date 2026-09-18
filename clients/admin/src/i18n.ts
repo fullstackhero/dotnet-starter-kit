@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
+import { missingKeyFallback } from "@/lib/i18n-fallback";
 import enCommon from "@/locales/en-US/common.json";
 import ptCommon from "@/locales/pt-BR/common.json";
 import enNav from "@/locales/en-US/nav.json";
@@ -100,16 +101,14 @@ export function initI18n(deploymentDefault: string) {
       supportedLngs: [...SUPPORTED],
       defaultNS: "common",
       interpolation: { escapeValue: false },
-      // Several keys are built from a server value (`status.${x}`), so a value the catalog has not
-      // caught up with would render the key itself on screen ("status.invoiced"). Degrade to the
-      // last segment instead, which is the readable name the UI showed before it was localized,
-      // and make the gap loud in development.
-      parseMissingKeyHandler: (key: string) => {
+      // A key the catalog has not caught up with must not render as itself ("status.invoiced") or
+      // swallow the caller's English fallback. Both rules live in missingKeyFallback, which the
+      // suite exercises directly; this only adds the development warning.
+      parseMissingKeyHandler: (key: string, defaultValue?: string | null) => {
         if (import.meta.env.DEV) {
           console.warn(`[i18n] missing key: ${key}`);
         }
-        const segment = key.split(/[.:]/).pop() ?? key;
-        return segment.charAt(0).toUpperCase() + segment.slice(1);
+        return missingKeyFallback(key, defaultValue);
       },
       detection: {
         // NO cookie — localStorage only (the library default; key i18nextLng).
