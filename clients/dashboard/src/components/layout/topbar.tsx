@@ -231,9 +231,16 @@ export function Topbar() {
     onSuccess: () => {
       // Re-mint the JWT so the fresh `locale` claim is issued. The UI already
       // switched client-side; without this, backend-generated strings lag
-      // behind until the next natural token refresh. Best-effort: a refresh
-      // failure must not undo the language switch.
-      void refreshAccessToken().catch(() => undefined);
+      // behind until the next natural token refresh. Best-effort: the refresh no
+      // longer ends the session when it fails, so the switch survives and the
+      // failure is reported instead of swallowed.
+      void refreshAccessToken().catch((error: unknown) => {
+        console.warn(
+          "[i18n] locale saved, but re-minting the token failed — backend strings stay " +
+            "in the previous language until the next successful refresh.",
+          error,
+        );
+      });
     },
   });
 

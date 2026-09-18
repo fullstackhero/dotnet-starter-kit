@@ -259,8 +259,71 @@ test.describe("language switcher during impersonation", () => {
     // The switch still applies client-side…
     await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
     // …but nothing was written to the impersonated user, and no token re-mint
-    // fired (the locale claim belongs to the operator's own session).
+    // fired (the locale claim belongs to the operator's own session). Both are
+    // negatives about requests that would be issued asynchronously, so they only
+    // mean something once the network has settled: asserted right after the label
+    // flips, they would pass even against code that does persist.
+    await page.waitForLoadState("networkidle");
     expect(putSeen).toBe(false);
     expect(refreshCalled).toBe(false);
+  });
+});
+
+// Regression (session loss): the re-mint is speculative, so its failure must stay
+// invisible to the session. Before the fix, refreshAccessToken() cleared the token
+// store on any non-ok response, tokenStore.subscribe pushed setUser(null), and
+// ProtectedRoute redirected to /login — the user lost their session for choosing a
+// language.
+test.describe("language switcher when the token re-mint fails", () => {
+  test("keeps the session and the new language", async ({ page }) => {
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: "u-test-1",
+            firstName: "Alice",
+            lastName: "Nguyen",
+            phoneNumber: "",
+            email: TEST_USER.email,
+            isActive: true,
+            emailConfirmed: true,
+            locale: "en-US",
+          }),
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    // The refresh token is dead (revoked, rotated by another tab, DB reseeded).
+    let refreshCalled = false;
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      refreshCalled = true;
+      await route.fulfill({
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: 401, title: "Unauthorized" }),
+      });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    await expect.poll(() => refreshCalled).toBe(true);
+    // The redirect this guards against is a client-side route change with no
+    // network of its own, so it cannot be awaited directly; networkidle gives the
+    // failed refresh and everything it triggers time to settle first.
+    await page.waitForLoadState("networkidle");
+
+    expect(new URL(page.url()).pathname).not.toBe("/login");
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => window.localStorage.getItem("fsh.dashboard.accessToken"))).not.toBeNull();
   });
 });
