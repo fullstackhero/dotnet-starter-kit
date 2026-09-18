@@ -96,7 +96,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          for proj in Architecture Auditing Caching Generic Identity Multitenancy Billing Catalog Chat Files Framework Webhooks; do
+          for proj in Architecture Auditing Caching Generic Identity Multitenancy Billing Catalog Chat Files Framework Tickets Webhooks; do
             echo "::group::${proj}.Tests"
             dotnet test "src/Tests/${proj}.Tests" -c Release --no-build \
               --collect:"XPlat Code Coverage" --settings coverage.runsettings \
