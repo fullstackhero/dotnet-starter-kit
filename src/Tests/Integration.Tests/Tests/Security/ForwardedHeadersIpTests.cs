@@ -67,8 +67,10 @@ public sealed class ForwardedHeadersIpTests
             "passes vacuously, satisfied by forwarded headers never being processed at all.");
     }
 
-    private async Task<string?> IssueTokenAndReadSessionIpAsync(string connectionIp, string forwardedFor)
+    private async Task<string> IssueTokenAndReadSessionIpAsync(string connectionIp, string forwardedFor)
     {
+        var before = (await ReadSessionsAsync()).Select(s => s.Id).ToHashSet();
+
         using var client = _factory.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
         request.Headers.Add("tenant", TestConstants.RootTenantId);
@@ -83,10 +85,16 @@ public sealed class ForwardedHeadersIpTests
         using var response = await client.SendAsync(request);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        return await GetNewestSessionIpAsync();
+        // Reading "the newest session" would rank rows by a CreatedAt that two token issues in this
+        // collection can land on the same tick of, and Id is a random Guid, so a tiebreak on it picks
+        // deterministically but not necessarily correctly. The row this request created is the one that
+        // was not there before it, and asserting there is exactly one says so instead of assuming it.
+        var created = (await ReadSessionsAsync()).Where(s => !before.Contains(s.Id)).ToList();
+
+        return created.ShouldHaveSingleItem().IpAddress;
     }
 
-    private async Task<string?> GetNewestSessionIpAsync()
+    private async Task<List<SessionRow>> ReadSessionsAsync()
     {
         using var scope = _factory.Services.CreateScope();
 
@@ -96,11 +104,11 @@ public sealed class ForwardedHeadersIpTests
             new MultiTenantContext<AppTenantInfo>(tenant);
 
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        var session = await db.UserSessions
+        return await db.UserSessions
             .AsNoTracking()
-            .OrderByDescending(s => s.CreatedAt)
-            .FirstOrDefaultAsync();
-
-        return session?.IpAddress;
+            .Select(s => new SessionRow(s.Id, s.IpAddress))
+            .ToListAsync();
     }
+
+    private sealed record SessionRow(Guid Id, string IpAddress);
 }
