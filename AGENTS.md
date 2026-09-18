@@ -104,6 +104,7 @@ Single long-lived branch: **`main`** (the default) — there is **no `develop`**
 | CORS, security headers, rate limiting, idempotency, quotas | `security.md` |
 | SignalR / SSE backend | `realtime.md` |
 | Logging, correlation, OpenTelemetry | `logging.md` |
+| Localization (i18n), request culture, resource catalogs, localized exceptions | `localization.md` |
 | Unit test conventions, NetArchTest | `testing.md` |
 | Integration tests (Testcontainers harness + gotchas) | `integration-testing.md` |
 | **Modifying `src/BuildingBlocks`** (read first — it's protected) | `buildingblocks-protection.md` |

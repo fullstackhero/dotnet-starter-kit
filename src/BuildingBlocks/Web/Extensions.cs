@@ -9,6 +9,7 @@ using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
 using FSH.Framework.Web.FeatureFlags;
 using FSH.Framework.Web.Idempotency;
+using FSH.Framework.Web.Localization;
 using FSH.Framework.Web.Sse;
 using FSH.Framework.Web.Health;
 using FSH.Framework.Web.Mediator.Behaviors;
@@ -129,6 +130,7 @@ public static class Extensions
             builder.Services.AddHeroQuotas(builder.Configuration);
         }
 
+        builder.Services.AddHeroLocalization(builder.Configuration);
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         builder.Services.AddProblemDetails();
@@ -184,6 +186,10 @@ public static class Extensions
         }
 
         app.UseAuthentication();
+
+        // Must run after UseAuthentication so the user-locale-claim provider sees HttpContext.User,
+        // and before UseAuthorization/endpoints so the request culture is set for the handlers.
+        app.UseHeroLocalization();
 
         // Let each module register its own middleware (e.g. Auditing registers AuditHttpMiddleware)
         app.UseModuleMiddlewares();

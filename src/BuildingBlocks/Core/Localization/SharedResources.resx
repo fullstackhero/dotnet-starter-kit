@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Error.Validation" xml:space="preserve">
+    <value>One or more validation errors occurred.</value>
+  </data>
+  <data name="Error.Validation.Detail" xml:space="preserve">
+    <value>One or more validation errors occurred.</value>
+  </data>
+  <data name="Error.Unauthorized" xml:space="preserve">
+    <value>Unauthorized</value>
+  </data>
+  <data name="Error.NotFound" xml:space="preserve">
+    <value>Not Found</value>
+  </data>
+  <data name="Error.BadRequest" xml:space="preserve">
+    <value>Bad Request</value>
+  </data>
+  <data name="Error.Conflict" xml:space="preserve">
+    <value>Conflict</value>
+  </data>
+  <data name="Error.Forbidden" xml:space="preserve">
+    <value>Forbidden</value>
+  </data>
+  <data name="Error.NoCurrentUser" xml:space="preserve">
+    <value>No authenticated user.</value>
+  </data>
+  <data name="Error.InvalidTenant" xml:space="preserve">
+    <value>Invalid or missing tenant.</value>
+  </data>
+  <data name="Error.TenantContextRequired" xml:space="preserve">
+    <value>Tenant context is required.</value>
+  </data>
+  <data name="Error.Unexpected" xml:space="preserve">
+    <value>An unexpected error occurred</value>
+  </data>
+  <data name="Error.Unexpected.Detail" xml:space="preserve">
+    <value>An unexpected error occurred. Please try again later.</value>
+  </data>
+  <data name="Error.AppBoundary" xml:space="preserve">
+    <value>App boundary</value>
+  </data>
+  <data name="Error.AppBoundary.Detail" xml:space="preserve">
+    <value>SuperAdmin accounts must use the admin app. Sign in there instead of the tenant dashboard.</value>
+  </data>
+  <data name="Error.AuthenticationFailed" xml:space="preserve">
+    <value>Authentication failed.</value>
+  </data>
+  <data name="Error.ForbiddenAccess" xml:space="preserve">
+    <value>Unauthorized access.</value>
+  </data>
+  <data name="Storage.QuotaExceeded" xml:space="preserve">
+    <value>Storage quota exceeded ({0}/{1} bytes).</value>
+  </data>
+  <data name="Validation.ImpersonationTakeRange" xml:space="preserve">
+    <value>Take must be between 1 and {0}.</value>
+  </data>
+  <data name="Validation.ImpersonationDurationRange" xml:space="preserve">
+    <value>Duration must be between 1 and {0} minutes.</value>
+  </data>
+  <data name="Validation.AllowedExtensions" xml:space="preserve">
+    <value>Only these extensions are allowed: {0}</value>
+  </data>
+  <data name="Validation.MaxFileSize" xml:space="preserve">
+    <value>File must be &lt;= {0} MB.</value>
+  </data>
+  <data name="Jobs.DatabaseOptionsNotFound" xml:space="preserve">
+    <value>Database options not found.</value>
+  </data>
+  <data name="Jobs.UnsupportedStorageProvider" xml:space="preserve">
+    <value>Hangfire storage provider {0} is not supported.</value>
+  </data>
+  <data name="Validation.UserIdRequired" xml:space="preserve">
+    <value>User ID is required.</value>
+  </data>
+  <data name="Validation.ImageUploadDeleteConflict" xml:space="preserve">
+    <value>You cannot upload a new image and delete the current one simultaneously.</value>
+  </data>
+  <data name="Validation.UnsupportedLocale" xml:space="preserve">
+    <value>Unsupported locale.</value>
+  </data>
+  <data name="Validation.GroupIdRequired" xml:space="preserve">
+    <value>Group ID is required.</value>
+  </data>
+  <data name="Validation.AtLeastOneUserIdRequired" xml:space="preserve">
+    <value>At least one user ID is required.</value>
+  </data>
+  <data name="Validation.UserIdsNotEmptyOrWhitespace" xml:space="preserve">
+    <value>User IDs cannot be empty or whitespace.</value>
+  </data>
+  <data name="Validation.GroupNameRequired" xml:space="preserve">
+    <value>Group name is required.</value>
+  </data>
+  <data name="Validation.GroupNameMaxLength" xml:space="preserve">
+    <value>Group name must not exceed 256 characters.</value>
+  </data>
+  <data name="Validation.DescriptionMaxLength" xml:space="preserve">
+    <value>Description must not exceed 1024 characters.</value>
+  </data>
+  <data name="Validation.RoleIdRequired" xml:space="preserve">
+    <value>Role ID is required.</value>
+  </data>
+  <data name="Validation.RoleNameRequired" xml:space="preserve">
+    <value>Role name is required.</value>
+  </data>
+  <data name="Validation.PageNumberMinimum" xml:space="preserve">
+    <value>Page number must be greater than or equal to 1.</value>
+  </data>
+  <data name="Validation.PageSizeMinimum" xml:space="preserve">
+    <value>Page size must be greater than or equal to 1.</value>
+  </data>
+  <data name="Validation.PageSizeRange" xml:space="preserve">
+    <value>Page size must be between 1 and 100.</value>
+  </data>
+  <data name="Validation.SortMaxLength" xml:space="preserve">
+    <value>Sort expression must not exceed 200 characters.</value>
+  </data>
+  <data name="Validation.SessionIdRequired" xml:space="preserve">
+    <value>Session ID is required.</value>
+  </data>
+  <data name="Validation.ReasonMaxLength" xml:space="preserve">
+    <value>Reason must not exceed 500 characters.</value>
+  </data>
+  <data name="Validation.UserRolesRequired" xml:space="preserve">
+    <value>User roles list is required.</value>
+  </data>
+  <data name="Validation.ConfirmationCodeRequired" xml:space="preserve">
+    <value>Confirmation code is required.</value>
+  </data>
+  <data name="Validation.TenantRequired" xml:space="preserve">
+    <value>Tenant is required.</value>
+  </data>
+  <data name="Validation.CurrentPasswordRequired" xml:space="preserve">
+    <value>Current password is required.</value>
+  </data>
+  <data name="Validation.NewPasswordRequired" xml:space="preserve">
+    <value>New password is required.</value>
+  </data>
+  <data name="Validation.NewPasswordMustDiffer" xml:space="preserve">
+    <value>New password must be different from the current password.</value>
+  </data>
+  <data name="Validation.PasswordRecentlyUsed" xml:space="preserve">
+    <value>This password has been used recently. Please choose a different password.</value>
+  </data>
+  <data name="Validation.PasswordsDoNotMatch" xml:space="preserve">
+    <value>Passwords do not match.</value>
+  </data>
+  <data name="Validation.FirstNameRequired" xml:space="preserve">
+    <value>First name is required.</value>
+  </data>
+  <data name="Validation.FirstNameMaxLength" xml:space="preserve">
+    <value>First name must not exceed 100 characters.</value>
+  </data>
+  <data name="Validation.LastNameRequired" xml:space="preserve">
+    <value>Last name is required.</value>
+  </data>
+  <data name="Validation.LastNameMaxLength" xml:space="preserve">
+    <value>Last name must not exceed 100 characters.</value>
+  </data>
+  <data name="Validation.EmailRequired" xml:space="preserve">
+    <value>Email is required.</value>
+  </data>
+  <data name="Validation.EmailInvalid" xml:space="preserve">
+    <value>A valid email address is required.</value>
+  </data>
+  <data name="Validation.UsernameRequired" xml:space="preserve">
+    <value>Username is required.</value>
+  </data>
+  <data name="Validation.UsernameMinLength" xml:space="preserve">
+    <value>Username must be at least 3 characters.</value>
+  </data>
+  <data name="Validation.UsernameMaxLength" xml:space="preserve">
+    <value>Username must not exceed 50 characters.</value>
+  </data>
+  <data name="Validation.PasswordRequired" xml:space="preserve">
+    <value>Password is required.</value>
+  </data>
+  <data name="Validation.PasswordMinLength" xml:space="preserve">
+    <value>Password must be at least 6 characters.</value>
+  </data>
+  <data name="Validation.PasswordConfirmationRequired" xml:space="preserve">
+    <value>Password confirmation is required.</value>
+  </data>
+  <data name="Validation.PhoneNumberMaxLength" xml:space="preserve">
+    <value>Phone number must not exceed 20 characters.</value>
+  </data>
+</root>

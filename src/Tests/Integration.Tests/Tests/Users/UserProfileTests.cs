@@ -111,6 +111,43 @@ public sealed class UserProfileTests
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task UpdateProfile_Should_KeepChosenLocale_When_BodyCarriesAnEmptyLocale()
+    {
+        // Arrange — the validator reads an empty locale as "not provided" (its rule is
+        // guarded by .When(!IsNullOrWhiteSpace)), so an edit that serialises the field as
+        // "" must leave the language the user already picked alone.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var user = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "upd-locale");
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(user.Email, user.Password);
+
+        var chosen = await userClient.PutAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/profile", new
+            {
+                firstName = "Ana",
+                lastName = "Souza",
+                locale = "pt-BR"
+            });
+        chosen.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // Act — a text-only edit whose form serialises the untouched locale field as "".
+        var response = await userClient.PutAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/profile", new
+            {
+                firstName = "Ana Maria",
+                lastName = "Souza",
+                locale = ""
+            });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var profile = await userClient.GetAsync($"{TestConstants.IdentityBasePath}/profile");
+        var dto = await profile.DeserializeAsync<UserDto>();
+        dto.FirstName.ShouldBe("Ana Maria");
+        dto.Locale.ShouldBe("pt-BR");
+    }
+
     #endregion
 
     #region SetProfileImage (PUT /profile/image)

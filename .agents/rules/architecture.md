@@ -81,8 +81,9 @@ In `src/BuildingBlocks/Web/Extensions.cs` (`UseHeroPlatform`):
 2. **CORS before HTTPS redirect** (so OPTIONS preflight isn't 307-redirected)
 3. HttpsRedirection → SecurityHeaders → static files → Routing
 4. **`UseAuthentication`**
-5. **`UseModuleMiddlewares`** — each module's `ConfigureMiddleware`, runs **after** auth
-6. RateLimiting → Quotas → `UseAuthorization` → `MapModules`
+5. **`UseHeroLocalization`** — request localization, sits **between `UseAuthentication` and `UseAuthorization`** so the user-`locale`-claim culture provider can read `HttpContext.User`
+6. **`UseModuleMiddlewares`** — each module's `ConfigureMiddleware`, runs **after** auth
+7. RateLimiting → Quotas → `UseAuthorization` → `MapModules`
 
 `app.UseHeroMultiTenantDatabases()` (Finbuckle `UseMultiTenant()`) runs in `Program.cs` **before** `UseHeroPlatform`, i.e. **before `UseAuthentication`** — so tenant resolution is header-driven, not claim-driven. See `modules/multitenancy.md`.
 

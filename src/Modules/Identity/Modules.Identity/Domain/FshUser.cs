@@ -15,6 +15,9 @@ public class FshUser : IdentityUser, IHasDomainEvents
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenExpiryTime { get; set; }
 
+    /// <summary>BCP 47 UI language tag (e.g. "pt-BR"); null resolves to the default culture.</summary>
+    public string? Locale { get; set; }
+
     public string? ObjectId { get; set; }
 
     /// <summary>Timestamp when the user last changed their password</summary>

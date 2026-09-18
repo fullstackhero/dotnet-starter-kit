@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Identity.GroupNotFound" xml:space="preserve">
+    <value>Group with ID '{0}' not found.</value>
+  </data>
+  <data name="Identity.UsersNotFound" xml:space="preserve">
+    <value>Users not found: {0}</value>
+  </data>
+  <data name="Identity.GroupNameAlreadyExists" xml:space="preserve">
+    <value>Group with name '{0}' already exists.</value>
+  </data>
+  <data name="Identity.RolesNotFoundWithIds" xml:space="preserve">
+    <value>Roles not found: {0}</value>
+  </data>
+  <data name="Identity.SystemGroupsCannotBeDeleted" xml:space="preserve">
+    <value>System groups cannot be deleted.</value>
+  </data>
+  <data name="Identity.UserNotMemberOfGroup" xml:space="preserve">
+    <value>User '{0}' is not a member of group '{1}'.</value>
+  </data>
+  <data name="Identity.CannotRemoveFromDefaultGroup" xml:space="preserve">
+    <value>Users cannot be removed from a default group.</value>
+  </data>
+  <data name="Identity.SystemGroupsCannotBeModified" xml:space="preserve">
+    <value>System groups cannot be modified.</value>
+  </data>
+  <data name="Identity.RoleNotFound" xml:space="preserve">
+    <value>Role not found.</value>
+  </data>
+  <data name="Identity.RolesNotFound" xml:space="preserve">
+    <value>Roles not found.</value>
+  </data>
+  <data name="Identity.SystemRoleCannotBeModified" xml:space="preserve">
+    <value>System roles cannot be modified.</value>
+  </data>
+  <data name="Identity.CannotRenameToSystemRole" xml:space="preserve">
+    <value>Cannot rename a role to a system role's name.</value>
+  </data>
+  <data name="Identity.CannotCreateWithSystemRoleName" xml:space="preserve">
+    <value>Cannot create a role using a system role's name.</value>
+  </data>
+  <data name="Identity.SystemRolesCannotBeDeleted" xml:space="preserve">
+    <value>System roles cannot be deleted.</value>
+  </data>
+  <data name="Identity.SystemRolePermissionsManaged" xml:space="preserve">
+    <value>System role permissions are managed by the framework and cannot be modified.</value>
+  </data>
+  <data name="Identity.OperationFailed" xml:space="preserve">
+    <value>Operation failed.</value>
+  </data>
+  <data name="Identity.NotAnImpersonationSession" xml:space="preserve">
+    <value>Current session is not an impersonation session.</value>
+  </data>
+  <data name="Identity.OriginalActorNotFound" xml:space="preserve">
+    <value>Original actor not found.</value>
+  </data>
+  <data name="Identity.ImpersonationGrantNotFound" xml:space="preserve">
+    <value>Impersonation grant not found.</value>
+  </data>
+  <data name="Identity.CrossTenantImpersonationRestricted" xml:space="preserve">
+    <value>Cross-tenant impersonation is restricted to platform operators.</value>
+  </data>
+  <data name="Identity.CannotImpersonateYourself" xml:space="preserve">
+    <value>Cannot impersonate yourself.</value>
+  </data>
+  <data name="Identity.EndImpersonationFirst" xml:space="preserve">
+    <value>End current impersonation before starting a new one.</value>
+  </data>
+  <data name="Identity.TargetUserNotFound" xml:space="preserve">
+    <value>Target user not found.</value>
+  </data>
+  <data name="Identity.UserNotFound" xml:space="preserve">
+    <value>User not found.</value>
+  </data>
+  <data name="Identity.UserNotFoundById" xml:space="preserve">
+    <value>User {0} not found.</value>
+  </data>
+  <data name="Identity.CurrentPasswordIncorrect" xml:space="preserve">
+    <value>Current password is incorrect.</value>
+  </data>
+  <data name="Identity.FailedToGenerateAuthenticatorKey" xml:space="preserve">
+    <value>Failed to generate authenticator key.</value>
+  </data>
+  <data name="Identity.AuthenticatorCodeInvalid" xml:space="preserve">
+    <value>The authenticator code is invalid.</value>
+  </data>
+  <data name="Identity.InvalidRefreshToken" xml:space="preserve">
+    <value>Invalid refresh token.</value>
+  </data>
+  <data name="Identity.SessionRevoked" xml:space="preserve">
+    <value>Session has been revoked.</value>
+  </data>
+  <data name="Identity.AccessTokenSubjectMismatch" xml:space="preserve">
+    <value>Access token subject mismatch.</value>
+  </data>
+  <data name="Identity.TwoFactorRequired" xml:space="preserve">
+    <value>two_factor_required: An authenticator code is required to complete sign-in.</value>
+  </data>
+  <data name="Identity.TwoFactorInvalid" xml:space="preserve">
+    <value>two_factor_invalid: The authenticator code is invalid or expired.</value>
+  </data>
+  <data name="Identity.AccountLocked" xml:space="preserve">
+    <value>Account is temporarily locked due to too many failed login attempts. Try again later.</value>
+  </data>
+  <data name="Identity.RefreshTokenInvalidOrExpired" xml:space="preserve">
+    <value>Refresh token is invalid or expired.</value>
+  </data>
+  <data name="Identity.UserDeactivated" xml:space="preserve">
+    <value>User is deactivated.</value>
+  </data>
+  <data name="Identity.EmailNotConfirmed" xml:space="preserve">
+    <value>Email not confirmed.</value>
+  </data>
+  <data name="Identity.TenantDeactivated" xml:space="preserve">
+    <value>Tenant {0} is deactivated.</value>
+  </data>
+  <data name="Identity.TenantValidityExpired" xml:space="preserve">
+    <value>Tenant {0} validity has expired.</value>
+  </data>
+  <data name="Identity.ErrorResettingPassword" xml:space="preserve">
+    <value>Error resetting password.</value>
+  </data>
+  <data name="Identity.FailedToChangePassword" xml:space="preserve">
+    <value>Failed to change password.</value>
+  </data>
+  <data name="Identity.UpdateProfileFailed" xml:space="preserve">
+    <value>Update profile failed.</value>
+  </data>
+  <data name="Identity.UpdateProfileImageFailed" xml:space="preserve">
+    <value>Update profile image failed.</value>
+  </data>
+  <data name="Identity.EmailConfirmationError" xml:space="preserve">
+    <value>An error occurred while confirming E-Mail.</value>
+  </data>
+  <data name="Identity.EmailConfirmationFailedFor" xml:space="preserve">
+    <value>An error occurred while confirming {0}.</value>
+  </data>
+  <data name="Identity.EmailConfirmationFailedWithErrors" xml:space="preserve">
+    <value>An error occurred while confirming the email for {0}: {1}</value>
+  </data>
+  <data name="Identity.EmailAlreadyConfirmed" xml:space="preserve">
+    <value>The email for {0} is already confirmed.</value>
+  </data>
+  <data name="Identity.PhoneConfirmationError" xml:space="preserve">
+    <value>An error occurred while confirming phone number.</value>
+  </data>
+  <data name="Identity.PhoneConfirmationFailedFor" xml:space="preserve">
+    <value>An error occurred while confirming phone number {0}.</value>
+  </data>
+  <data name="Identity.EmailClaimRequired" xml:space="preserve">
+    <value>Email claim is required for external authentication.</value>
+  </data>
+  <data name="Identity.FailedToCreateUserFromPrincipal" xml:space="preserve">
+    <value>Failed to create user from external principal.</value>
+  </data>
+  <data name="Identity.PasswordsDoNotMatch" xml:space="preserve">
+    <value>Passwords do not match.</value>
+  </data>
+  <data name="Identity.UnableToRegisterUser" xml:space="preserve">
+    <value>Unable to register the user.</value>
+  </data>
+  <data name="Identity.AdminCannotRemoveOwnRole" xml:space="preserve">
+    <value>Administrators cannot remove their own admin role.</value>
+  </data>
+  <data name="Identity.RootAdminCannotBeDemoted" xml:space="preserve">
+    <value>The root tenant administrator cannot be demoted.</value>
+  </data>
+  <data name="Identity.TenantMustRetainOneAdmin" xml:space="preserve">
+    <value>Tenant must retain at least one administrator.</value>
+  </data>
+  <data name="Identity.OnlyAdminsCanChangeStatus" xml:space="preserve">
+    <value>Only administrators can change user status.</value>
+  </data>
+  <data name="Identity.CannotDeactivateSelf" xml:space="preserve">
+    <value>Users cannot deactivate themselves.</value>
+  </data>
+  <data name="Identity.AdminsCannotBeDeactivated" xml:space="preserve">
+    <value>Administrators cannot be deactivated.</value>
+  </data>
+  <data name="Identity.TenantMustHaveActiveAdmin" xml:space="preserve">
+    <value>Tenant must have at least one active administrator.</value>
+  </data>
+  <data name="Identity.ToggleStatusFailed" xml:space="preserve">
+    <value>Toggle status failed.</value>
+  </data>
+  <data name="Identity.InvalidCredentials" xml:space="preserve">
+    <value>Invalid credentials.</value>
+  </data>
+  <data name="Identity.CannotViewOthersSessions" xml:space="preserve">
+    <value>Cannot view sessions for another user</value>
+  </data>
+  <data name="Identity.CannotRevokeOthersSession" xml:space="preserve">
+    <value>Cannot revoke session for another user</value>
+  </data>
+  <data name="Identity.CannotRevokeOthersSessions" xml:space="preserve">
+    <value>Cannot revoke sessions for another user</value>
+  </data>
+  <data name="Identity.RoleManagerNotResolved" xml:space="preserve">
+    <value>RoleManager&lt;FshRole&gt; not resolved. Check Identity registration.</value>
+  </data>
+  <data name="Identity.RoleStoreNotConfigured" xml:space="preserve">
+    <value>Role store not configured. Ensure .AddRoles&lt;FshRole&gt;() and EF stores.</value>
+  </data>
+  <data name="Identity.InScopeInitializationOnly" xml:space="preserve">
+    <value>Method reserved for in-scope initialization</value>
+  </data>
+</root>

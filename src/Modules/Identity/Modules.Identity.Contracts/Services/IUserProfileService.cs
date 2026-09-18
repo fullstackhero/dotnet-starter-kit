@@ -26,7 +26,7 @@ public interface IUserProfileService
     /// <summary>
     /// Updates a user's profile.
     /// </summary>
-    Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, CancellationToken cancellationToken = default);
+    Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, string? locale, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sets the profile image URL directly (no upload). Used by the presigned-upload flow:

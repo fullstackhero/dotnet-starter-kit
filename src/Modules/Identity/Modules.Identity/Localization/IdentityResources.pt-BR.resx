@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Identity.GroupNotFound" xml:space="preserve">
+    <value>Grupo com ID '{0}' não encontrado.</value>
+  </data>
+  <data name="Identity.UsersNotFound" xml:space="preserve">
+    <value>Usuários não encontrados: {0}</value>
+  </data>
+  <data name="Identity.GroupNameAlreadyExists" xml:space="preserve">
+    <value>Já existe um grupo com o nome '{0}'.</value>
+  </data>
+  <data name="Identity.RolesNotFoundWithIds" xml:space="preserve">
+    <value>Funções não encontradas: {0}</value>
+  </data>
+  <data name="Identity.SystemGroupsCannotBeDeleted" xml:space="preserve">
+    <value>Grupos do sistema não podem ser excluídos.</value>
+  </data>
+  <data name="Identity.UserNotMemberOfGroup" xml:space="preserve">
+    <value>O usuário '{0}' não é membro do grupo '{1}'.</value>
+  </data>
+  <data name="Identity.CannotRemoveFromDefaultGroup" xml:space="preserve">
+    <value>Usuários não podem ser removidos de um grupo padrão.</value>
+  </data>
+  <data name="Identity.SystemGroupsCannotBeModified" xml:space="preserve">
+    <value>Grupos do sistema não podem ser modificados.</value>
+  </data>
+  <data name="Identity.RoleNotFound" xml:space="preserve">
+    <value>Função não encontrada.</value>
+  </data>
+  <data name="Identity.RolesNotFound" xml:space="preserve">
+    <value>Funções não encontradas.</value>
+  </data>
+  <data name="Identity.SystemRoleCannotBeModified" xml:space="preserve">
+    <value>Funções do sistema não podem ser modificadas.</value>
+  </data>
+  <data name="Identity.CannotRenameToSystemRole" xml:space="preserve">
+    <value>Não é possível renomear uma função para o nome de uma função do sistema.</value>
+  </data>
+  <data name="Identity.CannotCreateWithSystemRoleName" xml:space="preserve">
+    <value>Não é possível criar uma função usando o nome de uma função do sistema.</value>
+  </data>
+  <data name="Identity.SystemRolesCannotBeDeleted" xml:space="preserve">
+    <value>Funções do sistema não podem ser excluídas.</value>
+  </data>
+  <data name="Identity.SystemRolePermissionsManaged" xml:space="preserve">
+    <value>As permissões de funções do sistema são gerenciadas pelo framework e não podem ser modificadas.</value>
+  </data>
+  <data name="Identity.OperationFailed" xml:space="preserve">
+    <value>A operação falhou.</value>
+  </data>
+  <data name="Identity.NotAnImpersonationSession" xml:space="preserve">
+    <value>A sessão atual não é uma sessão de personificação.</value>
+  </data>
+  <data name="Identity.OriginalActorNotFound" xml:space="preserve">
+    <value>Ator original não encontrado.</value>
+  </data>
+  <data name="Identity.ImpersonationGrantNotFound" xml:space="preserve">
+    <value>Concessão de personificação não encontrada.</value>
+  </data>
+  <data name="Identity.CrossTenantImpersonationRestricted" xml:space="preserve">
+    <value>A personificação entre tenants é restrita a operadores da plataforma.</value>
+  </data>
+  <data name="Identity.CannotImpersonateYourself" xml:space="preserve">
+    <value>Não é possível personificar a si mesmo.</value>
+  </data>
+  <data name="Identity.EndImpersonationFirst" xml:space="preserve">
+    <value>Encerre a personificação atual antes de iniciar uma nova.</value>
+  </data>
+  <data name="Identity.TargetUserNotFound" xml:space="preserve">
+    <value>Usuário alvo não encontrado.</value>
+  </data>
+  <data name="Identity.UserNotFound" xml:space="preserve">
+    <value>Usuário não encontrado.</value>
+  </data>
+  <data name="Identity.UserNotFoundById" xml:space="preserve">
+    <value>Usuário {0} não encontrado.</value>
+  </data>
+  <data name="Identity.CurrentPasswordIncorrect" xml:space="preserve">
+    <value>A senha atual está incorreta.</value>
+  </data>
+  <data name="Identity.FailedToGenerateAuthenticatorKey" xml:space="preserve">
+    <value>Falha ao gerar a chave do autenticador.</value>
+  </data>
+  <data name="Identity.AuthenticatorCodeInvalid" xml:space="preserve">
+    <value>O código do autenticador é inválido.</value>
+  </data>
+  <data name="Identity.InvalidRefreshToken" xml:space="preserve">
+    <value>Token de atualização inválido.</value>
+  </data>
+  <data name="Identity.SessionRevoked" xml:space="preserve">
+    <value>A sessão foi revogada.</value>
+  </data>
+  <data name="Identity.AccessTokenSubjectMismatch" xml:space="preserve">
+    <value>O assunto do token de acesso não corresponde.</value>
+  </data>
+  <data name="Identity.TwoFactorRequired" xml:space="preserve">
+    <value>two_factor_required: É necessário um código de autenticador para concluir o login.</value>
+  </data>
+  <data name="Identity.TwoFactorInvalid" xml:space="preserve">
+    <value>two_factor_invalid: O código do autenticador é inválido ou expirou.</value>
+  </data>
+  <data name="Identity.AccountLocked" xml:space="preserve">
+    <value>A conta está temporariamente bloqueada devido a muitas tentativas de login malsucedidas. Tente novamente mais tarde.</value>
+  </data>
+  <data name="Identity.RefreshTokenInvalidOrExpired" xml:space="preserve">
+    <value>O token de atualização é inválido ou expirou.</value>
+  </data>
+  <data name="Identity.UserDeactivated" xml:space="preserve">
+    <value>O usuário está desativado.</value>
+  </data>
+  <data name="Identity.EmailNotConfirmed" xml:space="preserve">
+    <value>E-mail não confirmado.</value>
+  </data>
+  <data name="Identity.TenantDeactivated" xml:space="preserve">
+    <value>O tenant {0} está desativado.</value>
+  </data>
+  <data name="Identity.TenantValidityExpired" xml:space="preserve">
+    <value>A validade do tenant {0} expirou.</value>
+  </data>
+  <data name="Identity.ErrorResettingPassword" xml:space="preserve">
+    <value>Erro ao redefinir a senha.</value>
+  </data>
+  <data name="Identity.FailedToChangePassword" xml:space="preserve">
+    <value>Falha ao alterar a senha.</value>
+  </data>
+  <data name="Identity.UpdateProfileFailed" xml:space="preserve">
+    <value>Falha ao atualizar o perfil.</value>
+  </data>
+  <data name="Identity.UpdateProfileImageFailed" xml:space="preserve">
+    <value>Falha ao atualizar a imagem do perfil.</value>
+  </data>
+  <data name="Identity.EmailConfirmationError" xml:space="preserve">
+    <value>Ocorreu um erro ao confirmar o e-mail.</value>
+  </data>
+  <data name="Identity.EmailConfirmationFailedFor" xml:space="preserve">
+    <value>Ocorreu um erro ao confirmar {0}.</value>
+  </data>
+  <data name="Identity.EmailConfirmationFailedWithErrors" xml:space="preserve">
+    <value>Ocorreu um erro ao confirmar o e-mail de {0}: {1}</value>
+  </data>
+  <data name="Identity.EmailAlreadyConfirmed" xml:space="preserve">
+    <value>O e-mail de {0} já está confirmado.</value>
+  </data>
+  <data name="Identity.PhoneConfirmationError" xml:space="preserve">
+    <value>Ocorreu um erro ao confirmar o número de telefone.</value>
+  </data>
+  <data name="Identity.PhoneConfirmationFailedFor" xml:space="preserve">
+    <value>Ocorreu um erro ao confirmar o número de telefone {0}.</value>
+  </data>
+  <data name="Identity.EmailClaimRequired" xml:space="preserve">
+    <value>A claim de e-mail é obrigatória para autenticação externa.</value>
+  </data>
+  <data name="Identity.FailedToCreateUserFromPrincipal" xml:space="preserve">
+    <value>Falha ao criar o usuário a partir do principal externo.</value>
+  </data>
+  <data name="Identity.PasswordsDoNotMatch" xml:space="preserve">
+    <value>As senhas não coincidem.</value>
+  </data>
+  <data name="Identity.UnableToRegisterUser" xml:space="preserve">
+    <value>Não foi possível registrar o usuário.</value>
+  </data>
+  <data name="Identity.AdminCannotRemoveOwnRole" xml:space="preserve">
+    <value>Administradores não podem remover a própria função de administrador.</value>
+  </data>
+  <data name="Identity.RootAdminCannotBeDemoted" xml:space="preserve">
+    <value>O administrador do tenant raiz não pode ser rebaixado.</value>
+  </data>
+  <data name="Identity.TenantMustRetainOneAdmin" xml:space="preserve">
+    <value>O tenant deve manter pelo menos um administrador.</value>
+  </data>
+  <data name="Identity.OnlyAdminsCanChangeStatus" xml:space="preserve">
+    <value>Apenas administradores podem alterar o status do usuário.</value>
+  </data>
+  <data name="Identity.CannotDeactivateSelf" xml:space="preserve">
+    <value>Usuários não podem desativar a si mesmos.</value>
+  </data>
+  <data name="Identity.AdminsCannotBeDeactivated" xml:space="preserve">
+    <value>Administradores não podem ser desativados.</value>
+  </data>
+  <data name="Identity.TenantMustHaveActiveAdmin" xml:space="preserve">
+    <value>O tenant deve ter pelo menos um administrador ativo.</value>
+  </data>
+  <data name="Identity.ToggleStatusFailed" xml:space="preserve">
+    <value>Falha ao alternar o status.</value>
+  </data>
+  <data name="Identity.InvalidCredentials" xml:space="preserve">
+    <value>Credenciais inválidas.</value>
+  </data>
+  <data name="Identity.CannotViewOthersSessions" xml:space="preserve">
+    <value>Não é possível visualizar sessões de outro usuário</value>
+  </data>
+  <data name="Identity.CannotRevokeOthersSession" xml:space="preserve">
+    <value>Não é possível revogar a sessão de outro usuário</value>
+  </data>
+  <data name="Identity.CannotRevokeOthersSessions" xml:space="preserve">
+    <value>Não é possível revogar sessões de outro usuário</value>
+  </data>
+  <data name="Identity.RoleManagerNotResolved" xml:space="preserve">
+    <value>RoleManager&lt;FshRole&gt; não resolvido. Verifique o registro do Identity.</value>
+  </data>
+  <data name="Identity.RoleStoreNotConfigured" xml:space="preserve">
+    <value>Repositório de funções não configurado. Garanta .AddRoles&lt;FshRole&gt;() e os stores do EF.</value>
+  </data>
+  <data name="Identity.InScopeInitializationOnly" xml:space="preserve">
+    <value>Método reservado para inicialização em escopo.</value>
+  </data>
+</root>
