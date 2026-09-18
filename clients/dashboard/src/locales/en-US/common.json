@@ -132,5 +132,7 @@
   "realtimeStatus.title": "Realtime: {{label}}",
   "session.restoring": "Restoring your session…",
   "field.required": "required",
-  "errorBand.failure": "Failure"
+  "errorBand.failure": "Failure",
+  "language.saveFailed": "Language not saved",
+  "language.saveFailedDetail": "The app is now in the language you picked, but the choice could not be saved and will not survive a sign-out."
 }

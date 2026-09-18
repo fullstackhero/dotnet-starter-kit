@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -241,6 +242,12 @@ export function Topbar() {
           error,
         );
       });
+    },
+    // The UI switched on click, so a failed PUT leaves the app in a language the server
+    // does not know about, which reverts on the next fresh mount. Say so rather than let
+    // the choice disappear silently.
+    onError: () => {
+      toast.error(t("language.saveFailed"), { description: t("language.saveFailedDetail") });
     },
   });
 

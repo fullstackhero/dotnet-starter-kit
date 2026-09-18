@@ -132,5 +132,7 @@
   "realtimeStatus.title": "Tempo real: {{label}}",
   "session.restoring": "Restaurando sua sessão…",
   "field.required": "obrigatório",
-  "errorBand.failure": "Falha"
+  "errorBand.failure": "Falha",
+  "language.saveFailed": "Idioma não salvo",
+  "language.saveFailedDetail": "O app está no idioma escolhido, mas não foi possível salvar a escolha, que não vai persistir depois que você sair da conta."
 }
