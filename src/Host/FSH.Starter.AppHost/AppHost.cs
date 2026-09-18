@@ -76,6 +76,8 @@ mc anonymous set download local/{{MinioBucket}};
 """).ReplaceLineEndings("\n");
 
 var minioInit = builder.AddContainer("minio-init", "minio/mc")
+    .WithImageRegistry("quay.io")
+    .WithImageTag("RELEASE.2025-08-13T08-35-41Z")
     .WithEntrypoint("/bin/sh")
     .WithArgs("-c", minioInitScript)
     .WithEnvironment("MC_USER", minioUser)
