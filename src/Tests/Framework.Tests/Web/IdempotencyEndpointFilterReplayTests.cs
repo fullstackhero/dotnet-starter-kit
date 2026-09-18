@@ -832,6 +832,44 @@ public sealed class IdempotencyEndpointFilterReplayTests
             "to store its response — the reservation TTL is the worst case, not the hint.");
     }
 
+    // Every other concurrency test runs with `multiplexer: null`, i.e. against the in-process
+    // dictionary. The Redis branch — `StringSetAsync(..., When.NotExists)` coming back false — is the
+    // one that actually refuses a duplicate in a multi-instance deployment, which is the whole reason
+    // the reservation exists, and nothing exercised it. A wrong `When`, a swapped overload or a
+    // swallowed exception there would have left every test green.
+    [Fact]
+    public async Task Conflict_Should_BeRefusedByRedis_When_ADuplicateIsStillInFlight()
+    {
+        var keyspace = new SharedKeyspace();
+        var provider = BuildProviderWith(new KeyspaceCache(keyspace), KeyspaceMultiplexer(keyspace));
+        var filter = new IdempotencyEndpointFilter();
+
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int executions = 0;
+
+        var holderCall = filter.InvokeAsync(
+            new TestFilterContext(NewContext(provider, new MemoryStream())),
+            async _ =>
+            {
+                Interlocked.Increment(ref executions);
+                started.SetResult();
+                await release.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                return TypedResults.Ok(new SampleDto(Guid.NewGuid(), "holder"));
+            }).AsTask();
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        var duplicate = NewContext(provider, new MemoryStream());
+        var result = await filter.InvokeAsync(
+            new TestFilterContext(duplicate),
+            _ => throw new InvalidOperationException("the duplicate's handler must not run"));
+
+        release.SetResult();
+        await holderCall.WaitAsync(TimeSpan.FromSeconds(10));
+
+        result.ShouldBeAssignableTo<IStatusCodeHttpResult>()!.StatusCode.ShouldBe(StatusCodes.Status409Conflict);
+        executions.ShouldBe(1);
+    }
     // ─── a handler that throws must not strand the key ─────────────────────────────────
 
     [Fact]
