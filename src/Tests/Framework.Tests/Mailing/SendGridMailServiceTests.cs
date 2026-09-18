@@ -61,6 +61,27 @@ public sealed class SendGridMailServiceTests
         sent.Contents.Single(c => c.Type == "text/plain").Value.ShouldBe("plain");
     }
 
+    // A caller outside this repo — this is a template — may still build a MailRequest with only
+    // `body`. CreateSingleEmail drops the text/plain part for a null plainTextContent, so without
+    // the fallback that caller silently goes from a two-part message to HTML-only, which is worse
+    // for text clients and scores worse with spam filters.
+    [Fact]
+    public async Task SendAsync_Should_KeepAPlainTextPart_When_OnlyTheBodyIsSupplied()
+    {
+        // Arrange
+        var client = ClientReturning(HttpStatusCode.Accepted);
+        var service = BuildService(client);
+        var request = new MailRequest(to: ["dest@x.com"], subject: "hi", body: "just text");
+
+        // Act
+        await service.SendAsync(request, CancellationToken.None);
+
+        // Assert
+        var sent = (SendGridMessage)client.ReceivedCalls().Single().GetArguments()[0]!;
+        sent.Contents.Single(c => c.Type == "text/plain").Value.ShouldBe("just text");
+        sent.Contents.Single(c => c.Type == "text/html").Value.ShouldBe("just text");
+    }
+
     [Theory]
     [InlineData(HttpStatusCode.TooManyRequests)]        // 429 — rate limited
     [InlineData(HttpStatusCode.InternalServerError)]    // 500 — SendGrid-side
