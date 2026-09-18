@@ -80,7 +80,8 @@ services:
   # policy is set — objects are served via the API / presigned URLs, not a
   # public bucket.
   minio-init:
-    image: minio/mc:latest
+    # quay.io: minio/mc is gone from Docker Hub too. Tag pinned; quay stopped moving :latest.
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
     container_name: fsh-minio-init
     restart: "no"
     depends_on:
