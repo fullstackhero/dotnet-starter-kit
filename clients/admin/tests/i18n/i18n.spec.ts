@@ -31,7 +31,6 @@ test.describe("i18n", () => {
   });
 
   test("apiFetch sends Accept-Language matching the active locale", async ({ page }) => {
-    let seenLang: string | null = null;
 
     // Registered AFTER installAdminShellMocks so this handler wins (LIFO) and
     // can inspect the request header. Return a profile whose locale matches the
@@ -41,7 +40,6 @@ test.describe("i18n", () => {
         await route.fallback();
         return;
       }
-      seenLang = route.request().headers()["accept-language"] ?? null;
       await route.fulfill({
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -59,16 +57,17 @@ test.describe("i18n", () => {
       { timeout: 10_000 },
     );
     await page.goto("/");
-    await profileReq;
+    // Read off the resolved request, not off a variable the route handler assigns:
+    // waitForRequest resolves at dispatch, before the handler has run.
+    const headers = (await profileReq).headers();
 
-    expect(seenLang).toBe("en-US");
+    expect(headers["accept-language"]).toBe("en-US");
   });
 
   test("apiFetch sends Accept-Language: pt-BR once the locale is Portuguese", async ({ page }) => {
     // Boot the app in Portuguese via the ?culture querystring — the i18n detector gives
     // querystring top priority (order: ["querystring", ...]), so the active locale is pt-BR
     // before the first apiFetch runs. A hardcoded "en-US" in apiFetch would fail this.
-    let seenLang: string | null = null;
 
     // Return a profile whose locale already matches pt-BR so the topbar's sync effect does not
     // switch the language back.
@@ -77,7 +76,6 @@ test.describe("i18n", () => {
         await route.fallback();
         return;
       }
-      seenLang = route.request().headers()["accept-language"] ?? null;
       await route.fulfill({
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -95,8 +93,10 @@ test.describe("i18n", () => {
       { timeout: 10_000 },
     );
     await page.goto("/?culture=pt-BR");
-    await profileReq;
+    // Read off the resolved request, not off a variable the route handler assigns:
+    // waitForRequest resolves at dispatch, before the handler has run.
+    const headers = (await profileReq).headers();
 
-    expect(seenLang).toBe("pt-BR");
+    expect(headers["accept-language"]).toBe("pt-BR");
   });
 });

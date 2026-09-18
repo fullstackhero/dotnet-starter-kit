@@ -46,7 +46,7 @@ import { BillingPermissions } from "@/lib/permissions";
 
 const PAGE_SIZE = 20;
 
-const STATUSES: TopupRequestStatus[] = ["Pending", "Approved", "Rejected", "Completed"];
+const STATUSES: TopupRequestStatus[] = ["Pending", "Invoiced", "Completed", "Rejected", "Cancelled"];
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -54,8 +54,10 @@ function statusVariant(status: TopupRequestStatus): React.ComponentProps<typeof 
   switch (status) {
     case "Completed":
       return "success";
-    case "Approved":
+    case "Invoiced":
       return "info";
+    case "Cancelled":
+      return "default";
     case "Pending":
       return "warning";
     case "Rejected":
@@ -77,8 +79,10 @@ type ActionTarget = { request: TopupRequestDto; mode: "approve" | "reject" };
 
 export function TopupsListPage() {
   const { t } = useTranslation("billing");
+  // defaultValue: the key is built from a server value, so a status the catalog has not caught up
+  // with must degrade to the raw name rather than render the key itself.
   const statusLabel = (status: TopupRequestStatus): string =>
-    t(`status.${status.charAt(0).toLowerCase()}${status.slice(1)}`);
+    t(`status.${status.charAt(0).toLowerCase()}${status.slice(1)}`, { defaultValue: status });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();

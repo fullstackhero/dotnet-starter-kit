@@ -5,19 +5,16 @@
   "layout.tab.plans": "Plans",
   "layout.tab.invoices": "Invoices",
   "layout.tab.topups": "Top-ups",
-
   "status.draft": "Draft",
   "status.issued": "Issued",
   "status.paid": "Paid",
   "status.void": "Void",
   "status.pending": "Pending",
-  "status.approved": "Approved",
   "status.rejected": "Rejected",
   "status.completed": "Completed",
   "status.all": "All",
   "status.active": "Active",
   "status.inactive": "Inactive",
-
   "interval.monthly": "Monthly",
   "interval.yearly": "Yearly",
   "purpose.subscription": "Subscription",
@@ -25,10 +22,8 @@
   "kind.baseFee": "BaseFee",
   "kind.overage": "Overage",
   "kind.metered": "Metered",
-
   "perYear": "per year",
   "perMonth": "per month",
-
   "label.tenant": "tenant",
   "label.period": "period",
   "label.created": "created",
@@ -41,11 +36,9 @@
   "label.currency": "currency",
   "label.overage": "overage",
   "label.decided": "decided",
-
   "pagination.previous": "Previous",
   "pagination.next": "Next",
   "pagination.pageOf": "Page {{page}} / {{total}}",
-
   "plans.stat.plans": "Plans",
   "plans.stat.activeCount": "{{count}} active",
   "plans.stat.active": "Active",
@@ -60,7 +53,6 @@
   "plans.meta": "currency {{currency}} · overage {{overage}}",
   "plans.editAria": "Edit {{name}}",
   "plans.loadError": "Failed to load plans.",
-
   "invoices.kpi.pageInvoices": "Page invoices",
   "invoices.kpi.totalCount": "{{count}} total",
   "invoices.kpi.loading": "loading…",
@@ -84,7 +76,6 @@
   "invoices.list.loading": "Loading…",
   "invoices.list.empty": "No invoices match the current filters.",
   "invoices.loadError": "Failed to load invoices.",
-
   "invoiceDetail.back": "All invoices",
   "invoiceDetail.download": "Download PDF",
   "invoiceDetail.preparing": "Preparing…",
@@ -127,7 +118,6 @@
   "invoiceDetail.void.submit": "Void invoice",
   "invoiceDetail.void.submitting": "Voiding…",
   "invoiceDetail.notes": "Notes",
-
   "topups.kpi.pageRequests": "Page requests",
   "topups.kpi.totalCount": "{{count}} total",
   "topups.kpi.loading": "loading…",
@@ -165,7 +155,6 @@
   "topups.confirm.optional": "(optional)",
   "topups.confirm.rejectPlaceholder": "duplicate · invalid · …",
   "topups.confirm.notePlaceholder": "internal note",
-
   "planForm.editTitle": "Edit plan",
   "planForm.newTitle": "New plan",
   "planForm.editDescription": "Update name, pricing, interval, or overage rates. Key and currency are immutable.",
@@ -204,5 +193,7 @@
   "planForm.toast.createFailedDesc": "Could not create plan.",
   "planForm.toast.updated": "Plan \"{{name}}\" updated",
   "planForm.toast.updateFailed": "Update failed",
-  "planForm.toast.updateFailedDesc": "Could not update plan."
+  "planForm.toast.updateFailedDesc": "Could not update plan.",
+  "status.invoiced": "Invoiced",
+  "status.cancelled": "Cancelled"
 }

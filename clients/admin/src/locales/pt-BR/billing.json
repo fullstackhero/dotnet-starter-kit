@@ -10,7 +10,6 @@
   "status.paid": "Paga",
   "status.void": "Anulada",
   "status.pending": "Pendente",
-  "status.approved": "Aprovada",
   "status.rejected": "Rejeitada",
   "status.completed": "Concluída",
   "status.all": "Todas",
@@ -194,5 +193,7 @@
   "planForm.toast.createFailedDesc": "Não foi possível criar o plano.",
   "planForm.toast.updated": "Plano \"{{name}}\" atualizado",
   "planForm.toast.updateFailed": "Falha ao atualizar",
-  "planForm.toast.updateFailedDesc": "Não foi possível atualizar o plano."
+  "planForm.toast.updateFailedDesc": "Não foi possível atualizar o plano.",
+  "status.cancelled": "Cancelada",
+  "status.invoiced": "Faturada"
 }
