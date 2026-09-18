@@ -102,8 +102,9 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
         // on the second — the request silently never runs — and two users of the same tenant who pick
         // the same low-entropy key ("1", "retry") on the same endpoint get each other's response
         // bodies while their own request is suppressed. That was harmless only while replay never
-        // engaged; it does now. Anonymous endpoints (self-registration) resolve neither a tenant nor a
-        // caller and share one bucket, so the operation is what keeps them apart from each other.
+        // engaged; it does now. An anonymous request resolves neither a tenant nor a caller, so every
+        // one of them would land in the same bucket: that is why no anonymous endpoint carries this
+        // filter, and why IdempotencyWiringTests fails the build if one ever does.
         var operation = $"{httpContext.Request.Method}:{RouteIdentity(httpContext)}";
         var cacheKey = CacheKeys.IdempotencyEntry(tenantId, $"{ResolveCaller(httpContext)}:{operation}:{idempotencyKey}");
 
@@ -224,7 +225,13 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
             // transient downstream failure, so a retry with the same key is allowed to run again.
             if (captured.StatusCode is >= 200 and < 300)
             {
-                await CacheResponseAsync(distributedCache, cacheKey, captured, options.DefaultTtl, logger, idempotencyKey).ConfigureAwait(false);
+                // Per-endpoint TTL where the endpoint declared one: the entry must not out-live what
+                // the response contains. RequestUploadUrl mints a URL good for minutes; replaying it
+                // for the default 24 hours hands the client a 200 with a dead URL and no way back
+                // except a new key.
+                var ttl = httpContext.GetEndpoint()?.Metadata.GetMetadata<IdempotentEndpointMetadata>()?.Ttl
+                    ?? options.DefaultTtl;
+                await CacheResponseAsync(distributedCache, cacheKey, captured, ttl, logger, idempotencyKey).ConfigureAwait(false);
             }
 
             if (captured.Body.Length > 0)
@@ -383,6 +390,13 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
                 case IResult endpointResult:
                     await endpointResult.ExecuteAsync(httpContext).ConfigureAwait(false);
                     break;
+                case string text:
+                    // Minimal APIs write a string return as text/plain; serializing it as JSON here
+                    // would quote it and change the content type, so the very first response through
+                    // this filter would differ from what the same handler produces without it.
+                    httpContext.Response.ContentType = "text/plain; charset=utf-8";
+                    await httpContext.Response.WriteAsync(text, CancellationToken.None).ConfigureAwait(false);
+                    break;
                 default:
                     // A non-IResult return is serialized as JSON by the framework — mirror that.
                     await httpContext.Response.WriteAsJsonAsync(result, result.GetType(), options: null, contentType: null, CancellationToken.None).ConfigureAwait(false);
@@ -539,8 +553,9 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
         return string.IsNullOrWhiteSpace(fromClaim) ? "global" : fromClaim;
     }
 
-    // The caller, so one tenant's users don't share an entry. Falls back to the tenant-wide bucket
-    // for anonymous endpoints, which have no caller to scope by.
+    // The caller, so one tenant's users don't share an entry. "anon" is the degenerate bucket an
+    // unauthenticated request would land in, which is exactly why an anonymous endpoint must not be
+    // marked idempotent (IdempotencyWiringTests); it is a floor, not a supported configuration.
     private static string ResolveCaller(HttpContext httpContext)
     {
         var userId = httpContext.User.GetUserId();
@@ -608,6 +623,23 @@ public static class IdempotencyEndpointExtensions
         // anonymous endpoint must not be, since every unauthenticated caller shares one cache bucket.
         return builder
             .WithMetadata(IdempotentEndpointMetadata.Instance)
+            .AddEndpointFilter<IdempotencyEndpointFilter>();
+    }
+
+    /// <summary>
+    /// Enables idempotency for this endpoint, with a replay window shorter than the configured
+    /// default. For an endpoint whose 2xx body stops being usable on its own schedule: replaying it
+    /// past that point answers 200 with something the client cannot act on.
+    /// </summary>
+    public static RouteHandlerBuilder WithIdempotency(this RouteHandlerBuilder builder, TimeSpan ttl)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        // Zero or negative would make every cache write expire immediately, so every duplicate would
+        // re-run the handler while the endpoint still advertised itself as idempotent.
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(ttl, TimeSpan.Zero);
+
+        return builder
+            .WithMetadata(new IdempotentEndpointMetadata(ttl))
             .AddEndpointFilter<IdempotencyEndpointFilter>();
     }
 }

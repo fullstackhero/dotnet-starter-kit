@@ -6,9 +6,18 @@ namespace FSH.Framework.Web.Idempotency;
 /// </summary>
 public sealed class IdempotentEndpointMetadata
 {
-    public static IdempotentEndpointMetadata Instance { get; } = new();
+    /// <summary>The endpoint takes the configured <c>IdempotencyOptions.DefaultTtl</c>.</summary>
+    public static IdempotentEndpointMetadata Instance { get; } = new(ttl: null);
 
-    private IdempotentEndpointMetadata()
+    public IdempotentEndpointMetadata(TimeSpan? ttl)
     {
+        Ttl = ttl;
     }
+
+    /// <summary>
+    /// How long a replay of this endpoint stays valid, or <c>null</c> to take the configured default.
+    /// An endpoint whose response goes stale on its own (a presigned URL, a short-lived token) must
+    /// not out-live it here: replaying a dead payload with a 200 is worse than running again.
+    /// </summary>
+    public TimeSpan? Ttl { get; }
 }

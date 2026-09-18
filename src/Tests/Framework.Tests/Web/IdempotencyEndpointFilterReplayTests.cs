@@ -7,6 +7,7 @@ using FSH.Framework.Caching;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Web.Idempotency;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -147,6 +148,85 @@ public sealed class IdempotencyEndpointFilterReplayTests
             .StatusCode.ShouldBe(
                 StatusCodes.Status409Conflict,
                 "a concurrent duplicate that arrives while the original is still running gets 409 Conflict.");
+    }
+
+    [Fact]
+    public async Task Capture_Should_WriteAStringReturnAsPlainText_Like_TheFrameworkDoes()
+    {
+        // A handler returning a bare string is written as text/plain by minimal APIs. Serializing it
+        // as JSON would put quotes around it and hand the client a different content type than the
+        // same endpoint produces without this filter, and the replay would then repeat that.
+        var provider = BuildProvider();
+        var filter = new IdempotencyEndpointFilter();
+
+        var firstBody = new MemoryStream();
+        var first = NewContext(provider, firstBody);
+        await filter.InvokeAsync(new TestFilterContext(first), _ => ValueTask.FromResult<object?>("pong"));
+
+        first.Response.ContentType.ShouldBe("text/plain; charset=utf-8");
+        Encoding.UTF8.GetString(firstBody.ToArray()).ShouldBe("pong");
+
+        var replayBody = new MemoryStream();
+        var second = NewContext(provider, replayBody);
+        await filter.InvokeAsync(
+            new TestFilterContext(second),
+            _ => throw new InvalidOperationException("the handler must not run again on a replay"));
+
+        Encoding.UTF8.GetString(replayBody.ToArray()).ShouldBe("pong");
+        second.Response.ContentType.ShouldBe("text/plain; charset=utf-8");
+    }
+    // ─── The replay window must not out-live what the response contains ──────────────────
+
+    [Fact]
+    public async Task Entry_Should_ExpireWithTheEndpointTtl_When_TheEndpointDeclaresOne()
+    {
+        // RequestUploadUrl returns a presigned URL good for FilesOptions.UploadUrlTtlMinutes. Cached
+        // for the default 24 hours, a retry with the same key an hour later gets a 200 carrying a URL
+        // that is already dead, and no way out except inventing a new key.
+        var cache = new TtlCapturingCache(NewMemoryCache());
+        var provider = BuildProviderWith(cache);
+        var filter = new IdempotencyEndpointFilter();
+        var context = NewContext(provider);
+        context.SetEndpoint(EndpointWith(new IdempotentEndpointMetadata(TimeSpan.FromMinutes(15))));
+
+        await filter.InvokeAsync(
+            new TestFilterContext(context),
+            _ => ValueTask.FromResult<object?>(TypedResults.Ok(new SampleDto(Guid.NewGuid(), "widget"))));
+
+        cache.LastTtl.ShouldBe(
+            TimeSpan.FromMinutes(15),
+            "the entry must expire with the URL it carries, not with IdempotencyOptions.DefaultTtl");
+    }
+
+    [Fact]
+    public async Task Entry_Should_ExpireWithDefaultTtl_When_TheEndpointDeclaresNone()
+    {
+        // The other side of the branch: every endpoint that has nothing time-limited in its body
+        // keeps the configured default, which is what makes a next-day retry still safe.
+        var cache = new TtlCapturingCache(NewMemoryCache());
+        var provider = BuildProviderWith(cache);
+        var filter = new IdempotencyEndpointFilter();
+        var context = NewContext(provider);
+        context.SetEndpoint(EndpointWith(IdempotentEndpointMetadata.Instance));
+
+        await filter.InvokeAsync(
+            new TestFilterContext(context),
+            _ => ValueTask.FromResult<object?>(TypedResults.Ok(new SampleDto(Guid.NewGuid(), "widget"))));
+
+        cache.LastTtl.ShouldBe(new IdempotencyOptions().DefaultTtl);
+    }
+
+    [Fact]
+    public void WithIdempotency_Should_Reject_ANonPositiveTtl()
+    {
+        // Zero expires the entry the moment it is written: every duplicate re-runs the handler while
+        // the endpoint still advertises itself as idempotent, which is the failure this whole filter
+        // exists to prevent, made silent.
+        // The guard runs before any convention is added, so an empty builder is enough.
+        var builder = new RouteHandlerBuilder([]);
+
+        Should.Throw<ArgumentOutOfRangeException>(() => builder.WithIdempotency(TimeSpan.Zero));
+        Should.Throw<ArgumentOutOfRangeException>(() => builder.WithIdempotency(TimeSpan.FromSeconds(-1)));
     }
 
     // ─── HIGH: reservation TTL is the short ReservationTtl, not the 24h response TTL ─────
@@ -1307,6 +1387,40 @@ public sealed class IdempotencyEndpointFilterReplayTests
     /// between <c>CancellationToken.None</c> and a cancelled <c>RequestAborted</c> — the whole point
     /// of the store-outlives-the-request fix — is invisible to every assertion.
     /// </summary>
+    private static Endpoint EndpointWith(IdempotentEndpointMetadata metadata) =>
+        new(requestDelegate: null, new EndpointMetadataCollection(metadata), "idempotent-test-endpoint");
+
+    // Captures what expiry the filter asked for. The in-memory cache would happily accept any TTL
+    // and nothing observable would differ inside a test run, so the argument itself is the evidence.
+    private sealed class TtlCapturingCache(IDistributedCache inner) : IDistributedCache
+    {
+        public TimeSpan? LastTtl { get; private set; }
+
+        public byte[]? Get(string key) => inner.Get(key);
+
+        public Task<byte[]?> GetAsync(string key, CancellationToken token = default) => inner.GetAsync(key, token);
+
+        public void Refresh(string key) => inner.Refresh(key);
+
+        public Task RefreshAsync(string key, CancellationToken token = default) => inner.RefreshAsync(key, token);
+
+        public void Remove(string key) => inner.Remove(key);
+
+        public Task RemoveAsync(string key, CancellationToken token = default) => inner.RemoveAsync(key, token);
+
+        public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
+        {
+            LastTtl = options?.AbsoluteExpirationRelativeToNow;
+            inner.Set(key, value, options!);
+        }
+
+        public Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
+        {
+            LastTtl = options?.AbsoluteExpirationRelativeToNow;
+            return inner.SetAsync(key, value, options!, token);
+        }
+    }
+
     private sealed class TokenSensitiveCache(IDistributedCache inner) : IDistributedCache
     {
         public byte[]? Get(string key) => inner.Get(key);
