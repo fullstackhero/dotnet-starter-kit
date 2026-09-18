@@ -195,6 +195,54 @@ test.describe("language switcher", () => {
     expect(putBody.firstName).toBe("Alice");
     expect(putBody.lastName).toBe("Nguyen");
   });
+
+  // Regression (silent data change): Identity compares the incoming phone number to the stored one
+  // with a plain string compare and calls SetPhoneNumberAsync on any difference, which clears
+  // PhoneNumberConfirmed. The switcher sends a whole profile, so the phone it echoes has to be the
+  // one the server just gave it, unchanged - "" and null are not interchangeable here, and neither
+  // is a trimmed variant. Nothing asserted that, so a normalization added anywhere on this path
+  // would un-confirm a verified phone number for choosing a language, with no error and no log.
+  for (const stored of [null, "", "+1 555 0142"] as const) {
+    test(`echoes the stored phone number (${JSON.stringify(stored)}) unchanged on a language switch`, async ({
+      page,
+    }) => {
+      await page.route("**/api/v1/identity/profile", async (route) => {
+        if (route.request().method() === "PUT") {
+          await route.fulfill({ status: 200 });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: TEST_USER.sub,
+            userName: "alice",
+            email: TEST_USER.email,
+            firstName: TEST_USER.firstName,
+            lastName: TEST_USER.lastName,
+            phoneNumber: stored,
+            isActive: true,
+            emailConfirmed: true,
+            locale: "en-US",
+          }),
+        });
+      });
+      await page.route("**/api/v1/identity/token/refresh", (route) =>
+        route.fulfill({ status: 500, body: "" }),
+      );
+
+      await page.goto("/");
+      await page.getByRole("button", { name: /open profile menu/i }).click();
+
+      const putRequest = page.waitForRequest(
+        (r) => r.url().includes("/api/v1/identity/profile") && r.method() === "PUT",
+      );
+      await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+      const putBody = (await putRequest).postDataJSON() as { phoneNumber?: string | null };
+
+      expect(putBody.phoneNumber).toBe(stored);
+    });
+  }
 });
 
 // Language is the operator's own presentation choice: StartImpersonation strips
