@@ -108,7 +108,9 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
         email.Subject = request.Subject;
     }
 
-    private static async Task AddAttachmentsAsync(MimeMessage email, MailRequest request, CancellationToken ct)
+    // internal so the suite can assert the MIME shape without an SMTP server: the transport is the
+    // one thing a test cannot reach here, and it is not where the bodies get mapped.
+    internal static async Task AddAttachmentsAsync(MimeMessage email, MailRequest request, CancellationToken ct)
     {
         // Both parts when the caller supplies them: MailKit emits multipart/alternative and the client
         // picks. HtmlBody alone leaves text-only clients with nothing.
