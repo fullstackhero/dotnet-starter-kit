@@ -1,6 +1,6 @@
 {
   "bell.aria": "Notificações",
-  "bell.ariaUnread": "Notificações, {{count}} não lidas",
+  "bell.ariaUnread": "Notificações, {{count, number}} não lidas",
   "bell.title": "Notificações",
   "header.title": "Notificações",
   "header.allCaughtUp": "Tudo em dia",
@@ -25,8 +25,8 @@
   "toast.dismissAria": "Dispensar notificação",
   "toast.dismiss": "Dispensar",
   "badge.chat": "Chat",
-  "badge.ariaUnread_one": "Chat, {{count}} mensagem não lida",
-  "badge.ariaUnread_other": "Chat, {{count}} mensagens não lidas",
-  "badge.titleUnread_one": "{{count}} mensagem de chat não lida",
-  "badge.titleUnread_other": "{{count}} mensagens de chat não lidas"
+  "badge.ariaUnread_one": "Chat, {{count, number}} mensagem não lida",
+  "badge.ariaUnread_other": "Chat, {{count, number}} mensagens não lidas",
+  "badge.titleUnread_one": "{{count, number}} mensagem de chat não lida",
+  "badge.titleUnread_other": "{{count, number}} mensagens de chat não lidas"
 }

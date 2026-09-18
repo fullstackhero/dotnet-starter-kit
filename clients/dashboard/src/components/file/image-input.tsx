@@ -6,9 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/cn";
-import { useFileUpload, formatBytes } from "@/hooks/use-file-upload";
+import { useFileUpload, formatBytes, describeUploadError } from "@/hooks/use-file-upload";
 import { getFileMetadata, Visibility } from "@/api/files";
-import { ApiRequestError } from "@/lib/api-client";
 
 type Props = {
   /** Current image URL (or empty). The component is fully controlled. */
@@ -83,13 +82,9 @@ export function ImageInput({
         // Clear progress so the dropzone re-arms for another upload.
         setTimeout(reset, 1500);
       } catch (e) {
-        const message =
-          e instanceof ApiRequestError
-            ? (e.problem?.detail ?? e.problem?.title ?? e.message)
-            : e instanceof Error
-              ? e.message
-              : t("imageInput.uploadFailed");
-        toast.error(message);
+        // describeUploadError resolves the catalog key an UploadError carries; anything else is
+        // prose the API already localized.
+        toast.error(describeUploadError(e, t, t("imageInput.uploadFailed")));
       }
     };
     input.click();

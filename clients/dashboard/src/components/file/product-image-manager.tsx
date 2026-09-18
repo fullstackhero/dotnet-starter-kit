@@ -20,8 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { ApiRequestError } from "@/lib/api-client";
+import { useFileUpload, describeUploadError } from "@/hooks/use-file-upload";
 import { cn } from "@/lib/cn";
 
 const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
@@ -65,7 +64,7 @@ export function ProductImageManager({ productId, images, invalidateKey, classNam
       void queryClient.invalidateQueries({ queryKey: invalidateKey });
     },
     onError: (e: unknown) => {
-      toast.error(extract(e, t("pim.errAttach")));
+      toast.error(describeUploadError(e, t, t("pim.errAttach")));
     },
   });
 
@@ -75,7 +74,7 @@ export function ProductImageManager({ productId, images, invalidateKey, classNam
       toast.success(t("pim.toastCoverUpdated"));
       void queryClient.invalidateQueries({ queryKey: invalidateKey });
     },
-    onError: (e: unknown) => toast.error(extract(e, t("pim.errSetCover"))),
+    onError: (e: unknown) => toast.error(describeUploadError(e, t, t("pim.errSetCover"))),
   });
 
   const removeMutation = useMutation({
@@ -85,7 +84,7 @@ export function ProductImageManager({ productId, images, invalidateKey, classNam
       void queryClient.invalidateQueries({ queryKey: invalidateKey });
       setPendingRemove(null);
     },
-    onError: (e: unknown) => toast.error(extract(e, t("pim.errRemove"))),
+    onError: (e: unknown) => toast.error(describeUploadError(e, t, t("pim.errRemove"))),
   });
 
   const handlePick = () => {
@@ -105,7 +104,7 @@ export function ProductImageManager({ productId, images, invalidateKey, classNam
           }
           await attachMutation.mutateAsync({ fileAssetId: asset.id, url: meta.publicUrl });
         } catch (e) {
-          toast.error(extract(e, t("pim.errUploadNamed", { name: file.name })));
+          toast.error(describeUploadError(e, t, t("pim.errUploadNamed", { name: file.name })));
         }
       }
       reset();
@@ -320,10 +319,3 @@ function RemoveDialog({
   );
 }
 
-function extract(e: unknown, fallback: string): string {
-  if (e instanceof ApiRequestError) {
-    return e.problem?.detail ?? e.problem?.title ?? e.message;
-  }
-  if (e instanceof Error) return e.message;
-  return fallback;
-}
