@@ -57,8 +57,7 @@ let refreshPromise: Promise<void> | null = null;
  *
  * The single-flight is part of this function rather than of any one caller because the server
  * rotates the refresh token on every successful call: a second refresh started while the first is
- * still open sends a token the server has already spent, gets a 401, and `clear()`s the session out
- * from under a signed-in user. Three call sites reach this (the 401 retry below, session bootstrap,
+ * still open sends a token the server has already spent and gets a 401. Three call sites reach this (the 401 retry below, session bootstrap,
  * the language switcher), and any two of them overlapping is enough.
  */
 export function refreshAccessToken(): Promise<void> {
@@ -90,7 +89,10 @@ async function runRefresh(): Promise<void> {
   });
 
   if (!response.ok) {
-    tokenStore.clear();
+    // Deliberately no tokenStore.clear() here: a refresh can be fired speculatively (the language
+    // switch re-mints the JWT for the new `locale` claim), and a background failure must not end a
+    // session the user is actively using. Ending it belongs to the callers that know the request
+    // needed auth — the 401 retry below and the boot probe in AuthProvider.
     throw new ApiRequestError(response.status, "Refresh failed");
   }
 
@@ -174,6 +176,9 @@ export async function apiFetch<T = unknown>(
     try {
       await refreshAccessToken();
     } catch (e) {
+      // This request needed auth and the refresh could not provide it: the session is over, so
+      // drop it and let routing fall through to /login.
+      tokenStore.clear();
       throw e instanceof ApiRequestError
         ? e
         : new ApiRequestError(401, "Session expired");

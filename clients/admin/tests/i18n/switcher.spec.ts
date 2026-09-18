@@ -271,4 +271,88 @@ test.describe("language switcher", () => {
       await page.evaluate(() => window.localStorage.getItem("fsh.admin.accessToken")),
     ).not.toBeNull();
   });
+
+  // Regression (session loss), the single-switch case: before the fix refreshAccessToken() cleared
+  // the token store on ANY non-ok response, so one dead refresh token — revoked, rotated in another
+  // tab, dropped by a reseed — signed the operator out for choosing a language.
+  test("a failed token re-mint keeps the session and the new language", async ({ page }) => {
+    let refreshCalled = false;
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "u-test-1",
+          firstName: "Root",
+          lastName: "Admin",
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      refreshCalled = true;
+      await route.fulfill({ status: 401, body: "" });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    await expect.poll(() => refreshCalled).toBe(true);
+    // The redirect this guards against is a client-side route change with no network of its own,
+    // so it cannot be awaited directly; networkidle lets the failed refresh settle first.
+    await page.waitForLoadState("networkidle");
+
+    expect(new URL(page.url()).pathname).not.toBe("/login");
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    expect(
+      await page.evaluate(() => window.localStorage.getItem("fsh.admin.accessToken")),
+    ).not.toBeNull();
+  });
+});
+
+// The UI switches on click and the save is what can fail. Without an onError the language
+// silently reverts on the next fresh mount, which reads as the app forgetting the choice.
+test.describe("language switcher when the save fails", () => {
+  test("the save failure is surfaced to the user", async ({ page }) => {
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({
+          status: 500,
+          headers: { "Content-Type": "application/problem+json" },
+          body: JSON.stringify({ status: 500, title: "Server Error" }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "u-test-1",
+          firstName: "Root",
+          lastName: "Admin",
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+    // The switch still applies locally…
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    // …and the user is told it did not stick.
+    await expect(page.getByText("Idioma não salvo")).toBeVisible();
+  });
 });

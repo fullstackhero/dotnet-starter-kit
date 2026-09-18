@@ -62,5 +62,7 @@
   "imageInput.choose": "Choose image",
   "imageInput.remove": "Remove",
   "imageInput.formats": "JPG/PNG/WebP/GIF · up to {{size}}",
-  "imageInput.directLink": "Direct link to an image you host elsewhere."
+  "imageInput.directLink": "Direct link to an image you host elsewhere.",
+  "language.saveFailed": "Language not saved",
+  "language.saveFailedDetail": "The app is now in the language you picked, but the choice could not be saved and will not survive a sign-out."
 }
