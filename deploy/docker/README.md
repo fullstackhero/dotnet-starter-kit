@@ -10,7 +10,7 @@ This brings up the full stack on a single host:
 | `migrator` | `fsh/dbmigrator:local` | — | One-shot: applies EF migrations + seeds the root tenant + creates the default admin user |
 | `postgres` | `postgres:17-alpine` | (internal) | Identity, tenant catalog, module schemas |
 | `redis` | `redis:7-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
-| `minio` | `minio/minio:latest` | (internal) | S3-compatible blob store for the Files module |
+| `rustfs` | `rustfs/rustfs:1.0.0` | (internal) | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)) |
 
 The compose file does **not** include a reverse proxy or TLS terminator. You bring your own edge — Cloudflare Tunnel, AWS ALB, Tailscale Funnel, your existing nginx, anything that can route a TLS subdomain to a host:port on this machine.
 
@@ -87,21 +87,21 @@ docker run --rm \
   -v "$PWD":/backup \
   alpine \
   tar czf /backup/pg_data-$(date +%Y%m%d).tar.gz -C /source .
-# Repeat for fsh_redis_data and fsh_minio_data.
+# Repeat for fsh_redis_data and fsh_rustfs_data.
 ```
 
 ## Swapping in managed services
 
 Single-host compose is the default story; production deployments often point at managed Postgres / Redis / S3. To do that:
 
-1. Comment out the `postgres` / `redis` / `minio` service blocks AND remove them from the `depends_on:` of `api` and `migrator`.
+1. Comment out the `postgres` / `redis` / `rustfs` service blocks (and `rustfs-init`) AND remove them from the `depends_on:` of `api` and `migrator`.
 2. Swap the matching env vars on `api` and `migrator`:
    - `DatabaseOptions__ConnectionString` → your managed Postgres connection string
    - `CachingOptions__Redis` → your managed Redis connection string (`host:port,password=...,ssl=True` etc.)
    - `Storage__Provider`, `Storage__S3__*` → your S3-compatible store
 3. `docker compose up -d`.
 
-The data-plane volumes (`pg_data`, `redis_data`, `minio_data`) can be deleted once you've migrated.
+The data-plane volumes (`pg_data`, `redis_data`, `rustfs_data`) can be deleted once you've migrated.
 
 ## Troubleshooting
 
