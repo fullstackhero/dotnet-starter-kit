@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>Notifications.Tests</RootNamespace>
+		<AssemblyName>Notifications.Tests</AssemblyName>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+		<NoWarn>$(NoWarn);CA1515;CA1861;CA1707;CA1308;S2376;S4581</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoFixture" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="Shouldly" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+		<PackageReference Include="coverlet.collector" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Modules\Notifications\Modules.Notifications\Modules.Notifications.csproj" />
+	</ItemGroup>
+
+</Project>

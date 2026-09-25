@@ -1,4 +1,6 @@
-﻿namespace FSH.Modules.Identity.Contracts.DTOs;
+﻿using System.Text.Json.Serialization;
+
+namespace FSH.Modules.Identity.Contracts.DTOs;
 
 public class UserDto
 {
@@ -22,4 +24,12 @@ public class UserDto
 
     /// <summary>Whether the user has enrolled in TOTP-based two-factor authentication.</summary>
     public bool TwoFactorEnabled { get; set; }
+
+    /// <summary>
+    /// The stored optimistic-concurrency token for this user, populated only by the self-profile
+    /// read. It never reaches the response body — <c>GET /identity/profile</c> turns it into the
+    /// response's <c>ETag</c>, and that header is the token clients echo back in <c>If-Match</c>.
+    /// </summary>
+    [JsonIgnore]
+    public string? ConcurrencyStamp { get; set; }
 }

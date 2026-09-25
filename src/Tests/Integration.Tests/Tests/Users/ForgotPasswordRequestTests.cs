@@ -70,6 +70,27 @@ public sealed class ForgotPasswordRequestTests
     }
 
     [Fact]
+    public async Task ForgotPassword_Should_Reject_When_OriginNotAllowed()
+    {
+        // Arrange - a forged Origin header (not in FrontendOptions:AllowedOrigins) must never build a reset link.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var user = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "forgot-forged");
+
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("tenant", TestConstants.RootTenantId);
+        client.DefaultRequestHeaders.Remove("Origin");
+        client.DefaultRequestHeaders.Add("Origin", "https://evil.example.com");
+
+        // Act
+        var response = await client.PostAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/forgot-password", new { email = user.Email });
+
+        // Assert - a present-but-unlisted origin is a client fault: 400, not the 500 a server fault
+        // would raise, and not the uniform OK the happy path returns.
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task ForgotPassword_Should_ReturnUniformOk_When_EmailIsUnknown()
     {
         // Arrange

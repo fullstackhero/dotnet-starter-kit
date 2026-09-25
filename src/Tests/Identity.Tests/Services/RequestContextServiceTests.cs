@@ -21,8 +21,8 @@ public sealed class RequestContextServiceTests
 
     private RequestContextService CreateService(Uri? originUrl = null)
     {
-        var options = Options.Create(new OriginOptions { OriginUrl = originUrl });
-        return new RequestContextService(_httpContextAccessor, options);
+        var originOptions = Options.Create(new OriginOptions { OriginUrl = originUrl });
+        return new RequestContextService(_httpContextAccessor, originOptions);
     }
 
     private void SetHttpContext(HttpContext? context)

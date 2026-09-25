@@ -31,7 +31,7 @@ const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 
 /**
  * ImageInput — composite control that lets a user either upload a new image
- * (presigned PUT to S3/MinIO) OR paste an external URL. After a successful
+ * (presigned PUT to S3) OR paste an external URL. After a successful
  * upload the component fetches the FileAsset metadata to retrieve the durable
  * `publicUrl` and forwards it through `onChange`.
  */
