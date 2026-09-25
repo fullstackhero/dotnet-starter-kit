@@ -4,14 +4,11 @@ using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Storage;
 using FSH.Framework.Storage;
 using FSH.Framework.Storage.Services;
-using FSH.Framework.Web.Origin;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Domain;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using System.Net;
 
 namespace FSH.Modules.Identity.Services;
@@ -21,12 +18,9 @@ internal sealed class UserProfileService(
     SignInManager<FshUser> signInManager,
     IStorageService storageService,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    IOptions<OriginOptions> originOptions,
-    IdentityErrorDescriber errorDescriber,
-    IHttpContextAccessor httpContextAccessor) : IUserProfileService
+    IRequestContextService requestContext,
+    IdentityErrorDescriber errorDescriber) : IUserProfileService
 {
-    private readonly Uri? _originUrl = originOptions.Value.OriginUrl;
-
     public async Task<UserDto> GetAsync(string userId, CancellationToken cancellationToken)
     {
         // Relies on Finbuckle's tenant filter — callers can only ever read
@@ -226,21 +220,14 @@ internal sealed class UserProfileService(
             return imageUrl.ToString();
         }
 
-        // For relative paths from local storage, prefix with the API origin and wwwroot.
-        if (_originUrl is null)
+        // For relative paths from local storage, prefix with the API origin (configured, else the request host).
+        var baseUri = requestContext.Origin;
+        if (string.IsNullOrEmpty(baseUri))
         {
-            var request = httpContextAccessor.HttpContext?.Request;
-            if (request is not null && !string.IsNullOrWhiteSpace(request.Scheme) && request.Host.HasValue)
-            {
-                var baseUri = $"{request.Scheme}://{request.Host.Value}{request.PathBase}";
-                var relativePath = imageUrl.ToString().TrimStart('/');
-                return $"{baseUri.TrimEnd('/')}/{relativePath}";
-            }
-
             return imageUrl.ToString();
         }
 
-        var originRelativePath = imageUrl.ToString().TrimStart('/');
-        return $"{_originUrl.AbsoluteUri.TrimEnd('/')}/{originRelativePath}";
+        var relativePath = imageUrl.ToString().TrimStart('/');
+        return $"{baseUri}/{relativePath}";
     }
 }

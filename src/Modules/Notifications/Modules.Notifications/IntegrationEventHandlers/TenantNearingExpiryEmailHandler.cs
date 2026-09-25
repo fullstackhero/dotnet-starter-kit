@@ -14,9 +14,9 @@ public sealed class TenantNearingExpiryEmailHandler(
     public async Task HandleAsync(TenantNearingExpiryIntegrationEvent @event, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(@event);
-        var (subject, body) = BillingEmailBodies.NearingExpiry(
+        var (subject, body, textBody) = BillingEmailBodies.NearingExpiry(
             @event.TenantName, @event.PlanKey, @event.ValidUpto, @event.DaysRemaining);
-        await BillingEmailSender.SendAsync(mailService, logger, @event.AdminEmail, subject, body, "nearing-expiry", ct)
+        await BillingEmailSender.SendAsync(mailService, logger, @event.AdminEmail, subject, body, textBody, "nearing-expiry", ct)
             .ConfigureAwait(false);
     }
 }
