@@ -14,9 +14,9 @@ public sealed class TenantEnteredGraceEmailHandler(
     public async Task HandleAsync(TenantEnteredGraceIntegrationEvent @event, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(@event);
-        var (subject, body) = BillingEmailBodies.EnteredGrace(
+        var (subject, body, textBody) = BillingEmailBodies.EnteredGrace(
             @event.TenantName, @event.PlanKey, @event.ValidUpto, @event.GraceEndsUtc);
-        await BillingEmailSender.SendAsync(mailService, logger, @event.AdminEmail, subject, body, "entered-grace", ct)
+        await BillingEmailSender.SendAsync(mailService, logger, @event.AdminEmail, subject, body, textBody, "entered-grace", ct)
             .ConfigureAwait(false);
     }
 }

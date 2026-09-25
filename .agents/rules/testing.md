@@ -19,7 +19,7 @@ xUnit · Shouldly (`result.ShouldBe(...)`) · NSubstitute (`Substitute.For<IServ
 | `{Module}.Tests` | Unit: handlers, services, domain | no |
 | `Framework.Tests`, `Generic.Tests`, `Caching.Tests` | BuildingBlocks units | no |
 | `Architecture.Tests` | NetArchTest: module boundaries + tenant-isolation rules + handler↔validator pairing | no |
-| `Integration.Tests` | `WebApplicationFactory` over real PostgreSQL/Redis/MinIO | **yes** |
+| `Integration.Tests` | `WebApplicationFactory` over real PostgreSQL/Redis/RustFS | **yes** |
 | `Integration.Middleware.Tests` | Real middleware wiring | **yes** |
 
 ```bash

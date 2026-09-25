@@ -5,7 +5,7 @@
 #
 # Operator owns the edge (TLS / subdomain routing). This file publishes
 # only the FSH services on host ports; the data plane (postgres/redis/
-# minio) stays compose-internal unless you uncomment their ports blocks.
+# rustfs) stays compose-internal unless you uncomment their ports blocks.
 
 name: fsh
 
@@ -53,18 +53,18 @@ services:
     # ports:
     #   - "6379:6379"
 
-  minio:
-    image: minio/minio:latest
-    container_name: fsh-minio
+  rustfs:
+    image: rustfs/rustfs:1.0.0
+    container_name: fsh-rustfs
     restart: unless-stopped
-    command: ["server", "/data", "--console-address", ":9001"]
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY is required}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY is required}
+      RUSTFS_CONSOLE_ENABLE: "true"
     volumes:
-      - minio_data:/data
+      - rustfs_data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/health"]
       interval: 10s
       timeout: 3s
       retries: 12
@@ -78,21 +78,22 @@ services:
   # so without this the first upload fails with NoSuchBucket. No anonymous
   # policy is set — objects are served via the API / presigned URLs, not a
   # public bucket.
-  minio-init:
-    image: minio/mc:latest
-    container_name: fsh-minio-init
+  rustfs-init:
+    image: amazon/aws-cli:2.37.3
+    container_name: fsh-rustfs-init
     restart: "no"
     depends_on:
-      minio: { condition: service_healthy }
+      rustfs: { condition: service_healthy }
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      AWS_DEFAULT_REGION: us-east-1
     entrypoint: /bin/sh
     command:
       - -c
       - |
-        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
-        mc mb --ignore-existing local/fsh
+        aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket fsh 2>/dev/null ||
+          aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket fsh
 
   migrator:
     build:
@@ -121,8 +122,8 @@ services:
     depends_on:
       postgres:   { condition: service_healthy }
       redis:      { condition: service_healthy }
-      minio:      { condition: service_healthy }
-      minio-init: { condition: service_completed_successfully }
+      rustfs:      { condition: service_healthy }
+      rustfs-init: { condition: service_completed_successfully }
       migrator:   { condition: service_completed_successfully }
     environment:
       DOTNET_ENVIRONMENT: Production
@@ -132,9 +133,9 @@ services:
       JwtOptions__SigningKey: ${JWT_SIGNING_KEY}
       Seed__DefaultAdminPassword: ${SEED_ADMIN_PASSWORD}
       Storage__Provider: s3
-      Storage__S3__ServiceUrl: http://minio:9000
-      Storage__S3__AccessKey: ${MINIO_ROOT_USER}
-      Storage__S3__SecretKey: ${MINIO_ROOT_PASSWORD}
+      Storage__S3__ServiceUrl: http://rustfs:9000
+      Storage__S3__AccessKey: ${RUSTFS_ACCESS_KEY}
+      Storage__S3__SecretKey: ${RUSTFS_SECRET_KEY}
       Storage__S3__Bucket: fsh
       Storage__S3__ForcePathStyle: "true"
       AllowedHosts: "*"
@@ -178,4 +179,4 @@ services:
 volumes:
   pg_data:
   redis_data:
-  minio_data:
+  rustfs_data:

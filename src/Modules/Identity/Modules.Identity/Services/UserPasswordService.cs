@@ -51,10 +51,17 @@ internal sealed class UserPasswordService(
                 ["email"] = email,
                 ["tenant"] = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id,
             });
+        // The body is sent as text/html, so the link has to be an anchor: a bare URL in an HTML part is
+        // not auto-linked by most clients, which is how the reset link reached users as dead text.
         var mailRequest = new MailRequest(
             new Collection<string> { user.Email },
             "Reset Password",
-            $"Please reset your password using the following link: {resetPasswordUri}");
+            EmailBodies.LinkActionHtml(
+                heading: "Reset your password",
+                intro: "Use the link below to choose a new password.",
+                actionUrl: resetPasswordUri,
+                actionLabel: "Reset password"),
+            textBody: $"Please reset your password using the following link: {resetPasswordUri}");
 
         jobService.Enqueue(() => mailService.SendAsync(mailRequest, CancellationToken.None));
     }

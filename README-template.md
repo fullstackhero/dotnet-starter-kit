@@ -11,7 +11,7 @@ the shared code lives in `src/BuildingBlocks` and is yours to change.
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Node.js 20+](https://nodejs.org) — for the React apps
-- [Docker](https://www.docker.com/) — Postgres, Redis, MinIO (orchestrated by Aspire)
+- [Docker](https://www.docker.com/) — Postgres, Redis, RustFS (orchestrated by Aspire)
 
 ## Quick start
 
@@ -21,7 +21,7 @@ the shared code lives in `src/BuildingBlocks` and is yours to change.
 dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
-Aspire starts Postgres, Redis, and MinIO, runs database migrations, then launches the API
+Aspire starts Postgres, Redis, and RustFS, runs database migrations, then launches the API
 **and both React apps**.
 
 | Surface | URL |
