@@ -41,6 +41,7 @@ import { useUserDisplay } from "@/lib/use-user-display";
 import { ApiRequestError } from "@/lib/api-client";
 import { formatBytes } from "@/hooks/use-file-upload";
 import { cn } from "@/lib/cn";
+import { formatDateTimeMono } from "@/lib/list-helpers";
 
 type Props = {
   fileAssetId: string | null;
@@ -411,7 +412,7 @@ function MetadataPanel({
     [t("preview.meta.contentType"), file.contentType, file.contentType],
     [t("preview.meta.size"), formatBytes(file.sizeBytes), undefined],
     [t("preview.meta.status"), statusLabel(file.status, t), undefined],
-    [t("preview.meta.created"), new Date(file.createdAtUtc).toLocaleString(), undefined],
+    [t("preview.meta.created"), formatDateTimeMono(file.createdAtUtc), undefined],
   ];
 
   const isPublic = file.visibility === Visibility.Public;

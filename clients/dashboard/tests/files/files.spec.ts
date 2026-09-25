@@ -137,3 +137,27 @@ test.describe("files — My files / Shared tabs", () => {
     ).toBeVisible();
   });
 });
+
+// ─── Preview metadata follows the app language ────────────────────────
+
+test.describe("files — preview metadata", () => {
+  // The browser speaks English, the app is in pt-BR: a bare toLocaleString() would follow the
+  // browser and print an English date under Portuguese labels.
+  test.use({ locale: "en-US" });
+
+  test("the created date is formatted in the app language, not the browser's", async ({ page }) => {
+    await mockJsonResponse(page, "**/api/v1/files/mine**", [FILE_REPORT]);
+    await mockJsonResponse(page, `**/api/v1/files/${FILE_REPORT.id}/url**`, {
+      url: "about:blank",
+      expiresAtUtc: "2026-05-10T11:00:00Z",
+    });
+    await mockJsonResponse(page, `**/api/v1/files/${FILE_REPORT.id}`, FILE_REPORT);
+
+    await page.goto("/files?culture=pt-BR");
+    await page.getByText("quarterly-report.pdf").last().click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("Criado")).toBeVisible();
+    await expect(dialog.getByText(/MAI/)).toBeVisible();
+  });
+});
