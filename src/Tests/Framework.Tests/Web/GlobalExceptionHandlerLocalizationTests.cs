@@ -225,6 +225,20 @@ public sealed class GlobalExceptionHandlerLocalizationTests
         title.ShouldBe(expected);
     }
 
+    // The stale-profile 412 (If-Match on PUT /identity/profile) is a user-facing status; without its
+    // own key it fell back to the type name and went out titled "CustomException" in every culture.
+    [Theory]
+    [InlineData("en-US", "Precondition Failed")]
+    [InlineData("pt-BR", "Pré-condição não atendida")]
+    public async Task PreconditionFailed_has_its_own_title(string culture, string expected)
+    {
+        var exception = new CustomException("The profile changed.", [], HttpStatusCode.PreconditionFailed);
+
+        var (title, _) = await HandleAsync(exception, culture);
+
+        title.ShouldBe(expected);
+    }
+
     // A status with no title of its own keeps the pre-localization behaviour — the exception type
     // name — instead of claiming the error was unexpected. Status-consistent beats confidently wrong.
     [Theory]

@@ -79,6 +79,15 @@
   <data name="Error.Conflict" xml:space="preserve">
     <value>Conflict</value>
   </data>
+  <data name="Error.PreconditionFailed" xml:space="preserve">
+    <value>Precondition Failed</value>
+  </data>
+  <data name="Frontend.OriginNotAllowed" xml:space="preserve">
+    <value>The request origin is not an allowed front-end origin.</value>
+  </data>
+  <data name="Idempotency.RequestInProgress" xml:space="preserve">
+    <value>A request with this Idempotency-Key is already being processed. Retry shortly.</value>
+  </data>
   <data name="Error.Forbidden" xml:space="preserve">
     <value>Forbidden</value>
   </data>

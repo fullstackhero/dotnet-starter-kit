@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Caching;
+using FSH.Framework.Core.Localization;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Framework.Shared.Multitenancy;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -140,11 +142,16 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
             // the worst case (the holder died) — telling every client to wait it out serializes them
             // behind a lock that has probably already been released.
             httpContext.Response.Headers.RetryAfter = "1";
+
+            // Built here rather than thrown, so it never reaches the global handler: localize it the same
+            // way, and carry the same culture-independent `code` a client branches on instead of the prose.
+            var localizer = httpContext.RequestServices.GetRequiredService<IStringLocalizer<SharedResources>>();
             return TypedResults.Problem(
-                detail: "A request with this Idempotency-Key is already being processed. Retry shortly.",
+                detail: localizer["Idempotency.RequestInProgress"],
                 instance: httpContext.Request.Path,
                 statusCode: StatusCodes.Status409Conflict,
-                title: "Idempotent request in progress");
+                title: localizer["Error.Conflict"],
+                extensions: new Dictionary<string, object?> { ["code"] = "Idempotency.RequestInProgress" });
         }
 
         try

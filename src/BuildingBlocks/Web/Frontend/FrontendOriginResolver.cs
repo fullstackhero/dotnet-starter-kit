@@ -59,10 +59,14 @@ internal sealed class FrontendOriginResolver(
                 "Rejected front-end origin {Origin}: not in FrontendOptions:AllowedOrigins",
                 SanitizeForLog(header));
         }
+        // No MessageArgs: the rejected Origin is caller-supplied and must never be echoed back.
         throw new CustomException(
             "The request origin is not an allowed front-end origin.",
             errors: null,
-            HttpStatusCode.BadRequest);
+            HttpStatusCode.BadRequest)
+        {
+            MessageKey = "Frontend.OriginNotAllowed",
+        };
     }
 
     public string ResolveDefault()
