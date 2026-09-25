@@ -11,6 +11,21 @@ namespace FSH.Framework.Persistence;
 /// attached to every Hero DbContext and records transactions as they start and end, which is what
 /// lets the outbox write enlist in the business transaction instead of committing separately.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <b>Every method here must match <see cref="IDbTransactionInterceptor"/> exactly, sync *and*
+/// async.</b> The interface supplies default no-op implementations for all of its members, so a
+/// near-miss signature still compiles — it just silently never gets called, leaving this registry
+/// permanently empty and the outbox never enlisted.
+/// </para>
+/// <para>
+/// That failure mode is invisible on PostgreSQL: Npgsql associates a command with whatever
+/// transaction is open on its connection, so the outbox row joins the business transaction anyway.
+/// SQL Server does not — <c>SqlCommand.Transaction</c> must be set explicitly or execution throws
+/// "BeginExecuteReader requires the command to have a transaction…". Guarded by
+/// <c>AmbientDbTransactionRegistryTests</c>.
+/// </para>
+/// </remarks>
 public sealed class AmbientDbTransactionRegistry : IDbTransactionInterceptor
 {
     private readonly Dictionary<DbConnection, DbTransaction> _open = [];
@@ -22,20 +37,79 @@ public sealed class AmbientDbTransactionRegistry : IDbTransactionInterceptor
     public DbTransaction? Find(DbConnection connection)
         => connection is not null && _open.TryGetValue(connection, out var transaction) ? transaction : null;
 
-    public void TransactionStarted(DbConnection connection, TransactionEndEventData eventData)
-        => Track(connection, eventData?.Transaction);
+    public DbTransaction TransactionStarted(
+        DbConnection connection,
+        TransactionEndEventData eventData,
+        DbTransaction result)
+    {
+        Track(connection, result);
+        return result;
+    }
 
-    public void TransactionUsed(DbConnection connection, TransactionEventData eventData)
-        => Track(connection, eventData?.Transaction);
+    public ValueTask<DbTransaction> TransactionStartedAsync(
+        DbConnection connection,
+        TransactionEndEventData eventData,
+        DbTransaction result,
+        CancellationToken cancellationToken = default)
+    {
+        Track(connection, result);
+        return ValueTask.FromResult(result);
+    }
+
+    public DbTransaction TransactionUsed(
+        DbConnection connection,
+        TransactionEventData eventData,
+        DbTransaction result)
+    {
+        Track(connection, result);
+        return result;
+    }
+
+    public ValueTask<DbTransaction> TransactionUsedAsync(
+        DbConnection connection,
+        TransactionEventData eventData,
+        DbTransaction result,
+        CancellationToken cancellationToken = default)
+    {
+        Track(connection, result);
+        return ValueTask.FromResult(result);
+    }
 
     public void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)
         => Forget(transaction);
 
+    public Task TransactionCommittedAsync(
+        DbTransaction transaction,
+        TransactionEndEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        Forget(transaction);
+        return Task.CompletedTask;
+    }
+
     public void TransactionRolledBack(DbTransaction transaction, TransactionEndEventData eventData)
         => Forget(transaction);
 
+    public Task TransactionRolledBackAsync(
+        DbTransaction transaction,
+        TransactionEndEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        Forget(transaction);
+        return Task.CompletedTask;
+    }
+
     public void TransactionFailed(DbTransaction transaction, TransactionErrorEventData eventData)
         => Forget(transaction);
+
+    public Task TransactionFailedAsync(
+        DbTransaction transaction,
+        TransactionErrorEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        Forget(transaction);
+        return Task.CompletedTask;
+    }
 
     private void Track(DbConnection connection, DbTransaction? transaction)
     {
@@ -50,6 +124,17 @@ public sealed class AmbientDbTransactionRegistry : IDbTransactionInterceptor
         if (transaction?.Connection is not null)
         {
             _open.Remove(transaction.Connection);
+            return;
+        }
+
+        // A disposed transaction reports a null Connection, so fall back to identity: leaving a
+        // completed transaction in the map would make the next write try to enlist in it.
+        if (transaction is not null)
+        {
+            foreach (var entry in _open.Where(e => ReferenceEquals(e.Value, transaction)).ToList())
+            {
+                _open.Remove(entry.Key);
+            }
         }
     }
 }
