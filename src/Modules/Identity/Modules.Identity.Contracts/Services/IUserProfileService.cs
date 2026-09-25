@@ -24,9 +24,11 @@ public interface IUserProfileService
     Task<int> GetCountAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Updates a user's profile.
+    /// Updates a user's profile. When <paramref name="expectedConcurrencyStamps"/> is non-null the
+    /// update is rejected with <see cref="System.Net.HttpStatusCode.PreconditionFailed"/> unless the
+    /// stored concurrency token matches one of the entries — the caller edited a stale copy.
     /// </summary>
-    Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, CancellationToken cancellationToken = default);
+    Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, IReadOnlyList<string>? expectedConcurrencyStamps, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sets the profile image URL directly (no upload). Used by the presigned-upload flow:
