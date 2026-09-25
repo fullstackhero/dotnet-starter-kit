@@ -352,9 +352,9 @@ locals {
       for idx, origin in local.frontend_allowed_origins :
       "FrontendOptions__AllowedOrigins__${idx}" => origin
     },
-    # Empty when the stack hosts neither SPA. There is no fallback tier any more, so those flows
-    # (register, resend-confirmation, forgot-password) answer 500 until admin_url or dashboard_url
-    # is set. The API logs one Error at startup naming the setting.
+    # Empty when the stack hosts neither SPA. The API refuses to start in Production without it
+    # (register, resend-confirmation and forgot-password links need it), so set admin_url or
+    # dashboard_url, or pass FrontendOptions__DefaultOrigin yourself.
     { FrontendOptions__DefaultOrigin = try(coalesce(local.dashboard_url, local.admin_url), "") }
   )
 }

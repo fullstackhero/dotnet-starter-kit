@@ -197,11 +197,10 @@ public static class Extensions
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
         builder.Services.AddOptions<SecurityHeadersOptions>().BindConfiguration(nameof(SecurityHeadersOptions));
 
-        // Front-end origin resolution for user-facing links in e-mails/notifications. DefaultOrigin
-        // is not validated with ValidateOnStart on purpose: a deployment that never sends such a
-        // link must not be taken down by the setting. There is no fallback tier — the resolver
-        // throws when it is unset — so UseHeroPlatform logs one Error at startup naming the setting
-        // and the flows that will answer 500 without it.
+        // Front-end origin resolution for user-facing links in e-mails/notifications. There is no
+        // fallback tier: the resolver throws when DefaultOrigin is unset. The API host fails fast on
+        // it in Production (Program.cs); it is not validated here because the DbMigrator also calls
+        // AddHeroPlatform and never sends links. Other environments get one startup Error instead.
         builder.Services.AddOptions<FrontendOptions>().BindConfiguration(nameof(FrontendOptions));
         builder.Services.AddScoped<IFrontendOriginResolver, FrontendOriginResolver>();
 
