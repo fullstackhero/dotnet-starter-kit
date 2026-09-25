@@ -14,9 +14,8 @@ namespace Architecture.Tests;
 ///
 /// Each module already has a hand-written parity test, but those only cover the modules
 /// someone remembered to write one for — Notifications shipped a catalog with no parity
-/// test at all, and has no test project to put one in. This closes that class of gap: a
-/// new module catalog is covered the moment its assembly lands in the output, with no new
-/// test and no new test project.
+/// test at all. This closes that class of gap: a new module catalog is covered the moment
+/// its assembly lands in the output, with no new test to write.
 ///
 /// Parity matters because a key missing from a translated catalog does not fail — resource
 /// fallback quietly serves the neutral (English) string, so an untranslated message ships
