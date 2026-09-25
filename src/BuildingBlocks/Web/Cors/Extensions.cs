@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using System;
 using AspNetCorsOptions = Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions;
 
@@ -53,6 +54,12 @@ public static class Extensions
                             .WithMethods(settings.AllowedMethods)
                             .AllowCredentials();
                     }
+
+                    // `ETag` is not a CORS-safelisted response header, so a browser hides it from JS on any
+                    // cross-origin call — and a front-end that cannot read the validator cannot send
+                    // `If-Match`, which degrades an optimistic-concurrency endpoint back to a lost update.
+                    // Exposed for both policies: the header carries no data of its own, only a validator.
+                    builder.WithExposedHeaders(HeaderNames.ETag);
                 });
             });
         });

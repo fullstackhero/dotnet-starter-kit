@@ -25,7 +25,7 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 | `src/BuildingBlocks/` | Shared framework libraries (Core, Persistence, Web, Caching, Eventing, Storage, Quota…). **Protected — see below.** |
 | `src/Modules/{Name}/` | Bounded contexts. Each has a runtime project + a `.Contracts` project (its only public API). |
 | `src/Host/FSH.Starter.Api` | Composition-root Web API host. |
-| `src/Host/FSH.Starter.AppHost` | .NET Aspire orchestrator (Postgres, Redis, MinIO, migrator, API, **both React apps**). |
+| `src/Host/FSH.Starter.AppHost` | .NET Aspire orchestrator (Postgres, Redis, RustFS, migrator, API, **both React apps**). |
 | `src/Host/FSH.Starter.DbMigrator` | One-shot migrate/seed runner. DB is **not** migrated at API startup. |
 | `src/Host/FSH.Starter.Migrations.PostgreSQL` | All EF migrations, organized per-module by folder. |
 | `src/Tests/` | Per-module tests, `Architecture.Tests` (NetArchTest), `Integration.Tests` (Testcontainers). |
@@ -51,7 +51,7 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 ## Build & run
 
 ```bash
-# Whole stack (Postgres + pgAdmin + Redis + MinIO + migrator + API + both React apps)
+# Whole stack (Postgres + pgAdmin + Redis + RustFS + migrator + API + both React apps)
 dotnet run --project src/Host/FSH.Starter.AppHost   # one-time: npm install in clients/admin & clients/dashboard
 
 dotnet build src/FSH.Starter.slnx                   # build backend
@@ -68,7 +68,7 @@ dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply [--seed]
 dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending
 ```
 
-**Ports:** API 7030 (https)/5030 (http) · admin 5173 · dashboard 5174 · Postgres 5432 · pgAdmin 5050 · Valkey 6379 · MinIO 9000/9001.
+**Ports:** API 7030 (https)/5030 (http) · admin 5173 · dashboard 5174 · Postgres 5432 · pgAdmin 5050 · Valkey 6379 · RustFS 9000/9001 (S3 API/console).
 
 ## Branching & PRs
 
@@ -101,7 +101,7 @@ Single long-lived branch: **`main`** (the default) — there is **no `develop`**
 | Background jobs (Hangfire), recurring jobs | `jobs.md` |
 | Outbound HTTP resilience (Polly) | `resilience.md` |
 | Files/blobs, presigned uploads, providers | `storage.md` |
-| CORS, security headers, rate limiting, idempotency, quotas | `security.md` |
+| CORS, security headers, rate limiting, idempotency, quotas, front-end link origins | `security.md` |
 | SignalR / SSE backend | `realtime.md` |
 | Logging, correlation, OpenTelemetry | `logging.md` |
 | Localization (i18n), request culture, resource catalogs, localized exceptions | `localization.md` |

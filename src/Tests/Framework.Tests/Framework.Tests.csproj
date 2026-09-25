@@ -32,4 +32,13 @@
 		<ProjectReference Include="..\..\BuildingBlocks\Web\Web.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="..\..\Host\FSH.Starter.Api\appsettings.json"
+			  Link="HostConfiguration\appsettings.json"
+			  CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\Host\FSH.Starter.Api\appsettings.Production.json"
+			  Link="HostConfiguration\appsettings.Production.json"
+			  CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

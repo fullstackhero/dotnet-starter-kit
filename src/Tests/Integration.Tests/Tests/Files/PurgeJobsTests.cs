@@ -20,7 +20,7 @@ namespace Integration.Tests.Tests.Files;
 /// Coverage for the two Hangfire purge jobs. They are NOT run by the scheduler in tests, so we
 /// resolve each from a DI scope (with the Finbuckle tenant context set INLINE in that scope to
 /// avoid the AsyncLocal NRE in the tenant filter) and invoke <c>RunAsync</c> directly after seeding
-/// a purgeable precondition. The real S3/MinIO RemoveAsync runs against bytes that were genuinely
+/// a purgeable precondition. The real S3 (RustFS) RemoveAsync runs against bytes that were genuinely
 /// PUT, so this also exercises S3StorageService.RemoveAsync (DeleteObject) end-to-end.
 /// </summary>
 [Collection(FshCollectionDefinition.Name)]

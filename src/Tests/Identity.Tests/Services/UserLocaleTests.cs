@@ -1,7 +1,7 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Storage.Services;
-using FSH.Framework.Web.Origin;
+using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Domain;
 using FSH.Modules.Identity.Services;
 using Identity.Tests.Support;
@@ -44,7 +44,7 @@ public sealed class UserLocaleTests
 
     private UserProfileService CreateSut() =>
         new(_userManager, _signInManager, _storageService, _tenantAccessor,
-            Options.Create(new OriginOptions()), Substitute.For<IHttpContextAccessor>());
+            Substitute.For<IRequestContextService>(), new IdentityErrorDescriber());
 
     [Fact]
     public async Task UpdateAsync_persists_the_supplied_locale_onto_the_user()
@@ -56,7 +56,7 @@ public sealed class UserLocaleTests
         var sut = CreateSut();
 
         // Act
-        await sut.UpdateAsync("u1", "First", "Last", string.Empty, null!, false, "pt-BR", CancellationToken.None);
+        await sut.UpdateAsync("u1", "First", "Last", string.Empty, null!, false, "pt-BR", null, CancellationToken.None);
 
         // Assert
         user.Locale.ShouldBe("pt-BR");
@@ -72,7 +72,7 @@ public sealed class UserLocaleTests
         var sut = CreateSut();
 
         // Act
-        await sut.UpdateAsync("u1", "First", "Last", string.Empty, null!, false, null, CancellationToken.None);
+        await sut.UpdateAsync("u1", "First", "Last", string.Empty, null!, false, null, null, CancellationToken.None);
 
         // Assert
         user.Locale.ShouldBe("en-US");

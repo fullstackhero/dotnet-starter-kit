@@ -73,6 +73,13 @@ type RequestInitEx = RequestInit & {
    * uploads) should override this explicitly.
    */
   timeoutMs?: number;
+  /**
+   * Called with the final response before its body is read, so a caller can pick up a
+   * response header `apiFetch` does not model — the `ETag` on `GET /identity/profile`,
+   * which a later `PUT` echoes back in `If-Match`. Runs for error responses too, and
+   * must not throw.
+   */
+  onResponse?: (response: Response) => void;
 };
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -156,7 +163,7 @@ export async function apiFetch<T = unknown>(
   path: string,
   init: RequestInitEx = {},
 ): Promise<T> {
-  const { skipAuth, headers, timeoutMs = DEFAULT_TIMEOUT_MS, signal, ...rest } = init;
+  const { skipAuth, headers, timeoutMs = DEFAULT_TIMEOUT_MS, signal, onResponse, ...rest } = init;
 
   const mergedHeaders = new Headers(headers);
   if (!mergedHeaders.has("Content-Type") && rest.body && typeof rest.body === "string") {
@@ -217,6 +224,8 @@ export async function apiFetch<T = unknown>(
       retryTimer.cleanup();
     }
   }
+
+  onResponse?.(response);
 
   if (!response.ok) {
     const problem = await parseError(response);

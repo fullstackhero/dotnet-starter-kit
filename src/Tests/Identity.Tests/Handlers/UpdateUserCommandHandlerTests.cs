@@ -40,7 +40,32 @@ public sealed class UpdateUserCommandHandlerTests
             command.PhoneNumber ?? string.Empty,
             command.Image!,
             command.DeleteCurrentImage,
-            command.Locale);
+            command.Locale,
+            command.ExpectedConcurrencyStamps);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ForwardExpectedConcurrencyStamps_When_CallerSentIfMatch()
+    {
+        // Arrange — the endpoint fills ExpectedConcurrencyStamps from the If-Match header; the
+        // handler has to carry it through or the precondition is silently dropped.
+        var command = _fixture.Create<UpdateUserCommand>();
+        var stamps = new List<string> { "stamp-a", "stamp-b" };
+        command.ExpectedConcurrencyStamps = stamps;
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await _userService.Received(1).UpdateAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<FSH.Framework.Shared.Storage.FileUploadRequest>(),
+            Arg.Any<bool>(),
+            Arg.Any<string?>(),
+            Arg.Is<IReadOnlyList<string>?>(actual => actual != null && actual.SequenceEqual(stamps)));
     }
 
     [Fact]
@@ -68,7 +93,8 @@ public sealed class UpdateUserCommandHandlerTests
             string.Empty,
             null!,
             true,
-            command.Locale);
+            command.Locale,
+            null);
     }
 
     [Fact]
@@ -85,7 +111,7 @@ public sealed class UpdateUserCommandHandlerTests
         // Arrange
         var command = _fixture.Create<UpdateUserCommand>();
         var expectedExceptionMessage = "Update failed";
-        _userService.UpdateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FSH.Framework.Shared.Storage.FileUploadRequest>(), Arg.Any<bool>(), Arg.Any<string?>())
+        _userService.UpdateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FSH.Framework.Shared.Storage.FileUploadRequest>(), Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<IReadOnlyList<string>?>())
             .Returns(x => throw new InvalidOperationException(expectedExceptionMessage));
 
         // Act & Assert

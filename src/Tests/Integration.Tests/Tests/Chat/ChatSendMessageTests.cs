@@ -71,7 +71,7 @@ public sealed class ChatSendMessageTests
 
     // ─── idempotency ─────────────────────────────────────────────────
 
-    [Fact(Skip = "Idempotency replay does not engage in the test environment — IDistributedCache (probe) and HybridCache (write-through) are wired to separate in-process stores, so the second call never sees the cached response. Same caveat as IdempotencyFilterTests.cs: 'full replay-with-matching-body coverage is not yet possible'. Backlog item 2.4b tracks the fix.")]
+    [Fact]
     public async Task SendMessage_Should_Replay_Same_Response_When_Idempotency_Key_Reused()
     {
         using var client = await _auth.CreateRootAdminClientAsync();
