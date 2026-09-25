@@ -116,12 +116,16 @@ internal static class EntityDiffBuilder
             return null;
         }
 
+        // Sensitive values are masked here, before the payload leaves the interceptor: the audit row must
+        // record that the value changed, never the value itself (PasswordHash, refresh tokens, secrets…).
+        bool isSensitive = IsSensitive(property.Metadata.Name);
+
         return new PropertyChange(
             Name: property.Metadata.Name,
             DataType: ToSimpleTypeName(property.Metadata.ClrType),
-            OldValue: oldVal,
-            NewValue: newVal,
-            IsSensitive: IsSensitive(property.Metadata.Name));
+            OldValue: isSensitive ? Mask(oldVal) : oldVal,
+            NewValue: isSensitive ? Mask(newVal) : newVal,
+            IsSensitive: isSensitive);
     }
 
     private static (object? OldValue, object? NewValue, bool IsModified) GetPropertyValues(
@@ -173,10 +177,17 @@ internal static class EntityDiffBuilder
         return !orig && curr;
     }
 
+    private const string MaskValue = "****";
+
+    // Substring match on the property name. Keep in step with JsonMaskingService's keywords.
+    private static readonly string[] SensitiveKeywords =
+        ["password", "secret", "token", "apikey", "connectionstring", "securitystamp"];
+
     private static bool IsSensitive(string propertyName) =>
-        propertyName.Contains("password", StringComparison.OrdinalIgnoreCase) ||
-        propertyName.Contains("secret", StringComparison.OrdinalIgnoreCase) ||
-        propertyName.Contains("token", StringComparison.OrdinalIgnoreCase);
+        SensitiveKeywords.Any(k => propertyName.Contains(k, StringComparison.OrdinalIgnoreCase));
+
+    // Null stays null so the trail still shows a value being set or cleared.
+    private static string? Mask(object? value) => value is null ? null : MaskValue;
 
     private static bool IsScalar(Type t)
     {

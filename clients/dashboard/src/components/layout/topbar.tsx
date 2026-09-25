@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   Check,
@@ -39,7 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
-import { getMyProfile, updateMyProfile } from "@/api/identity";
+import { getMyProfileWithETag, updateMyProfile } from "@/api/identity";
 import { refreshAccessToken } from "@/lib/api-client";
 import { formatNumber } from "@/lib/list-helpers";
 import i18n, { SUPPORTED } from "@/i18n";
@@ -189,13 +189,16 @@ export function Topbar() {
   // labels and the active-locale check re-render the instant we switch.
   const { t } = useTranslation();
   // Shared with the Profile settings page (same query key), so changing the
-  // photo there invalidates this and the topbar avatar updates live.
+  // photo there invalidates this and the topbar avatar updates live. That sharing is also why
+  // this reads through the ETag-carrying variant: one query key must hold one shape, and the
+  // settings page needs the tag to save against.
   const { data: profile } = useQuery({
     queryKey: ["identity", "me"],
-    queryFn: getMyProfile,
+    queryFn: getMyProfileWithETag,
     staleTime: 5 * 60 * 1000,
   });
-  const avatarUrl = profile?.imageUrl ?? null;
+  const avatarUrl = profile?.profile.imageUrl ?? null;
+  const queryClient = useQueryClient();
 
   // While impersonating, language stays a purely local, operator-owned choice:
   // StartImpersonation strips the target's `locale` claim so the operator keeps
@@ -206,14 +209,12 @@ export function Topbar() {
   // Hydrate the UI language from the server-persisted locale when the profile first
   // arrives, so a locale chosen on another device carries over on this one.
   //
-  // It stops the moment the user picks a language HERE. This query key is shared —
-  // Settings > Profile invalidates ["identity","me"] after its own save — and
-  // updateMyProfile is a read-modify-write with no concurrency token, so that save can
-  // echo back a locale it read before the switch landed. Re-hydrating on every refetch
-  // would then yank the language out from under an explicit in-session choice, with no
-  // error and nothing for the user to act on. See the `ponytail:` note below.
+  // It stops the moment the user picks a language HERE. This query key is shared and is
+  // refetched after every profile write, including the switch's own; the refetch can land
+  // before the new locale does, and re-hydrating from it would yank the language out from
+  // under an explicit in-session choice, with no error and nothing for the user to act on.
   const languageChosenThisSession = useRef(false);
-  const persistedLocale = isImpersonating ? undefined : profile?.locale;
+  const persistedLocale = isImpersonating ? undefined : profile?.profile.locale;
   useEffect(() => {
     if (languageChosenThisSession.current) return;
     if (persistedLocale && persistedLocale !== i18n.language) {
@@ -228,8 +229,26 @@ export function Topbar() {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const updateProfile = useMutation({
-    mutationFn: updateMyProfile,
+    // A locale-only save reads the profile and its ETag at save time, unlike the settings form.
+    // That is safe here because nothing the user typed rides along: every other field comes from
+    // this same fresh read, so there is no stale snapshot for If-Match to protect. The tag still
+    // guards the read-to-PUT gap; a 412 there lands in onError like any other failure.
+    mutationFn: async (locale: string) => {
+      const { profile: current, etag } = await getMyProfileWithETag();
+      await updateMyProfile({
+        profile: current,
+        expectedETag: etag,
+        firstName: null,
+        lastName: null,
+        phoneNumber: null,
+        locale,
+      });
+    },
     onSuccess: () => {
+      // The save rotated the concurrency stamp, so the cached tag is spent. Refetch it, or the
+      // settings form would seed from the old tag and its first save would 412 against this one.
+      // The hydration guard above keeps the refetch from reverting the language.
+      void queryClient.invalidateQueries({ queryKey: ["identity", "me"] });
       // Re-mint the JWT so the fresh `locale` claim is issued. The UI already
       // switched client-side; without this, backend-generated strings lag
       // behind until the next natural token refresh. Best-effort: the refresh no
@@ -252,26 +271,14 @@ export function Topbar() {
   });
 
   // Switch the UI language and persist it. The locale travels through the
-  // mutation argument (never closed-over state). updateMyProfile echoes the
-  // current name/phone from the profile it reads, so a locale-only save does
-  // not wipe them. We deliberately do NOT invalidate the profile query on
-  // success — a refetch would revert the language mid-switch. During an
-  // impersonation session the switch stays client-side only: persisting would
-  // write the operator's language onto the impersonated user's profile.
-  //
-  // ponytail: the persisted locale can still be lost server-side. updateMyProfile is a
-  // GET-then-PUT with no concurrency token, so a Settings > Profile save whose read
-  // preceded this PUT will echo the old locale back and win if it lands second. The UI
-  // no longer follows it (the hydration guard above), so the damage is bounded to "the
-  // language did not stick across a reload". The real fix is an ETag / RowVersion with
-  // If-Match on PUT /identity/profile, which is a contract change to an existing
-  // endpoint and belongs in its own PR. Tracked in
-  // https://github.com/fullstackhero/dotnet-starter-kit/issues/1359.
+  // mutation argument (never closed-over state). During an impersonation session
+  // the switch stays client-side only: persisting would write the operator's
+  // language onto the impersonated user's profile.
   const onSelectLanguage = (tag: string) => {
     languageChosenThisSession.current = true;
     void i18n.changeLanguage(tag);
     if (isImpersonating) return;
-    updateProfile.mutate({ locale: tag });
+    updateProfile.mutate(tag);
   };
 
   const onConfirmSignOut = () => {

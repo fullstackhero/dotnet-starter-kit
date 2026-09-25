@@ -10,7 +10,7 @@ This brings up the full stack on a single host:
 | `migrator` | `fsh/dbmigrator:local` | — | One-shot: applies EF migrations + seeds the root tenant + creates the default admin user |
 | `postgres` | `postgres:18-alpine` | (internal) | Identity, tenant catalog, module schemas |
 | `redis` | `valkey/valkey:9.1.0-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
-| `minio` | `quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z` | (internal) | S3-compatible blob store for the Files module |
+| `rustfs` | `rustfs/rustfs:1.0.0` | (internal) | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)) |
 
 The compose file does **not** include a reverse proxy or TLS terminator. You bring your own edge — Cloudflare Tunnel, AWS ALB, Tailscale Funnel, your existing nginx, anything that can route a TLS subdomain to a host:port on this machine.
 
@@ -56,7 +56,7 @@ Point three TLS subdomains at the published ports:
 | `admin.example.com` | `8081` |
 | `app.example.com` | `8082` |
 
-Make sure the URLs you serve match the `FSH_API_URL` / `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` you set in `.env` — those values are baked into the frontends' runtime `/config.json` (CORS will fail loudly otherwise).
+Make sure the URLs you serve match the `FSH_API_URL` / `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` you set in `.env` — those values are baked into the frontends' runtime `/config.json` (CORS will fail loudly otherwise). They also drive the origins the API is allowed to put inside password-reset and e-mail-confirmation links, with `FSH_DASHBOARD_URL` as the default target for links the API sends on an operator's behalf.
 
 ## Sign in for the first time
 
@@ -87,21 +87,21 @@ docker run --rm \
   -v "$PWD":/backup \
   alpine \
   tar czf /backup/pg_data-$(date +%Y%m%d).tar.gz -C /source .
-# Repeat for fsh_redis_data and fsh_minio_data.
+# Repeat for fsh_redis_data and fsh_rustfs_data.
 ```
 
 ## Swapping in managed services
 
 Single-host compose is the default story; production deployments often point at managed Postgres / Redis / S3. To do that:
 
-1. Comment out the `postgres` / `redis` / `minio` service blocks AND remove them from the `depends_on:` of `api` and `migrator`.
+1. Comment out the `postgres` / `redis` / `rustfs` service blocks (and `rustfs-init`) AND remove them from the `depends_on:` of `api` and `migrator`.
 2. Swap the matching env vars on `api` and `migrator`:
    - `DatabaseOptions__ConnectionString` → your managed Postgres connection string
    - `CachingOptions__Redis` → your managed Redis connection string (`host:port,password=...,ssl=True` etc.)
    - `Storage__Provider`, `Storage__S3__*` → your S3-compatible store
 3. `docker compose up -d`.
 
-The data-plane volumes (`pg_data`, `redis_data`, `minio_data`) can be deleted once you've migrated.
+The data-plane volumes (`pg_data`, `redis_data`, `rustfs_data`) can be deleted once you've migrated.
 
 ## Troubleshooting
 
@@ -111,4 +111,5 @@ The data-plane volumes (`pg_data`, `redis_data`, `minio_data`) can be deleted on
 | Migrator exits non-zero with `Failed to fetch dynamically imported module` | A frontend bundle baked the wrong API URL. Check `FSH_API_URL` in `.env` and re-run with `--build`. |
 | `OptionsValidationException: SigningKey looks like a sample placeholder` | `JWT_SIGNING_KEY` contains `replace-with` (the framework's placeholder detector). Generate a real key: `openssl rand -base64 48`. |
 | API up but admin shows a CORS error | `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` in `.env` doesn't match what your external proxy serves. Both go on the CORS allow-list. |
+| A reset or confirmation e-mail links to the API instead of the app | Same cause: `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` don't match the origins the browser actually uses. Both also feed `FrontendOptions__AllowedOrigins`, and `FSH_DASHBOARD_URL` feeds `FrontendOptions__DefaultOrigin`. |
 | `migrator` retries Postgres for 2 minutes then fails | Postgres didn't come up — check `docker compose logs postgres`. Most often a `POSTGRES_PASSWORD` change against an existing `pg_data` volume; delete the volume with `docker compose down -v` (destructive) and start over. |

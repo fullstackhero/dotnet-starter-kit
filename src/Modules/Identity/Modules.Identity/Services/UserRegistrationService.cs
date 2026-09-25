@@ -309,7 +309,8 @@ internal sealed class UserRegistrationService(
         var mailRequest = new MailRequest(
             new Collection<string> { user.Email },
             "Confirm Your Email Address",
-            emailBody);
+            emailBody,
+            textBody: $"Please confirm your email address using the following link: {emailVerificationUri}");
 
         jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, cancellationToken));
     }
@@ -345,8 +346,10 @@ internal sealed class UserRegistrationService(
         string code = await userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-        const string route = "api/v1/identity/confirm-email";
-        var endpointUri = new Uri(string.Concat($"{origin}/", route));
+        // Point at the SPA confirm-email page on the front-end the user registered from, which in turn
+        // calls the API. The origin argument is the already-resolved front-end origin.
+        const string route = "confirm-email";
+        var endpointUri = new Uri(string.Concat($"{origin.TrimEnd('/')}/", route));
 
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);

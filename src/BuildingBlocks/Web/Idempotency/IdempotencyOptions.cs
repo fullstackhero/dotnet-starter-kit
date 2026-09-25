@@ -16,6 +16,15 @@ public sealed class IdempotencyOptions
     public TimeSpan DefaultTtl { get; set; } = TimeSpan.FromHours(24);
 
     /// <summary>
+    /// Time-to-live for the in-flight reservation that serializes concurrent duplicate keys.
+    /// Decoupled from <see cref="DefaultTtl"/>: it must only outlast the handler's execution, so a
+    /// crash between reserving and releasing frees the key in seconds instead of stranding it for the
+    /// full response TTL (every retry would 409 until it expired). Must exceed the longest expected
+    /// handler runtime — if it lapses mid-request a concurrent duplicate can slip through. Default: 1 minute.
+    /// </summary>
+    public TimeSpan ReservationTtl { get; set; } = TimeSpan.FromMinutes(1);
+
+    /// <summary>
     /// Maximum allowed length for the idempotency key. Default: 128 characters.
     /// </summary>
     public int MaxKeyLength { get; set; } = 128;

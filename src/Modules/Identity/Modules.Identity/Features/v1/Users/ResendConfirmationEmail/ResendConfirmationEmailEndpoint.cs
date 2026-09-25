@@ -1,4 +1,5 @@
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Frontend;
 using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Users.ResendConfirmationEmail;
 using Mediator;
@@ -26,12 +27,13 @@ public static class ResendConfirmationEmailEndpoint
 
     private static async Task<NoContent> Handler(
         Guid id,
-        HttpContext context,
+        IFrontendOriginResolver originResolver,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        // Build the confirmation-link base URL from the request, same as the registration endpoint.
-        var origin = $"{context.Request.Scheme}://{context.Request.Host.Value}{context.Request.PathBase.Value}";
+        // Operator-driven flow: an admin re-sends a tenant user's confirmation, so the link must
+        // land on the recipient's app (the default front-end), not the operator's Origin.
+        var origin = originResolver.ResolveDefault();
         await mediator.Send(new ResendConfirmationEmailCommand(id.ToString(), origin), cancellationToken);
         return TypedResults.NoContent();
     }

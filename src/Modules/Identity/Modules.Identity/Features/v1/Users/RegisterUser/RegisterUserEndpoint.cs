@@ -1,5 +1,6 @@
 using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Frontend;
 using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 using Mediator;
@@ -14,12 +15,13 @@ public static class RegisterUserEndpoint
     internal static RouteHandlerBuilder MapRegisterUserEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/register", async (RegisterUserCommand command,
-            HttpContext context,
+            IFrontendOriginResolver originResolver,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
-            var origin = $"{context.Request.Scheme}://{context.Request.Host.Value}{context.Request.PathBase.Value}";
-            command.Origin = origin;
+            // Operator-driven flow: an admin registers a tenant user, so the confirmation link must
+            // land on the recipient's app (the default front-end), not the operator's Origin.
+            command.Origin = originResolver.ResolveDefault();
             var result = await mediator.Send(command, cancellationToken);
             return TypedResults.Created($"/api/v1/identity/users/{result.UserId}", result);
         })

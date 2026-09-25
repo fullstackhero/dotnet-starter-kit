@@ -147,10 +147,6 @@ export async function getMyPermissions(): Promise<string[]> {
   return (await apiFetch<string[] | null>(`/api/v1/identity/permissions`)) ?? [];
 }
 
-export async function getMyProfile(): Promise<UserDto> {
-  return apiFetch<UserDto>("/api/v1/identity/profile");
-}
-
 export async function registerUser(input: RegisterUserInput): Promise<RegisterUserResponse> {
   return apiFetch<RegisterUserResponse>(`/api/v1/identity/register`, {
     method: "POST",
@@ -392,26 +388,63 @@ export async function endImpersonation(): Promise<EndImpersonationResponse> {
 // -----------------------------
 
 export type UpdateProfileInput = {
-  firstName?: string | null;
-  lastName?: string | null;
-  phoneNumber?: string | null;
+  /**
+   * The profile the form was seeded from, and the ETag that read carried. Both come from the
+   * caller rather than from a read inside the save: the lost update this guards against happens
+   * between the moment the user saw the values and the moment they press save, so a tag fetched
+   * inside the save has no chance of being stale and no chance of catching anything.
+   */
+  profile: UserDto;
+  expectedETag: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  phoneNumber: string | null;
   /** BCP 47 UI language tag persisted on the user (drives the JWT locale claim). */
-  locale?: string | null;
+  locale: string | null;
 };
 
 /**
- * Updates the authenticated user's profile. Maps to UpdateUserCommand
- * server-side. Image and email changes go through their own dedicated
- * endpoints — this is for the editable profile fields surfaced in
- * settings/profile. Reads the current profile first so unset optional
- * fields keep their existing values instead of being nulled — the backend
- * sets FirstName/LastName unconditionally from the command, so a locale-only
- * save (the language switcher) would otherwise wipe the names.
+ * Reads the profile along with the ETag the server publishes for it. The tag is the
+ * profile's version marker: echoing it back in `If-Match` on the PUT below is what lets
+ * the server reject a save built from a snapshot someone else has since changed.
+ *
+ * Use this as the read that populates an edit form, and hand the tag it returns back to
+ * {@link updateMyProfile}. A tag read at save time cannot detect anything.
+ */
+export async function getMyProfileWithETag(): Promise<{ profile: UserDto; etag: string | null }> {
+  let etag: string | null = null;
+  const profile = await apiFetch<UserDto>("/api/v1/identity/profile", {
+    onResponse: (response) => {
+      // Strip a `W/` prefix rather than pass it through. The endpoint only ever emits a strong
+      // validator, so a weak one is an artefact of the transport: a compressing edge (Cloudflare
+      // does this by default once it re-encodes a response) downgrades the tag it forwards. Sending
+      // it back as-is means the server drops it under the strong comparison `If-Match` mandates and
+      // answers 412 forever, which is a profile the user can never save.
+      const header = response.headers.get("ETag");
+      etag = header ? header.replace(/^W\//, "") : null;
+    },
+  });
+  return { profile, etag };
+}
+
+/**
+ * Updates the authenticated user's profile. Maps to UpdateUserCommand server-side. Image and
+ * email changes go through their own dedicated endpoints — this is for the editable profile
+ * fields surfaced in settings/profile. The unedited fields come off `input.profile`, the copy
+ * the form was seeded from, so they keep their values instead of being nulled.
+ *
+ * The PUT carries `If-Match` with that same copy's ETag, so the server answers 412 when the
+ * profile moved after the user last saw it, instead of accepting a full representation built
+ * from a stale snapshot and blanking the concurrent change. A 412 is NOT retried here: the only
+ * body this function has is the one the user typed against the old values, and resending it
+ * against a fresh tag performs exactly the overwrite the 412 exists to prevent. The caller
+ * decides — normally by telling the user the profile changed and asking for a deliberate re-save.
  */
 export async function updateMyProfile(input: UpdateProfileInput): Promise<void> {
-  const profile = await getMyProfile();
+  const { profile, expectedETag } = input;
   await apiFetch<unknown>(`/api/v1/identity/profile`, {
     method: "PUT",
+    headers: expectedETag ? { "If-Match": expectedETag } : undefined,
     body: JSON.stringify({
       id: profile.id,
       firstName: input.firstName ?? profile.firstName ?? null,

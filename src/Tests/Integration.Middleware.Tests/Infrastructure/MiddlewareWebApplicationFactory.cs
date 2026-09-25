@@ -22,7 +22,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Testcontainers.Minio;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using Testcontainers.PostgreSql;
 
 namespace Integration.Middleware.Tests.Infrastructure;
@@ -42,9 +43,9 @@ namespace Integration.Middleware.Tests.Infrastructure;
 /// </summary>
 public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private const string MinioAccessKey = "minioadmin";
-    private const string MinioSecretKey = "minioadmin";
-    private const string MinioBucket = "fsh-middleware-test-uploads";
+    private const string S3AccessKey = "rustfsadmin";
+    private const string S3SecretKey = "rustfsadmin";
+    private const string S3Bucket = "fsh-middleware-test-uploads";
 
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
@@ -55,10 +56,13 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         .WithCleanUp(true)
         .Build();
 
-    // quay.io: minio/minio is gone from Docker Hub. Tag pinned; quay stopped moving :latest.
-    private readonly MinioContainer _minio = new MinioBuilder("quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z")
-        .WithUsername(MinioAccessKey)
-        .WithPassword(MinioSecretKey)
+    // RustFS (S3-compatible) replaces MinIO, whose images were withdrawn from Docker Hub and quay.io.
+    private const int S3Port = 9000;
+    private readonly IContainer _s3 = new ContainerBuilder("rustfs/rustfs:1.0.0")
+        .WithPortBinding(S3Port, true)
+        .WithEnvironment("RUSTFS_ACCESS_KEY", S3AccessKey)
+        .WithEnvironment("RUSTFS_SECRET_KEY", S3SecretKey)
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(S3Port).ForPath("/health")))
         .WithAutoRemove(true)
         .WithCleanUp(true)
         .Build();
@@ -79,8 +83,8 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
 
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(_postgres.StartAsync(), _minio.StartAsync());
-        await CreateMinioBucketAsync();
+        await Task.WhenAll(_postgres.StartAsync(), _s3.StartAsync());
+        await CreateS3BucketAsync();
 
         // Force host creation via the Server property (no leaked HttpClient)
         _ = Server;
@@ -102,29 +106,29 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
-        await _minio.DisposeAsync();
+        await _s3.DisposeAsync();
     }
 
-    /// <summary>The MinIO endpoint URL exposed to the host configuration; useful for tests that need to PUT bytes directly.</summary>
-    public string MinioServiceUrl => _minio.GetConnectionString();
+    /// <summary>The S3 (RustFS) endpoint URL exposed to the host configuration; useful for tests that need to PUT bytes directly.</summary>
+    public string S3ServiceUrl => $"http://{_s3.Hostname}:{_s3.GetMappedPublicPort(S3Port)}";
 
-    private async Task CreateMinioBucketAsync()
+    private async Task CreateS3BucketAsync()
     {
         var config = new AmazonS3Config
         {
-            ServiceURL = _minio.GetConnectionString(),
+            ServiceURL = S3ServiceUrl,
             ForcePathStyle = true,
             UseHttp = true,
             AuthenticationRegion = "us-east-1"
         };
 
         using var client = new AmazonS3Client(
-            new Amazon.Runtime.BasicAWSCredentials(MinioAccessKey, MinioSecretKey),
+            new Amazon.Runtime.BasicAWSCredentials(S3AccessKey, S3SecretKey),
             config);
 
         try
         {
-            await client.PutBucketAsync(new PutBucketRequest { BucketName = MinioBucket });
+            await client.PutBucketAsync(new PutBucketRequest { BucketName = S3Bucket });
         }
         catch (AmazonS3Exception ex) when (ex.ErrorCode == "BucketAlreadyOwnedByYou" || ex.ErrorCode == "BucketAlreadyExists")
         {
@@ -182,10 +186,10 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
                 ["SecurityHeadersOptions:Enabled"] = "true",
 
                 ["Storage:Provider"] = "s3",
-                ["Storage:S3:Bucket"] = MinioBucket,
-                ["Storage:S3:ServiceUrl"] = _minio.GetConnectionString(),
-                ["Storage:S3:AccessKey"] = MinioAccessKey,
-                ["Storage:S3:SecretKey"] = MinioSecretKey,
+                ["Storage:S3:Bucket"] = S3Bucket,
+                ["Storage:S3:ServiceUrl"] = S3ServiceUrl,
+                ["Storage:S3:AccessKey"] = S3AccessKey,
+                ["Storage:S3:SecretKey"] = S3SecretKey,
                 ["Storage:S3:ForcePathStyle"] = "true",
                 ["Storage:S3:PublicRead"] = "false",
                 ["Storage:S3:Region"] = "us-east-1",
@@ -226,7 +230,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
             services.AddSingleton<IMailService, NoOpMailService>();
 
             // DELIBERATELY keep the production GlobalExceptionHandler (no swap) so /__test/throw yields real
-            // RFC 9457 output; storage stays unrewired (no test hits it; MinIO + S3 keys kept so host binds).
+            // RFC 9457 output; storage stays unrewired (no test hits it; RustFS + S3 keys kept so host binds).
 
             // Append a throwing endpoint via IStartupFilter: run next(app) first (UseRouting stamps the real
             // IEndpointRouteBuilder into app.Properties), then MapGet onto it — lazy data sources still match.

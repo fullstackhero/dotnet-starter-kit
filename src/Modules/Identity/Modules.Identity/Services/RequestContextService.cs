@@ -1,4 +1,3 @@
-using FSH.Framework.Core.Context;
 using FSH.Framework.Web.Origin;
 using FSH.Modules.Identity.Contracts.Services;
 using Microsoft.AspNetCore.Http;
@@ -13,14 +12,14 @@ namespace FSH.Modules.Identity.Services;
 internal sealed class RequestContextService : IRequestContextService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly Uri? _originUrl;
+    private readonly Uri? _configuredOrigin;
 
     public RequestContextService(
         IHttpContextAccessor httpContextAccessor,
         IOptions<OriginOptions> originOptions)
     {
         _httpContextAccessor = httpContextAccessor;
-        _originUrl = originOptions.Value.OriginUrl;
+        _configuredOrigin = originOptions.Value.OriginUrl;
     }
 
     public string? IpAddress =>
@@ -38,13 +37,18 @@ internal sealed class RequestContextService : IRequestContextService
         }
     }
 
+    /// <summary>
+    /// Origin of the API itself (scheme + host + path base), used for back-end-served links and
+    /// assets such as avatars. Prefers the configured <c>OriginOptions:OriginUrl</c>, falling back
+    /// to the current request's host; null when neither is available (e.g. a background job).
+    /// </summary>
     public string? Origin
     {
         get
         {
-            if (_originUrl is not null)
+            if (_configuredOrigin is not null)
             {
-                return _originUrl.AbsoluteUri.TrimEnd('/');
+                return _configuredOrigin.AbsoluteUri.TrimEnd('/');
             }
 
             var request = _httpContextAccessor.HttpContext?.Request;

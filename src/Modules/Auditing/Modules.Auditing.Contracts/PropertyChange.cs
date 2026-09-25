@@ -8,5 +8,5 @@ public sealed record PropertyChange(
     string? DataType,   // e.g., "string", "int", "datetime"
     object? OldValue,
     object? NewValue,
-    bool IsSensitive    // true => value already masked/hashed
+    bool IsSensitive    // true => OldValue/NewValue are masked ("****"), null kept as null
 );

@@ -243,6 +243,58 @@ test.describe("language switcher", () => {
       expect(putBody.phoneNumber).toBe(stored);
     });
   }
+
+  // PUT /identity/profile answers 412 on a stale If-Match, and every save rotates the stamp. The
+  // switch must therefore (a) send the tag of the read its body was built from, and (b) refetch
+  // the shared profile query afterwards: otherwise the cache keeps the spent tag, and Settings >
+  // Profile, which seeds from that cache, fails its first save with "changed elsewhere".
+  test("sends If-Match from its own read and refreshes the cached tag after the save", async ({
+    page,
+  }) => {
+    let stamp = 1;
+    const sentIfMatch: string[] = [];
+    let getsAfterPut = 0;
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const request = route.request();
+      if (request.method() === "PUT") {
+        sentIfMatch.push(request.headers()["if-match"] ?? "");
+        stamp += 1;
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      if (sentIfMatch.length > 0) getsAfterPut += 1;
+      await route.fulfill({
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Expose-Headers": "ETag",
+          ETag: `"stamp-${stamp}"`,
+        },
+        body: JSON.stringify({
+          id: TEST_USER.sub,
+          email: TEST_USER.email,
+          firstName: TEST_USER.firstName,
+          lastName: TEST_USER.lastName,
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+    await page.route("**/api/v1/identity/token/refresh", (route) =>
+      route.fulfill({ status: 500, body: "" }),
+    );
+
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    await expect.poll(() => sentIfMatch.length).toBe(1);
+    expect(sentIfMatch[0]).toBe('"stamp-1"');
+    await expect.poll(() => getsAfterPut).toBeGreaterThan(0);
+  });
 });
 
 // Language is the operator's own presentation choice: StartImpersonation strips

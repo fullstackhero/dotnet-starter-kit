@@ -43,7 +43,7 @@ import {
   changePassword,
   disableTwoFactor,
   enrollTwoFactor,
-  getMyProfile,
+  getMyProfileWithETag,
   verifyEnrollTwoFactor,
   type TwoFactorEnrollmentResponse,
 } from "@/api/identity";
@@ -87,8 +87,9 @@ export function SecuritySettings() {
   const { t } = useTranslation("settings");
   const queryClient = useQueryClient();
 
-  const profileQuery = useQuery({ queryKey: PROFILE_KEY, queryFn: getMyProfile });
-  const twoFactorEnabled = profileQuery.data?.twoFactorEnabled ?? false;
+  // Same key as the topbar and the profile page, so same shape: the read carries the ETag.
+  const profileQuery = useQuery({ queryKey: PROFILE_KEY, queryFn: getMyProfileWithETag });
+  const twoFactorEnabled = profileQuery.data?.profile.twoFactorEnabled ?? false;
 
   const sessionsQuery = useQuery({
     queryKey: ["identity", "sessions", "me"],
