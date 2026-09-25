@@ -16,8 +16,11 @@ public sealed class IdempotencyFilterTests
         _auth = new AuthHelper(factory);
     }
 
-    // Full replay-with-matching-body coverage isn't possible yet (filter captures the raw IResult, not the body — dotnet/aspnetcore#57191, backlog 2.4b).
-    // These tests verify only the wiring: Idempotency-Replayed header presence/absence and that a distinct key forces fresh execution.
+    // These cover the wiring: Idempotency-Replayed presence/absence, and that a distinct key forces fresh
+    // execution. Replay of the exact body — no longer out of reach, the filter buffers the executed result
+    // instead of caching the raw IResult — is asserted end-to-end against real Redis in
+    // ChatSendMessageTests.SendMessage_Should_Replay_Same_Response_When_Idempotency_Key_Reused, and branch
+    // by branch in Framework.Tests/Web/IdempotencyEndpointFilterReplayTests.
 
     [Fact]
     public async Task CreateBillingPlan_Should_ExecuteNormally_When_NoIdempotencyKey()

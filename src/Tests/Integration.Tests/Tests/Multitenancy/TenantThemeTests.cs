@@ -241,7 +241,7 @@ public sealed class TenantThemeTests : IAsyncLifetime
             clientA.DefaultRequestHeaders.Authorization = new("Bearer", rootToken.AccessToken);
             clientA.DefaultRequestHeaders.Add("tenant", _tenantA);
             var update = await clientA.PutAsJsonAsync(ThemePath, ValidTheme(primary: marker));
-            update.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+            await ShouldHaveStatusAsync(update, HttpStatusCode.NoContent);
         }
 
         // Act — root operator now scopes to tenant B and reads its theme.
@@ -251,7 +251,7 @@ public sealed class TenantThemeTests : IAsyncLifetime
         var responseB = await clientB.GetAsync(ThemePath);
 
         // Assert — tenant B must NOT see tenant A's customization.
-        responseB.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await ShouldHaveStatusAsync(responseB, HttpStatusCode.OK);
         var themeB = await responseB.Content.ReadFromJsonAsync<TenantThemeDto>(Json);
         themeB.ShouldNotBeNull();
         themeB.LightPalette.Primary.ShouldNotBe(marker);
@@ -373,6 +373,23 @@ public sealed class TenantThemeTests : IAsyncLifetime
                 defaultElevation = 1
             }
         };
+    }
+
+    // The root-operator path here has been seen returning 401 intermittently on a loaded machine, and a
+    // bare status assertion says nothing about why: JwtBearer puts the validation failure reason in the
+    // ProblemDetails body (OnChallenge, Development only), so carry the body into the failure message.
+    // Cause still unidentified; this exists so the next occurrence is diagnosable instead of a mystery.
+    private static async Task ShouldHaveStatusAsync(HttpResponseMessage response, HttpStatusCode expected)
+    {
+        if (response.StatusCode == expected)
+        {
+            return;
+        }
+
+        var body = await response.Content.ReadAsStringAsync();
+        response.StatusCode.ShouldBe(
+            expected,
+            $"{response.RequestMessage?.Method} {response.RequestMessage?.RequestUri} returned body: {body}");
     }
 
     private async Task<TokenResult> GetTokenWithRetryAsync(string email, string password, string tenant, int maxRetries = 30)

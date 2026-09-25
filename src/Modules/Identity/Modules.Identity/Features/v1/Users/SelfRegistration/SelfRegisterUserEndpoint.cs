@@ -27,8 +27,11 @@ public static class SelfRegisterUserEndpoint
         .WithName("SelfRegisterUser")
         .WithSummary("Self register user")
         .WithDescription("Allow a user to self-register. Anonymous; tenant identified via the tenant header.")
+        // Deliberately NOT .WithIdempotency(): the entry key scopes by caller, and every unauthenticated
+        // caller is the same "anon" caller, so two people registering on one tenant with the same
+        // low-entropy key would collide — the second would replay the first's 201 and never get an
+        // account. Retries are already safe here, the unique-email constraint rejects the duplicate.
         .AllowAnonymous()
-        .WithIdempotency()
         .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status400BadRequest);
     }

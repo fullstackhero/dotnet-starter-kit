@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Identity;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 
@@ -30,7 +29,6 @@ public sealed class CachedTypeContractTests
                 typeof(BrandAssetsDto),
                 typeof(TypographyDto),
                 typeof(LayoutDto),
-                typeof(CachedIdempotentResponse),
             };
 
             // Reach into the Identity runtime assembly for the internal PermissionSet type.
