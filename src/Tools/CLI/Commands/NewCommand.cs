@@ -342,8 +342,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             ["HANGFIRE_PASSWORD"] = GenerateSecret(20),
             ["POSTGRES_PASSWORD"] = GenerateSecret(24),
             ["REDIS_PASSWORD"] = GenerateSecret(24),
-            ["MINIO_ROOT_USER"] = "minioadmin",
-            ["MINIO_ROOT_PASSWORD"] = GenerateSecret(24),
+            ["RUSTFS_ACCESS_KEY"] = "rustfsadmin",
+            ["RUSTFS_SECRET_KEY"] = GenerateSecret(24),
             // Local-working defaults: the compose stack publishes these host ports.
             ["FSH_API_URL"] = "http://localhost:8080",
             ["FSH_ADMIN_URL"] = "http://localhost:8081",

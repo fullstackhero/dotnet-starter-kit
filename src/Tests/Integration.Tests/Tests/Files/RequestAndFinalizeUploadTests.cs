@@ -25,7 +25,7 @@ public sealed class RequestAndFinalizeUploadTests
 
         var presigned = await RequestPresignedUploadAsync(client, "doc.pdf", "application/pdf", bytes.Length, "Document");
 
-        // PUT the bytes to MinIO using the presigned URL.
+        // PUT the bytes to RustFS using the presigned URL.
         using var raw = new HttpClient();
         using var put = new HttpRequestMessage(HttpMethod.Put, presigned.UploadUrl)
         {
