@@ -44,47 +44,43 @@ builder.AddContainer("redis-insight", "redis/redisinsight", "latest")
     .WithLifetime(ContainerLifetime.Persistent)
     .WaitFor(redis);
 
-// Object storage (MinIO, S3-compatible). CORS via MINIO_API_CORS_ALLOW_ORIGIN so browser presigned PUTs from the admin (:5173)/dashboard (:5174) dev origins work without proxying through the API.
-const string MinioBucket = "fsh-uploads";
+// Object storage (RustFS, S3-compatible; replaces MinIO, whose images were withdrawn). CORS via RUSTFS_CORS_ALLOWED_ORIGINS so browser presigned PUTs from the admin (:5173)/dashboard (:5174) dev origins work without proxying through the API.
+const string S3Bucket = "fsh-uploads";
 const string AdminOrigin = "http://localhost:5173";
 const string DashboardOrigin = "http://localhost:5174";
 
-var minioUser = builder.AddParameter("minio-user", "minioadmin");
-var minioPassword = builder.AddParameter("minio-password", "minioadmin", secret: true);
+var s3User = builder.AddParameter("rustfs-user", "rustfsadmin");
+var s3Password = builder.AddParameter("rustfs-password", "rustfsadmin", secret: true);
 
-// quay.io: minio/minio is gone from Docker Hub. Tag pinned; quay stopped moving :latest.
-var minio = builder.AddContainer("minio", "minio/minio")
-    .WithImageRegistry("quay.io")
-    .WithImageTag("RELEASE.2025-09-07T16-13-09Z")
-    .WithArgs("server", "/data", "--console-address", ":9001")
+var rustfs = builder.AddContainer("rustfs", "rustfs/rustfs", "1.0.0")
     .WithHttpEndpoint(port: 9000, targetPort: 9000, name: "api")
     .WithHttpEndpoint(port: 9001, targetPort: 9001, name: "console")
-    .WithEnvironment("MINIO_ROOT_USER", minioUser)
-    .WithEnvironment("MINIO_ROOT_PASSWORD", minioPassword)
-    .WithEnvironment("MINIO_API_CORS_ALLOW_ORIGIN", $"{AdminOrigin},{DashboardOrigin}")
-    .WithVolume($"{appPrefix}-minio-data", "/data")
+    .WithEnvironment("RUSTFS_ACCESS_KEY", s3User)
+    .WithEnvironment("RUSTFS_SECRET_KEY", s3Password)
+    .WithEnvironment("RUSTFS_CONSOLE_ENABLE", "true")
+    .WithEnvironment("RUSTFS_CORS_ALLOWED_ORIGINS", $"{AdminOrigin},{DashboardOrigin}")
+    .WithVolume($"{appPrefix}-rustfs-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
-// Init container: bucket bootstrap (create + public-read). Script normalized to LF so /bin/sh in minio/mc doesn't choke on Windows CRLF.
-var minioInitScript = ($$"""
-until mc alias set local http://minio:9000 "$MC_USER" "$MC_PASS"; do
-  echo "waiting for minio...";
+// Init container: bucket bootstrap (create + public-read GetObject policy). Script normalized to LF so /bin/sh in aws-cli doesn't choke on Windows CRLF.
+var s3InitScript = ($$"""
+until aws --endpoint-url http://rustfs:9000 s3api list-buckets > /dev/null 2>&1; do
+  echo "waiting for rustfs...";
   sleep 2;
 done;
-mc mb --ignore-existing local/{{MinioBucket}};
-mc anonymous set download local/{{MinioBucket}};
+aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket {{S3Bucket}} 2>/dev/null || aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket {{S3Bucket}};
+aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy --bucket {{S3Bucket}} --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::{{S3Bucket}}/*"]}]}';
 """).ReplaceLineEndings("\n");
 
-var minioInit = builder.AddContainer("minio-init", "minio/mc")
-    .WithImageRegistry("quay.io")
-    .WithImageTag("RELEASE.2025-08-13T08-35-41Z")
+var s3Init = builder.AddContainer("rustfs-init", "amazon/aws-cli", "2.37.3")
     .WithEntrypoint("/bin/sh")
-    .WithArgs("-c", minioInitScript)
-    .WithEnvironment("MC_USER", minioUser)
-    .WithEnvironment("MC_PASS", minioPassword)
-    .WaitFor(minio);
+    .WithArgs("-c", s3InitScript)
+    .WithEnvironment("AWS_ACCESS_KEY_ID", s3User)
+    .WithEnvironment("AWS_SECRET_ACCESS_KEY", s3Password)
+    .WithEnvironment("AWS_DEFAULT_REGION", "us-east-1")
+    .WaitFor(rustfs);
 
-var minioApiEndpoint = minio.GetEndpoint("api");
+var s3ApiEndpoint = rustfs.GetEndpoint("api");
 
 // DB migrator: applies pending migrations + seeds the root admin (admin@root.com), then exits; the API waits for its completion so it never starts against an unmigrated DB. Seed password is a dev-only default.
 var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>($"{appPrefix}-db-migrator")
@@ -113,7 +109,7 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>($"{appPrefix}-api")
     .WithReference(postgres)
     .WaitFor(postgres)
     .WaitFor(redis)
-    .WaitForCompletion(minioInit)
+    .WaitForCompletion(s3Init)
     .WaitForCompletion(migrator)
     .WaitForCompletion(demoSeeder)
     .WithExternalHttpEndpoints()
@@ -134,13 +130,13 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>($"{appPrefix}-api")
     .WithEnvironment("MailOptions__Smtp__UserName", "nicole.lueilwitz0@ethereal.email")
     .WithEnvironment("MailOptions__Smtp__Password", "x4VJz2r9x2NDss9KpC")
     .WithEnvironment("Storage__Provider", "s3")
-    .WithEnvironment("Storage__S3__Bucket", MinioBucket)
+    .WithEnvironment("Storage__S3__Bucket", S3Bucket)
     .WithEnvironment("Storage__S3__Region", "us-east-1")
-    .WithEnvironment("Storage__S3__ServiceUrl", minioApiEndpoint)
-    .WithEnvironment("Storage__S3__AccessKey", minioUser)
-    .WithEnvironment("Storage__S3__SecretKey", minioPassword)
+    .WithEnvironment("Storage__S3__ServiceUrl", s3ApiEndpoint)
+    .WithEnvironment("Storage__S3__AccessKey", s3User)
+    .WithEnvironment("Storage__S3__SecretKey", s3Password)
     .WithEnvironment("Storage__S3__ForcePathStyle", "true")
-    .WithEnvironment("Storage__S3__PublicBaseUrl", ReferenceExpression.Create($"{minioApiEndpoint}/{MinioBucket}"));
+    .WithEnvironment("Storage__S3__PublicBaseUrl", ReferenceExpression.Create($"{s3ApiEndpoint}/{S3Bucket}"));
 
 //#if (frontend)
 // Admin console (React + Vite). Target the API's HTTPS endpoint directly — UseHttpsRedirection's 307 to https is cross-origin and strips the Authorization header.
