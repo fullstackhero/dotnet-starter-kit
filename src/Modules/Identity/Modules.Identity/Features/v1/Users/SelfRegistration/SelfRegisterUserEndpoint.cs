@@ -1,4 +1,5 @@
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Web.Frontend;
 using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 using Mediator;
@@ -15,12 +16,12 @@ public static class SelfRegisterUserEndpoint
     {
         return endpoints.MapPost("/self-register", async (RegisterUserCommand command,
             [FromHeader(Name = MultitenancyConstants.Identifier)] string tenant,
-            HttpContext context,
+            IFrontendOriginResolver originResolver,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
-            var origin = $"{context.Request.Scheme}://{context.Request.Host.Value}{context.Request.PathBase.Value}";
-            command.Origin = origin;
+            // Self-service flow: the confirmation link lands on the SPA the user registered from.
+            command.Origin = originResolver.ResolveForCurrentRequest();
             var result = await mediator.Send(command, cancellationToken);
             return TypedResults.Created($"/api/v1/identity/users/{result.UserId}", result);
         })

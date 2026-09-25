@@ -143,6 +143,10 @@ services:
       HangfireOptions__Password: ${HANGFIRE_PASSWORD:?HANGFIRE_PASSWORD is required}
       CorsOptions__AllowedOrigins__0: ${FSH_ADMIN_URL:?FSH_ADMIN_URL is required}
       CorsOptions__AllowedOrigins__1: ${FSH_DASHBOARD_URL:?FSH_DASHBOARD_URL is required}
+      # E-mail-link origins. Separate list from CORS: the API origin must stay off it.
+      FrontendOptions__AllowedOrigins__0: ${FSH_ADMIN_URL}
+      FrontendOptions__AllowedOrigins__1: ${FSH_DASHBOARD_URL}
+      FrontendOptions__DefaultOrigin: ${FSH_DASHBOARD_URL}
       OpenTelemetryOptions__Exporter__Otlp__Endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     ports:
       - "${FSH_API_PORT:-8080}:8080"

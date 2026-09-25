@@ -8,6 +8,7 @@ using FSH.Framework.Web.Auth;
 using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
 using FSH.Framework.Web.FeatureFlags;
+using FSH.Framework.Web.Frontend;
 using FSH.Framework.Web.Idempotency;
 using FSH.Framework.Web.Sse;
 using FSH.Framework.Web.Health;
@@ -30,6 +31,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Mediator;
 using System.Net;
 
@@ -204,6 +207,13 @@ public static class Extensions
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
         builder.Services.AddOptions<SecurityHeadersOptions>().BindConfiguration(nameof(SecurityHeadersOptions));
 
+        // Front-end origin resolution for user-facing links in e-mails/notifications. There is no
+        // fallback tier: the resolver throws when DefaultOrigin is unset. The API host fails fast on
+        // it in Production (Program.cs); it is not validated here because the DbMigrator also calls
+        // AddHeroPlatform and never sends links. Other environments get one startup Error instead.
+        builder.Services.AddOptions<FrontendOptions>().BindConfiguration(nameof(FrontendOptions));
+        builder.Services.AddScoped<IFrontendOriginResolver, FrontendOriginResolver>();
+
         return builder;
     }
 
@@ -211,6 +221,8 @@ public static class Extensions
     public static WebApplication UseHeroPlatform(this WebApplication app, Action<FshPipelineOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(app);
+
+        WarnOnMissingFrontendOrigin(app);
 
         var options = new FshPipelineOptions();
         configure?.Invoke(options);
@@ -302,6 +314,50 @@ public static class Extensions
     private static bool IsOpenApiEnabled(IConfiguration configuration)
     {
         return configuration.GetValue("OpenApiOptions:Enabled", true);
+    }
+
+    // One Warning at boot, never per request: the resolver is scoped, so logging there would either
+    // flood the aggregator or stay silent on a host that simply never sends a link. An operator who
+    // upgrades into this change reads it once, in the startup banner, with the fix in the message.
+    private static void WarnOnMissingFrontendOrigin(WebApplication app)
+    {
+        var frontend = app.Services.GetRequiredService<IOptions<FrontendOptions>>().Value;
+
+        // Reported independently of DefaultOrigin: a deployment that sets only the default still
+        // has every self-service link falling back to it, which is wrong the moment there is more
+        // than one front-end. Counted after normalization, so a list of nothing but unparseable
+        // entries reports as the empty list it effectively is rather than looking configured.
+        var usableOrigins = FrontendOriginResolver.Normalize(frontend.AllowedOrigins).Length;
+        if (usableOrigins == 0)
+        {
+            app.Logger.LogWarning(
+                "FrontendOptions:AllowedOrigins is empty or entirely unparseable (appsettings.{Environment}.json). Password-reset and self-registration links cannot follow the front-end that made the request and will all point at FrontendOptions:DefaultOrigin instead. With more than one front-end that sends users to the wrong app. List every SPA origin as an absolute URL, e.g. [ \"https://app.example.com\", \"https://admin.example.com\" ].",
+                app.Environment.EnvironmentName);
+        }
+        else if (usableOrigins < frontend.AllowedOrigins.Length)
+        {
+            app.Logger.LogWarning(
+                "{DroppedCount} of {ConfiguredCount} FrontendOptions:AllowedOrigins entries are not absolute URLs and were ignored (appsettings.{Environment}.json). Requests from those origins will be rejected with 400. Each entry must carry a scheme, e.g. \"https://app.example.com\".",
+                frontend.AllowedOrigins.Length - usableOrigins,
+                frontend.AllowedOrigins.Length,
+                app.Environment.EnvironmentName);
+        }
+
+        if (Uri.TryCreate(frontend.DefaultOrigin, UriKind.Absolute, out _))
+        {
+            return;
+        }
+
+        // Absolute, not merely non-empty: "app.example.com" (no scheme, a common .env slip) binds
+        // fine and then every link in every e-mail is a relative URL no mail client makes clickable.
+        // Same failure class as an unset value, so it gets the same Error, not Warning: without a
+        // usable default there is nothing left to build these links out of.
+        // The resolver used to fall back to the API origin and then to the request host; both are
+        // gone, because the links now address SPA paths (the API origin 404s them) and the request
+        // host is caller-controlled (it hands the reset token to whoever set the Host header).
+        app.Logger.LogError(
+            "FrontendOptions:DefaultOrigin is not set to an absolute URL (appsettings.{Environment}.json). Admin register, resend confirmation, self-registration and password reset will return 500 for any caller that does not match FrontendOptions:AllowedOrigins, including every background job. Set FrontendOptions:DefaultOrigin to your dashboard URL, e.g. \"https://app.example.com\".",
+            app.Environment.EnvironmentName);
     }
 }
 

@@ -108,6 +108,15 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         }
     }
 
+    // Browsers always send an Origin header on the cross-origin auth POSTs (forgot-password, register,
+    // self-register). Simulate that globally so front-end-origin resolution matches the allow-list above.
+    protected override void ConfigureClient(HttpClient client)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        client.DefaultRequestHeaders.Add("Origin", "http://localhost");
+        base.ConfigureClient(client);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -128,6 +137,12 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 ["JwtOptions:AccessTokenMinutes"] = "30",
                 ["JwtOptions:RefreshTokenDays"] = "7",
                 ["OriginOptions:OriginUrl"] = "http://localhost",
+                ["CorsOptions:AllowedOrigins:0"] = "http://localhost",
+                // Front-end origin resolution: allow the simulated browser Origin for self-service
+                // flows, and set the same as the default so operator-driven flows (register/resend)
+                // and the startup validation both resolve.
+                ["FrontendOptions:AllowedOrigins:0"] = "http://localhost",
+                ["FrontendOptions:DefaultOrigin"] = "http://localhost",
                 ["OpenTelemetryOptions:Enabled"] = "false",
                 ["EventingOptions:UseHostedServiceDispatcher"] = "false",
                 ["Serilog:MinimumLevel:Default"] = "Warning",
