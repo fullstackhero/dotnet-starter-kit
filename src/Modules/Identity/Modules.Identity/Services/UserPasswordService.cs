@@ -56,7 +56,7 @@ internal sealed class UserPasswordService(
         var mailRequest = new MailRequest(
             new Collection<string> { user.Email },
             "Reset Password",
-            EmailBodies.LinkActionHtml(
+            HtmlEmail.LinkAction(
                 heading: "Reset your password",
                 intro: "Use the link below to choose a new password.",
                 actionUrl: resetPasswordUri,

@@ -28,7 +28,13 @@ Chained partitioned fixed-window limiter: **tenant → user → IP** (defaults 1
 
 ## Idempotency (`Web/Idempotency/`)
 
-Opt-in per endpoint with **`.WithIdempotency()`**. Reads the `Idempotency-Key` header (max 128 chars, 24h TTL); replays return the cached response with `Idempotency-Replayed: true`. Cache key is tenant-scoped (`CacheKeys.IdempotencyEntry`). Put it on POSTs that must be replay-safe (e.g. CreateTenant).
+Opt-in per endpoint with **`.WithIdempotency()`** on **authenticated** POST/PUTs that must be replay-safe (e.g. CreateTenant). Reads `Idempotency-Key` (max 128 chars, `DefaultTtl` 24h); a replay returns the cached status + body + `Location`/`ETag` and `Idempotency-Replayed: true`.
+
+- **Key scope:** resolved tenant (never the raw `tenant` header) + operation (method + route pattern) + route values + caller (`GetUserId()`, else `"anon"`), via `CacheKeys.IdempotencyEntry`.
+- **Only 2xx is stored**, before the body is sent, on `CancellationToken.None`. Probe and write must share one `IDistributedCache` + key + serializer, or replay silently never engages.
+- **Concurrent duplicates:** in-flight reservation under a `lock:` prefix (Redis `SET NX`, else in-process, `ReservationTtl` default 1m); cache re-probed after the lock; duplicate in flight → **409** + `Retry-After: 1`. Probe, reserve and release all fail open.
+- **`RequestAborted` is detached** while the handler runs, so a client disconnect can't cancel a committed side effect. Keep these handlers short; **never** on streaming or large-file endpoints (the response is buffered).
+- **Never on `AllowAnonymous()`** endpoints — all anonymous callers share `"anon"`. `IdempotencyWiringTests` fails the build if one appears.
 
 ## Quota enforcement (`Quota/`)
 

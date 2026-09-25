@@ -93,5 +93,21 @@ public sealed class TrustedProxyOptionsBindingTests
         exception.Message.ShouldContain("10.0.0.0/999");
     }
 
+    [Theory]
+    [InlineData("-1")]  // negative — overflows the middleware's buffer allocation, 500s every request
+    [InlineData("0")]   // zero — truncates the unwind loop, forwarded headers silently stop being read
+    public void ForwardedHeaders_Should_NameTheSetting_When_ForwardLimitBelowOne(string forwardLimit)
+    {
+        // Act - no proxies or networks configured, so this has to be rejected before the trust-boundary block.
+        var exception = Should.Throw<InvalidOperationException>(() => Resolve(new Dictionary<string, string?>
+        {
+            [$"{nameof(TrustedProxyOptions)}:{nameof(TrustedProxyOptions.ForwardLimit)}"] = forwardLimit,
+        }));
+
+        // Assert
+        exception.Message.ShouldContain("TrustedProxyOptions:ForwardLimit");
+        exception.Message.ShouldContain($"is {forwardLimit}");
+    }
+
     #endregion
 }
