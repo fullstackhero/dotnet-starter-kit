@@ -25,6 +25,7 @@ public sealed class UpdateUserCommandHandler : ICommandHandler<UpdateUserCommand
             command.Image!,
             command.DeleteCurrentImage,
             command.Locale,
+            command.ExpectedConcurrencyStamps,
             cancellationToken).ConfigureAwait(false);
 
         return Unit.Value;

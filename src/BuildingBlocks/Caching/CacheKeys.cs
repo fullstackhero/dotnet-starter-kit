@@ -16,7 +16,11 @@ public static class CacheKeys
         /// <summary>Tag applied to every tenant theme entry.</summary>
         public const string Themes = "themes";
 
-        /// <summary>Tag applied to every idempotency replay entry.</summary>
+        /// <summary>
+        /// Reserved for idempotency replay entries — not applied to them today. Those entries live in
+        /// <c>IDistributedCache</c>, which carries no tags, so a tag purge does not reach them; they
+        /// expire on their own TTL instead.
+        /// </summary>
         public const string Idempotency = "idempotency";
 
         /// <summary>Per-tenant tag — invalidates all entries scoped to a tenant.</summary>

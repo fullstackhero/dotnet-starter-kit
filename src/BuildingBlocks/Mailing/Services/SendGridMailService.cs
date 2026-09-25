@@ -34,11 +34,18 @@ public sealed class SendGridMailService : IMailService
         }
 
         var from = CreateFromAddress(request);
+        // plainTextContent and htmlContent are distinct parts: passing Body to both shipped the HTML
+        // template as the text alternative, so a text-only client rendered raw markup.
+        //
+        // Falling back to Body when TextBody is absent is deliberate. CreateSingleEmail drops the
+        // text/plain part entirely for a null or empty string, so a caller outside this repo that
+        // still passes only Body would silently go from "two parts" to "HTML only" — a regression
+        // for them, in a template other people build on, with no compiler error to warn them.
         var msg = MailHelper.CreateSingleEmail(
             from,
             new EmailAddress(request.To[0]),
             request.Subject,
-            request.Body,
+            request.TextBody ?? request.Body,
             request.Body);
 
         ConfigureRecipients(msg, request);

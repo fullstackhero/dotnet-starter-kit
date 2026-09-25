@@ -31,7 +31,9 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
         // inserts whose PayloadJson embeds the prior), growing until System.Text.Json rejects it.
         if (ctx is AuditDbContext) return result;
 
+        // IAuditExempt entities opt out entirely: their values must never be copied into AuditRecords.
         var entries = ctx.ChangeTracker.Entries()
+            .Where(e => e.Entity is not IAuditExempt)
             .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
             .ToArray();
 

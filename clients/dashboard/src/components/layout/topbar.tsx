@@ -36,7 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
-import { getMyProfile } from "@/api/identity";
+import { getMyProfileWithETag } from "@/api/identity";
 import { useAuth } from "@/auth/use-auth";
 import { useSseStatus } from "@/sse/sse-context";
 import { useTheme } from "@/components/theme/theme-provider";
@@ -149,13 +149,15 @@ function SimpleMenuItem({
 export function Topbar() {
   const { user, logout } = useAuth();
   // Shared with the Profile settings page (same query key), so changing the
-  // photo there invalidates this and the topbar avatar updates live.
+  // photo there invalidates this and the topbar avatar updates live. That sharing is also why
+  // this reads through the ETag-carrying variant: one query key must hold one shape, and the
+  // settings page needs the tag to save against.
   const { data: profile } = useQuery({
     queryKey: ["identity", "me"],
-    queryFn: getMyProfile,
+    queryFn: getMyProfileWithETag,
     staleTime: 5 * 60 * 1000,
   });
-  const avatarUrl = profile?.imageUrl ?? null;
+  const avatarUrl = profile?.profile.imageUrl ?? null;
   const { status: sseStatus, eventCount } = useSseStatus();
   const { mode, setMode } = useTheme();
   const { setOpen: setPaletteOpen } = useCommandPalette();

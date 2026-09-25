@@ -29,9 +29,9 @@ public sealed class InvoiceIssuedEmailHandler(
             return;
         }
 
-        var (subject, body) = BillingEmailBodies.InvoiceIssued(
+        var (subject, body, textBody) = BillingEmailBodies.InvoiceIssued(
             @event.InvoiceNumber, @event.Amount, @event.Currency, @event.DueAtUtc);
-        await BillingEmailSender.SendAsync(mailService, logger, tenant.AdminEmail, subject, body, "invoice-issued", ct)
+        await BillingEmailSender.SendAsync(mailService, logger, tenant.AdminEmail, subject, body, textBody, "invoice-issued", ct)
             .ConfigureAwait(false);
     }
 }

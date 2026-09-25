@@ -48,4 +48,8 @@
 	  <ProjectReference Include="..\Quota\Quota.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <InternalsVisibleTo Include="Framework.Tests" />
+	</ItemGroup>
+
 </Project>

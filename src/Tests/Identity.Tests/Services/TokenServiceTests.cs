@@ -4,9 +4,12 @@ using System.Security.Claims;
 using System.Text;
 using FSH.Modules.Identity;
 using FSH.Modules.Identity.Authorization.Jwt;
+using FSH.Framework.Shared.Identity.Claims;
 using FSH.Modules.Identity.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
 
@@ -158,6 +161,54 @@ public sealed class TokenServiceTests : IDisposable
         var validationResult = await handler.ValidateTokenAsync(response.AccessToken, validationParameters);
 
         validationResult.IsValid.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task IssuedToken_Should_ExposeUserIdClaim_AfterBearerInboundMapping()
+    {
+        // Arrange - IdentityService emits the user id twice: as the RFC 7519 short-form `sub` and as
+        // ClaimTypes.NameIdentifier. Everything that scopes per caller reads it through
+        // ClaimsPrincipal.GetUserId(), which looks at ClaimTypes.NameIdentifier only — the idempotency
+        // endpoint filter's cache key and per-user rate limiting among them. If inbound claim mapping
+        // stopped producing that claim type, those would silently collapse every authenticated caller
+        // into one bucket instead of failing loudly, so pin the round trip through the real handler.
+        var options = Options.Create(new JwtOptions
+        {
+            Issuer = Issuer,
+            Audience = Audience,
+            SigningKey = SigningKey,
+            AccessTokenMinutes = 30,
+            RefreshTokenDays = 7
+        });
+        var service = new TokenService(options, _logger, _metrics, TimeProvider.System);
+        Claim[] claims =
+        [
+            new(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub, "user-123"),
+            new(ClaimTypes.NameIdentifier, "user-123"),
+            new(ClaimTypes.Email, "user@example.com")
+        ];
+
+        // Act
+        var response = await service.IssueAsync("user-123", claims);
+
+        // JwtBearer validates with JsonWebTokenHandler and passes its own MapInboundClaims through;
+        // read that default off JwtBearerOptions instead of hardcoding it, and ConfigureJwtBearerOptions
+        // never overrides it, so this mirrors what the pipeline actually does to the token.
+        var handler = new JsonWebTokenHandler { MapInboundClaims = new JwtBearerOptions().MapInboundClaims };
+        var validationResult = await handler.ValidateTokenAsync(
+            response.AccessToken,
+            new TokenValidationParameters
+            {
+                ValidIssuer = Issuer,
+                ValidAudience = Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SigningKey)),
+                RoleClaimType = ClaimTypes.Role,
+                ClockSkew = TimeSpan.FromMinutes(2)
+            });
+
+        // Assert
+        validationResult.IsValid.ShouldBeTrue();
+        new ClaimsPrincipal(validationResult.ClaimsIdentity).GetUserId().ShouldBe("user-123");
     }
 
     #endregion
