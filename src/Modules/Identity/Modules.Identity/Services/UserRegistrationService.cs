@@ -15,6 +15,7 @@ using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Net;
@@ -29,7 +30,8 @@ internal sealed class UserRegistrationService(
     IJobService jobService,
     IMailService mailService,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    IOutboxStore outboxStore) : IUserRegistrationService
+    IOutboxStore outboxStore,
+    IStringLocalizer<IdentityResources> localizer) : IUserRegistrationService
 {
     public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
@@ -90,7 +92,9 @@ internal sealed class UserRegistrationService(
         var result = await userManager.ConfirmEmailAsync(user, code);
 
         return result.Succeeded
-            ? string.Format(CultureInfo.InvariantCulture, "Account Confirmed for E-Mail {0}. You can now use the /api/tokens endpoint to generate JWT.", user.Email)
+            // The success text is what the confirm-email page shows the user, so it localizes like the
+            // failure below; the old developer hint about /api/tokens is gone from the user's screen.
+            ? localizer["Identity.EmailConfirmed", user.Email!].Value
             : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming {0}", user.Email))
             {
                 MessageKey = "Identity.EmailConfirmationFailedFor",
