@@ -15,7 +15,7 @@ Two options — pick whichever matches how you want to develop.
 
 ### Option A — run everything through Aspire (recommended)
 
-The AppHost launches Postgres, Redis, MinIO, the API, **and** this Vite app together, with `VITE_API_BASE_URL` wired via service discovery.
+The AppHost launches Postgres, Redis, RustFS, the API, **and** this Vite app together, with `VITE_API_BASE_URL` wired via service discovery.
 
 ```bash
 npm install --prefix clients/admin   # one-time

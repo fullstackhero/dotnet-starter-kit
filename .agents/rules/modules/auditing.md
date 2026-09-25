@@ -13,3 +13,4 @@ Append-only audit trail (entity changes, security events, exceptions, HTTP activ
 - `SqlAuditSink` groups a batch by `TenantId` and sets tenant context per group in a fresh scope (null → Root) — background writer has no ambient tenant.
 - **JSON masking** redacts fields by keyword (password/secret/token/apiKey/connectionString…) → `****`. Add sensitive keys there.
 - Exclude an endpoint from activity auditing with `[NoAudit]` / the `NoAudit` endpoint extension.
+- **Entity diffs mask sensitive values** in `EntityDiffBuilder` (property name contains password/secret/token/apikey/connectionstring/securitystamp → `****`, null stays null). `[NoAudit]` does **not** affect entity diffs — to keep an entity's values out of `AuditRecords` entirely, implement `IAuditExempt` (Contracts) on the entity.
