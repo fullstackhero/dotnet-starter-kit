@@ -71,7 +71,7 @@ public sealed class BillingDomainEdgeTests
         {
             var domain = await db.Plans.FindAsync(planId);
             domain.ShouldNotBeNull();
-            domain!.GetOverageRate(QuotaResource.ApiCalls).ShouldBe(0.01m);
+            domain.GetOverageRate(QuotaResource.ApiCalls).ShouldBe(0.01m);
             domain.GetOverageRate(QuotaResource.Users).ShouldBe(0m,
                 "GetOverageRate returns 0 for a resource with no configured rate");
         });
@@ -169,7 +169,7 @@ public sealed class BillingDomainEdgeTests
             var sub = await db.Subscriptions.AsNoTracking().FirstAsync(s => s.Id == subId);
             sub.Status.ShouldBe(SubscriptionStatus.Cancelled);
             sub.EndUtc.ShouldNotBeNull();
-            sub.EndUtc!.Value.Date.ShouldBe(endUtc.Date);
+            sub.EndUtc.Value.Date.ShouldBe(endUtc.Date);
             sub.EndUtc.Value.Kind.ShouldBe(DateTimeKind.Utc, "Cancel must normalize EndUtc to UTC kind");
         });
     }

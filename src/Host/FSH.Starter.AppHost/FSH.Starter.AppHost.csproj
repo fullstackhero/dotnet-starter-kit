@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.4.0">
+<Project Sdk="Aspire.AppHost.Sdk/13.5.4">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <UserSecretsId>9fe5df9a-b9b2-4202-bdb4-d30b01b71d1a</UserSecretsId>
     <IsPackable>false</IsPackable>
+    <!-- ASPIRE010 (13.5+): we run via `dotnet run` with NuGet-restored DCP/dashboard, not the Aspire CLI bundle. -->
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

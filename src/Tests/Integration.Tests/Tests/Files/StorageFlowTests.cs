@@ -64,7 +64,7 @@ public sealed class StorageFlowTests
 
         var disposition = getResp.Content.Headers.ContentDisposition;
         disposition.ShouldNotBeNull();
-        disposition!.DispositionType.ShouldBe("attachment");
+        disposition.DispositionType.ShouldBe("attachment");
         // The original filename is echoed back so the browser surfaces it instead of the storage key.
         disposition.FileName!.Trim('"').ShouldBe("report-final.pdf");
     }
@@ -85,7 +85,7 @@ public sealed class StorageFlowTests
 
         var disposition = getResp.Content.Headers.ContentDisposition;
         disposition.ShouldNotBeNull();
-        disposition!.DispositionType.ShouldBe("inline");
+        disposition.DispositionType.ShouldBe("inline");
     }
 
     #endregion

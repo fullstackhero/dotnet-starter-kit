@@ -54,10 +54,10 @@ public sealed class TenantMigrationsHealthCheck : IHealthCheck
                 bool hasPending = pendingMigrations.Length > 0;
                 if (hasPending)
                 {
-                    tenantsWithPending.Add(tenant.Id!);
+                    tenantsWithPending.Add(tenant.Id);
                 }
 
-                details[tenant.Id!] = new
+                details[tenant.Id] = new
                 {
                     tenant.Name,
                     tenant.IsActive,
@@ -70,8 +70,8 @@ public sealed class TenantMigrationsHealthCheck : IHealthCheck
             // detail entries so the readiness payload tells the operator which tenant is broken.
             catch (Exception ex)
             {
-                tenantsWithError.Add(tenant.Id!);
-                details[tenant.Id!] = new
+                tenantsWithError.Add(tenant.Id);
+                details[tenant.Id] = new
                 {
                     tenant.Name,
                     tenant.IsActive,

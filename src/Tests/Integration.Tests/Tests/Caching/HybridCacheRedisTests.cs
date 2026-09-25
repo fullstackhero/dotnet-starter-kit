@@ -81,7 +81,7 @@ public sealed class HybridCacheRedisTests : IAsyncLifetime
             // Read the underlying L2 directly to confirm bytes are present.
             var raw = await distributedCache.GetAsync("rt:set");
             raw.ShouldNotBeNull();
-            raw!.Length.ShouldBeGreaterThan(0);
+            raw.Length.ShouldBeGreaterThan(0);
         }
     }
 

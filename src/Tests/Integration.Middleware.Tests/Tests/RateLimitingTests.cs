@@ -72,7 +72,7 @@ public sealed class RateLimitingTests
             rejected.ShouldNotBeNull("expected at least one 429 after bursting past the auth limit");
 
             rejected.Headers.TryGetValues("Retry-After", out var retryAfter).ShouldBeTrue();
-            retryAfter!.ShouldNotBeEmpty();
+            retryAfter.ShouldNotBeEmpty();
 
             var body = await rejected.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(body);

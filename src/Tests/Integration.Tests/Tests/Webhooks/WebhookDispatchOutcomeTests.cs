@@ -47,7 +47,7 @@ public sealed class WebhookDispatchOutcomeTests
         transport.WasInvoked.ShouldBeTrue();
         var delivery = await ReadLatestDeliveryAsync(capturingFactory, subscriptionId);
         delivery.ShouldNotBeNull();
-        delivery!.Success.ShouldBeTrue();
+        delivery.Success.ShouldBeTrue();
         delivery.HttpStatusCode.ShouldBe(200);
         delivery.AttemptCount.ShouldBe(1);
         delivery.ErrorMessage.ShouldBeNull();
@@ -71,7 +71,7 @@ public sealed class WebhookDispatchOutcomeTests
 
         var delivery = await ReadLatestDeliveryAsync(capturingFactory, subscriptionId);
         delivery.ShouldNotBeNull();
-        delivery!.Success.ShouldBeFalse();
+        delivery.Success.ShouldBeFalse();
         delivery.HttpStatusCode.ShouldBe(400);
     }
 
@@ -91,7 +91,7 @@ public sealed class WebhookDispatchOutcomeTests
 
         var delivery = await ReadLatestDeliveryAsync(capturingFactory, subscriptionId);
         delivery.ShouldNotBeNull();
-        delivery!.Success.ShouldBeFalse();
+        delivery.Success.ShouldBeFalse();
         delivery.HttpStatusCode.ShouldBe(503);
     }
 

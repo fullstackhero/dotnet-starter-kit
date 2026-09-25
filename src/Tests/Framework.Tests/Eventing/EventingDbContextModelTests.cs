@@ -46,7 +46,7 @@ public class EventingDbContextModelTests
         var entity = context.Model.FindEntityType(typeof(OutboxMessage));
 
         entity.ShouldNotBeNull();
-        entity!.GetSchema().ShouldBe(EventingConstants.SchemaName);
+        entity.GetSchema().ShouldBe(EventingConstants.SchemaName);
         entity.GetTableName().ShouldBe("OutboxMessages");
     }
 
@@ -57,7 +57,7 @@ public class EventingDbContextModelTests
         var entity = context.Model.FindEntityType(typeof(OutboxMessage));
 
         entity.ShouldNotBeNull();
-        entity!.GetIndexes()
+        entity.GetIndexes()
             .Any(i => i.GetDatabaseName() == "IX_OutboxMessages_Pending")
             .ShouldBeTrue("the claim scan filters and orders on these columns under a row lock");
     }
@@ -69,7 +69,7 @@ public class EventingDbContextModelTests
         var entity = context.Model.FindEntityType(typeof(InboxMessage));
 
         entity.ShouldNotBeNull();
-        entity!.GetSchema().ShouldBe(EventingConstants.SchemaName);
+        entity.GetSchema().ShouldBe(EventingConstants.SchemaName);
         entity.GetTableName().ShouldBe("InboxMessages");
     }
 

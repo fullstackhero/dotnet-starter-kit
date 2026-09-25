@@ -124,7 +124,7 @@ public sealed class UserPasswordServiceTests
         // Assert
         var mail = CaptureSentMail();
         mail.TextBody.ShouldNotBeNullOrWhiteSpace();
-        mail.TextBody!.ShouldContain("https://adminbase.codefi.com.br/reset-password?");
+        mail.TextBody.ShouldContain("https://adminbase.codefi.com.br/reset-password?");
         mail.TextBody.ShouldNotContain("<a ");
         mail.TextBody.ShouldNotContain("&amp;");
     }

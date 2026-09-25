@@ -96,8 +96,8 @@ public sealed class AccountLockoutTests
             .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<FSH.Modules.Identity.Domain.FshUser>>();
         var user = await userManager.FindByEmailAsync(email);
         user.ShouldNotBeNull();
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(user!);
-        var confirm = await userManager.ConfirmEmailAsync(user!, token);
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirm = await userManager.ConfirmEmailAsync(user, token);
         confirm.Succeeded.ShouldBeTrue();
 
         return (email, password);

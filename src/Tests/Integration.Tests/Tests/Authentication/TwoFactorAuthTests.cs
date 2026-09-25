@@ -58,7 +58,7 @@ public sealed class TwoFactorAuthTests
 
         var enrollment = await DeserializeAsync<TwoFactorEnrollmentResponse>(response);
         enrollment.ShouldNotBeNull();
-        enrollment!.SharedKey.ShouldNotBeNullOrWhiteSpace();
+        enrollment.SharedKey.ShouldNotBeNullOrWhiteSpace();
         enrollment.AuthenticatorUri.ShouldStartWith("otpauth://totp/");
         enrollment.AuthenticatorUri.ShouldContain("secret=");
     }
@@ -141,8 +141,8 @@ public sealed class TwoFactorAuthTests
         {
             var user = await userManager.FindByEmailAsync(email);
             user.ShouldNotBeNull();
-            var token = await userManager.GenerateEmailConfirmationTokenAsync(user!);
-            (await userManager.ConfirmEmailAsync(user!, token)).Succeeded.ShouldBeTrue();
+            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+            (await userManager.ConfirmEmailAsync(user, token)).Succeeded.ShouldBeTrue();
         });
 
         return (email, password);
@@ -162,7 +162,7 @@ public sealed class TwoFactorAuthTests
 
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token!.AccessToken);
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.AccessToken);
         client.DefaultRequestHeaders.Add("tenant", TestConstants.RootTenantId);
         return client;
     }
@@ -182,8 +182,8 @@ public sealed class TwoFactorAuthTests
         {
             var user = await userManager.FindByEmailAsync(email);
             user.ShouldNotBeNull();
-            await userManager.ResetAuthenticatorKeyAsync(user!);
-            await userManager.SetTwoFactorEnabledAsync(user!, true);
+            await userManager.ResetAuthenticatorKeyAsync(user);
+            await userManager.SetTwoFactorEnabledAsync(user, true);
         });
     }
 
@@ -193,7 +193,7 @@ public sealed class TwoFactorAuthTests
         {
             var user = await userManager.FindByEmailAsync(email);
             user.ShouldNotBeNull();
-            await userManager.SetTwoFactorEnabledAsync(user!, enabled);
+            await userManager.SetTwoFactorEnabledAsync(user, enabled);
         });
     }
 
@@ -204,7 +204,7 @@ public sealed class TwoFactorAuthTests
         {
             var user = await userManager.FindByEmailAsync(email);
             user.ShouldNotBeNull();
-            enabled = await userManager.GetTwoFactorEnabledAsync(user!);
+            enabled = await userManager.GetTwoFactorEnabledAsync(user);
         });
         return enabled;
     }

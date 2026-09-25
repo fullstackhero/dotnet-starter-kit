@@ -36,7 +36,7 @@ public sealed class OutboxRetryTests
         await store.MarkAsFailedAsync(message, "transient boom", isDead: false);
 
         message.NextRetryAt.ShouldNotBeNull("a non-dead failure must schedule a backed-off retry");
-        message.NextRetryAt!.Value.ShouldBeGreaterThan(
+        message.NextRetryAt.Value.ShouldBeGreaterThan(
             DateTime.UtcNow.AddSeconds(20),
             "the first retry backs off by the base delay (30s), not the next 10s cycle");
 
