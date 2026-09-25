@@ -77,6 +77,16 @@ public static class Extensions
             .GetSection(nameof(TrustedProxyOptions)).Get<TrustedProxyOptions>() ?? new TrustedProxyOptions();
         builder.Services.Configure<ForwardedHeadersOptions>(forwarded =>
         {
+            // A hop count below 1 is never what an operator means, and neither bad value announces itself:
+            // 0 truncates the unwind loop to zero iterations, so forwarded headers stop being processed with
+            // no error, while a negative value overflows the middleware's buffer allocation and 500s every
+            // request - including requests carrying no forwarded headers at all. Fail the boot instead.
+            if (trustedProxy.ForwardLimit < 1)
+            {
+                throw new InvalidOperationException(
+                    $"{nameof(TrustedProxyOptions)}:{nameof(TrustedProxyOptions.ForwardLimit)} is {trustedProxy.ForwardLimit}, which is not a valid proxy hop count: it must be at least 1 (one hop per proxy in front of the app).");
+            }
+
             forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             forwarded.ForwardLimit = trustedProxy.ForwardLimit;
 
