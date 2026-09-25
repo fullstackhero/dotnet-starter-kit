@@ -295,6 +295,75 @@ test.describe("language switcher", () => {
     expect(sentIfMatch[0]).toBe('"stamp-1"');
     await expect.poll(() => getsAfterPut).toBeGreaterThan(0);
   });
+
+  // The same rotation with Settings > Profile already open: the form was seeded from the pre-switch
+  // read, so unless it adopts the refetched version while it is still clean, its next save carries
+  // the spent tag and tells the user someone else changed the profile, for their own switch.
+  test("a profile form left open across a language switch saves against the post-switch tag", async ({
+    page,
+  }) => {
+    let stamp = 1;
+    const sentIfMatch: string[] = [];
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const request = route.request();
+      if (request.method() === "PUT") {
+        const ifMatch = request.headers()["if-match"] ?? "";
+        sentIfMatch.push(ifMatch);
+        if (ifMatch !== `"stamp-${stamp}"`) {
+          await route.fulfill({
+            status: 412,
+            headers: { "Content-Type": "application/problem+json" },
+            body: JSON.stringify({ status: 412, title: "Precondition Failed", detail: "stale" }),
+          });
+          return;
+        }
+        stamp += 1;
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Expose-Headers": "ETag",
+          ETag: `"stamp-${stamp}"`,
+        },
+        body: JSON.stringify({
+          id: TEST_USER.sub,
+          email: TEST_USER.email,
+          firstName: "Alice",
+          // Differs after the switch only so the test can see the clean form adopt the refetch.
+          lastName: stamp === 1 ? "Nguyen" : "Nguyen-Silva",
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: stamp === 1 ? "en-US" : "pt-BR",
+        }),
+      });
+    });
+    await page.route("**/api/v1/identity/token/refresh", (route) =>
+      route.fulfill({ status: 500, body: "" }),
+    );
+
+    await page.goto("/settings/profile");
+    await expect(page.locator("#first-name")).toHaveValue("Alice");
+
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+    await expect.poll(() => sentIfMatch.length).toBe(1);
+    await page.keyboard.press("Escape");
+
+    // The switch saved at stamp-1 and moved the server to stamp-2. The clean form adopting the
+    // refetch is visible as the new last name; only then edit and save.
+    await expect(page.locator("#last-name")).toHaveValue("Nguyen-Silva");
+    await page.locator("#first-name").fill("Alicia");
+    await page.locator('form button[type="submit"]').click();
+
+    await expect.poll(() => sentIfMatch.length).toBe(2);
+    expect(sentIfMatch[1]).toBe('"stamp-2"');
+    await expect(page.getByText("Perfil alterado em outro lugar")).toHaveCount(0);
+  });
 });
 
 // Language is the operator's own presentation choice: StartImpersonation strips

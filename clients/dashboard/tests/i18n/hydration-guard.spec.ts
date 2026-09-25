@@ -5,17 +5,13 @@ import { installShellMocks } from "../helpers/shell-mocks";
 // A stale server locale must not yank the language out from under an explicit in-session
 // choice.
 //
-// updateMyProfile is a read-modify-write with no concurrency token, and Settings > Profile
-// invalidates the SAME ["identity","me"] key the topbar reads. So a Settings save whose GET
-// ran before the language PUT landed will echo the pre-switch locale back and win if it
-// lands second. Before the hydration guard, the topbar's effect then saw persistedLocale
-// change and called i18n.changeLanguage on it — the user watched the UI revert to English
-// with no error and nothing to act on.
+// Every profile write refetches the SAME ["identity","me"] key the topbar reads, and that
+// refetch can land before the new locale does. Before the hydration guard, the topbar's effect
+// then saw persistedLocale change and called i18n.changeLanguage on it — the user watched the
+// UI revert to English with no error and nothing to act on.
 //
-// The underlying lost update is NOT fixed here (see the `ponytail:` note in topbar.tsx); the
-// server can still end up holding the old locale. What this pins is that the UI stops
-// following it, which is the difference between "my language did not persist" and "the app
-// changed language while I was using it".
+// The lost update itself is closed server-side by If-Match on PUT /identity/profile; what this
+// pins is that the UI never follows a server value that lags an in-session choice.
 
 /** The server never learns about the switch: every GET keeps answering en-US. */
 const STALE_PROFILE = {

@@ -58,6 +58,26 @@ export function ProfileSettings() {
     }
   }, [profileQuery.data, user, loading]);
 
+  // A clean form has nothing to lose, so it follows a refetch: both the version it edits against
+  // and the values on screen move together, which keeps the user looking at what the tag says.
+  // Without this, a write the form did not make (the topbar language switch rotates the stamp too)
+  // strands it on a spent tag, and the next save 412s against the user's own change. A dirty form
+  // keeps its version, so a genuine concurrent edit still surfaces as a conflict.
+  useEffect(() => {
+    const editing = editingVersionRef.current;
+    const next = profileQuery.data;
+    if (!seededRef.current || !editing || !next || next === editing) return;
+    const clean =
+      (editing.profile.firstName ?? "") === firstName &&
+      (editing.profile.lastName ?? "") === lastName &&
+      (editing.profile.phoneNumber ?? "") === phone;
+    if (!clean) return;
+    editingVersionRef.current = next;
+    setFirstName(next.profile.firstName ?? "");
+    setLastName(next.profile.lastName ?? "");
+    setPhone(next.profile.phoneNumber ?? "");
+  }, [profileQuery.data, firstName, lastName, phone]);
+
   // Re-reads the profile and adopts it as the version the form edits against, so the next save
   // carries a tag the server will accept.
   const adoptCurrentVersion = async () => {
