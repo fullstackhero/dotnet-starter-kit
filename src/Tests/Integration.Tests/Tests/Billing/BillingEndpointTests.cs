@@ -89,7 +89,7 @@ public sealed class BillingEndpointTests
         {
             var plan = await db.Plans.FindAsync(planId);
             plan.ShouldNotBeNull();
-            plan!.Deactivate();
+            plan.Deactivate();
             await db.SaveChangesAsync();
         });
 
@@ -170,7 +170,7 @@ public sealed class BillingEndpointTests
 
         var current = await GetSubscriptionAsync(client, TestConstants.RootTenantId);
         current.ShouldNotBeNull();
-        current!.Id.ShouldBe(subscriptionId);
+        current.Id.ShouldBe(subscriptionId);
         current.PlanKey.ShouldBe(key, StringCompareShould.IgnoreCase);
         current.Status.ShouldBe(SubscriptionStatus.Active);
     }
@@ -190,7 +190,7 @@ public sealed class BillingEndpointTests
 
         var current = await GetSubscriptionAsync(client, TestConstants.RootTenantId);
         current.ShouldNotBeNull();
-        current!.Id.ShouldBe(secondSubId, "the second assign must become the active subscription");
+        current.Id.ShouldBe(secondSubId, "the second assign must become the active subscription");
         current.PlanKey.ShouldBe(secondKey, StringCompareShould.IgnoreCase);
 
         // First should be cancelled, not active — visible only through direct DB inspection.
@@ -198,7 +198,7 @@ public sealed class BillingEndpointTests
         {
             var oldSub = await db.Subscriptions.FindAsync(firstSubId);
             oldSub.ShouldNotBeNull();
-            oldSub!.Status.ShouldBe(SubscriptionStatus.Cancelled,
+            oldSub.Status.ShouldBe(SubscriptionStatus.Cancelled,
                 "first subscription must be cancelled after the second one is assigned");
         });
     }
@@ -226,7 +226,7 @@ public sealed class BillingEndpointTests
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var dto = await ParseAsync<SubscriptionDto?>(response);
         dto.ShouldNotBeNull();
-        dto!.Id.ShouldBe(subId);
+        dto.Id.ShouldBe(subId);
         dto.TenantId.ShouldBe(TestConstants.RootTenantId);
     }
 
@@ -305,7 +305,7 @@ public sealed class BillingEndpointTests
         {
             var inv = await db.Invoices.FindAsync(paidSourceId);
             inv.ShouldNotBeNull();
-            inv!.Issue(dueAtUtc: null);
+            inv.Issue(dueAtUtc: null);
             inv.MarkPaid();
             await db.SaveChangesAsync();
         });
@@ -354,7 +354,7 @@ public sealed class BillingEndpointTests
         dto.Status.ShouldBe(InvoiceStatus.Issued);
         dto.IssuedAtUtc.ShouldNotBeNull();
         dto.DueAtUtc.ShouldNotBeNull();
-        var defaultDueDelta = (dto.DueAtUtc!.Value - dto.IssuedAtUtc!.Value).TotalDays;
+        var defaultDueDelta = (dto.DueAtUtc.Value - dto.IssuedAtUtc.Value).TotalDays;
         defaultDueDelta.ShouldBe(14.0, tolerance: 0.01, "Default due-date is +14 days from issued time");
     }
 
@@ -374,7 +374,7 @@ public sealed class BillingEndpointTests
         var dto = await GetInvoiceAsync(client, invoiceId);
         dto.Status.ShouldBe(InvoiceStatus.Issued);
         dto.DueAtUtc.ShouldNotBeNull();
-        dto.DueAtUtc!.Value.Date.ShouldBe(customDue.Date);
+        dto.DueAtUtc.Value.Date.ShouldBe(customDue.Date);
     }
 
     [Fact]
@@ -470,7 +470,7 @@ public sealed class BillingEndpointTests
         dto.Status.ShouldBe(InvoiceStatus.Void);
         dto.VoidedAtUtc.ShouldNotBeNull();
         dto.Notes.ShouldNotBeNullOrWhiteSpace();
-        dto.Notes!.ShouldContain("duplicate");
+        dto.Notes.ShouldContain("duplicate");
     }
 
     [Fact]
@@ -666,7 +666,7 @@ public sealed class BillingEndpointTests
         {
             var inv = await db.Invoices.FindAsync(id);
             inv.ShouldNotBeNull();
-            inv!.Issue(dueAtUtc: null);
+            inv.Issue(dueAtUtc: null);
             await db.SaveChangesAsync();
         });
         return id;

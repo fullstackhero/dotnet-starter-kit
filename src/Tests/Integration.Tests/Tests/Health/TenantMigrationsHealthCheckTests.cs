@@ -46,7 +46,7 @@ public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
         var beforeResult = await check.CheckHealthAsync(context, CancellationToken.None);
         beforeResult.Status.ShouldBe(HealthStatus.Unhealthy);
         beforeResult.Description.ShouldNotBeNull();
-        beforeResult.Description!.ShouldContain("FSH.Starter.DbMigrator");
+        beforeResult.Description.ShouldContain("FSH.Starter.DbMigrator");
 
         // ── Apply migrations (what DbMigrator does in production) ────────
         using (var scope = provider.CreateScope())
@@ -76,7 +76,7 @@ public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
         var result = await check.CheckHealthAsync(context, CancellationToken.None);
         result.Status.ShouldBe(HealthStatus.Unhealthy);
         result.Description.ShouldNotBeNull();
-        result.Description!.ShouldContain("error probing tenant", Case.Insensitive);
+        result.Description.ShouldContain("error probing tenant", Case.Insensitive);
     }
 
     private ServiceProvider BuildServiceProvider(bool badConnectionString = false)

@@ -12,26 +12,26 @@
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.401" />
   </ItemGroup>
   <ItemGroup Label="Aspire">
-    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.4.0" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.0" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.4.0" />
-    <PackageVersion Include="coverlet.collector" Version="10.0.0">
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.5.4" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.5.4" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.5.4" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.6.0" />
-    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.6.0" />
-    <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.2" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.0-beta.1" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.15.0-beta.1" />
-    <PackageVersion Include="QuestPDF" Version="2026.5.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
+    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.10.0" />
+    <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.3" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.19.1-beta.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.19.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.19.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.19.0-beta.1" />
+    <PackageVersion Include="QuestPDF" Version="2026.9.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Span" Version="3.1.0" />
@@ -40,108 +40,108 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
-    <PackageVersion Include="Asp.Versioning.Http" Version="10.0.0" />
-    <PackageVersion Include="Asp.Versioning.Mvc" Version="10.0.0" />
-    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+    <PackageVersion Include="Asp.Versioning.Http" Version="10.2.3" />
+    <PackageVersion Include="Asp.Versioning.Mvc" Version="10.2.1" />
+    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.2.1" />
     <PackageVersion Include="Finbuckle.MultiTenant" Version="10.1.0" />
     <PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="10.1.0" />
     <PackageVersion Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="10.1.0" />
     <PackageVersion Include="Finbuckle.MultiTenant.Abstractions" Version="10.1.0" />
     <PackageVersion Include="Finbuckle.MultiTenant.Identity.EntityFrameworkCore" Version="10.1.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
-    <PackageVersion Include="Hangfire" Version="1.8.23" />
-    <PackageVersion Include="Hangfire.Core" Version="1.8.23" />
+    <PackageVersion Include="Hangfire" Version="1.8.25" />
+    <PackageVersion Include="Hangfire.Core" Version="1.8.25" />
     <PackageVersion Include="Hangfire.InMemory" Version="1.0.0" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1" />
-    <PackageVersion Include="MailKit" Version="4.17.0" />
+    <PackageVersion Include="MailKit" Version="4.18.0" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.2" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.2" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.3.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
-    <!-- Pin the transitive SQLitePCLRaw.lib.e_sqlite3 explicitly. Microsoft.EntityFrameworkCore.Sqlite 10.0.8
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.3.13" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
+    <!-- Pin the transitive SQLitePCLRaw.lib.e_sqlite3 explicitly. Microsoft.EntityFrameworkCore.Sqlite 10.0.12
          brings in 2.1.11, which bundles a SQLite build vulnerable to a memory-corruption bug fixed upstream in
          SQLite 3.50.2 (GHSA-2m69-gcr7-jv3q) and trips NuGetAudit under TreatWarningsAsErrors. SQLitePCLRaw
          re-versioned its e_sqlite3 packages to track the embedded SQLite version, so 3.50.3 embeds a fixed build. -->
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.6.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Identity.Stores" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.8" />
-    <PackageVersion Include="MimeKit" Version="4.17.0" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.10.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Identity.Stores" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.12" />
+    <PackageVersion Include="MimeKit" Version="4.18.1" />
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
-    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.14.14" />
-    <PackageVersion Include="Serilog" Version="4.3.1" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.17.10" />
+    <PackageVersion Include="Serilog" Version="4.4.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
     <PackageVersion Include="SendGrid" Version="9.29.3" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.13.17" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.34.0.3385" />
+    <PackageVersion Include="StackExchange.Redis" Version="3.3.1" />
     <PackageVersion Include="UAParser" Version="3.1.47" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
-    <!-- Pin the transitive Microsoft.OpenApi explicitly. Microsoft.AspNetCore.OpenApi 10.0.8 only requires
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <!-- Pin the transitive Microsoft.OpenApi explicitly. Microsoft.AspNetCore.OpenApi 10.0.12 only requires
          >= 2.0.0, but 2.0.0 carries a HIGH-severity advisory (GHSA-v5pm-xwqc-g5wc, patched in 2.7.5) that
          trips NuGetAudit under TreatWarningsAsErrors. Stay on the 2.x line — 3.x has breaking API changes that
          fail the framework's OpenAPI transformers. Bump in lockstep with Microsoft.AspNetCore.OpenApi. -->
-    <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
-    <!-- Pin the transitive System.Security.Cryptography.Xml explicitly. It floats in at 10.0.8 (via
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.12.2" />
+    <!-- Pin the transitive System.Security.Cryptography.Xml explicitly. It floats in at 10.0.12 (via
          Microsoft.AspNetCore.DataProtection), which carries five HIGH-severity advisories — GHSA-23rf-6693-g89p,
          GHSA-8q5v-6pqq-x66h, GHSA-cvvh-rhrc-wg4q, GHSA-g8r8-53c2-pm3f, GHSA-mmjf-rqrv-855v — that trip
          NuGetAudit under TreatWarningsAsErrors and fail restore for every project. Bump in lockstep with the
          .NET 10 patch line. -->
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
-    <PackageVersion Include="Testcontainers" Version="4.14.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
-    <PackageVersion Include="Testcontainers.Redis" Version="4.14.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageVersion Include="Testcontainers" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.15.0" />
   </ItemGroup>
   <ItemGroup Label="AWS">
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.23.4" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.103.4" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
-    <PackageVersion Include="RabbitMQ.Client" Version="7.2.1" />
+    <PackageVersion Include="RabbitMQ.Client" Version="7.2.2" />
   </ItemGroup>
   <ItemGroup Label="CLI Tools">
-    <PackageVersion Include="Spectre.Console" Version="0.55.2" />
+    <PackageVersion Include="Spectre.Console" Version="0.57.2" />
     <PackageVersion Include="Spectre.Console.Cli" Version="0.55.0" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.5" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.12" />
   </ItemGroup>
   <ItemGroup Label="Transitive security pins">
     <!-- Pulled transitively by Microsoft.AspNetCore.SignalR.StackExchangeRedis; versions
          below 2.5.301 fail NuGet audit (NU1903, GHSA-hv8m-jj95-wg3x: LZ4 decompression
          AccessViolation). Transitive pinning is enabled, so this entry alone bumps it.
          Remove once the SignalR backplane package depends on a patched version itself. -->
-    <PackageVersion Include="MessagePack" Version="2.5.301" />
+    <PackageVersion Include="MessagePack" Version="2.5.305" />
   </ItemGroup>
 </Project>

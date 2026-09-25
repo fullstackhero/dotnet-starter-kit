@@ -157,7 +157,7 @@ public sealed class CategoriesEndpointTests
 
         var parentNode = tree.FirstOrDefault(n => n.Id == parentId);
         parentNode.ShouldNotBeNull("the freshly created parent must appear at the root level of the tree");
-        parentNode!.Children.ShouldContain(n => n.Id == childId,
+        parentNode.Children.ShouldContain(n => n.Id == childId,
             "the child must be nested under its parent in the tree response");
     }
 
@@ -228,7 +228,7 @@ public sealed class CategoriesEndpointTests
         var trash = await trashResponse.DeserializeAsync<PagedResult<CategoryDto>>();
         var trashed = trash.Items.FirstOrDefault(c => c.Id == categoryId);
         trashed.ShouldNotBeNull("Soft-deleted category should appear in /categories/trash.");
-        trashed!.DeletedOnUtc.ShouldNotBeNull();
+        trashed.DeletedOnUtc.ShouldNotBeNull();
         trashed.DeletedBy.ShouldNotBeNullOrWhiteSpace();
     }
 

@@ -197,7 +197,7 @@ public sealed class PinMessageTests
 
         var received = await inbox.WaitForFirstAsync(p => p.Id == messageId, EventTimeout);
         received.ShouldNotBeNull("Expected ChatMessagePinned to fire on Bob's hub connection");
-        received!.IsPinned.ShouldBeTrue();
+        received.IsPinned.ShouldBeTrue();
         received.PinnedByUserId.ShouldNotBeNullOrEmpty();
     }
 
@@ -220,7 +220,7 @@ public sealed class PinMessageTests
 
         var received = await inbox.WaitForFirstAsync(p => p.Id == messageId, EventTimeout);
         received.ShouldNotBeNull("Expected ChatMessageUnpinned to fire on Carol's hub connection");
-        received!.IsPinned.ShouldBeFalse();
+        received.IsPinned.ShouldBeFalse();
     }
 
     // ─── helpers (lifted from MentionAndNotificationTests pattern) ───
@@ -319,7 +319,7 @@ public sealed class PinMessageTests
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(userId);
         user.ShouldNotBeNull();
-        if (!user!.EmailConfirmed)
+        if (!user.EmailConfirmed)
         {
             user.EmailConfirmed = true;
             (await userManager.UpdateAsync(user)).Succeeded.ShouldBeTrue();

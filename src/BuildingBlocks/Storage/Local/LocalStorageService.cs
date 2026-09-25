@@ -209,7 +209,7 @@ public sealed partial class LocalStorageService : IStorageService
 
         return Task.FromResult<StoredObjectMetadata?>(new StoredObjectMetadata(
             info.Length,
-            contentType!,
+            contentType,
             new DateTimeOffset(info.LastWriteTimeUtc, TimeSpan.Zero),
             ETag: null));
     }

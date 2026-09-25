@@ -60,11 +60,11 @@ internal static class IdentityUserSeeder
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByEmailAsync(email);
         user.ShouldNotBeNull();
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(user!);
-        var confirm = await userManager.ConfirmEmailAsync(user!, token);
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirm = await userManager.ConfirmEmailAsync(user, token);
         confirm.Succeeded.ShouldBeTrue();
 
-        return new SeededUser(registered!.UserId, email, password);
+        return new SeededUser(registered.UserId, email, password);
     }
 }
 

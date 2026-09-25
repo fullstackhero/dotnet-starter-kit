@@ -64,7 +64,7 @@ public sealed class TenantExpiryEnforcementTests
 
         status.ShouldNotBe(HttpStatusCode.Forbidden);
         grace.ShouldNotBeNull("a tenant in the grace period must receive the X-Subscription-Grace header");
-        int.Parse(grace!, CultureInfo.InvariantCulture).ShouldBeInRange(1, 7);
+        int.Parse(grace, CultureInfo.InvariantCulture).ShouldBeInRange(1, 7);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public sealed class TenantExpiryEnforcementTests
         var tenant = await efStore.GetAsync(tenantId);
         tenant.ShouldNotBeNull();
         // Set directly (SetValidity forbids moving the date backward, which is exactly what we need here).
-        tenant!.ValidUpto = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc);
+        tenant.ValidUpto = DateTime.SpecifyKind(validUpto, DateTimeKind.Utc);
         await efStore.UpdateAsync(tenant);
 
         var cacheStore = stores.FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<AppTenantInfo>));

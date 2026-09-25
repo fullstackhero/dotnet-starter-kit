@@ -230,7 +230,7 @@ public sealed class ProductsEndpointTests
         var trash = await trashResponse.DeserializeAsync<PagedResult<ProductDto>>();
         var trashed = trash.Items.FirstOrDefault(p => p.Id == productId);
         trashed.ShouldNotBeNull("soft-deleted product should appear in /products/trash");
-        trashed!.DeletedOnUtc.ShouldNotBeNull();
+        trashed.DeletedOnUtc.ShouldNotBeNull();
         trashed.DeletedBy.ShouldNotBeNullOrWhiteSpace();
     }
 

@@ -879,7 +879,7 @@ public sealed class ImpersonationTests : IAsyncLifetime
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(userId);
         user.ShouldNotBeNull();
-        if (!user!.EmailConfirmed)
+        if (!user.EmailConfirmed)
         {
             user.EmailConfirmed = true;
             (await userManager.UpdateAsync(user)).Succeeded.ShouldBeTrue();

@@ -54,7 +54,7 @@ public sealed class SubscriptionTests
 
         sub.Status.ShouldBe(SubscriptionStatus.Cancelled);
         sub.EndUtc.ShouldNotBeNull();
-        sub.EndUtc!.Value.Kind.ShouldBe(DateTimeKind.Utc);
+        sub.EndUtc.Value.Kind.ShouldBe(DateTimeKind.Utc);
         sub.UpdatedAtUtc.ShouldNotBeNull();
     }
 

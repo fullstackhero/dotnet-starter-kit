@@ -252,8 +252,8 @@ public sealed class RegisterUserCommandHandlerTests
             command.UserName,
             command.Password,
             command.ConfirmPassword,
-            command.PhoneNumber!,
-            command.Origin!,
+            command.PhoneNumber,
+            command.Origin,
             cancellationToken);
     }
 
