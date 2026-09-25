@@ -26,7 +26,7 @@ public sealed class QuotaPlanResolver
             return NormalizeLimit(tenantLimit);
         }
 
-        var planName = !string.IsNullOrWhiteSpace(tenant?.Plan) ? tenant!.Plan! : _options.DefaultPlan;
+        var planName = !string.IsNullOrWhiteSpace(tenant?.Plan) ? tenant.Plan : _options.DefaultPlan;
 
         if (_options.Plans.TryGetValue(planName, out var plan)
             && plan.TryGetValue(resource, out var planLimit))

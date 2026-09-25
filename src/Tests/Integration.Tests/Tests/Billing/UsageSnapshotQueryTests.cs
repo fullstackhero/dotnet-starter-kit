@@ -322,7 +322,7 @@ public sealed class UsageSnapshotQueryTests
             .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<FSH.Modules.Identity.Domain.FshUser>>();
         var user = await userManager.FindByIdAsync(userId);
         user.ShouldNotBeNull();
-        if (!user!.EmailConfirmed)
+        if (!user.EmailConfirmed)
         {
             user.EmailConfirmed = true;
             (await userManager.UpdateAsync(user)).Succeeded.ShouldBeTrue();

@@ -174,7 +174,7 @@ public sealed class AuditPayloadFilterTests
         }
 
         paged.ShouldNotBeNull();
-        paged!.Items.ShouldContain(r => r.EventType == AuditEventType.Security);
+        paged.Items.ShouldContain(r => r.EventType == AuditEventType.Security);
     }
 
     #endregion

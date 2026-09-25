@@ -346,7 +346,7 @@ public sealed class WebhookDeliveryTests
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PagedResponse<WebhookDeliveryDto>>();
         result.ShouldNotBeNull();
-        return result!;
+        return result;
     }
 
     private static void SetRootTenantContext(IServiceProvider sp)

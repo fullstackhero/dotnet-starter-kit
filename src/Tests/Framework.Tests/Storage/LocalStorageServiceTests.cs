@@ -66,7 +66,7 @@ public sealed class LocalStorageServiceTests : IDisposable
         exists.ShouldBeTrue();
         size.ShouldBe(4);
         download.ShouldNotBeNull();
-        download!.ContentType.ShouldBe("image/png");
+        download.ContentType.ShouldBe("image/png");
         download.ContentLength.ShouldBe(4);
         await download.Stream.DisposeAsync();
     }
@@ -96,7 +96,7 @@ public sealed class LocalStorageServiceTests : IDisposable
 
         // Assert
         metadata.ShouldNotBeNull();
-        metadata!.SizeBytes.ShouldBe(4);
+        metadata.SizeBytes.ShouldBe(4);
         metadata.ContentType.ShouldBe("image/png");
     }
 

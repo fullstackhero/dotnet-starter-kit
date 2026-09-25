@@ -199,7 +199,7 @@ public sealed class TicketsEndpointTests
         var trash = await trashResponse.DeserializeAsync<PagedResult<TicketDto>>();
         var trashed = trash.Items.FirstOrDefault(t => t.Id == ticketId);
         trashed.ShouldNotBeNull();
-        trashed!.DeletedOnUtc.ShouldNotBeNull();
+        trashed.DeletedOnUtc.ShouldNotBeNull();
     }
 
     [Fact]

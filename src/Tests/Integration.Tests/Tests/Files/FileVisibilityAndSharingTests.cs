@@ -274,7 +274,7 @@ public sealed class FileVisibilityAndSharingTests
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
             var user = await userManager.FindByIdAsync(registered.UserId);
             user.ShouldNotBeNull();
-            if (!user!.EmailConfirmed)
+            if (!user.EmailConfirmed)
             {
                 user.EmailConfirmed = true;
                 (await userManager.UpdateAsync(user)).Succeeded.ShouldBeTrue();

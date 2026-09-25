@@ -21,6 +21,9 @@
 		<!-- Docs -->
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591;MSG0005;CA1054;CA1056</NoWarn>
+		<!-- AV0029/AV0030 (Asp.Versioning 10.2+): advisories toward AddApiVersioning().AddOpenApi(). FSH deliberately registers one
+		     AddOpenApi(groupName) document per version (Web/OpenApi/Extensions.cs); also fires inside the OpenApi source-generated file. -->
+		<NoWarn>$(NoWarn);AV0029;AV0030</NoWarn>
 		<!-- Suppress warning about missing XML docs -->
 
 		<!-- Container tags (if using container builds) -->
