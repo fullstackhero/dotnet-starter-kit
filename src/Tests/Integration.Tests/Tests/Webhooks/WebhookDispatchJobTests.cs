@@ -34,10 +34,10 @@ public sealed class WebhookDispatchJobTests
 
         method.ShouldNotBeNull();
 
-        var retry = method!.GetCustomAttribute<AutomaticRetryAttribute>();
+        var retry = method.GetCustomAttribute<AutomaticRetryAttribute>();
         retry.ShouldNotBeNull("WebhookDispatchJob.DispatchAsync must be decorated with [AutomaticRetry] so Hangfire reschedules failed deliveries.");
 
-        retry!.Attempts.ShouldBe(4);
+        retry.Attempts.ShouldBe(4);
         retry.OnAttemptsExceeded.ShouldBe(AttemptsExceededAction.Fail);
 
         var delaysField = typeof(AutomaticRetryAttribute).GetField(
@@ -48,7 +48,7 @@ public sealed class WebhookDispatchJobTests
         {
             var delays = (int[]?)delaysField.GetValue(retry);
             delays.ShouldNotBeNull();
-            delays!.Length.ShouldBeGreaterThan(0);
+            delays.Length.ShouldBeGreaterThan(0);
             // Verify backoff actually grows (exponential-ish).
             for (int i = 1; i < delays.Length; i++)
             {
@@ -103,7 +103,7 @@ public sealed class WebhookDispatchJobTests
             .FirstOrDefaultAsync(d => d.SubscriptionId == subscriptionId && d.EventType == uniqueEvent);
 
         delivery.ShouldNotBeNull("Dispatch job must persist a WebhookDelivery row even when the attempt fails.");
-        delivery!.Success.ShouldBeFalse();
+        delivery.Success.ShouldBeFalse();
         delivery.AttemptCount.ShouldBe(1);
         delivery.ErrorMessage.ShouldNotBeNullOrWhiteSpace();
     }

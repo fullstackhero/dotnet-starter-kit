@@ -204,7 +204,7 @@ public sealed class AdjustTenantValidityTests
         resp.StatusCode.ShouldBe(HttpStatusCode.OK);
         var status = await resp.Content.ReadFromJsonAsync<TenantStatus>(Json);
         status.ShouldNotBeNull();
-        return status!;
+        return status;
     }
 
     private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)

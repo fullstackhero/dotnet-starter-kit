@@ -28,7 +28,7 @@ public sealed class CreateTenantCommandHandler(
         // window. A bad plan key throws NotFound (400) before any tenant is created.
         var planKey = string.IsNullOrWhiteSpace(command.PlanKey)
             ? billingOptions.Value.DefaultPlanKey
-            : command.PlanKey!;
+            : command.PlanKey;
         var term = await mediator.Send(new GetPlanTermQuery(planKey), cancellationToken).ConfigureAwait(false);
 
         var periodStart = timeProvider.GetUtcNow().UtcDateTime;

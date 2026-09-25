@@ -49,7 +49,7 @@ public class IdentityDbContextModelTests
         var locale = context.Model.FindEntityType(typeof(FshUser))?.FindProperty(nameof(FshUser.Locale));
 
         locale.ShouldNotBeNull();
-        locale!.GetMaxLength().ShouldBe(
+        locale.GetMaxLength().ShouldBe(
             10,
             "an unbounded locale column accepts arbitrary input for a value that is always a short BCP-47 tag");
     }

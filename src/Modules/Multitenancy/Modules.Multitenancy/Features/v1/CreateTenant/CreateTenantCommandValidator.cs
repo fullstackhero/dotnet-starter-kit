@@ -18,8 +18,8 @@ public sealed class CreateTenantCommandValidator : AbstractValidator<CreateTenan
 
         RuleFor(t => t.Name).Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .MustAsync(async (name, ct) => !await tenantService.ExistsWithNameAsync(name!, ct).ConfigureAwait(false))
-            .WithMessage((_, name) => localizer["Validation.TenantAlreadyExists", name!]);
+            .MustAsync(async (name, ct) => !await tenantService.ExistsWithNameAsync(name, ct).ConfigureAwait(false))
+            .WithMessage((_, name) => localizer["Validation.TenantAlreadyExists", name]);
 
         RuleFor(t => t.ConnectionString).Cascade(CascadeMode.Stop)
             .Must((_, cs) => string.IsNullOrWhiteSpace(cs) || connectionStringValidator.TryValidate(cs))

@@ -291,7 +291,7 @@ public sealed class ProductImagesTests
         var meta = await metaResp.DeserializeAsync<FileAssetDto>();
         meta.PublicUrl.ShouldNotBeNullOrWhiteSpace("Public files should return a durable publicUrl from GetFileMetadata");
 
-        return (presigned.FileAssetId, meta.PublicUrl!);
+        return (presigned.FileAssetId, meta.PublicUrl);
     }
 
     // Lightweight projection — the test only needs Id off the category row. Setter is required

@@ -19,7 +19,7 @@ public sealed class FinbuckleEventTenantScopeTests
         using (sut.Begin("acme"))
         {
             _accessor.MultiTenantContext.TenantInfo.ShouldNotBeNull();
-            _accessor.MultiTenantContext.TenantInfo!.Id.ShouldBe("acme");
+            _accessor.MultiTenantContext.TenantInfo.Id.ShouldBe("acme");
             _accessor.MultiTenantContext.TenantInfo.Identifier.ShouldBe("acme");
         }
     }
@@ -37,7 +37,7 @@ public sealed class FinbuckleEventTenantScopeTests
             _accessor.MultiTenantContext.TenantInfo!.Id.ShouldBe("acme");
         }
 
-        _accessor.MultiTenantContext.TenantInfo!.Id.ShouldBe("root");
+        _accessor.MultiTenantContext.TenantInfo.Id.ShouldBe("root");
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public sealed class FinbuckleEventTenantScopeTests
 
         using (sut.Begin("   "))
         {
-            _accessor.MultiTenantContext.TenantInfo!.Id.ShouldBe("root");
+            _accessor.MultiTenantContext.TenantInfo.Id.ShouldBe("root");
         }
     }
 

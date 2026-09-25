@@ -119,7 +119,7 @@ public sealed class BrandsEndpointTests
         var trash = await trashResponse.DeserializeAsync<PagedResult<BrandDto>>();
         var trashed = trash.Items.FirstOrDefault(b => b.Id == brandId);
         trashed.ShouldNotBeNull("Soft-deleted brand should appear in /brands/trash.");
-        trashed!.DeletedOnUtc.ShouldNotBeNull();
+        trashed.DeletedOnUtc.ShouldNotBeNull();
         trashed.DeletedBy.ShouldNotBeNullOrWhiteSpace();
     }
 

@@ -203,12 +203,12 @@ public sealed class TenantService : ITenantService
 
         return new TenantStatusDto
         {
-            Id = tenant.Id!,
+            Id = tenant.Id,
             Name = tenant.Name!,
             IsActive = tenant.IsActive,
             ValidUpto = tenant.ValidUpto,
             HasConnectionString = !string.IsNullOrWhiteSpace(tenant.ConnectionString),
-            AdminEmail = tenant.AdminEmail!,
+            AdminEmail = tenant.AdminEmail,
             Issuer = tenant.Issuer,
             Plan = tenant.Plan,
             ExpiryState = expiryState,

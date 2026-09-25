@@ -1354,14 +1354,14 @@ public sealed class IdempotencyEndpointFilterReplayTests
         db.StringSetAsync(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<TimeSpan?>(), Arg.Any<When>())
             .Returns(ci => Task.FromResult(
                 ci.ArgAt<When>(3) == When.NotExists
-                    ? keyspace.TryAdd(ci.ArgAt<RedisKey>(0).ToString(), (byte[])ci.ArgAt<RedisValue>(1)!)
-                    : keyspace.Set(ci.ArgAt<RedisKey>(0).ToString(), (byte[])ci.ArgAt<RedisValue>(1)!)));
+                    ? keyspace.TryAdd(ci.ArgAt<RedisKey>(0).ToString(), ((byte[])ci.ArgAt<RedisValue>(1))!)
+                    : keyspace.Set(ci.ArgAt<RedisKey>(0).ToString(), ((byte[])ci.ArgAt<RedisValue>(1))!)));
         db.ScriptEvaluateAsync(Arg.Any<string>(), Arg.Any<RedisKey[]>(), Arg.Any<RedisValue[]>(), Arg.Any<CommandFlags>())
             .Returns(ci =>
             {
                 keyspace.RemoveIfValueMatches(
                     ci.ArgAt<RedisKey[]>(1)[0].ToString(),
-                    (byte[])ci.ArgAt<RedisValue[]>(2)[0]!);
+                    ((byte[])ci.ArgAt<RedisValue[]>(2)[0])!);
                 return Task.FromResult(RedisResult.Create(1));
             });
         return RedisMultiplexer(db);

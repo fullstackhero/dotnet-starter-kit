@@ -34,7 +34,7 @@ public class NamespaceConventionsTests
 
             namespaceLine.ShouldNotBeNull($"File '{file}' must declare a namespace matching the folder structure.");
 
-            string declaredNamespace = namespaceLine!["namespace ".Length..].Trim().TrimEnd(';');
+            string declaredNamespace = namespaceLine["namespace ".Length..].Trim().TrimEnd(';');
 
             declaredNamespace
                 .Contains(".Core.", StringComparison.Ordinal)

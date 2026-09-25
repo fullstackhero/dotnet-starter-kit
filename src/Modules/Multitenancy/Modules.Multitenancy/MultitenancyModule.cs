@@ -91,7 +91,7 @@ public sealed class MultitenancyModule : IModule
                     if (context.MultiTenantContext.StoreInfo is null) return;
                     if (context.MultiTenantContext.StoreInfo.StoreType != typeof(DistributedCacheStore<AppTenantInfo>))
                     {
-                        var sp = ((HttpContext)context.Context!).RequestServices;
+                        var sp = ((HttpContext)context.Context).RequestServices;
                         var distributedStore = sp
                             .GetRequiredService<IEnumerable<IMultiTenantStore<AppTenantInfo>>>()
                             .FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<AppTenantInfo>));

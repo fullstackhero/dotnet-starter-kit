@@ -182,7 +182,7 @@ internal sealed class IdentityDbInitializer(
             return;
         }
 
-        if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == multiTenantContextAccessor.MultiTenantContext.TenantInfo!.AdminEmail, cancellationToken)
+        if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == multiTenantContextAccessor.MultiTenantContext.TenantInfo.AdminEmail, cancellationToken)
             is not FshUser adminUser)
         {
             string adminUserName = $"{multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id.Trim()}.{RoleConstants.Admin}".ToUpperInvariant();
@@ -194,7 +194,7 @@ internal sealed class IdentityDbInitializer(
                 UserName = adminUserName,
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
-                NormalizedEmail = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail!.ToUpperInvariant(),
+                NormalizedEmail = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail.ToUpperInvariant(),
                 NormalizedUserName = adminUserName.ToUpperInvariant(),
                 // No default avatar: the asset was never shipped, and baking an absolute
                 // {OriginUrl}/… URL at seed time pinned it to the seeder's localhost origin
@@ -207,7 +207,7 @@ internal sealed class IdentityDbInitializer(
             {
                 logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
             }
-            var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id!);
+            var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id);
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, initialPassword);
             // MUST check IdentityResult: a silent failure (password-policy reject, transient DB error)
@@ -216,7 +216,7 @@ internal sealed class IdentityDbInitializer(
             if (!createResult.Succeeded)
             {
                 throw new InvalidOperationException(
-                    $"Failed to seed admin user for tenant '{multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id}': "
+                    $"Failed to seed admin user for tenant '{multiTenantContextAccessor.MultiTenantContext.TenantInfo.Id}': "
                     + string.Join("; ", createResult.Errors.Select(e => e.Description)));
             }
         }
