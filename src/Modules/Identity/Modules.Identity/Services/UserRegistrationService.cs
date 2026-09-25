@@ -309,7 +309,8 @@ internal sealed class UserRegistrationService(
         var mailRequest = new MailRequest(
             new Collection<string> { user.Email },
             "Confirm Your Email Address",
-            emailBody);
+            emailBody,
+            textBody: $"Please confirm your email address using the following link: {emailVerificationUri}");
 
         jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, cancellationToken));
     }

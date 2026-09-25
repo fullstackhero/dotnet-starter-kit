@@ -10,7 +10,7 @@ namespace FSH.Modules.Notifications.IntegrationEventHandlers;
 internal static class BillingEmailSender
 {
     public static async Task SendAsync(
-        IMailService mail, ILogger logger, string? email, string subject, string body, string context, CancellationToken ct)
+        IMailService mail, ILogger logger, string? email, string subject, string body, string textBody, string context, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -22,7 +22,8 @@ internal static class BillingEmailSender
             await mail.SendAsync(new MailRequest(
                 to: new Collection<string> { email },
                 subject: subject,
-                body: body), ct).ConfigureAwait(false);
+                body: body,
+                textBody: textBody), ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
