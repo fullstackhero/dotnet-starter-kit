@@ -185,7 +185,11 @@ internal sealed class UserProfileService(
         new(
             "The profile changed since you loaded it. Reload it and apply your changes again.",
             errors: null,
-            HttpStatusCode.PreconditionFailed);
+            HttpStatusCode.PreconditionFailed)
+        {
+            MessageKey = "Identity.ProfileChangedSinceLoaded",
+            ResourceSource = typeof(IdentityResources),
+        };
 
     public async Task SetImageUrlAsync(string userId, string? imageUrl, CancellationToken cancellationToken)
     {

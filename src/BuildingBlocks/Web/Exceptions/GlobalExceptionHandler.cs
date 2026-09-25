@@ -32,6 +32,7 @@ public class GlobalExceptionHandler(
         HttpStatusCode.Forbidden => "Error.Forbidden",
         HttpStatusCode.BadRequest => "Error.BadRequest",
         HttpStatusCode.Conflict => "Error.Conflict",
+        HttpStatusCode.PreconditionFailed => "Error.PreconditionFailed",
         _ => null,
     };
 

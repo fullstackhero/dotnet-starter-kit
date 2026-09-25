@@ -184,6 +184,9 @@
   <data name="Identity.UpdateProfileFailed" xml:space="preserve">
     <value>Update profile failed.</value>
   </data>
+  <data name="Identity.ProfileChangedSinceLoaded" xml:space="preserve">
+    <value>The profile changed since you loaded it. Reload it and apply your changes again.</value>
+  </data>
   <data name="Identity.UpdateProfileImageFailed" xml:space="preserve">
     <value>Update profile image failed.</value>
   </data>
@@ -192,6 +195,9 @@
   </data>
   <data name="Identity.EmailConfirmationFailedFor" xml:space="preserve">
     <value>An error occurred while confirming {0}.</value>
+  </data>
+  <data name="Identity.EmailConfirmed" xml:space="preserve">
+    <value>Your email {0} is confirmed. You can now sign in.</value>
   </data>
   <data name="Identity.EmailConfirmationFailedWithErrors" xml:space="preserve">
     <value>An error occurred while confirming the email for {0}: {1}</value>
