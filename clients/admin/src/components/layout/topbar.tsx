@@ -203,7 +203,7 @@ export function Topbar() {
   // arrives, so a locale chosen on another device carries over on this one.
   //
   // It stops the moment the user picks a language HERE. updateMyProfile is a
-  // read-modify-write with no concurrency token, so two switches in quick succession can
+  // read-modify-write that sends no If-Match, so two switches in quick succession can
   // land out of network order and leave the server holding the earlier choice; a later
   // refetch would then flip the UI back to it. See the `ponytail:` note below.
   const languageChosenThisSession = useRef(false);
@@ -245,13 +245,12 @@ export function Topbar() {
   // never wipes those fields even if this component's profile query has not
   // resolved (or failed).
   //
-  // ponytail: two rapid switches issue two independent GET-then-PUT cycles with no
-  // concurrency token, so out-of-order delivery can leave the server holding the earlier
-  // choice. The UI no longer follows a stale server value (the hydration guard above), so
-  // the damage is bounded to "the language did not stick across a reload". The real fix is
-  // an ETag / RowVersion with If-Match on PUT /identity/profile, which is a contract
-  // change to an existing endpoint and belongs in its own PR. Tracked in
-  // https://github.com/fullstackhero/dotnet-starter-kit/issues/1359.
+  // ponytail: two rapid switches issue two independent GET-then-PUT cycles without If-Match,
+  // so out-of-order delivery can leave the server holding the earlier choice. The UI no
+  // longer follows a stale server value (the hydration guard above), so the damage is
+  // bounded to "the language did not stick across a reload". PUT /identity/profile has
+  // accepted If-Match since #1387; the upgrade path is to read the ETag on this GET the way
+  // the dashboard's getMyProfileWithETag does and send it back on the PUT.
   const onSelectLanguage = (tag: string) => {
     languageChosenThisSession.current = true;
     void i18n.changeLanguage(tag);
