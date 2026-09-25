@@ -1,4 +1,5 @@
 using System.Globalization;
+using FSH.Framework.Mailing;
 
 namespace FSH.Modules.Notifications.IntegrationEventHandlers;
 
@@ -6,7 +7,8 @@ namespace FSH.Modules.Notifications.IntegrationEventHandlers;
 /// Builds the subject + HTML body + text/plain alternative for tenant billing emails. Plain interpolated
 /// HTML (the framework has no template engine); kept here so the handlers stay thin and the copy is easy
 /// to review. Every message carries both parts: HTML-only mail leaves text-only clients with nothing and
-/// scores worse with spam filters.
+/// scores worse with spam filters. The document shell and the encoder come from
+/// <see cref="HtmlEmail"/> so every module escapes the same way.
 /// </summary>
 internal static class BillingEmailBodies
 {
@@ -19,8 +21,8 @@ internal static class BillingEmailBodies
             : $"Your subscription expires in {daysRemaining} days";
         var plan = planKey ?? "current";
         var body = Wrap(subject,
-            $"<p>Hi {Escape(tenantName)},</p>" +
-            $"<p>Your <strong>{Escape(plan)}</strong> subscription is valid until " +
+            $"<p>Hi {HtmlEmail.Encode(tenantName)},</p>" +
+            $"<p>Your <strong>{HtmlEmail.Encode(plan)}</strong> subscription is valid until " +
             $"<strong>{Date(validUpto)}</strong> ({daysRemaining} day(s) remaining).</p>" +
             "<p>Please contact your account operator to renew and avoid any interruption to your service.</p>");
         var text = Text(subject,
@@ -35,8 +37,8 @@ internal static class BillingEmailBodies
         const string subject = "Your subscription has lapsed — grace period active";
         var plan = planKey ?? "current";
         var body = Wrap(subject,
-            $"<p>Hi {Escape(tenantName)},</p>" +
-            $"<p>Your <strong>{Escape(plan)}</strong> subscription expired on " +
+            $"<p>Hi {HtmlEmail.Encode(tenantName)},</p>" +
+            $"<p>Your <strong>{HtmlEmail.Encode(plan)}</strong> subscription expired on " +
             $"<strong>{Date(validUpto)}</strong>. Your service continues during a grace period that ends on " +
             $"<strong>{Date(graceEnds)}</strong>.</p>" +
             "<p>Please renew before the grace period ends to keep your access uninterrupted.</p>");
@@ -52,8 +54,8 @@ internal static class BillingEmailBodies
         const string subject = "Your subscription has expired";
         var plan = planKey ?? "current";
         var body = Wrap(subject,
-            $"<p>Hi {Escape(tenantName)},</p>" +
-            $"<p>Your <strong>{Escape(plan)}</strong> subscription expired on " +
+            $"<p>Hi {HtmlEmail.Encode(tenantName)},</p>" +
+            $"<p>Your <strong>{HtmlEmail.Encode(plan)}</strong> subscription expired on " +
             $"<strong>{Date(validUpto)}</strong> and the grace period has ended, so access is now suspended.</p>" +
             "<p>Contact your account operator to renew and restore access.</p>");
         var text = Text(subject,
@@ -69,7 +71,9 @@ internal static class BillingEmailBodies
         var amountText = $"{amount.ToString("0.00", CultureInfo.InvariantCulture)} {currency}";
         var due = dueAtUtc is null ? string.Empty : $"<p>Due by <strong>{Date(dueAtUtc.Value)}</strong>.</p>";
         var body = Wrap(subject,
-            $"<p>A new invoice <strong>{Escape(invoiceNumber)}</strong> for <strong>{amountText}</strong> has been issued.</p>" +
+            // amountText embeds the currency, which is data rather than a literal, so it is encoded
+            // for the HTML part while the text/plain twin below keeps it verbatim.
+            $"<p>A new invoice <strong>{HtmlEmail.Encode(invoiceNumber)}</strong> for <strong>{HtmlEmail.Encode(amountText)}</strong> has been issued.</p>" +
             due +
             "<p>You can view and download this invoice from your dashboard.</p>");
         var text = Text(subject,
@@ -79,12 +83,17 @@ internal static class BillingEmailBodies
         return (subject, body, text);
     }
 
+    /// <summary>
+    /// The billing copy inside the shared document shell. Only the automated-message footer is
+    /// specific to these e-mails; the doctype, charset and card come from <see cref="HtmlEmail.Shell"/>.
+    /// </summary>
     private static string Wrap(string heading, string innerHtml) =>
-        "<div style=\"font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;line-height:1.5\">" +
-        $"<h2 style=\"font-size:18px;margin:0 0 12px\">{Escape(heading)}</h2>" +
-        innerHtml +
-        "<p style=\"margin-top:24px;color:#6b7280;font-size:12px\">This is an automated message.</p>" +
-        "</div>";
+        HtmlEmail.Shell(
+            heading,
+            "<div style=\"font-size: 15px; line-height: 1.6; color: #334155;\">" +
+            innerHtml +
+            "<p style=\"margin-top:24px;color:#6b7280;font-size:12px\">This is an automated message.</p>" +
+            "</div>");
 
     /// <summary>
     /// The text/plain twin of <see cref="Wrap"/>: same copy, no markup, empty paragraphs dropped so an
@@ -92,15 +101,11 @@ internal static class BillingEmailBodies
     /// </summary>
     private static string Text(string heading, params string[] paragraphs)
     {
-        var lines = new List<string> { heading, string.Empty };
+        // The blank entries this used to add were filtered straight back out by the Join, which is
+        // what actually separates the paragraphs.
+        var lines = new List<string> { heading };
         lines.AddRange(paragraphs.Where(p => !string.IsNullOrWhiteSpace(p)));
-        lines.Add(string.Empty);
         lines.Add("This is an automated message.");
-        return string.Join(Environment.NewLine + Environment.NewLine, lines.Where(l => l.Length > 0));
+        return string.Join(Environment.NewLine + Environment.NewLine, lines);
     }
-
-    private static string Escape(string value) =>
-        value.Replace("&", "&amp;", StringComparison.Ordinal)
-             .Replace("<", "&lt;", StringComparison.Ordinal)
-             .Replace(">", "&gt;", StringComparison.Ordinal);
 }

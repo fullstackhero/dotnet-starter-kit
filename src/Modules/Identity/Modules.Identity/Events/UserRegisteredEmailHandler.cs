@@ -2,7 +2,6 @@ using FSH.Framework.Eventing.Abstractions;
 using FSH.Framework.Mailing;
 using FSH.Framework.Mailing.Services;
 using FSH.Modules.Identity.Contracts.Events;
-using FSH.Modules.Identity.Services;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Identity.Events;
@@ -41,7 +40,7 @@ public sealed class UserRegisteredEmailHandler
             var mail = new MailRequest(
                 to: new System.Collections.ObjectModel.Collection<string> { @event.Email },
                 subject: "Welcome!",
-                body: EmailBodies.NoticeHtml("Welcome!", greeting),
+                body: HtmlEmail.Notice("Welcome!", greeting),
                 textBody: greeting);
 
             await _mailService.SendAsync(mail, ct).ConfigureAwait(false);
