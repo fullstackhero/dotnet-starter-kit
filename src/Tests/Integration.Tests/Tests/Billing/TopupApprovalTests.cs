@@ -64,7 +64,7 @@ public sealed class TopupApprovalTests
         {
             var request = await db.TopupRequests.FindAsync(requestId);
             request.ShouldNotBeNull();
-            request!.Status.ShouldBe(TopupRequestStatus.Invoiced, "request must be Invoiced after approval");
+            request.Status.ShouldBe(TopupRequestStatus.Invoiced, "request must be Invoiced after approval");
             request.InvoiceId.ShouldBe(invoiceId, "request.InvoiceId must match the returned invoice id");
         });
 
@@ -73,7 +73,7 @@ public sealed class TopupApprovalTests
         {
             var invoice = await db.Invoices.FindAsync(invoiceId);
             invoice.ShouldNotBeNull();
-            invoice!.TenantId.ShouldBe(TestConstants.RootTenantId);
+            invoice.TenantId.ShouldBe(TestConstants.RootTenantId);
             invoice.Purpose.ShouldBe(InvoicePurpose.Topup);
             invoice.Status.ShouldBe(InvoiceStatus.Issued);
         });
@@ -102,7 +102,7 @@ public sealed class TopupApprovalTests
         {
             var request = await db.TopupRequests.FindAsync(requestId);
             request.ShouldNotBeNull();
-            request!.Status.ShouldBe(TopupRequestStatus.Rejected);
+            request.Status.ShouldBe(TopupRequestStatus.Rejected);
             request.DecisionNote.ShouldBe("rejected in integration test");
         });
     }

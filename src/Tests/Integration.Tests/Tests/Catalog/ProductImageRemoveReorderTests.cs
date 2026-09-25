@@ -369,6 +369,6 @@ public sealed class ProductImageRemoveReorderTests
         var meta = await metaResp.DeserializeAsync<FileAssetDto>();
         meta.PublicUrl.ShouldNotBeNullOrWhiteSpace();
 
-        return (presigned.FileAssetId, meta.PublicUrl!);
+        return (presigned.FileAssetId, meta.PublicUrl);
     }
 }

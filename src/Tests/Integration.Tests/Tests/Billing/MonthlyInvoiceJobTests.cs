@@ -53,7 +53,7 @@ public sealed class MonthlyInvoiceJobTests
 
         var invoice = await GetRootInvoiceForPeriodAsync(previous.Year, previous.Month);
         invoice.ShouldNotBeNull("MonthlyInvoiceJob must produce a draft invoice for the subscribed root tenant");
-        invoice!.Status.ShouldBe(InvoiceStatus.Draft);
+        invoice.Status.ShouldBe(InvoiceStatus.Draft);
         invoice.PeriodYear.ShouldBe(previous.Year);
         invoice.PeriodMonth.ShouldBe(previous.Month);
         invoice.Purpose.ShouldBe(InvoicePurpose.Usage, "the monthly job produces usage invoices");

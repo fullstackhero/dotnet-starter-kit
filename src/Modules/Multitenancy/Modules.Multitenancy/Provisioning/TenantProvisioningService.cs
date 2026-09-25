@@ -65,7 +65,8 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
             return provisioning;
         }
 
-        var jobId = _jobService.Enqueue<TenantProvisioningJob>(job => job.RunAsync(tenant.Id, correlationId));
+        // CancellationToken.None: Hangfire substitutes its own job-cancellation token at execution time; the request token must not flow into the job.
+        var jobId = _jobService.Enqueue<TenantProvisioningJob>(job => job.RunAsync(tenant.Id, correlationId, CancellationToken.None));
         provisioning.SetJobId(jobId);
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 

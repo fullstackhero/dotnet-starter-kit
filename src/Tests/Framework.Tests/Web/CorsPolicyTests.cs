@@ -41,6 +41,6 @@ public sealed class CorsPolicyTests
 
         // Assert
         policy.ShouldNotBeNull();
-        policy!.ExposedHeaders.ShouldContain("ETag");
+        policy.ExposedHeaders.ShouldContain("ETag");
     }
 }

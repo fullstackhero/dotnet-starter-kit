@@ -115,7 +115,7 @@ public sealed class BillingTenantIsolationTests
         // Act + Assert — owner reads its own subscription back.
         var ownerSub = await GetSubscriptionAsync(rootClient, TestConstants.RootTenantId);
         ownerSub.ShouldNotBeNull("the owning tenant must be able to read its own subscription");
-        ownerSub!.Id.ShouldBe(rootSubId);
+        ownerSub.Id.ShouldBe(rootSubId);
         ownerSub.TenantId.ShouldBe(TestConstants.RootTenantId);
 
         // Act + Assert — tenant B passing root's tenant id must NOT receive root's subscription.
@@ -189,7 +189,7 @@ public sealed class BillingTenantIsolationTests
 
         var rootSubAfter = await GetSubscriptionAsync(rootClient, TestConstants.RootTenantId);
         rootSubAfter.ShouldNotBeNull();
-        rootSubAfter!.Id.ShouldBe(rootSubId,
+        rootSubAfter.Id.ShouldBe(rootSubId,
             "a tenant must not be able to cancel/replace root's subscription via a foreign tenant id");
     }
 
@@ -297,7 +297,7 @@ public sealed class BillingTenantIsolationTests
         var generated = await InvokeGenerateInvoiceForPeriodAsync(TestConstants.RootTenantId, year, month);
 
         generated.ShouldNotBeNull("the generator must produce an invoice when an active subscription exists");
-        generated!.Purpose.ShouldBe(InvoicePurpose.Usage,
+        generated.Purpose.ShouldBe(InvoicePurpose.Usage,
             "the usage invoice must be generated even when a subscription invoice already shares the month");
     }
 

@@ -129,7 +129,7 @@ public sealed class UserProfileTests
         // Assert — If-Match mandates strong comparison, so the tag must not be weak.
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Headers.ETag.ShouldNotBeNull();
-        response.Headers.ETag!.IsWeak.ShouldBeFalse();
+        response.Headers.ETag.IsWeak.ShouldBeFalse();
         response.Headers.ETag.Tag.ShouldStartWith("\"");
         response.Headers.ETag.Tag.ShouldEndWith("\"");
     }
@@ -327,7 +327,7 @@ public sealed class UserProfileTests
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Headers.ETag.ShouldNotBeNull();
         response.Headers.TryGetValues("Access-Control-Expose-Headers", out var exposedHeaders).ShouldBeTrue();
-        exposedHeaders!
+        exposedHeaders
             .SelectMany(value => value.Split(','))
             .Select(value => value.Trim())
             .ShouldContain(value => string.Equals(value, "ETag", StringComparison.OrdinalIgnoreCase));
@@ -338,7 +338,7 @@ public sealed class UserProfileTests
         var response = await client.GetAsync($"{TestConstants.IdentityBasePath}/profile");
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Headers.ETag.ShouldNotBeNull();
-        return response.Headers.ETag!.ToString();
+        return response.Headers.ETag.ToString();
     }
 
     private static async Task<HttpResponseMessage> PutProfileAsync(HttpClient client, object body, string? ifMatch)

@@ -31,16 +31,16 @@ public sealed class SecurityHeadersTests
 
         // Assert
         headers.TryGetValues("X-Content-Type-Options", out var contentTypeOptions).ShouldBeTrue();
-        contentTypeOptions!.ShouldContain("nosniff");
+        contentTypeOptions.ShouldContain("nosniff");
 
         headers.TryGetValues("X-Frame-Options", out var frameOptions).ShouldBeTrue();
-        frameOptions!.ShouldNotBeEmpty();
+        frameOptions.ShouldNotBeEmpty();
 
         headers.TryGetValues("Referrer-Policy", out var referrerPolicy).ShouldBeTrue();
-        referrerPolicy!.ShouldNotBeEmpty();
+        referrerPolicy.ShouldNotBeEmpty();
 
         headers.TryGetValues("Content-Security-Policy", out var csp).ShouldBeTrue();
-        csp!.ShouldNotBeEmpty();
+        csp.ShouldNotBeEmpty();
     }
 
     #endregion

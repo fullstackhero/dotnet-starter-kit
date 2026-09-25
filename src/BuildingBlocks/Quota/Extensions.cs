@@ -39,7 +39,7 @@ public static class Extensions
         {
             services.AddSingleton<IConnectionMultiplexer>(_ =>
             {
-                var config = ConfigurationOptions.Parse(quotaOptions.Redis!);
+                var config = ConfigurationOptions.Parse(quotaOptions.Redis);
                 config.AbortOnConnectFail = false;
                 return ConnectionMultiplexer.Connect(config);
             });

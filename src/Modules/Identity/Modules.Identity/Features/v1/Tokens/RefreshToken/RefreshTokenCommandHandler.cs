@@ -50,7 +50,7 @@ public sealed class RefreshTokenCommandHandler
 
         if (validated is null)
         {
-            await _securityAudit.TokenRevokedAsync("unknown", clientId!, "InvalidRefreshToken", cancellationToken);
+            await _securityAudit.TokenRevokedAsync("unknown", clientId, "InvalidRefreshToken", cancellationToken);
             throw new UnauthorizedException("Invalid refresh token.");
         }
 
@@ -61,7 +61,7 @@ public sealed class RefreshTokenCommandHandler
         var isSessionValid = await _sessionService.ValidateSessionAsync(refreshTokenHash, cancellationToken);
         if (!isSessionValid)
         {
-            await _securityAudit.TokenRevokedAsync(subject, clientId!, "SessionRevoked", cancellationToken);
+            await _securityAudit.TokenRevokedAsync(subject, clientId, "SessionRevoked", cancellationToken);
             throw new UnauthorizedException("Session has been revoked.");
         }
 
@@ -86,13 +86,13 @@ public sealed class RefreshTokenCommandHandler
             if (!string.IsNullOrEmpty(accessTokenSubject) &&
                 !string.Equals(accessTokenSubject, subject, StringComparison.Ordinal))
             {
-                await _securityAudit.TokenRevokedAsync(subject, clientId!, "RefreshTokenSubjectMismatch", cancellationToken);
+                await _securityAudit.TokenRevokedAsync(subject, clientId, "RefreshTokenSubjectMismatch", cancellationToken);
                 throw new UnauthorizedException("Access token subject mismatch.");
             }
         }
 
         // Audit previous token revocation by rotation (no raw tokens)
-        await _securityAudit.TokenRevokedAsync(subject, clientId!, "RefreshTokenRotated", cancellationToken);
+        await _securityAudit.TokenRevokedAsync(subject, clientId, "RefreshTokenRotated", cancellationToken);
 
         // Issue new tokens
         var newToken = await _tokenService.IssueAsync(subject, claims, null, cancellationToken);
@@ -113,7 +113,7 @@ public sealed class RefreshTokenCommandHandler
         await _securityAudit.TokenIssuedAsync(
             userId: subject,
             userName: claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? string.Empty,
-            clientId: clientId!,
+            clientId: clientId,
             tokenFingerprint: fingerprint,
             expiresUtc: newToken.AccessTokenExpiresAt,
             ct: cancellationToken);

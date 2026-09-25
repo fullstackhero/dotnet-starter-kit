@@ -24,7 +24,7 @@ public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthoriz
     public bool Authorize(DashboardContext context)
     {
         var httpContext = context.GetHttpContext();
-        var header = httpContext.Request.Headers.Authorization!;
+        var header = httpContext.Request.Headers.Authorization;
 
         if (MissingAuthorizationHeader(header))
         {
@@ -33,7 +33,7 @@ public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthoriz
             return false;
         }
 
-        var authValues = AuthenticationHeaderValue.Parse(header!);
+        var authValues = AuthenticationHeaderValue.Parse(header.ToString());
 
         if (NotBasicAuthentication(authValues))
         {
