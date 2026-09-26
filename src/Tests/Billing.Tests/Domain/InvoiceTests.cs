@@ -84,7 +84,7 @@ public sealed class InvoiceTests
         inv.Status.ShouldBe(InvoiceStatus.Issued);
         inv.IssuedAtUtc.ShouldNotBeNull();
         inv.DueAtUtc.ShouldNotBeNull();
-        (inv.DueAtUtc!.Value - inv.IssuedAtUtc!.Value).Days.ShouldBe(14);
+        (inv.DueAtUtc.Value - inv.IssuedAtUtc.Value).Days.ShouldBe(14);
     }
 
     [Fact]

@@ -57,7 +57,7 @@ internal static class EntityDiffBuilder
         return new Diff(
             DbContext: entry.Context.GetType().Name,
             Schema: schema,
-            Table: table!,
+            Table: table,
             EntityName: entityType.ClrType.Name,
             Key: key,
             Operation: operation,

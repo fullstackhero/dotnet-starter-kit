@@ -227,7 +227,7 @@ public sealed class AuditExceptionAndFilterTests
 
         // Act
         var page = await AuditTestHelper.GetAuditsPageAsync(
-            client, extraQuery: $"source={Uri.EscapeDataString(seed.Source!)}");
+            client, extraQuery: $"source={Uri.EscapeDataString(seed.Source)}");
 
         // Assert
         page.Items.ShouldNotBeEmpty();

@@ -48,10 +48,10 @@ public sealed class MentionAndNotificationTests
         var inbox = await ReadInboxAsync(aliceClient);
         var mention = inbox.FirstOrDefault(n => n.Type == "chat.mention");
         mention.ShouldNotBeNull("Expected a chat.mention notification to land in Alice's inbox");
-        mention!.Body.ShouldNotBeNullOrEmpty();
-        mention.Body!.ShouldContain("take a look");
+        mention.Body.ShouldNotBeNullOrEmpty();
+        mention.Body.ShouldContain("take a look");
         mention.Link.ShouldNotBeNull();
-        mention.Link!.ShouldStartWith($"/chat/{channelId}");
+        mention.Link.ShouldStartWith($"/chat/{channelId}");
         mention.ReadAtUtc.ShouldBeNull();
     }
 
@@ -71,7 +71,7 @@ public sealed class MentionAndNotificationTests
 
         var received = await inbox.WaitForFirstAsync(p => p.Type == "chat.mention", EventTimeout);
         received.ShouldNotBeNull("Expected NotificationCreated to fire on Bob's hub connection");
-        received!.Title.ShouldNotBeNullOrWhiteSpace();
+        received.Title.ShouldNotBeNullOrWhiteSpace();
         received.Link.ShouldStartWith($"/chat/{channelId}");
     }
 
@@ -187,7 +187,7 @@ public sealed class MentionAndNotificationTests
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(userId);
         user.ShouldNotBeNull();
-        if (!user!.EmailConfirmed)
+        if (!user.EmailConfirmed)
         {
             user.EmailConfirmed = true;
             (await userManager.UpdateAsync(user)).Succeeded.ShouldBeTrue();

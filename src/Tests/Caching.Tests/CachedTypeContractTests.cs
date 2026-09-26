@@ -63,7 +63,7 @@ public sealed class CachedTypeContractTests
 
         attr.ShouldNotBeNull(
             $"{type.FullName} is stored in HybridCache and must have [ImmutableObject(true)] so the runtime can return the same reference across L1 hits instead of re-deserializing.");
-        attr!.Immutable.ShouldBeTrue(
+        attr.Immutable.ShouldBeTrue(
             $"{type.FullName} has [ImmutableObject(false)] — change to [ImmutableObject(true)] or stop caching it.");
     }
 }
