@@ -1,18 +1,19 @@
+import i18n from "@/i18n";
 import { ChannelType, type ChannelDto, type MessageDto } from "@/api/chat";
 
 /** Stable display name for a channel — falls back through type-appropriate paths. */
 export function channelTitle(channel: ChannelDto, selfUserId?: string): string {
-  if (channel.type === ChannelType.Channel) return channel.name?.trim() || "(unnamed channel)";
+  if (channel.type === ChannelType.Channel) return channel.name?.trim() || i18n.t("chat:util.unnamedChannel");
   if (channel.type === ChannelType.DirectMessage) {
     // DM — show the other member's user id (richer name resolution would
     // require an Identity lookup; users can be wired in later via a
     // useUserDisplay hook).
     const other = channel.members.find((m) => m.userId !== selfUserId);
-    return other ? `@${shortenUserId(other.userId)}` : "Direct message";
+    return other ? `@${shortenUserId(other.userId)}` : i18n.t("chat:util.directMessage");
   }
   // Group DM — list the other members up to 3, "+N more" beyond that.
   const others = channel.members.filter((m) => m.userId !== selfUserId);
-  if (others.length === 0) return "Empty group";
+  if (others.length === 0) return i18n.t("chat:util.emptyGroup");
   const first = others.slice(0, 3).map((m) => `@${shortenUserId(m.userId)}`);
   const extra = others.length - first.length;
   return extra > 0 ? `${first.join(", ")} +${extra}` : first.join(", ");
@@ -38,12 +39,12 @@ export function dayRuleLabel(iso: string): string {
   const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
   const diffMs = startOfDay(today).getTime() - startOfDay(d).getTime();
   const days = Math.round(diffMs / (24 * 60 * 60 * 1000));
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
+  if (days === 0) return i18n.t("chat:day.today");
+  if (days === 1) return i18n.t("chat:day.yesterday");
   if (days < 7) {
-    return d.toLocaleDateString("en-US", { weekday: "long" });
+    return d.toLocaleDateString(i18n.language, { weekday: "long" });
   }
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString(i18n.language, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -53,7 +54,7 @@ export function dayRuleLabel(iso: string): string {
 /** "HH:MM" / "h:MM AM" — sender-time chip next to the author's name. */
 export function shortTime(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" });
 }
 
 /** "Today 10:42" / "Yesterday 4:18 PM" / "Mar 3 9:01 AM" — for search results

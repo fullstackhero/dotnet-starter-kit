@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import i18n from "@/i18n";
 import { tokenStore } from "@/auth/token-store";
 import { decodeJwt } from "@/auth/jwt";
 
@@ -9,6 +10,10 @@ export type ApiError = {
   // FluentValidation errors arrive keyed by field (Record); CustomException
   // (e.g. Identity registration failures) sends a flat string[]. Handle both.
   errors?: Record<string, string[]> | string[];
+  // Stable, culture-independent error key (the server's MessageKey) — present
+  // whenever the thrown exception carried one. `detail` is localized prose, so
+  // branch on this, never on the text.
+  code?: string;
   // Dev-only extension surfaced on 401 by ConfigureJwtBearerOptions.
   reason?: string;
   // Allow any other ProblemDetails extensions through.
@@ -26,19 +31,32 @@ export class ApiRequestError extends Error {
   }
 }
 
+/** The deactivated-tenant guard's error key (MultitenancyModule). */
+const TENANT_DEACTIVATED_CODE = "Multitenancy.TenantDeactivated";
+
 /**
- * True when an error is the API's "tenant has been deactivated" 403. The
- * deactivated-tenant guard (MultitenancyModule) rejects *every* request once a
- * tenant is switched off, so this can surface from any query/mutation while a
- * user is mid-session. There is no machine-readable code on the ProblemDetails,
- * so we match the guard's detail text. A global query/mutation error hook uses
- * this to route the user to the dedicated `/tenant-deactivated` page rather than
- * leaving the dead 403 banner stuck under a half-loaded surface.
+ * The guard's message before the ProblemDetails `code` existed. Kept as a second
+ * match so this app works against an API that predates the localized-errors slice:
+ * until that ships, `code` is absent and the only signal is this exact English text.
+ * Drop this branch once the API always sends `code`.
+ */
+const TENANT_DEACTIVATED_LEGACY_DETAIL =
+  "This tenant has been deactivated. Contact your administrator.";
+
+/**
+ * True when an error is the API's deactivated-tenant 403. The guard
+ * (MultitenancyModule) rejects *every* request once a tenant is switched off, so
+ * this can surface from any query/mutation while a user is mid-session. We match
+ * the ProblemDetails `code` — the server's MessageKey — because `detail` is
+ * localized under the request's Accept-Language and matching prose would only
+ * work for English readers. A global query/mutation error hook uses this to
+ * route the user to the dedicated `/tenant-deactivated` page rather than leaving
+ * the dead 403 banner stuck under a half-loaded surface.
  */
 export function isTenantDeactivatedError(error: unknown): boolean {
   if (!(error instanceof ApiRequestError) || error.status !== 403) return false;
-  const detail = error.problem?.detail ?? error.message ?? "";
-  return detail.toLowerCase().includes("tenant has been deactivated");
+  if (error.problem?.code === TENANT_DEACTIVATED_CODE) return true;
+  return error.problem?.detail === TENANT_DEACTIVATED_LEGACY_DETAIL;
 }
 
 /**
@@ -110,7 +128,17 @@ function withTimeout(
 
 let refreshPromise: Promise<void> | null = null;
 
-export async function refreshAccessToken() {
+/// Single-flight: the token rotates on the server, so two refreshes racing means the
+/// loser presents a refresh token the server has already spent. Every caller — the
+/// 401 retry, the boot probe, the language switch — awaits the same in-flight call.
+export function refreshAccessToken(): Promise<void> {
+  refreshPromise ??= runRefresh().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
+async function runRefresh() {
   const refreshToken = tokenStore.getRefreshToken();
   const accessToken = tokenStore.getAccessToken();
   if (!refreshToken || !accessToken) {
@@ -134,7 +162,11 @@ export async function refreshAccessToken() {
   });
 
   if (!response.ok) {
-    tokenStore.clear();
+    // Deliberately no tokenStore.clear() here: a refresh can be fired speculatively
+    // (the language switch re-mints the JWT for the new `locale` claim), and a
+    // background failure must not end a session the user is actively using. Ending
+    // the session belongs to the callers that know the request needed auth — the 401
+    // retry below and the boot probe in AuthProvider.
     throw new ApiRequestError(response.status, "Refresh failed");
   }
 
@@ -193,6 +225,13 @@ export async function apiFetch<T = unknown>(
     mergedHeaders.set("tenant", tenant);
   }
 
+  // Tell the backend which culture to localize responses in. The active UI
+  // locale drives it; the backend resolution chain still falls through to its
+  // own default for anything unsupported.
+  if (!mergedHeaders.has("Accept-Language")) {
+    mergedHeaders.set("Accept-Language", i18n.language || "en-US");
+  }
+
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;
   const initialTimer = withTimeout({ ...rest, headers: mergedHeaders }, timeoutMs, signal);
   let response: Response;
@@ -203,13 +242,12 @@ export async function apiFetch<T = unknown>(
   }
 
   if (response.status === 401 && !skipAuth && tokenStore.getRefreshToken()) {
-    refreshPromise ??= refreshAccessToken().finally(() => {
-      refreshPromise = null;
-    });
-
     try {
-      await refreshPromise;
+      await refreshAccessToken();
     } catch (e) {
+      // This request needed auth and the refresh could not provide it: the session is
+      // over, so drop it and let routing fall through to /login.
+      tokenStore.clear();
       throw e instanceof ApiRequestError
         ? e
         : new ApiRequestError(401, "Session expired");

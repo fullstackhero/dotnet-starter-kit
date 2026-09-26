@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { ShieldCheck } from "lucide-react";
 
 // ────────────────────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ export function AuthShell({
   /** Optional row beneath the card — e.g. "Back to sign in" link */
   footer?: ReactNode;
 }) {
+  const { t } = useTranslation("auth");
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--color-background)] px-5 py-8 sm:py-12">
       {/* Atmospheric background — three rose/saffron blur orbs at
@@ -77,7 +79,7 @@ export function AuthShell({
           </div>
           <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
-            <span>.NET 10 Starter Kit</span>
+            <span>{t("shell.tagline")}</span>
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
           </div>
         </div>
@@ -95,10 +97,10 @@ export function AuthShell({
 
         <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-[var(--color-muted-foreground)]">
           <ShieldCheck className="size-3" />
-          <span>Encrypted in transit · JWT-secured session</span>
+          <span>{t("shell.encrypted")}</span>
         </div>
         <p className="mt-4 text-center text-[10px] font-medium uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]">
-          fullstackhero Administration
+          {t("shell.footer")}
         </p>
       </div>
     </div>

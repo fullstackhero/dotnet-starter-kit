@@ -27,9 +27,10 @@ export type SeededUser = {
   permissions?: string[];
 };
 
-const ACCESS_KEY = "fsh.dashboard.accessToken";
-const REFRESH_KEY = "fsh.dashboard.refreshToken";
-const TENANT_KEY = "fsh.dashboard.tenant";
+/** The localStorage slots the runtime tokenStore writes (token-store.ts). */
+export const ACCESS_KEY = "fsh.dashboard.accessToken";
+export const REFRESH_KEY = "fsh.dashboard.refreshToken";
+export const TENANT_KEY = "fsh.dashboard.tenant";
 
 /**
  * Encode a minimal JWT (header.payload.signature) where every segment is
@@ -75,6 +76,57 @@ export async function seedAuthedSession(page: Page, user: SeededUser) {
   );
 }
 
+/** The original operator behind an impersonation session (the `act_*` claims). */
+export type ImpersonationActor = {
+  userId: string;
+  tenant: string;
+  name: string;
+};
+
+/**
+ * Seed an IMPERSONATION session into localStorage before React boots: an access
+ * token carrying the `act_sub` actor claim, the target's tenant, and —
+ * critically — NO refresh token (token-store drops the refresh slot on
+ * beginImpersonation). The missing refresh token is what makes a 401 propagate
+ * to the global error hook rather than triggering a silent refresh-and-retry.
+ */
+export async function seedImpersonationSession(
+  page: Page,
+  user: SeededUser,
+  actor: ImpersonationActor,
+) {
+  const accessToken = fakeJwt({
+    sub: user.sub,
+    email: user.email,
+    name: `${user.firstName} ${user.lastName}`.trim(),
+    tenant: user.tenant,
+    // Actor claims — the original operator's identity. Their presence is what
+    // marks this token as an impersonation session.
+    act_sub: actor.userId,
+    act_tenant: actor.tenant,
+    act_name: actor.name,
+    permissions: user.permissions ?? [],
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    iat: Math.floor(Date.now() / 1000),
+  });
+
+  await page.addInitScript(
+    ({ access, tenant, accessKey, refreshKey, tenantKey }) => {
+      localStorage.setItem(accessKey, access);
+      // Defensive: ensure no refresh token lingers from a prior session.
+      localStorage.removeItem(refreshKey);
+      localStorage.setItem(tenantKey, tenant);
+    },
+    {
+      access: accessToken,
+      tenant: user.tenant,
+      accessKey: ACCESS_KEY,
+      refreshKey: REFRESH_KEY,
+      tenantKey: TENANT_KEY,
+    },
+  );
+}
+
 /**
  * Default test user — keep this consistent across specs so the captured
  * profile-id assertions stay stable.
@@ -86,4 +138,21 @@ export const TEST_USER: SeededUser = {
   lastName: "Nguyen",
   tenant: "acme",
   permissions: [],
+};
+
+/** The subject an operator impersonates in the impersonation specs. */
+export const IMPERSONATED_USER: SeededUser = {
+  sub: "u-impersonated-1",
+  email: "dan@acme.com",
+  firstName: "Dan",
+  lastName: "Mueller",
+  tenant: "acme",
+  permissions: [],
+};
+
+/** The operator driving the impersonation specs. */
+export const OPERATOR_ACTOR: ImpersonationActor = {
+  userId: "op-root-1",
+  tenant: "root",
+  name: "Root Operator",
 };

@@ -1,4 +1,6 @@
 import { useCallback, useRef, useState } from "react";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import {
   finalizeUpload,
   requestUploadUrl,
@@ -74,7 +76,26 @@ const DEFAULT_OPTIONS = {
  * Progress is reported via the in-state `progress` snapshot — XMLHttpRequest is used (instead of fetch)
  * because the Streams API for `fetch` upload progress is still gated behind flags on most browsers.
  */
+/**
+ * An upload failure the client itself produced (cancel, transport, a non-2xx PUT). It carries the
+ * catalog key instead of prose: these are raised in module-scope callbacks and in an XHR handler,
+ * where no `t` exists, and they are shown to the user rather than logged.
+ */
+export class UploadError extends Error {
+  readonly messageKey: string;
+
+  readonly params?: Record<string, string | number>;
+
+  constructor(messageKey: string, params?: Record<string, string | number>) {
+    super(messageKey);
+    this.name = "UploadError";
+    this.messageKey = messageKey;
+    this.params = params;
+  }
+}
+
 export function useFileUpload(options: UploadOptions): UseFileUploadResult {
+  const { t } = useTranslation("common");
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
   const cancelledRef = useRef(false);
@@ -100,7 +121,7 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
         const dot = file.name.lastIndexOf(".");
         const ext = dot >= 0 ? file.name.slice(dot).toLowerCase() : "";
         if (!opts.allowedExtensions.includes(ext)) {
-          const message = `Extension ${ext || "(none)"} is not allowed.`;
+          const message = t("common:upload.extensionNotAllowed", { extension: ext || t("common:upload.noExtension") });
           setProgress({
             fileName: file.name,
             totalBytes: file.size,
@@ -113,7 +134,10 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
         }
       }
       if (opts.maxBytes !== undefined && file.size > opts.maxBytes) {
-        const message = `File is ${formatBytes(file.size)}; limit is ${formatBytes(opts.maxBytes)}.`;
+        const message = t("common:upload.tooLarge", {
+          size: formatBytes(file.size),
+          limit: formatBytes(opts.maxBytes),
+        });
         setProgress({
           fileName: file.name,
           totalBytes: file.size,
@@ -150,13 +174,13 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
       try {
         presigned = await requestUploadUrl(requestInput);
       } catch (e) {
-        const message = describeError(e);
+        const message = describeUploadError(e, t);
         setProgress((p) =>
           p ? { ...p, status: "error", error: message } : null,
         );
         throw e;
       }
-      if (cancelledRef.current) throw new Error("Upload cancelled.");
+      if (cancelledRef.current) throw new UploadError("common:upload.cancelled");
 
       setProgress((p) =>
         p ? { ...p, status: "uploading", fileAssetId: presigned.fileAssetId } : null,
@@ -180,11 +204,11 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
           xhrRef.current = xhr;
         });
       } catch (e) {
-        const message = describeError(e);
+        const message = describeUploadError(e, t);
         setProgress((p) => (p ? { ...p, status: "error", error: message } : null));
         throw e instanceof Error ? e : new Error(message);
       }
-      if (cancelledRef.current) throw new Error("Upload cancelled.");
+      if (cancelledRef.current) throw new UploadError("common:upload.cancelled");
 
       setProgress((p) => (p ? { ...p, status: "finalizing", percent: 99 } : null));
 
@@ -193,7 +217,7 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
       try {
         dto = await finalizeUpload(presigned.fileAssetId);
       } catch (e) {
-        const message = describeError(e);
+        const message = describeUploadError(e, t);
         setProgress((p) => (p ? { ...p, status: "error", error: message } : null));
         throw e;
       }
@@ -237,20 +261,40 @@ function xhrPut(
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error(`PUT failed: ${xhr.status} ${xhr.statusText || ""}`.trim()));
+      else reject(new UploadError("common:upload.putFailed", { status: `${xhr.status} ${xhr.statusText || ""}`.trim() }));
     };
-    xhr.onerror = () => reject(new Error("Network error during upload."));
-    xhr.onabort = () => reject(new Error("Upload cancelled."));
+    xhr.onerror = () => reject(new UploadError("common:upload.networkError"));
+    xhr.onabort = () => reject(new UploadError("common:upload.cancelled"));
     xhr.send(body);
   });
 }
 
-function describeError(e: unknown): string {
+/**
+ * Turns whatever came back into something worth showing. An UploadError carries a catalog key
+ * because it is raised where no translator is in scope; a server error already carries prose the
+ * API localized for this caller, so it is passed through as-is.
+ */
+export function describeUploadError(e: unknown, t: TFunction, fallback?: string): string {
+  if (e instanceof UploadError) {
+    // No defaultValue: it would render the key itself ("common:upload.cancelled") if the catalog
+    // ever lost the entry. Falling through to the missing-key handler gives "Cancelled" instead.
+    return t(e.messageKey, { ...e.params });
+  }
+
   if (e instanceof ApiRequestError) {
+    // ProblemDetails comes back in the caller's language: apiFetch sends Accept-Language from
+    // i18n.language and the API negotiates on it, so this text is already localized.
     return e.problem?.detail ?? e.problem?.title ?? e.message;
   }
-  if (e instanceof Error) return e.message;
-  return "Unknown error";
+
+  // Anything else is a runtime Error whose message the platform wrote in English -- a presign step
+  // that never reached the server throws TypeError("Failed to fetch"), and returning e.message put
+  // that on screen under a Portuguese UI. The message still reaches the console for diagnosis; the
+  // user gets the catalog string.
+  if (e instanceof Error) {
+    console.error("[upload] unhandled failure", e);
+  }
+  return fallback ?? t("common:upload.unknownError");
 }
 
 export function formatBytes(bytes: number): string {

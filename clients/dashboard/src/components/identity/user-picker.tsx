@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Search, UserCheck, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export function UserPicker({
   value,
   onChange,
   initialSelected,
-  placeholder = "Search by name or email…",
+  placeholder,
   disabled,
 }: {
   value: string | null;
@@ -35,6 +36,7 @@ export function UserPicker({
   placeholder?: string;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation("tickets");
   const [selected, setSelected] = useState<UserDto | null>(initialSelected ?? null);
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -128,11 +130,11 @@ export function UserPicker({
               variant="ghost"
               size="sm"
               onClick={clear}
-              aria-label="Clear selection"
+              aria-label={t("userPicker.clearSelection")}
               className="shrink-0"
             >
               <X className="h-3.5 w-3.5" />
-              Clear
+              {t("userPicker.clear")}
             </Button>
           )}
         </div>
@@ -145,7 +147,7 @@ export function UserPicker({
         />
         <Input
           type="search"
-          placeholder={selected ? "Search to reassign…" : placeholder}
+          placeholder={selected ? t("userPicker.searchReassign") : (placeholder ?? t("userPicker.searchPlaceholder"))}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -169,14 +171,14 @@ export function UserPicker({
             {resultsQuery.isFetching && results.length === 0 ? (
               <div className="flex items-center gap-2 px-3 py-2.5 text-[12.5px] text-[var(--color-muted-foreground)]">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Searching for "{debounced}"…
+                {t("userPicker.searching", { term: debounced })}
               </div>
             ) : results.length === 0 ? (
               <div className="px-3 py-3 text-center text-[12.5px] text-[var(--color-muted-foreground)]">
-                No users match "{debounced}".
+                {t("userPicker.noMatch", { term: debounced })}
               </div>
             ) : (
-              <div role="listbox" aria-label="Search results">
+              <div role="listbox" aria-label={t("userPicker.results")}>
                 {results.map((u) => (
                   <div key={u.id}>
                     <button

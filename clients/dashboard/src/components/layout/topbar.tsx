@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   Check,
   ChevronsUpDown,
   KeyRound,
+  Languages,
   LogOut,
   Monitor,
   Moon,
@@ -36,7 +39,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
-import { getMyProfileWithETag } from "@/api/identity";
+import { getMyProfileWithETag, updateMyProfile } from "@/api/identity";
+import { refreshAccessToken } from "@/lib/api-client";
+import { formatNumber } from "@/lib/list-helpers";
+import i18n, { SUPPORTED } from "@/i18n";
 import { useAuth } from "@/auth/use-auth";
 import { useSseStatus } from "@/sse/sse-context";
 import { useTheme } from "@/components/theme/theme-provider";
@@ -119,6 +125,37 @@ function ThemeMenuItem({
   );
 }
 
+/** Language-pick row — mirrors ThemeMenuItem but keeps the menu open on
+ *  select so the section label re-localizes in place instead of the menu
+ *  closing before the switch is visible. */
+function LanguageMenuItem({
+  label,
+  active,
+  onSelect,
+}: {
+  label: string;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <DropdownMenuItem
+      onSelect={(e) => {
+        e.preventDefault();
+        onSelect();
+      }}
+      className="!my-0 flex cursor-pointer items-center gap-2.5 rounded-md !px-2.5 !py-1.5"
+    >
+      <Languages className="size-3.5 shrink-0 text-[var(--color-muted-foreground)]" />
+      <span className="flex-1 text-[12.5px] font-medium text-[var(--color-foreground)]">
+        {label}
+      </span>
+      {active && (
+        <Check className="size-3.5 shrink-0 text-[var(--color-primary)]" aria-hidden />
+      )}
+    </DropdownMenuItem>
+  );
+}
+
 /** Simple icon + label menu item — used by the Account quick links. */
 function SimpleMenuItem({
   icon: Icon,
@@ -147,7 +184,10 @@ function SimpleMenuItem({
 // ─────────────────────────────────────────────────────────────────────
 
 export function Topbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, impersonation } = useAuth();
+  // useTranslation subscribes this component to `languageChanged`, so the menu
+  // labels and the active-locale check re-render the instant we switch.
+  const { t } = useTranslation();
   // Shared with the Profile settings page (same query key), so changing the
   // photo there invalidates this and the topbar avatar updates live. That sharing is also why
   // this reads through the ETag-carrying variant: one query key must hold one shape, and the
@@ -158,11 +198,88 @@ export function Topbar() {
     staleTime: 5 * 60 * 1000,
   });
   const avatarUrl = profile?.profile.imageUrl ?? null;
+  const queryClient = useQueryClient();
+
+  // While impersonating, language stays a purely local, operator-owned choice:
+  // StartImpersonation strips the target's `locale` claim so the operator keeps
+  // reading in their own language, and the profile behind /identity/profile is
+  // the *target's*. So neither hydrate from it nor write back to it.
+  const isImpersonating = impersonation !== null;
+
+  // Hydrate the UI language from the server-persisted locale when the profile first
+  // arrives, so a locale chosen on another device carries over on this one.
+  //
+  // It stops the moment the user picks a language HERE. This query key is shared and is
+  // refetched after every profile write, including the switch's own; the refetch can land
+  // before the new locale does, and re-hydrating from it would yank the language out from
+  // under an explicit in-session choice, with no error and nothing for the user to act on.
+  const languageChosenThisSession = useRef(false);
+  const persistedLocale = isImpersonating ? undefined : profile?.profile.locale;
+  useEffect(() => {
+    if (languageChosenThisSession.current) return;
+    if (persistedLocale && persistedLocale !== i18n.language) {
+      void i18n.changeLanguage(persistedLocale);
+    }
+  }, [persistedLocale]);
+
   const { status: sseStatus, eventCount } = useSseStatus();
   const { mode, setMode } = useTheme();
   const { setOpen: setPaletteOpen } = useCommandPalette();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const updateProfile = useMutation({
+    // A locale-only save reads the profile and its ETag at save time, unlike the settings form.
+    // That is safe here because nothing the user typed rides along: every other field comes from
+    // this same fresh read, so there is no stale snapshot for If-Match to protect. The tag still
+    // guards the read-to-PUT gap; a 412 there lands in onError like any other failure.
+    mutationFn: async (locale: string) => {
+      const { profile: current, etag } = await getMyProfileWithETag();
+      await updateMyProfile({
+        profile: current,
+        expectedETag: etag,
+        firstName: null,
+        lastName: null,
+        phoneNumber: null,
+        locale,
+      });
+    },
+    onSuccess: () => {
+      // The save rotated the concurrency stamp, so the cached tag is spent. Refetch it, or the
+      // settings form would seed from the old tag and its first save would 412 against this one.
+      // The hydration guard above keeps the refetch from reverting the language.
+      void queryClient.invalidateQueries({ queryKey: ["identity", "me"] });
+      // Re-mint the JWT so the fresh `locale` claim is issued. The UI already
+      // switched client-side; without this, backend-generated strings lag
+      // behind until the next natural token refresh. Best-effort: the refresh no
+      // longer ends the session when it fails, so the switch survives and the
+      // failure is reported instead of swallowed.
+      void refreshAccessToken().catch((error: unknown) => {
+        console.warn(
+          "[i18n] locale saved, but re-minting the token failed — backend strings stay " +
+            "in the previous language until the next successful refresh.",
+          error,
+        );
+      });
+    },
+    // The UI switched on click, so a failed PUT leaves the app in a language the server
+    // does not know about, which reverts on the next fresh mount. Say so rather than let
+    // the choice disappear silently.
+    onError: () => {
+      toast.error(t("language.saveFailed"), { description: t("language.saveFailedDetail") });
+    },
+  });
+
+  // Switch the UI language and persist it. The locale travels through the
+  // mutation argument (never closed-over state). During an impersonation session
+  // the switch stays client-side only: persisting would write the operator's
+  // language onto the impersonated user's profile.
+  const onSelectLanguage = (tag: string) => {
+    languageChosenThisSession.current = true;
+    void i18n.changeLanguage(tag);
+    if (isImpersonating) return;
+    updateProfile.mutate(tag);
+  };
 
   const onConfirmSignOut = () => {
     setConfirmOpen(false);
@@ -173,19 +290,22 @@ export function Topbar() {
     if (sseStatus === "connected") {
       return {
         color: "var(--color-success)",
-        text: `Connected · ${new Intl.NumberFormat("en-US").format(eventCount)} events`,
+        text: t("common:presence.connected", {
+          count: eventCount,
+          formatted: formatNumber(eventCount),
+        }),
       };
     }
     if (sseStatus === "error") {
-      return { color: "var(--color-destructive)", text: "Stream offline" };
+      return { color: "var(--color-destructive)", text: t("common:presence.offline") };
     }
     if (sseStatus === "connecting") {
-      return { color: "var(--color-muted-foreground)", text: "Connecting…" };
+      return { color: "var(--color-muted-foreground)", text: t("common:presence.connecting") };
     }
     if (sseStatus === "reconnecting") {
-      return { color: "var(--color-warning)", text: "Reconnecting…" };
+      return { color: "var(--color-warning)", text: t("common:presence.reconnecting") };
     }
-    return { color: "var(--color-muted-foreground)", text: "Idle" };
+    return { color: "var(--color-muted-foreground)", text: t("common:presence.idle") };
   })();
 
   return (
@@ -209,7 +329,7 @@ export function Topbar() {
       <button
         type="button"
         onClick={() => setPaletteOpen(true)}
-        aria-label="Open command palette"
+        aria-label={t("common:commandPalette.open")}
         className={cn(
           "grid h-9 w-9 cursor-pointer place-items-center rounded-md md:hidden",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -225,7 +345,7 @@ export function Topbar() {
       <button
         type="button"
         onClick={() => setPaletteOpen(true)}
-        title="Open command palette"
+        title={t("common:commandPalette.open")}
         className={cn(
           "hidden h-8 cursor-pointer items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-2.5 text-xs",
           "text-[var(--color-muted-foreground)]",
@@ -235,7 +355,7 @@ export function Topbar() {
         )}
       >
         <Search className="h-3.5 w-3.5" />
-        <span>Search</span>
+        <span>{t("common:search")}</span>
         <kbd className="ml-2 rounded border border-[var(--color-border)] bg-[var(--color-card)] px-1.5 py-px font-mono text-[10px] font-medium tracking-tight">
           ⌘K
         </kbd>
@@ -262,7 +382,7 @@ export function Topbar() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label="Open profile menu"
+            aria-label={t("common:profileMenu.open")}
             className={cn(
               "group flex cursor-pointer items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 outline-none",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
@@ -276,7 +396,7 @@ export function Topbar() {
             {/* Name + role caption — desktop only */}
             <div className="hidden min-w-0 text-left md:block">
               <p className="truncate text-[12px] font-medium leading-none text-[var(--color-foreground)]">
-                {user?.name ?? user?.email ?? "Unknown"}
+                {user?.name ?? user?.email ?? t("common:unknownUser")}
               </p>
               <p className="mt-1 truncate text-[10px] leading-none text-[var(--color-muted-foreground)]">
                 {user?.tenant ?? "—"}
@@ -301,7 +421,7 @@ export function Topbar() {
           {/* User info header — name + email, plain warm-paper */}
           <div className="px-3 py-2.5">
             <p className="truncate text-[12px] font-semibold text-[var(--color-foreground)]">
-              {user?.name ?? user?.email ?? "Unknown"}
+              {user?.name ?? user?.email ?? t("common:unknownUser")}
             </p>
             {user?.email && user.name && (
               <p className="mt-0.5 truncate text-[10.5px] text-[var(--color-muted-foreground)]">
@@ -327,24 +447,41 @@ export function Topbar() {
 
           {/* Theme — three simple menu items with a check on the active one */}
           <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Theme
+            {t("common:theme.title")}
           </DropdownMenuLabel>
           <div className="px-1 pb-1">
-            <ThemeMenuItem icon={Sun} label="Light" active={mode === "light"} onSelect={() => setMode("light")} />
-            <ThemeMenuItem icon={Moon} label="Dark" active={mode === "dark"} onSelect={() => setMode("dark")} />
-            <ThemeMenuItem icon={Monitor} label="System" active={mode === "system"} onSelect={() => setMode("system")} />
+            <ThemeMenuItem icon={Sun} label={t("common:theme.light")} active={mode === "light"} onSelect={() => setMode("light")} />
+            <ThemeMenuItem icon={Moon} label={t("common:theme.dark")} active={mode === "dark"} onSelect={() => setMode("dark")} />
+            <ThemeMenuItem icon={Monitor} label={t("common:theme.system")} active={mode === "system"} onSelect={() => setMode("system")} />
+          </div>
+
+          <DropdownMenuSeparator className="!my-0" />
+
+          {/* Language — one item per supported locale, check on the active one */}
+          <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+            {t("common:language")}
+          </DropdownMenuLabel>
+          <div className="px-1 pb-1">
+            {SUPPORTED.map((tag) => (
+              <LanguageMenuItem
+                key={tag}
+                label={t(`common:language.${tag.replace("-", "")}`)}
+                active={i18n.language === tag}
+                onSelect={() => onSelectLanguage(tag)}
+              />
+            ))}
           </div>
 
           <DropdownMenuSeparator className="!my-0" />
 
           {/* Account quick actions */}
           <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Account
+            {t("common:account.title")}
           </DropdownMenuLabel>
           <div className="px-1 pb-1">
-            <SimpleMenuItem icon={UserRound} label="Profile" onSelect={() => navigate("/settings/profile")} />
-            <SimpleMenuItem icon={SettingsIcon} label="Settings" onSelect={() => navigate("/settings")} />
-            <SimpleMenuItem icon={KeyRound} label="API keys" onSelect={() => navigate("/settings/api-keys")} />
+            <SimpleMenuItem icon={UserRound} label={t("common:account.profile")} onSelect={() => navigate("/settings/profile")} />
+            <SimpleMenuItem icon={SettingsIcon} label={t("common:account.settings")} onSelect={() => navigate("/settings")} />
+            <SimpleMenuItem icon={KeyRound} label={t("common:account.apiKeys")} onSelect={() => navigate("/settings/api-keys")} />
           </div>
 
           <DropdownMenuSeparator className="!my-0" />
@@ -357,7 +494,7 @@ export function Topbar() {
               className="!my-0 cursor-pointer rounded-md !px-2.5 !py-1.5"
             >
               <LogOut className="size-3.5" />
-              <span className="text-[12.5px] font-medium">Sign out</span>
+              <span className="text-[12.5px] font-medium">{t("common:account.signOut")}</span>
             </DropdownMenuItem>
           </div>
         </DropdownMenuContent>
@@ -367,10 +504,9 @@ export function Topbar() {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sign out of fullstackhero?</DialogTitle>
+            <DialogTitle>{t("common:signOut.title")}</DialogTitle>
             <DialogDescription>
-              You'll need to sign in again to access this tenant. Any unsaved
-              work in this session will be lost.
+              {t("common:signOut.description")}
             </DialogDescription>
           </DialogHeader>
           <DialogBody>
@@ -378,7 +514,7 @@ export function Topbar() {
               <Avatar name={user?.name ?? user?.email ?? "?"} src={avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium tracking-tight">
-                  {user?.name ?? user?.email ?? "Unknown"}
+                  {user?.name ?? user?.email ?? t("common:unknownUser")}
                 </div>
                 {user?.email && user.name && (
                   <div className="truncate text-xs text-[var(--color-muted-foreground)]">
@@ -397,7 +533,7 @@ export function Topbar() {
               size="sm"
               onClick={() => setConfirmOpen(false)}
             >
-              Cancel
+              {t("common:signOut.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -406,7 +542,7 @@ export function Topbar() {
               autoFocus
             >
               <LogOut className="mr-1.5 h-3.5 w-3.5" />
-              Sign out
+              {t("common:signOut.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
