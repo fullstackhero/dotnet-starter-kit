@@ -10,10 +10,8 @@ set -e
 
 export FSH_API_URL FSH_DASHBOARD_URL FSH_DEFAULT_TENANT
 
-# Render the runtime config from the template, writing into nginx's web root.
-envsubst < /usr/share/nginx/html/config.json.template > /usr/share/nginx/html/config.json
-
-# Drop the template so it isn't served accidentally.
-rm /usr/share/nginx/html/config.json.template
+# Render the runtime config into nginx's web root on every start. The template
+# lives outside the web root, so it is never served and survives a restart.
+envsubst < /etc/fsh/config.json.template > /usr/share/nginx/html/config.json
 
 exec nginx -g 'daemon off;'

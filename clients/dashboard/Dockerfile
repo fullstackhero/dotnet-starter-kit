@@ -13,7 +13,7 @@ RUN apk add --no-cache gettext
 RUN rm -rf ./* /etc/nginx/conf.d/default.conf
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/ ./
-COPY docker/config.json.template ./config.json.template
+COPY docker/config.json.template /etc/fsh/config.json.template
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 EXPOSE 80
