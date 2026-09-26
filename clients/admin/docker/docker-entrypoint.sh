@@ -5,10 +5,12 @@ set -e
 : "${FSH_API_URL:?FSH_API_URL is required (e.g. https://api.example.com)}"
 : "${FSH_DASHBOARD_URL:?FSH_DASHBOARD_URL is required (e.g. https://app.example.com)}"
 
-# Defaults for non-required values.
+# Defaults for non-required values. The language default matches the one the bundle falls back to,
+# so an unset variable and an absent config.json land on the same UI language.
 : "${FSH_DEFAULT_TENANT:=root}"
+: "${FSH_DEFAULT_LANGUAGE:=en-US}"
 
-export FSH_API_URL FSH_DASHBOARD_URL FSH_DEFAULT_TENANT
+export FSH_API_URL FSH_DASHBOARD_URL FSH_DEFAULT_TENANT FSH_DEFAULT_LANGUAGE
 
 # Render the runtime config from the template, writing into nginx's web root.
 envsubst < /usr/share/nginx/html/config.json.template > /usr/share/nginx/html/config.json

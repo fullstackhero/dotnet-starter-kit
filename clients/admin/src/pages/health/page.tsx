@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, ChevronRight, Heart, RefreshCw } from "lucide-react";
 import { getLiveness, getReadiness, type HealthEntry, type HealthResult, type HealthStatus } from "@/api/health";
@@ -9,7 +11,14 @@ import { cn } from "@/lib/cn";
 
 const REFRESH_INTERVAL_MS = 10_000;
 
+// Map a HealthStatus enum onto its localized label, falling back to the raw
+// value for any status not in the catalog.
+function statusLabel(t: TFunction, status: HealthStatus): string {
+  return t(`status.${String(status).toLowerCase()}`, { defaultValue: String(status) });
+}
+
 export function HealthPage() {
+  const { t } = useTranslation("health");
   const live = useQuery({
     queryKey: ["health", "live"],
     queryFn: getLiveness,
@@ -47,48 +56,49 @@ export function HealthPage() {
       <EntityPageHeader
         icon={Heart}
         tone="success"
-        title="Health"
+        title={t("title")}
         description={
           <>
-            Live process and dependency probes. Auto-refreshes every {REFRESH_INTERVAL_MS / 1000} seconds.
-            The probe endpoints themselves (<code className="code-chip">/health/live</code>{" "}
-            <code className="code-chip">/health/ready</code>) are unauthenticated so they can be
-            scraped by load balancers and uptime monitors.
+            {t("description", {
+              seconds: REFRESH_INTERVAL_MS / 1000,
+              live: "/health/live",
+              ready: "/health/ready",
+            })}
           </>
         }
       >
         <Button variant="outline" size="sm" disabled={isFetching} onClick={refetchAll} className="flex-1 sm:flex-none">
           <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", isFetching && "animate-spin")} />
-          Refresh
+          {t("refresh")}
         </Button>
       </EntityPageHeader>
 
       <StatStrip cols={4}>
         <Stat
-          label="Liveness"
+          label={t("stat.liveness")}
           value={<StatusGlyph status={liveStatus} />}
-          hint="API process responding"
+          hint={t("stat.livenessHint")}
           tone={statusToTone(liveStatus)}
         />
         <Stat
-          label="Readiness"
+          label={t("stat.readiness")}
           value={<StatusGlyph status={readyStatus} />}
-          hint="Dependencies reachable"
+          hint={t("stat.readinessHint")}
           tone={statusToTone(readyStatus)}
         />
         <Stat
-          label="Checks healthy"
+          label={t("stat.checksHealthy")}
           value={isLoading ? "—" : checksHealthy.toString()}
-          hint={`of ${readyEntries.length || "—"} registered`}
+          hint={t("stat.checksHealthyHint", { total: readyEntries.length || "—" })}
           tone={checksHealthy > 0 ? "success" : "default"}
         />
         <Stat
-          label="Checks failing"
+          label={t("stat.checksFailing")}
           value={isLoading ? "—" : (checksFailing + checksDegraded).toString()}
           hint={
             checksDegraded > 0
-              ? `${checksDegraded} degraded · ${checksFailing} unhealthy`
-              : `${checksFailing} unhealthy`
+              ? t("stat.checksFailingHintDegraded", { degraded: checksDegraded, failing: checksFailing })
+              : t("stat.checksFailingHint", { failing: checksFailing })
           }
           tone={checksFailing > 0 ? "danger" : checksDegraded > 0 ? "warning" : "default"}
         />
@@ -97,30 +107,30 @@ export function HealthPage() {
       {live.isError && (
         <ErrorBand
           kind="liveness"
-          message={live.error instanceof Error ? live.error.message : "Liveness probe failed."}
+          message={live.error instanceof Error ? live.error.message : t("error.liveness")}
         />
       )}
       {ready.isError && (
         <ErrorBand
           kind="readiness"
-          message={ready.error instanceof Error ? ready.error.message : "Readiness probe failed."}
+          message={ready.error instanceof Error ? ready.error.message : t("error.readiness")}
         />
       )}
 
       <ProbeSection
-        title="Liveness"
+        title={t("probe.liveness.title")}
         path="/health/live"
         result={live.data}
         loading={live.isLoading}
-        description="Process is up and serving requests. No external dependencies are checked."
+        description={t("probe.liveness.description")}
       />
 
       <ProbeSection
-        title="Readiness"
+        title={t("probe.readiness.title")}
         path="/health/ready"
         result={ready.data}
         loading={ready.isLoading}
-        description="All registered dependency checks must report Healthy for the probe to return 200. A 503 here flips the API out of the load-balancer pool."
+        description={t("probe.readiness.description")}
       />
     </div>
   );
@@ -141,6 +151,7 @@ function ProbeSection({
   loading: boolean;
   description: string;
 }) {
+  const { t } = useTranslation("health");
   return (
     <SettingsSection
       title={title}
@@ -153,14 +164,14 @@ function ProbeSection({
       }
     >
       {loading ? (
-        <div className="py-6 text-sm text-[var(--color-muted-foreground)]">Probing…</div>
+        <div className="py-6 text-sm text-[var(--color-muted-foreground)]">{t("probing")}</div>
       ) : !result || result.results.length === 0 ? (
         <div className="flex items-center gap-3 py-5">
           <Activity className="h-4 w-4 text-[var(--color-muted-foreground)]" />
           <div>
-            <div className="text-sm font-medium">No dependency checks reported.</div>
+            <div className="text-sm font-medium">{t("noChecks")}</div>
             <div className="text-xs text-[var(--color-muted-foreground)]">
-              The probe responded with status <code className="code-chip">{result?.status ?? "—"}</code>.
+              {t("noChecksDetail", { status: result?.status ?? "—" })}
             </div>
           </div>
         </div>
@@ -176,6 +187,7 @@ function ProbeSection({
 }
 
 function CheckRow({ entry }: { entry: HealthEntry }) {
+  const { t } = useTranslation("health");
   const [open, setOpen] = useState(false);
   const hasDetails = !!entry.details && Object.keys(entry.details).length > 0;
 
@@ -191,7 +203,7 @@ function CheckRow({ entry }: { entry: HealthEntry }) {
         )}
       </div>
       <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
-        {entry.durationMs.toFixed(1)}ms
+        {t("durationMs", { ms: entry.durationMs.toFixed(1) })}
       </span>
       {hasDetails ? (
         <ChevronRight
@@ -243,32 +255,35 @@ function CheckRow({ entry }: { entry: HealthEntry }) {
 }
 
 function StatusBadge({ status }: { status: HealthStatus }) {
+  const { t } = useTranslation("health");
   const variant =
     status === "Healthy" ? "success" : status === "Degraded" ? "warning" : "danger";
-  return <Badge variant={variant}>{status}</Badge>;
+  return <Badge variant={variant}>{statusLabel(t, status)}</Badge>;
 }
 
 function StatusDot({ status }: { status: HealthStatus }) {
+  const { t } = useTranslation("health");
   const tone = statusToColor(status);
   return (
     <span
       aria-hidden
-      title={status}
+      title={statusLabel(t, status)}
       className={cn("h-2 w-2 rounded-full", tone)}
     />
   );
 }
 
 function StatusGlyph({ status }: { status: HealthStatus }) {
+  const { t } = useTranslation("health");
   if (status === "Healthy") {
     return (
       <span className="inline-flex items-center gap-2">
         <span className="pulse-dot" aria-hidden />
-        <span>Healthy</span>
+        <span>{t("status.healthy")}</span>
       </span>
     );
   }
-  return <span>{status}</span>;
+  return <span>{statusLabel(t, status)}</span>;
 }
 
 function statusToTone(s: HealthStatus): "default" | "success" | "warning" | "danger" {

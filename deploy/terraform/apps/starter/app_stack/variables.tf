@@ -720,6 +720,12 @@ variable "frontend_default_tenant" {
   default     = "root"
 }
 
+variable "frontend_default_language" {
+  type        = string
+  description = "Default UI language (BCP 47) baked into the SPA runtime config.json. The i18n fallback when the user has chosen nothing and the browser advertises no supported language."
+  default     = "en-US"
+}
+
 variable "dashboard_demo_mode" {
   type        = bool
   description = "Set the dashboard SPA into demo mode via its runtime config.json."

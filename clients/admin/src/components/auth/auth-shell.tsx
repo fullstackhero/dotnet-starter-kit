@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { BrandMarkXL } from "@/components/brand-mark";
 import { cn } from "@/lib/cn";
 
@@ -44,6 +45,7 @@ export function AuthShell({
   /** Form area below the blurb. */
   children: ReactNode;
 }) {
+  const { t } = useTranslation("common");
   return (
     <div className="grid min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] lg:grid-cols-[1.1fr_1fr]">
       {/* ─── Left pane — brand stage ───────────────────────────────── */}
@@ -65,11 +67,11 @@ export function AuthShell({
           <BrandMarkXL className="fsh-enter fsh-enter-2 max-w-lg" />
           <div className="fsh-enter fsh-enter-4 flex items-end justify-between gap-6">
             <div className="space-y-1">
-              <div className="meta text-[var(--color-muted-foreground)]">authorized personnel</div>
+              <div className="meta text-[var(--color-muted-foreground)]">{t("authShell.authorizedPersonnel")}</div>
               <div className="font-mono text-[12px] text-[var(--color-muted-foreground)] leading-relaxed">
-                Account recovery is rate-limited and audited.
+                {t("authShell.recoveryNotice")}
                 <br />
-                Reset links expire 30 minutes after issue.
+                {t("authShell.recoveryExpiry")}
               </div>
             </div>
             <div className="meta text-right text-[var(--color-muted-foreground)]">

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, BellRing, CheckCheck } from "lucide-react";
@@ -12,6 +13,7 @@ import {
 } from "@/api/notifications";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { useAuth } from "@/auth/use-auth";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
 /**
@@ -21,6 +23,7 @@ import { cn } from "@/lib/cn";
  * /notifications.
  */
 export function NotificationBell() {
+  const { t } = useTranslation("notifications");
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -78,7 +81,7 @@ export function NotificationBell() {
   const markAll = useMutation({
     mutationFn: markAllNotificationsRead,
     onSuccess: (data) => {
-      toast.success(`${data.updated} ${data.updated === 1 ? "notification" : "notifications"} marked read`);
+      toast.success(t("toast.marked", { count: data.updated }));
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
@@ -93,7 +96,7 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={count > 0 ? `${count} unread notifications` : "Notifications"}
+        aria-label={count > 0 ? t("bell.ariaUnread", { count }) : t("bell.ariaDefault")}
         aria-haspopup="true"
         aria-expanded={open}
         className={cn(
@@ -124,11 +127,11 @@ export function NotificationBell() {
             className="fixed inset-0 z-40 cursor-default bg-transparent"
           />
           <div
-            aria-label="Notifications"
+            aria-label={t("bell.ariaDefault")}
             className="absolute right-0 z-50 mt-2 w-[22rem] overflow-hidden rounded-xl card-shell shadow-[0_24px_64px_-24px_oklch(0_0_0/0.30)]"
           >
             <div className="flex items-center justify-between border-b border-[var(--color-border)] px-3 py-2.5">
-              <div className="meta text-[var(--color-muted-foreground)]">// Notifications</div>
+              <div className="meta text-[var(--color-muted-foreground)]">{t("bell.heading")}</div>
               {count > 0 && (
                 <button
                   type="button"
@@ -137,7 +140,7 @@ export function NotificationBell() {
                   className="inline-flex items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
                 >
                   <CheckCheck className="h-3 w-3" />
-                  Mark all read
+                  {t("bell.markAllRead")}
                 </button>
               )}
             </div>
@@ -148,13 +151,13 @@ export function NotificationBell() {
                   role="status"
                   className="px-3 py-6 text-center font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]"
                 >
-                  Loading<span className="caret text-[var(--color-accent-signal)]" />
+                  {t("bell.loading")}<span className="caret text-[var(--color-accent-signal)]" />
                 </p>
               )}
 
               {!recent.isLoading && items.length === 0 && (
                 <p className="px-3 py-8 text-center text-sm text-[var(--color-muted-foreground)]">
-                  You're all caught up.
+                  {t("bell.empty")}
                 </p>
               )}
 
@@ -176,7 +179,7 @@ export function NotificationBell() {
                 onClick={() => setOpen(false)}
                 className="inline-flex items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-foreground)] hover:underline"
               >
-                View all
+                {t("bell.viewAll")}
               </Link>
             </div>
           </div>
@@ -195,6 +198,7 @@ function Row({
   onMarkRead: () => void;
   onClick: () => void;
 }) {
+  const { t } = useTranslation("notifications");
   const unread = !notif.readAtUtc;
   const body = (
     <div className="min-w-0 flex-1">
@@ -242,7 +246,7 @@ function Row({
             e.stopPropagation();
             onMarkRead();
           }}
-          aria-label="Mark as read"
+          aria-label={t("bell.markAsRead")}
           className="invisible mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)] group-hover/notif:visible"
         >
           <CheckCheck className="h-3 w-3" />
@@ -264,5 +268,5 @@ function formatRelative(value: string): string {
   if (hr < 24) return `${hr}h`;
   const day = Math.round(hr / 24);
   if (day < 14) return `${day}d`;
-  return d.toLocaleDateString();
+  return formatDate(value);
 }

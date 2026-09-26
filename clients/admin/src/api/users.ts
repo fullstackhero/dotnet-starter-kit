@@ -12,6 +12,8 @@ export type UserDto = {
   phoneNumber?: string | null;
   imageUrl?: string | null;
   twoFactorEnabled?: boolean;
+  /** Persisted BCP 47 UI language tag (e.g. "pt-BR"); null when the user never chose. */
+  locale?: string | null;
 };
 
 export type UserRoleDto = {
@@ -73,6 +75,39 @@ export async function setProfileImage(imageUrl: string | null): Promise<void> {
   await apiFetch<void>(`${IDENTITY}/profile/image`, {
     method: "PUT",
     body: JSON.stringify({ imageUrl }),
+  });
+}
+
+export type UpdateMyProfileInput = {
+  firstName?: string | null;
+  lastName?: string | null;
+  phoneNumber?: string | null;
+  /** BCP 47 UI language tag persisted on the user (drives the JWT locale claim). */
+  locale?: string | null;
+};
+
+/**
+ * Self-update of the authenticated user's profile (PUT /identity/profile,
+ * server forces the id to the caller). The backend sets FirstName/LastName
+ * unconditionally from the command, so a partial update (e.g. the language
+ * switcher sending only `locale`) would wipe the others. Reads the current
+ * profile from the server first and merges, so any field the caller omits
+ * keeps its persisted value instead of being nulled — never trust a possibly
+ * stale/undefined client-side snapshot for the echoed fields.
+ */
+export async function updateMyProfile(input: UpdateMyProfileInput): Promise<void> {
+  const profile = await getMyProfile();
+  await apiFetch<void>(`${IDENTITY}/profile`, {
+    method: "PUT",
+    body: JSON.stringify({
+      id: profile.id,
+      firstName: input.firstName ?? profile.firstName ?? null,
+      lastName: input.lastName ?? profile.lastName ?? null,
+      phoneNumber: input.phoneNumber ?? profile.phoneNumber ?? null,
+      locale: input.locale ?? profile.locale ?? null,
+      email: profile.email,
+      deleteCurrentImage: false,
+    }),
   });
 }
 

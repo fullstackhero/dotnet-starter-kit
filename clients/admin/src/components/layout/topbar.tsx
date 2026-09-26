@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   Check,
   ChevronsUpDown,
+  Languages,
   LogOut,
   Moon,
   Settings as SettingsIcon,
@@ -32,7 +35,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
 import { useAuth } from "@/auth/use-auth";
-import { getMyProfile } from "@/api/users";
+import i18n, { SUPPORTED } from "@/i18n";
+import { getMyProfile, updateMyProfile } from "@/api/users";
+import { refreshAccessToken } from "@/lib/api-client";
 import { useTheme } from "@/components/theme/theme-provider";
 import { cn } from "@/lib/cn";
 
@@ -118,6 +123,36 @@ function ThemeMenuItem({
   );
 }
 
+function LanguageMenuItem({
+  label,
+  active,
+  onSelect,
+}: {
+  label: string;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <DropdownMenuItem
+      onSelect={(e) => {
+        // Keep the menu open on select so the switch reflects in place (the
+        // section label localizes immediately) instead of the menu closing.
+        e.preventDefault();
+        onSelect();
+      }}
+      className="!my-0 flex cursor-pointer items-center gap-2.5 rounded-md !px-2.5 !py-1.5"
+    >
+      <Languages className="size-3.5 shrink-0 text-[var(--color-muted-foreground)]" />
+      <span className="flex-1 text-[12.5px] font-medium text-[var(--color-foreground)]">
+        {label}
+      </span>
+      {active && (
+        <Check className="size-3.5 shrink-0 text-[var(--color-primary)]" aria-hidden />
+      )}
+    </DropdownMenuItem>
+  );
+}
+
 function SimpleMenuItem({
   icon: Icon,
   label,
@@ -147,6 +182,9 @@ function SimpleMenuItem({
 export function Topbar() {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  // useTranslation subscribes this component to `languageChanged`, so the
+  // menu labels and the active-locale check re-render the instant we switch.
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -159,7 +197,65 @@ export function Topbar() {
     staleTime: 60_000,
   });
   const avatarUrl = profile.data?.imageUrl ?? null;
-  const displayName = user?.name ?? user?.email ?? "Unknown";
+  const displayName = user?.name ?? user?.email ?? t("shell.unknownUser");
+
+  // Hydrate the UI language from the server-persisted locale when the profile first
+  // arrives, so a locale chosen on another device carries over on this one.
+  //
+  // It stops the moment the user picks a language HERE. updateMyProfile is a
+  // read-modify-write that sends no If-Match, so two switches in quick succession can
+  // land out of network order and leave the server holding the earlier choice; a later
+  // refetch would then flip the UI back to it. See the `ponytail:` note below.
+  const languageChosenThisSession = useRef(false);
+  const persistedLocale = profile.data?.locale;
+  useEffect(() => {
+    if (languageChosenThisSession.current) return;
+    if (persistedLocale && persistedLocale !== i18n.language) {
+      void i18n.changeLanguage(persistedLocale);
+    }
+  }, [persistedLocale]);
+
+  const updateProfile = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: () => {
+      // Re-mint the JWT so the fresh `locale` claim is issued (resolution-chain
+      // level 2). The UI already switched client-side; without this, backend-
+      // generated strings lag behind until the next natural token refresh.
+      // Best-effort: the refresh no longer ends the session when it fails, so the
+      // switch survives and the failure is reported instead of swallowed.
+      void refreshAccessToken().catch((error: unknown) => {
+        console.warn(
+          "[i18n] locale saved, but re-minting the token failed — backend strings stay in the " +
+            "previous language until the next successful refresh.",
+          error,
+        );
+      });
+    },
+    // The UI switched on click, so a failed PUT leaves the app in a language the server
+    // does not know about, which reverts on the next fresh mount. Say so rather than let
+    // the choice disappear silently.
+    onError: () => {
+      toast.error(t("language.saveFailed"), { description: t("language.saveFailedDetail") });
+    },
+  });
+
+  // Switch the UI language and persist it. Only the locale travels through the
+  // mutation argument (never closed-over state); updateMyProfile re-reads the
+  // profile from the server and merges the current name/phone, so the switch
+  // never wipes those fields even if this component's profile query has not
+  // resolved (or failed).
+  //
+  // ponytail: two rapid switches issue two independent GET-then-PUT cycles without If-Match,
+  // so out-of-order delivery can leave the server holding the earlier choice. The UI no
+  // longer follows a stale server value (the hydration guard above), so the damage is
+  // bounded to "the language did not stick across a reload". PUT /identity/profile has
+  // accepted If-Match since #1387; the upgrade path is to read the ETag on this GET the way
+  // the dashboard's getMyProfileWithETag does and send it back on the PUT.
+  const onSelectLanguage = (tag: string) => {
+    languageChosenThisSession.current = true;
+    void i18n.changeLanguage(tag);
+    updateProfile.mutate({ locale: tag });
+  };
 
   const onConfirmSignOut = () => {
     setConfirmOpen(false);
@@ -189,7 +285,7 @@ export function Topbar() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label="Open profile menu"
+            aria-label={t("shell.openProfileMenu")}
             className={cn(
               "group flex cursor-pointer items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 outline-none",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
@@ -252,18 +348,18 @@ export function Topbar() {
 
           {/* Theme */}
           <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Theme
+            {t("theme.title")}
           </DropdownMenuLabel>
           <div className="px-1 pb-1">
             <ThemeMenuItem
               icon={Sun}
-              label="Light"
+              label={t("theme.light")}
               active={theme === "light"}
               onSelect={() => setTheme("light")}
             />
             <ThemeMenuItem
               icon={Moon}
-              label="Dark"
+              label={t("theme.dark")}
               active={theme === "dark"}
               onSelect={() => setTheme("dark")}
             />
@@ -271,19 +367,36 @@ export function Topbar() {
 
           <DropdownMenuSeparator className="!my-0" />
 
+          {/* Language */}
+          <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+            {t("language")}
+          </DropdownMenuLabel>
+          <div className="px-1 pb-1">
+            {SUPPORTED.map((tag) => (
+              <LanguageMenuItem
+                key={tag}
+                label={t(`language.${tag.replace("-", "")}`)}
+                active={i18n.language === tag}
+                onSelect={() => onSelectLanguage(tag)}
+              />
+            ))}
+          </div>
+
+          <DropdownMenuSeparator className="!my-0" />
+
           {/* Account quick actions */}
           <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Account
+            {t("account.title")}
           </DropdownMenuLabel>
           <div className="px-1 pb-1">
             <SimpleMenuItem
               icon={UserRound}
-              label="Profile"
+              label={t("account.profile")}
               onSelect={() => navigate("/settings/profile")}
             />
             <SimpleMenuItem
               icon={SettingsIcon}
-              label="Settings"
+              label={t("account.settings")}
               onSelect={() => navigate("/settings")}
             />
           </div>
@@ -298,7 +411,7 @@ export function Topbar() {
               className="!my-0 cursor-pointer rounded-md !px-2.5 !py-1.5"
             >
               <LogOut className="size-3.5" />
-              <span className="text-[12.5px] font-medium">Sign out</span>
+              <span className="text-[12.5px] font-medium">{t("actions.signOut")}</span>
             </DropdownMenuItem>
           </div>
         </DropdownMenuContent>
@@ -308,11 +421,8 @@ export function Topbar() {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sign out of fullstackhero?</DialogTitle>
-            <DialogDescription>
-              You'll need to sign in again to access this admin. Any unsaved
-              work in this session will be lost.
-            </DialogDescription>
+            <DialogTitle>{t("signOut.title")}</DialogTitle>
+            <DialogDescription>{t("signOut.description")}</DialogDescription>
           </DialogHeader>
           <DialogBody>
             <div className="flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2.5">
@@ -340,7 +450,7 @@ export function Topbar() {
               size="sm"
               onClick={() => setConfirmOpen(false)}
             >
-              Cancel
+              {t("actions.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -349,7 +459,7 @@ export function Topbar() {
               autoFocus
             >
               <LogOut className="mr-1.5 h-3.5 w-3.5" />
-              Sign out
+              {t("actions.signOut")}
             </Button>
           </DialogFooter>
         </DialogContent>

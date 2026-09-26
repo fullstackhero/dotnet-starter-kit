@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import i18n from "@/i18n";
 import { tokenStore } from "@/auth/token-store";
 
 export type ApiError = {
@@ -51,7 +52,22 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 
 let refreshPromise: Promise<void> | null = null;
 
-export async function refreshAccessToken() {
+/**
+ * Refresh the access token, at most one call in flight at a time.
+ *
+ * The single-flight is part of this function rather than of any one caller because the server
+ * rotates the refresh token on every successful call: a second refresh started while the first is
+ * still open sends a token the server has already spent and gets a 401. Three call sites reach this (the 401 retry below, session bootstrap,
+ * the language switcher), and any two of them overlapping is enough.
+ */
+export function refreshAccessToken(): Promise<void> {
+  refreshPromise ??= runRefresh().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
+async function runRefresh(): Promise<void> {
   const refreshToken = tokenStore.getRefreshToken();
   const accessToken = tokenStore.getAccessToken();
   if (!refreshToken || !accessToken) {
@@ -73,7 +89,10 @@ export async function refreshAccessToken() {
   });
 
   if (!response.ok) {
-    tokenStore.clear();
+    // Deliberately no tokenStore.clear() here: a refresh can be fired speculatively (the language
+    // switch re-mints the JWT for the new `locale` claim), and a background failure must not end a
+    // session the user is actively using. Ending it belongs to the callers that know the request
+    // needed auth — the 401 retry below and the boot probe in AuthProvider.
     throw new ApiRequestError(response.status, "Refresh failed");
   }
 
@@ -139,6 +158,13 @@ export async function apiFetch<T = unknown>(
     mergedHeaders.set("tenant", tenant);
   }
 
+  // Tell the backend which culture to localize responses in. The active UI
+  // locale drives it; the backend resolution chain still falls through to its
+  // own default for anything unsupported.
+  if (!mergedHeaders.has("Accept-Language")) {
+    mergedHeaders.set("Accept-Language", i18n.language || "en-US");
+  }
+
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;
   let response = await fetch(url, {
     ...rest,
@@ -147,13 +173,12 @@ export async function apiFetch<T = unknown>(
   });
 
   if (response.status === 401 && !skipAuth && tokenStore.getRefreshToken()) {
-    refreshPromise ??= refreshAccessToken().finally(() => {
-      refreshPromise = null;
-    });
-
     try {
-      await refreshPromise;
+      await refreshAccessToken();
     } catch (e) {
+      // This request needed auth and the refresh could not provide it: the session is over, so
+      // drop it and let routing fall through to /login.
+      tokenStore.clear();
       throw e instanceof ApiRequestError
         ? e
         : new ApiRequestError(401, "Session expired");

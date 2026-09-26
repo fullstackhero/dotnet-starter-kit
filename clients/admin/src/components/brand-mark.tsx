@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 
 /**
@@ -41,6 +42,7 @@ export function BrandMark({ className }: { className?: string }) {
  * system blurb.
  */
 export function BrandMarkXL({ className }: { className?: string }) {
+  const { t } = useTranslation("common");
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex items-center gap-2.5">
@@ -60,8 +62,7 @@ export function BrandMarkXL({ className }: { className?: string }) {
         Admin<span className="text-[var(--color-primary)]">.</span>
       </h1>
       <p className="max-w-md text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-        Operate every tenant on this instance — identity, multitenancy, billing,
-        and the rest of the system surface, from one place.
+        {t("brandMark.tagline")}
       </p>
     </div>
   );
