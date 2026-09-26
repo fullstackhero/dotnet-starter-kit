@@ -1,16 +1,18 @@
-﻿using FluentValidation;
+using FluentValidation;
+using FSH.Framework.Core.Localization;
 using FSH.Framework.Storage;
 using FSH.Modules.Identity.Contracts.v1.Users.UpdateUser;
+using Microsoft.Extensions.Localization;
 
 namespace FSH.Modules.Identity.Features.v1.Users.UpdateUser;
 
 public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
 {
-    public UpdateUserCommandValidator()
+    public UpdateUserCommandValidator(IStringLocalizer<SharedResources> localizer)
     {
         RuleFor(x => x.Id)
             .NotEmpty()
-            .WithMessage("User ID is required.");
+            .WithMessage(_ => localizer["Validation.UserIdRequired"]);
 
         RuleFor(x => x.FirstName)
             .MaximumLength(50)
@@ -31,12 +33,17 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
         When(x => x.Image is not null, () =>
         {
             RuleFor(x => x.Image!)
-                .SetValidator(new UserImageValidator(FileType.Image));
+                .SetValidator(new UserImageValidator(FileType.Image, localizer));
         });
 
         // Prevent deleting and uploading image at the same time
         RuleFor(x => x)
             .Must(x => !(x.DeleteCurrentImage && x.Image is not null))
-            .WithMessage("You cannot upload a new image and delete the current one simultaneously.");
+            .WithMessage(_ => localizer["Validation.ImageUploadDeleteConflict"]);
+
+        RuleFor(x => x.Locale)
+            .Must(l => SupportedCultures.Tags.Contains(l!))
+            .When(x => !string.IsNullOrWhiteSpace(x.Locale))
+            .WithMessage(_ => localizer["Validation.UnsupportedLocale"]);
     }
 }

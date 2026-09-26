@@ -32,4 +32,7 @@ public class UserDto
     /// </summary>
     [JsonIgnore]
     public string? ConcurrencyStamp { get; set; }
+
+    /// <summary>BCP 47 UI language tag (e.g. "pt-BR"); null resolves to the default culture.</summary>
+    public string? Locale { get; set; }
 }

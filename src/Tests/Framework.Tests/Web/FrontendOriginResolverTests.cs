@@ -98,6 +98,10 @@ public sealed class FrontendOriginResolverTests
 
         var ex = Should.Throw<CustomException>(() => resolver.ResolveForCurrentRequest());
         ex.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        // Both SPAs render problem.detail verbatim, so the rejection has to localize; and it carries no
+        // arguments, because the rejected Origin is caller-supplied and must never be echoed back.
+        ex.MessageKey.ShouldBe("Frontend.OriginNotAllowed");
+        ex.MessageArgs.ShouldBeEmpty();
     }
 
     [Fact]
