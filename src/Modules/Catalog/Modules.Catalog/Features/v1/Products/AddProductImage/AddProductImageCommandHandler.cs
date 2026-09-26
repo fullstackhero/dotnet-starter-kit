@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.Dtos;
 using FSH.Modules.Catalog.Contracts.v1.Products.AddProductImage;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,12 @@ public sealed class AddProductImageCommandHandler(CatalogDbContext dbContext)
         var product = await dbContext.Products
             .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Product {command.ProductId} not found.");
+            ?? throw new NotFoundException($"Product {command.ProductId} not found.")
+            {
+                MessageKey = "Catalog.ProductNotFound",
+                MessageArgs = [command.ProductId],
+                ResourceSource = typeof(CatalogResources),
+            };
 
         var image = product.AddImage(command.FileAssetId, command.Url);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

@@ -2,7 +2,8 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Multitenancy</RootNamespace>
 		<AssemblyName>FSH.Modules.Multitenancy</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1056;CA1008;CA1716;CA1812;S1135;S2139;S6667;S3267;S1172</NoWarn>
+		<!-- MultitenancyResources is an intentional empty localizer marker (see Localization/MultitenancyResources.cs). -->
+		<NoWarn>$(NoWarn);CA1031;CA1056;CA1008;CA1716;CA1812;S1135;S2139;S6667;S3267;S1172;S2094</NoWarn>
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Finbuckle.MultiTenant" />

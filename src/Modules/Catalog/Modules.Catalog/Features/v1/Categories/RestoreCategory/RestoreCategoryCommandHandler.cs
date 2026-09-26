@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
 using FSH.Modules.Catalog.Contracts.v1.Categories;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,12 @@ public sealed class RestoreCategoryCommandHandler(CatalogDbContext dbContext)
             .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .FirstOrDefaultAsync(c => c.Id == command.CategoryId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Category {command.CategoryId} not found.");
+            ?? throw new NotFoundException($"Category {command.CategoryId} not found.")
+            {
+                MessageKey = "Catalog.CategoryNotFound",
+                MessageArgs = [command.CategoryId],
+                ResourceSource = typeof(CatalogResources),
+            };
 
         category.Restore();
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

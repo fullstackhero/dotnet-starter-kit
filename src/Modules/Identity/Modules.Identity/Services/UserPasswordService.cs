@@ -7,6 +7,7 @@ using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.ObjectModel;
@@ -73,7 +74,11 @@ internal sealed class UserPasswordService(
         var user = await userManager.FindByEmailAsync(email);
         if (user == null)
         {
-            throw new NotFoundException("user not found");
+            throw new NotFoundException("user not found")
+            {
+                MessageKey = "Identity.UserNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
@@ -82,7 +87,11 @@ internal sealed class UserPasswordService(
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new CustomException("error resetting password", errors);
+            throw new CustomException("error resetting password", errors)
+            {
+                MessageKey = "Identity.ErrorResettingPassword",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // Raise domain event for password reset
@@ -95,14 +104,22 @@ internal sealed class UserPasswordService(
     {
         var user = await userManager.FindByIdAsync(userId);
 
-        _ = user ?? throw new NotFoundException("user not found");
+        _ = user ?? throw new NotFoundException("user not found")
+        {
+            MessageKey = "Identity.UserNotFound",
+            ResourceSource = typeof(IdentityResources),
+        };
 
         var result = await userManager.ChangePasswordAsync(user, password, newPassword);
 
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new CustomException("failed to change password", errors);
+            throw new CustomException("failed to change password", errors)
+            {
+                MessageKey = "Identity.FailedToChangePassword",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // Raise domain event for password change
@@ -121,7 +138,10 @@ internal sealed class UserPasswordService(
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedException("invalid tenant");
+            throw new UnauthorizedException("invalid tenant")
+            {
+                MessageKey = "Error.InvalidTenant",
+            };
         }
     }
 }

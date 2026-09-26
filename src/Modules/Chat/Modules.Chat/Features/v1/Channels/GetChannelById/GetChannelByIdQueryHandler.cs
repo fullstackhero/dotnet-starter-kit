@@ -4,6 +4,7 @@ using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Contracts.v1.Queries;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,13 +19,17 @@ public sealed class GetChannelByIdQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(q);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         var channel = await db.Channels.AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == q.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Channel not found.");
+            ?? throw new NotFoundException("Channel not found.")
+            {
+                MessageKey = "Chat.ChannelNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
 
         // Private channels & DMs: must be a member. Public channels: anyone with View can see them.
         if (channel.IsPrivate)

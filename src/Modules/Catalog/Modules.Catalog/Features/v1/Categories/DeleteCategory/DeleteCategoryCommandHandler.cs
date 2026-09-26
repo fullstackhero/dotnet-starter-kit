@@ -2,6 +2,7 @@ using System.Net;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Categories;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,12 @@ public sealed class DeleteCategoryCommandHandler(CatalogDbContext dbContext)
         var category = await dbContext.Categories
             .FirstOrDefaultAsync(c => c.Id == command.CategoryId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Category {command.CategoryId} not found.");
+            ?? throw new NotFoundException($"Category {command.CategoryId} not found.")
+            {
+                MessageKey = "Catalog.CategoryNotFound",
+                MessageArgs = [command.CategoryId],
+                ResourceSource = typeof(CatalogResources),
+            };
 
         bool hasChildren = await dbContext.Categories
             .AnyAsync(c => c.ParentCategoryId == category.Id, cancellationToken)
@@ -27,7 +33,11 @@ public sealed class DeleteCategoryCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 "Cannot delete a category that has child categories. Move or remove the children first.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.CategoryHasChildren",
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         dbContext.Categories.Remove(category);

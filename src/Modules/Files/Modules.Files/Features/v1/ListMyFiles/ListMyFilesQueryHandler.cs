@@ -24,7 +24,10 @@ public sealed class ListMyFilesQueryHandler(
         var userId = currentUser.GetUserId().ToString();
         if (string.IsNullOrEmpty(userId) || userId == Guid.Empty.ToString())
         {
-            throw new UnauthorizedException("no current user");
+            throw new UnauthorizedException("no current user")
+            {
+                MessageKey = "Error.NoCurrentUser",
+            };
         }
 
         var page = Math.Max(1, q.Page);

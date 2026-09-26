@@ -1,5 +1,6 @@
 using FSH.Modules.Identity.Contracts.v1.Groups.UpdateGroup;
 using FSH.Modules.Identity.Features.v1.Groups.UpdateGroup;
+using Identity.Tests.Support;
 
 namespace Identity.Tests.Validators;
 
@@ -8,7 +9,7 @@ namespace Identity.Tests.Validators;
 /// </summary>
 public sealed class UpdateGroupCommandValidatorTests
 {
-    private readonly UpdateGroupCommandValidator _sut = new();
+    private readonly UpdateGroupCommandValidator _sut = new(SharedResourcesLocalizerFactory.Create());
 
     #region Id Validation
 

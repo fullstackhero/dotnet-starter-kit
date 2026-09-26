@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Groups.RemoveUserFromGroup;
 using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,14 +29,23 @@ public sealed class RemoveUserFromGroupCommandHandler : ICommandHandler<RemoveUs
 
         if (membership is null)
         {
-            throw new NotFoundException($"User '{command.UserId}' is not a member of group '{command.GroupId}'.");
+            throw new NotFoundException($"User '{command.UserId}' is not a member of group '{command.GroupId}'.")
+            {
+                MessageKey = "Identity.UserNotMemberOfGroup",
+                MessageArgs = [command.UserId, command.GroupId],
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // Default groups (e.g. seeded "All Users") require every tenant user to be a member, so
         // removing one breaks that invariant and leaves later registrants in a half-populated group.
         if (membership.Group is not null && membership.Group.IsDefault)
         {
-            throw new ForbiddenException("Users cannot be removed from a default group.");
+            throw new ForbiddenException("Users cannot be removed from a default group.")
+            {
+                MessageKey = "Identity.CannotRemoveFromDefaultGroup",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         _dbContext.UserGroups.Remove(membership);

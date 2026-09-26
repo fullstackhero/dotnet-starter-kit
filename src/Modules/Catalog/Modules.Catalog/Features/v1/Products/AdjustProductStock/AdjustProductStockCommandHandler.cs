@@ -2,6 +2,7 @@ using System.Net;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,12 @@ public sealed class AdjustProductStockCommandHandler(CatalogDbContext dbContext)
         var product = await dbContext.Products
             .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Product {command.ProductId} not found.");
+            ?? throw new NotFoundException($"Product {command.ProductId} not found.")
+            {
+                MessageKey = "Catalog.ProductNotFound",
+                MessageArgs = [command.ProductId],
+                ResourceSource = typeof(CatalogResources),
+            };
 
         try
         {
@@ -25,7 +31,12 @@ public sealed class AdjustProductStockCommandHandler(CatalogDbContext dbContext)
         }
         catch (InvalidOperationException ex)
         {
-            throw new CustomException(ex.Message, (IEnumerable<string>?)null, HttpStatusCode.Conflict);
+            throw new CustomException(ex.Message, (IEnumerable<string>?)null, HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.StockAdjustmentNegative",
+                MessageArgs = [command.Delta, product.Stock],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

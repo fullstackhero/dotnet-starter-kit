@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Domain;
+using FSH.Modules.Chat.Localization;
 
 namespace FSH.Modules.Chat.Features.v1.Internal;
 
@@ -14,7 +15,11 @@ internal static class ChannelAuthorization
     {
         var member = channel.Members.FirstOrDefault(m => string.Equals(m.UserId, userId, StringComparison.Ordinal));
         // Use NotFoundException (404) instead of Forbidden so non-members can't probe channel existence.
-        return member ?? throw new NotFoundException("Channel not found.");
+        return member ?? throw new NotFoundException("Channel not found.")
+        {
+            MessageKey = "Chat.ChannelNotFound",
+            ResourceSource = typeof(ChatResources),
+        };
     }
 
     public static ChannelMember RequireAdmin(this ChatChannel channel, string userId)
@@ -22,7 +27,11 @@ internal static class ChannelAuthorization
         var member = channel.RequireMember(userId);
         if (member.Role != ChannelMemberRole.Admin)
         {
-            throw new ForbiddenException("Channel admin role required.");
+            throw new ForbiddenException("Channel admin role required.")
+            {
+                MessageKey = "Chat.ChannelAdminRoleRequired",
+                ResourceSource = typeof(ChatResources),
+            };
         }
         return member;
     }

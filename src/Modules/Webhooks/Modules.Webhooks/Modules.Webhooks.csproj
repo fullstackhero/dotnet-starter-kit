@@ -2,7 +2,8 @@
   <PropertyGroup>
     <RootNamespace>FSH.Modules.Webhooks</RootNamespace>
     <AssemblyName>FSH.Modules.Webhooks</AssemblyName>
-    <NoWarn>$(NoWarn);CA1031;CA1054;CA1056;CA1308;CA1812;CA1859;S3267</NoWarn>
+    <!-- WebhooksResources is an intentional empty localizer marker (see Localization/WebhooksResources.cs). -->
+    <NoWarn>$(NoWarn);CA1031;CA1054;CA1056;CA1308;CA1812;CA1859;S3267;S2094</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />

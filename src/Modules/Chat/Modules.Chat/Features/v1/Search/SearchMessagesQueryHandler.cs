@@ -23,7 +23,7 @@ public sealed class SearchMessagesQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(query);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         int page = Math.Max(1, query.Page);

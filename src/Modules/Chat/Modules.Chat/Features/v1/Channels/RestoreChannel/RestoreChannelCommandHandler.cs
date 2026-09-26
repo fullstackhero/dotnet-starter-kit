@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,11 @@ public sealed class RestoreChannelCommandHandler(ChatDbContext db)
         var channel = await db.Channels.IgnoreQueryFilters()
             .FirstOrDefaultAsync(c => c.Id == cmd.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Channel not found.");
+            ?? throw new NotFoundException("Channel not found.")
+            {
+                MessageKey = "Chat.ChannelNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
 
         if (!channel.IsDeleted) return Unit.Value; // idempotent
         channel.Restore();

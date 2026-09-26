@@ -3,7 +3,9 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Notifications</RootNamespace>
 		<AssemblyName>FSH.Modules.Notifications</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;CA1002;CA2227;S3267</NoWarn>
+		<!-- S2094: NotificationsResources is an intentional empty localizer marker (see Localization/NotificationsResources.cs). -->
+		<!-- S1135: the i18n email-bodies TODO is a tracked follow-up, not an unfinished task in this PR. -->
+		<NoWarn>$(NoWarn);CA1031;CA1711;CA1812;CA1859;CA1002;CA2227;S3267;S2094;S1135</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -6,6 +6,7 @@ using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Authorization;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAudits;
+using FSH.Modules.Auditing.Localization;
 using FSH.Modules.Auditing.Persistence;
 using FSH.Modules.Identity.Contracts.Services;
 using Mediator;
@@ -21,7 +22,10 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
     /// to scan the entire table — without this guard, an unconstrained query
     /// degenerates into a full sequential scan as the audit volume grows.
     /// </summary>
-    public static readonly TimeSpan MaxWindow = TimeSpan.FromDays(90);
+    public const int MaxWindowDays = 90;
+
+    /// <inheritdoc cref="MaxWindowDays"/>
+    public static readonly TimeSpan MaxWindow = TimeSpan.FromDays(MaxWindowDays);
 
     /// <summary>
     /// Default lookback when the caller does not supply a from/to. Keeps the
@@ -157,7 +161,11 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
             .ConfigureAwait(false);
         if (!allowed)
         {
-            throw new ForbiddenException("Cross-tenant audit access requires Permissions.AuditTrails.ViewCrossTenant.");
+            throw new ForbiddenException("Cross-tenant audit access requires Permissions.AuditTrails.ViewCrossTenant.")
+            {
+                MessageKey = "Error.Auditing.CrossTenantAccessForbidden",
+                ResourceSource = typeof(AuditingResources),
+            };
         }
 
         return _dbContext.AuditRecords

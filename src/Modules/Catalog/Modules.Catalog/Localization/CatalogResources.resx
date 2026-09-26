@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Catalog.ProductNotFound" xml:space="preserve">
+    <value>Product {0} not found.</value>
+  </data>
+  <data name="Catalog.BrandNotFound" xml:space="preserve">
+    <value>Brand {0} not found.</value>
+  </data>
+  <data name="Catalog.CategoryNotFound" xml:space="preserve">
+    <value>Category {0} not found.</value>
+  </data>
+  <data name="Catalog.ParentCategoryNotFound" xml:space="preserve">
+    <value>Parent category {0} not found.</value>
+  </data>
+  <data name="Catalog.ProductImageNotFound" xml:space="preserve">
+    <value>Image {0} not found on product {1}.</value>
+  </data>
+  <data name="Catalog.ProductSkuAlreadyExists" xml:space="preserve">
+    <value>A product with SKU '{0}' already exists.</value>
+  </data>
+  <data name="Catalog.ProductNameAlreadyExists" xml:space="preserve">
+    <value>A product with name '{0}' already exists.</value>
+  </data>
+  <data name="Catalog.AnotherProductNameAlreadyExists" xml:space="preserve">
+    <value>Another product with name '{0}' already exists.</value>
+  </data>
+  <data name="Catalog.BrandNameAlreadyExists" xml:space="preserve">
+    <value>A brand with name '{0}' already exists.</value>
+  </data>
+  <data name="Catalog.AnotherBrandNameAlreadyExists" xml:space="preserve">
+    <value>Another brand with name '{0}' already exists.</value>
+  </data>
+  <data name="Catalog.CategoryNameAlreadyExists" xml:space="preserve">
+    <value>A category with name '{0}' already exists.</value>
+  </data>
+  <data name="Catalog.AnotherCategoryNameAlreadyExists" xml:space="preserve">
+    <value>Another category with name '{0}' already exists.</value>
+  </data>
+  <data name="Catalog.CategoryCannotBeOwnParent" xml:space="preserve">
+    <value>A category cannot be its own parent.</value>
+  </data>
+  <data name="Catalog.CategoryParentCycle" xml:space="preserve">
+    <value>Setting this parent would create a cycle.</value>
+  </data>
+  <data name="Catalog.CategoryHasChildren" xml:space="preserve">
+    <value>Cannot delete a category that has child categories. Move or remove the children first.</value>
+  </data>
+  <data name="Validation.DeltaNonZero" xml:space="preserve">
+    <value>Delta must be non-zero.</value>
+  </data>
+  <data name="Catalog.StockAdjustmentNegative" xml:space="preserve">
+    <value>Stock adjustment of {0} would result in negative stock (current: {1}).</value>
+  </data>
+</root>

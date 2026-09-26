@@ -22,7 +22,10 @@ public sealed class GetInvoicesQueryHandler(
         // BillingDbContext is not tenant-filtered: only root gets the cross-tenant view (optionally
         // narrowed via query.TenantId); every other caller is forced to its own tenant.
         var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
+            ?? throw new UnauthorizedException("Tenant context is required.")
+            {
+                MessageKey = "Error.TenantContextRequired",
+            };
         var isRoot = callerTenantId == MultitenancyConstants.Root.Id;
         var tenantFilter = isRoot ? query.TenantId : callerTenantId;
 

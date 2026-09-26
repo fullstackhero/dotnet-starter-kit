@@ -19,6 +19,13 @@ public class ApplicationUserConfig : IEntityTypeConfiguration<FshUser>
         builder
             .Property(u => u.ObjectId)
                 .HasMaxLength(256);
+
+        // A BCP-47 tag is short and bounded; 10 covers language-script-region (zh-Hant-TW). Writes are
+        // additionally constrained to SupportedCultures.Tags by UpdateUserCommandValidator, so this is
+        // the storage-level backstop, not the validation.
+        builder
+            .Property(u => u.Locale)
+                .HasMaxLength(10);
     }
 }
 
