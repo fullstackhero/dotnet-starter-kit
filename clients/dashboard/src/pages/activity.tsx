@@ -1,6 +1,8 @@
-import { useMemo } from "react";
-import { Activity, Inbox } from "lucide-react";
-import { useSseEvents, useSseStatus, type SseEvent } from "@/sse/sse-context";
+import { useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Activity, Inbox, Loader2 } from "lucide-react";
+import { useSseEvents, useSseStatus } from "@/sse/sse-context";
+import { listAudits, auditPredicate, AUDIT_EVENT_TYPE_LABELS } from "@/api/audits";
 import { Badge } from "@/components/ui/badge";
 import {
   EntityEmpty,
@@ -35,9 +37,6 @@ function payloadSummary(data: unknown, raw: string): string {
   return raw;
 }
 
-// Map an event type to a status badge tone — failures pop red, successes
-// green, warnings amber, everything else neutral. Mirrors the heuristic
-// the legacy live-feed component used.
 function eventTone(type: string): EntityStatusTone {
   const t = type.toLowerCase();
   if (t.includes("fail") || t.includes("error") || t.includes("revoke")) return "danger";
@@ -47,8 +46,6 @@ function eventTone(type: string): EntityStatusTone {
   return "default";
 }
 
-// Try to extract a friendlier "entity" label from the event payload —
-// most domain events carry an aggregate id under a predictable field.
 function entityLabel(data: unknown): string {
   if (data && typeof data === "object") {
     const obj = data as Record<string, unknown>;
@@ -60,6 +57,14 @@ function entityLabel(data: unknown): string {
   return "—";
 }
 
+export type DisplayActivityItem = {
+  id: string;
+  type: string;
+  summary: string;
+  entity: string;
+  timestamp: number;
+};
+
 // ───────────────────────────────────────────────────────────────────────
 //  Page
 // ───────────────────────────────────────────────────────────────────────
@@ -67,10 +72,56 @@ function entityLabel(data: unknown): string {
 const DESKTOP_GRID = "grid-cols-[1fr_240px_120px]";
 
 export function ActivityPage() {
+  const queryClient = useQueryClient();
   const { status, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
-  const items = useMemo(() => events.slice(0, 200), [events]);
+  // TanStack Query: Fetch current accurate activity state from the backend API on mount/refresh
+  const activityQuery = useQuery({
+    queryKey: ["audits", "activity-feed"],
+    queryFn: () => listAudits({ pageSize: 50 }),
+    staleTime: 10_000,
+  });
+
+  // Real-time invalidation: when real-time SSE notifications arrive, invalidate the TanStack Query cache
+  // so the UI automatically refetches fresh data from the backend API instead of stale local state.
+  useEffect(() => {
+    if (events.length > 0) {
+      void queryClient.invalidateQueries({ queryKey: ["audits", "activity-feed"] });
+    }
+  }, [events, queryClient]);
+
+  const items = useMemo<DisplayActivityItem[]>(() => {
+    const sseItems: DisplayActivityItem[] = events.map((ev) => ({
+      id: ev.id,
+      type: ev.type,
+      summary: payloadSummary(ev.data, ev.rawData),
+      entity: entityLabel(ev.data),
+      timestamp: ev.receivedAt,
+    }));
+
+    const apiItems: DisplayActivityItem[] = (activityQuery.data?.items ?? []).map((audit) => ({
+      id: audit.id,
+      type: AUDIT_EVENT_TYPE_LABELS[audit.eventType] ?? audit.eventType,
+      summary: auditPredicate(audit),
+      entity: audit.userName ?? audit.source ?? "—",
+      timestamp: new Date(audit.occurredAtUtc).getTime(),
+    }));
+
+    // Merge API query results with live SSE items, deduping by id
+    const seen = new Set<string>();
+    const merged: DisplayActivityItem[] = [];
+
+    for (const item of [...sseItems, ...apiItems]) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        merged.push(item);
+      }
+    }
+
+    return merged.sort((a, b) => b.timestamp - a.timestamp).slice(0, 200);
+  }, [events, activityQuery.data]);
+
   const isLive = status === "connected";
 
   return (
@@ -78,9 +129,9 @@ export function ActivityPage() {
       <EntityPageHeader
         icon={Activity}
         title="Live activity"
-        total={eventCount}
+        total={items.length || eventCount}
         unit="event"
-        description="Full event log streamed from the API over Server-Sent Events."
+        description="Activity log fetched via TanStack Query and updated in real time over SSE."
       >
         {isLive ? (
           <Badge variant="success">streaming</Badge>
@@ -91,14 +142,19 @@ export function ActivityPage() {
         )}
       </EntityPageHeader>
 
-      {items.length === 0 ? (
+      {activityQuery.isLoading ? (
+        <div className="flex items-center justify-center p-12 text-[var(--color-muted-foreground)]">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          <span>Loading activity log…</span>
+        </div>
+      ) : items.length === 0 ? (
         <EntityEmpty
           icon={Inbox}
           title={isLive ? "Listening for activity" : "No events yet"}
           body={
             isLive
               ? "The stream is open. Events will appear here as the backend publishes them."
-              : "The activity stream is not connected. Events will queue once the connection comes online."
+              : "The activity stream is not connected. Events will load once the connection comes online."
           }
         />
       ) : (
@@ -106,9 +162,6 @@ export function ActivityPage() {
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
               {items.length} event{items.length === 1 ? "" : "s"} shown
-              <span className="ml-2 opacity-60">
-                · {new Intl.NumberFormat("en-US").format(eventCount)} total
-              </span>
             </p>
           </div>
 
@@ -120,8 +173,8 @@ export function ActivityPage() {
             aria-relevant="additions"
             aria-label="Activity events"
           >
-            {items.map((ev) => (
-              <MobileCard key={ev.id} ev={ev} />
+            {items.map((item) => (
+              <MobileCard key={item.id} item={item} />
             ))}
           </div>
 
@@ -138,10 +191,10 @@ export function ActivityPage() {
               <span>Entity</span>
               <span className="text-right">Time</span>
             </EntityListHeader>
-            {items.map((ev, i) => (
+            {items.map((item, i) => (
               <DesktopRow
-                key={ev.id}
-                ev={ev}
+                key={item.id}
+                item={item}
                 isLast={i === items.length - 1}
               />
             ))}
@@ -152,42 +205,41 @@ export function ActivityPage() {
   );
 }
 
-// Mobile uses a static div (no navigation target — the activity feed is
-// a stream of events, not a list of routable entities).
-function MobileCard({ ev }: { ev: SseEvent }) {
+function MobileCard({ item }: { item: DisplayActivityItem }) {
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs">
       <div className="flex items-center justify-between gap-2">
-        <EntityStatusBadge tone={eventTone(ev.type)}>{ev.type}</EntityStatusBadge>
+        <EntityStatusBadge tone={eventTone(item.type)}>{item.type}</EntityStatusBadge>
         <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
-          {formatTime(ev.receivedAt)}
+          {formatTime(item.timestamp)}
         </span>
       </div>
       <p className="mt-2 line-clamp-2 break-words font-mono text-[11.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-        {payloadSummary(ev.data, ev.rawData)}
+        {item.summary}
       </p>
     </div>
   );
 }
 
-function DesktopRow({ ev, isLast }: { ev: SseEvent; isLast: boolean }) {
+function DesktopRow({ item, isLast }: { item: DisplayActivityItem; isLast: boolean }) {
   return (
     <EntityListRow className={DESKTOP_GRID} isLast={isLast}>
       <div className="flex min-w-0 items-center gap-2">
-        <EntityStatusBadge tone={eventTone(ev.type)}>{ev.type}</EntityStatusBadge>
+        <EntityStatusBadge tone={eventTone(item.type)}>{item.type}</EntityStatusBadge>
         <span className="truncate font-mono text-[11.5px] text-[var(--color-muted-foreground)]">
-          {payloadSummary(ev.data, ev.rawData)}
+          {item.summary}
         </span>
       </div>
       <code
-        title={entityLabel(ev.data)}
+        title={item.entity}
         className="truncate font-mono text-[12px] text-[var(--color-muted-foreground)]"
       >
-        {entityLabel(ev.data)}
+        {item.entity}
       </code>
       <span className="text-right font-mono text-[11.5px] tabular-nums text-[var(--color-muted-foreground)]">
-        {formatTime(ev.receivedAt)}
+        {formatTime(item.timestamp)}
       </span>
     </EntityListRow>
   );
 }
+
