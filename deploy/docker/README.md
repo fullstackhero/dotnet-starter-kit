@@ -60,7 +60,7 @@ Point four TLS subdomains at the published ports:
 
 Make sure the URLs you serve match the `FSH_API_URL` / `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` you set in `.env` — those values are baked into the frontends' runtime `/config.json` (CORS will fail loudly otherwise). They also drive the origins the API is allowed to put inside password-reset and e-mail-confirmation links, with `FSH_DASHBOARD_URL` as the default target for links the API sends on an operator's behalf.
 
-File uploads and downloads skip the API: the browser talks to RustFS through presigned URLs, which the API signs for `FSH_S3_PUBLIC_URL` (it reaches RustFS itself on the internal `http://rustfs:9000`). Set `FSH_S3_PUBLIC_URL` to the URL your proxy serves the S3 port on, and make the proxy forward the original `Host` header: the signature covers it, so a rewritten host fails with `SignatureDoesNotMatch`. RustFS only accepts the cross-origin PUT from `FSH_ADMIN_URL` and `FSH_DASHBOARD_URL`.
+File uploads and downloads skip the API: the browser talks to RustFS through presigned URLs, which the API signs for `FSH_S3_PUBLIC_URL` (it reaches RustFS itself on the internal `http://rustfs:9000`). Set `FSH_S3_PUBLIC_URL` to the URL your proxy serves the S3 port on, and make the proxy forward the original `Host` header: the signature covers it, so a rewritten host fails with `SignatureDoesNotMatch`. RustFS only grants CORS to `FSH_ADMIN_URL` and `FSH_DASHBOARD_URL`, so a browser on any other origin blocks the PUT.
 
 ## Sign in for the first time
 
