@@ -15,6 +15,18 @@ public sealed class S3StorageOptions
     public string? ServiceUrl { get; set; }
 
     /// <summary>
+    /// Endpoint that presigned upload/download URLs point at, for when browsers reach the store on a
+    /// different address than the API does (e.g. compose: <see cref="ServiceUrl"/> "http://rustfs:9000",
+    /// this "https://s3.example.com"). SigV4 signs the host, so the URL has to be signed for the public
+    /// one; every other S3 call keeps using <see cref="ServiceUrl"/>. Leave empty to presign against
+    /// <see cref="ServiceUrl"/>.
+    /// </summary>
+    public string? PresignServiceUrl { get; set; }
+
+    // One place decides the presign endpoint, so the client's host and the URL's scheme cannot disagree.
+    internal string? PresignEndpoint => string.IsNullOrWhiteSpace(PresignServiceUrl) ? ServiceUrl : PresignServiceUrl;
+
+    /// <summary>
     /// Explicit access key. When either <see cref="AccessKey"/> or <see cref="SecretKey"/>
     /// is empty, the AWS SDK's ambient credential chain is used instead.
     /// </summary>
