@@ -37,7 +37,7 @@ public static class Extensions
             services
                 .AddOptions<S3StorageOptions>()
                 .Bind(configuration.GetSection("Storage:S3"))
-                .Validate(o => string.IsNullOrWhiteSpace(o.PresignServiceUrl) || IsAbsoluteHttpUrl(o.PresignServiceUrl), "Storage:S3:PresignServiceUrl must be an absolute http(s) URL.")
+                .Validate(o => string.IsNullOrWhiteSpace(o.PresignServiceUrl) || IsRootHttpUrl(o.PresignServiceUrl), "Storage:S3:PresignServiceUrl must be an absolute http(s) URL with no path, e.g. https://s3.example.com.")
                 .ValidateOnStart();
 
             services.AddSingleton<IAmazonS3>(sp =>
@@ -52,8 +52,9 @@ public static class Extensions
                 return CreateS3Client(options, options.ServiceUrl);
             });
 
-            // A second client only so presigned URLs are signed for the host browsers use. Presigning is
-            // offline, so this one never opens a connection; all real I/O stays on the client above.
+            // A second client only so presigned URLs are signed for the host browsers use. Signing itself is
+            // offline, and without explicit keys the only call this client makes is the one-time fetch of
+            // ambient credentials. All real I/O stays on the client above.
             services.AddKeyedSingleton<IAmazonS3>(S3StorageService.PresignClientKey, (sp, _) =>
             {
                 var options = sp.GetRequiredService<IOptions<S3StorageOptions>>().Value;
@@ -99,9 +100,14 @@ public static class Extensions
             : new AmazonS3Client(config);
     }
 
-    private static bool IsAbsoluteHttpUrl(string value) =>
-        Uri.TryCreate(value, UriKind.Absolute, out var uri)
-        && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+    // A path would be signed into every URL (https://host/s3/bucket/key): a proxy that strips it breaks
+    // the signature, and one that keeps it makes the store read "s3" as the bucket.
+    private static bool IsRootHttpUrl(string value) =>
+        Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri)
+        && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+        && uri.AbsolutePath == "/"
+        && string.IsNullOrEmpty(uri.Query)
+        && string.IsNullOrEmpty(uri.Fragment);
 
     private static void RegisterStorageService<TInner>(
         IServiceCollection services,

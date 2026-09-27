@@ -24,7 +24,8 @@ public sealed class S3StorageOptions
     public string? PresignServiceUrl { get; set; }
 
     // One place decides the presign endpoint, so the client's host and the URL's scheme cannot disagree.
-    internal string? PresignEndpoint => string.IsNullOrWhiteSpace(PresignServiceUrl) ? ServiceUrl : PresignServiceUrl;
+    // Trimmed because validation (Uri.TryCreate) tolerates padding that the SDK's endpoint parser rejects.
+    internal string? PresignEndpoint => string.IsNullOrWhiteSpace(PresignServiceUrl) ? ServiceUrl : PresignServiceUrl.Trim();
 
     /// <summary>
     /// Explicit access key. When either <see cref="AccessKey"/> or <see cref="SecretKey"/>
@@ -36,7 +37,8 @@ public sealed class S3StorageOptions
 
     /// <summary>
     /// Required for MinIO and most non-AWS S3-compatible services (they do not support
-    /// virtual-hosted-style subdomains). Ignored when <see cref="ServiceUrl"/> is empty.
+    /// virtual-hosted-style subdomains). Applies to each client that has a custom endpoint
+    /// (<see cref="ServiceUrl"/> or <see cref="PresignServiceUrl"/>); ignored for plain AWS S3.
     /// </summary>
     public bool ForcePathStyle { get; set; }
 }

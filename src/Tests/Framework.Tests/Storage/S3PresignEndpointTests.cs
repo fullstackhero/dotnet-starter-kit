@@ -101,6 +101,8 @@ public sealed class S3PresignEndpointTests
     [InlineData("not-a-url")]
     [InlineData("/relative/path")]
     [InlineData("ftp://public.example.test")]
+    [InlineData("https://public.example.test/s3")]
+    [InlineData("https://public.example.test/?region=x")]
     public void AddHeroStorage_Should_FailAtStartup_When_PresignServiceUrlIsNotAbsoluteHttpUrl(string presignServiceUrl)
     {
         // Arrange
@@ -140,6 +142,24 @@ public sealed class S3PresignEndpointTests
             url.Host.ShouldBe("internal-store");
             url.Port.ShouldBe(9000);
         }
+    }
+
+    // A quoted or padded FSH_S3_PUBLIC_URL passes Uri.TryCreate, so it must not reach the SDK untrimmed and
+    // fail every upload long after startup validation said it was fine.
+    [Fact]
+    public async Task GenerateUploadUrlAsync_Should_TargetTrimmedPresignServiceUrl_When_ValueIsPadded()
+    {
+        // Arrange
+        using var provider = BuildProvider(InternalServiceUrl, "  https://public.example.test  ");
+        provider.GetRequiredService<IStartupValidator>().Validate();
+        var storage = provider.GetRequiredService<IStorageService>();
+
+        // Act
+        var presigned = await storage.GenerateUploadUrlAsync(StorageKey, "image/png", 1024, TimeSpan.FromMinutes(5));
+
+        // Assert
+        presigned.Url.Scheme.ShouldBe(Uri.UriSchemeHttps);
+        presigned.Url.Host.ShouldBe("public.example.test");
     }
 
     #endregion
