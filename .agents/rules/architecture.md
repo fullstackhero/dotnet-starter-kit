@@ -84,7 +84,7 @@ In `src/BuildingBlocks/Web/Extensions.cs` (`UseHeroPlatform`):
 5. **`UseModuleMiddlewares`** — each module's `ConfigureMiddleware`, runs **after** auth
 6. RateLimiting → Quotas → `UseAuthorization` → `MapModules`
 
-`app.UseHeroMultiTenantDatabases()` (Finbuckle `UseMultiTenant()`) runs in `Program.cs` **before** `UseHeroPlatform`, i.e. **before `UseAuthentication`** — so tenant resolution is header-driven, not claim-driven. See `modules/multitenancy.md`.
+`app.UseHeroMultiTenantDatabases()` (Finbuckle `UseMultiTenant()`) runs in `Program.cs` **before** `UseHeroPlatform`, i.e. **before `UseAuthentication`**. Finbuckle's `ClaimStrategy` authenticates on its own, so authenticated requests resolve by tenant claim and anonymous ones by the `tenant` header. See `modules/multitenancy.md`.
 
 ## Static/global state
 
