@@ -4,8 +4,9 @@
 #   docker compose up -d --build
 #
 # Operator owns the edge (TLS / subdomain routing). This file publishes
-# only the FSH services on host ports; the data plane (postgres/redis/
-# rustfs) stays compose-internal unless you uncomment their ports blocks.
+# the FSH services and the RustFS S3 API on host ports (browsers upload
+# straight to presigned S3 URLs); postgres/redis stay compose-internal
+# unless you uncomment their ports blocks.
 
 name: fsh
 
@@ -63,6 +64,8 @@ services:
       RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY is required}
       RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY is required}
       RUSTFS_CONSOLE_ENABLE: "true"
+      # The admin and dashboard PUT uploads cross-origin to presigned URLs on this store.
+      RUSTFS_CORS_ALLOWED_ORIGINS: ${FSH_ADMIN_URL},${FSH_DASHBOARD_URL}
     volumes:
       - rustfs_data:/data
     healthcheck:
@@ -70,9 +73,11 @@ services:
       interval: 10s
       timeout: 3s
       retries: 12
-    # Uncomment to expose the console (admin UI) + S3 API to the host:
-    # ports:
-    #   - "9000:9000"   # S3 API
+    # The S3 API is published because browsers reach it directly through the
+    # presigned URLs the API hands out (FSH_S3_PUBLIC_URL). Uncomment the
+    # console (admin UI) line to expose it too:
+    ports:
+      - "${FSH_S3_PORT:-9000}:9000"   # S3 API
     #   - "9001:9001"   # Web console
 
   # One-shot: create the bucket the Files module writes to. The app never
@@ -136,6 +141,8 @@ services:
       Seed__DefaultAdminPassword: ${SEED_ADMIN_PASSWORD}
       Storage__Provider: s3
       Storage__S3__ServiceUrl: http://rustfs:9000
+      # Presigned upload/download URLs go to browsers, which cannot resolve rustfs:9000.
+      Storage__S3__PresignServiceUrl: ${FSH_S3_PUBLIC_URL:?FSH_S3_PUBLIC_URL is required}
       Storage__S3__AccessKey: ${RUSTFS_ACCESS_KEY}
       Storage__S3__SecretKey: ${RUSTFS_SECRET_KEY}
       Storage__S3__Bucket: fsh
