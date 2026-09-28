@@ -3,11 +3,13 @@ using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Caching;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Identity.Claims;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Caching;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -21,6 +23,7 @@ internal sealed class UserPermissionService(
     IdentityDbContext db,
     HybridCache cache,
     IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
+    IHttpContextAccessor httpContextAccessor,
     IServiceScopeFactory scopeFactory) : IUserPermissionService
 {
     // Hoisted to avoid per-call allocations. Small payload (< 4 KB after base64), so compression
@@ -58,7 +61,7 @@ internal sealed class UserPermissionService(
     {
         // Stateless factory overload — the factory is a static method group, so the runtime
         // reuses a cached delegate and no closure is allocated per call (including L1 hits).
-        var state = new FactoryState(userManager, roleManager, db, tenantAccessor, scopeFactory, userId);
+        var state = new FactoryState(userManager, roleManager, db, CallerTenantOtherThanResolved(userId), scopeFactory, userId);
 
         return cache.GetOrCreateAsync(
             CacheKeys.UserPermissions(userId),
@@ -71,17 +74,26 @@ internal sealed class UserPermissionService(
 
     // The cache key carries no tenant, and a root operator's request can resolve to another tenant through
     // the tenant-header override. Loading under the request's tenant would not find the user there, so a cold
-    // entry turned a valid cross-tenant request into a 401. The set is always loaded under the user's own tenant.
+    // entry turned a valid cross-tenant request into a 401. When the checked user is the caller and the caller's
+    // tenant claim differs from the resolved tenant, the set is loaded under the claim's tenant instead.
+    private string? CallerTenantOtherThanResolved(string userId)
+    {
+        var caller = httpContextAccessor.HttpContext?.User;
+        if (caller?.Identity?.IsAuthenticated != true
+            || !string.Equals(caller.GetUserId(), userId, StringComparison.Ordinal)
+            || caller.GetTenant() is not { Length: > 0 } claimTenant)
+        {
+            return null;
+        }
+
+        return string.Equals(claimTenant, tenantAccessor.MultiTenantContext.TenantInfo?.Id, StringComparison.Ordinal)
+            ? null
+            : claimTenant;
+    }
+
     private static async ValueTask<PermissionSet> LoadPermissionsAsync(FactoryState s, CancellationToken ct)
     {
-        var homeTenantId = await s.Db.Users
-            .IgnoreQueryFilters()
-            .Where(u => u.Id == s.UserId)
-            .Select(u => EF.Property<string>(u, "TenantId"))
-            .FirstOrDefaultAsync(ct).ConfigureAwait(false)
-            ?? throw new UnauthorizedException();
-
-        if (string.Equals(homeTenantId, s.TenantAccessor.MultiTenantContext.TenantInfo?.Id, StringComparison.Ordinal))
+        if (s.HomeTenantId is not { } homeTenantId)
         {
             return await LoadInCurrentTenantAsync(s.UserManager, s.RoleManager, s.Db, s.UserId, ct).ConfigureAwait(false);
         }
@@ -155,7 +167,7 @@ internal sealed class UserPermissionService(
         UserManager<FshUser> UserManager,
         RoleManager<FshRole> RoleManager,
         IdentityDbContext Db,
-        IMultiTenantContextAccessor<AppTenantInfo> TenantAccessor,
+        string? HomeTenantId,
         IServiceScopeFactory ScopeFactory,
         string UserId);
 }
