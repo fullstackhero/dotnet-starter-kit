@@ -161,6 +161,8 @@ services:
       MailOptions__Smtp__Host: mailpit
       MailOptions__Smtp__Port: "1025"
       MailOptions__Smtp__Security: "None"
+      # appsettings.Production.json leaves the sender blank, and a real provider rejects an empty MAIL FROM.
+      MailOptions__From: ${FSH_MAIL_FROM:-no-reply@fsh.local}
       AllowedHosts: "*"
       HangfireOptions__UserName: ${HANGFIRE_USERNAME:?HANGFIRE_USERNAME is required}
       HangfireOptions__Password: ${HANGFIRE_PASSWORD:?HANGFIRE_PASSWORD is required}

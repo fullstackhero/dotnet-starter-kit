@@ -53,7 +53,7 @@ The API sends every e-mail (confirmation, password reset, welcome) to the bundle
 
 The inbox UI is published on the host loopback only, because it holds live password-reset and confirmation links. From another machine, use an SSH tunnel (`ssh -L 8025:127.0.0.1:8025 <host>`).
 
-To deliver real mail, set `MailOptions__Smtp__Host`, `MailOptions__Smtp__Port`, `MailOptions__Smtp__UserName`, `MailOptions__Smtp__Password` and `MailOptions__Smtp__Security` on the `api` service to your provider's values (`StartTls` for port 587, `SslOnConnect` for 465), and remove the `mailpit` service and its `depends_on` entry.
+To deliver real mail, set `MailOptions__Smtp__Host`, `MailOptions__Smtp__Port`, `MailOptions__Smtp__UserName`, `MailOptions__Smtp__Password` and `MailOptions__Smtp__Security` on the `api` service to your provider's values (`StartTls` for port 587, `SslOnConnect` for 465), set `FSH_MAIL_FROM` in `.env` to a sender your provider accepts, and remove the `mailpit` service and its `depends_on` entry.
 
 ## Wire up your external proxy
 
