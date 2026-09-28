@@ -11,6 +11,7 @@ This brings up the full stack on a single host:
 | `postgres` | `postgres:18-alpine` | (internal) | Identity, tenant catalog, module schemas |
 | `redis` | `valkey/valkey:9.1.0-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
 | `rustfs` | `rustfs/rustfs:1.0.0` | (internal) | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)) |
+| `mailpit` | `axllent/mailpit:v1.31.3` | `127.0.0.1:FSH_MAILPIT_PORT` (default 8025), SMTP 1025 internal | Local mail catcher: every e-mail the API sends lands here ([Mailpit](https://mailpit.axllent.org)) |
 
 The compose file does **not** include a reverse proxy or TLS terminator. You bring your own edge — Cloudflare Tunnel, AWS ALB, Tailscale Funnel, your existing nginx, anything that can route a TLS subdomain to a host:port on this machine.
 
@@ -18,7 +19,7 @@ The compose file does **not** include a reverse proxy or TLS terminator. You bri
 
 - Docker Engine 24+ with the Compose plugin (`docker compose version` should print v2.x).
 - 2 GB free RAM, 5 GB disk for first-run images + builds.
-- Ports 8080–8082 free on the host (or set custom ports in `.env`).
+- Ports 8080–8082 and 8025 free on the host (or set custom ports in `.env`).
 
 ## Five-minute deploy
 
@@ -45,6 +46,14 @@ curl -fsSI http://localhost:8081/ | head -1   # admin SPA — HTTP/1.1 200 OK
 curl -fsS  http://localhost:8081/config.json  # admin runtime config — shows FSH_API_URL
 curl -fsSI http://localhost:8082/ | head -1   # dashboard SPA
 ```
+
+## Reading e-mail
+
+The API sends every e-mail (confirmation, password reset, welcome) to the bundled `mailpit` service, so nothing leaves the host and no SMTP account is needed. Open **http://localhost:8025** on the Docker host to read them and follow the links. A user an operator registers must confirm the e-mail before signing in, and the confirmation link is in that inbox.
+
+The inbox UI is published on the host loopback only, because it holds live password-reset and confirmation links. From another machine, use an SSH tunnel (`ssh -L 8025:127.0.0.1:8025 <host>`).
+
+To deliver real mail, set `MailOptions__Smtp__Host`, `MailOptions__Smtp__Port`, `MailOptions__Smtp__UserName`, `MailOptions__Smtp__Password` and `MailOptions__Smtp__Security` on the `api` service to your provider's values (`StartTls` for port 587, `SslOnConnect` for 465), and remove the `mailpit` service and its `depends_on` entry.
 
 ## Wire up your external proxy
 
@@ -96,7 +105,7 @@ Single-host compose is the default story; production deployments often point at 
 
 1. Comment out the `postgres` / `redis` / `rustfs` service blocks (and `rustfs-init`) AND remove them from the `depends_on:` of `api` and `migrator`.
 2. Swap the matching env vars on `api` and `migrator`:
-   - `DatabaseOptions__ConnectionString` → your managed Postgres connection string
+   - `DatabaseOptions__ConnectionString` → your managed Postgres connection string (keep `GSS Encryption Mode=Disable` unless your server uses Kerberos: the chiseled images have no `libgssapi_krb5`)
    - `CachingOptions__Redis` → your managed Redis connection string (`host:port,password=...,ssl=True` etc.)
    - `Storage__Provider`, `Storage__S3__*` → your S3-compatible store
 3. `docker compose up -d`.
@@ -112,4 +121,6 @@ The data-plane volumes (`pg_data`, `redis_data`, `rustfs_data`) can be deleted o
 | `OptionsValidationException: SigningKey looks like a sample placeholder` | `JWT_SIGNING_KEY` contains `replace-with` (the framework's placeholder detector). Generate a real key: `openssl rand -base64 48`. |
 | API up but admin shows a CORS error | `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` in `.env` doesn't match what your external proxy serves. Both go on the CORS allow-list. |
 | A reset or confirmation e-mail links to the API instead of the app | Same cause: `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` don't match the origins the browser actually uses. Both also feed `FrontendOptions__AllowedOrigins`, and `FSH_DASHBOARD_URL` feeds `FrontendOptions__DefaultOrigin`. |
+| No e-mail arrives, or the API logs `The SMTP server does not support the STARTTLS extension` | `MailOptions__Smtp__Security` does not match the server. The bundled Mailpit needs `None`; a provider on port 587 needs `StartTls`, on 465 `SslOnConnect`. |
+| `Cannot load library libgssapi_krb5.so.2` in the API or migrator log | A connection string without `GSS Encryption Mode=Disable`. Npgsql tries GSS encryption by default and the chiseled images do not ship the Kerberos library. Harmless, but append the setting to silence it. |
 | `migrator` retries Postgres for 2 minutes then fails | Postgres didn't come up — check `docker compose logs postgres`. Most often a `POSTGRES_PASSWORD` change against an existing `pg_data` volume; delete the volume with `docker compose down -v` (destructive) and start over. |

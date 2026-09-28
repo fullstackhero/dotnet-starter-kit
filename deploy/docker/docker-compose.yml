@@ -6,6 +6,7 @@
 # Operator owns the edge (TLS / subdomain routing). This file publishes
 # only the FSH services on host ports; the data plane (postgres/redis/
 # rustfs) stays compose-internal unless you uncomment their ports blocks.
+# The one exception is the Mailpit inbox UI, bound to the host loopback only.
 
 name: fsh
 
@@ -97,6 +98,19 @@ services:
         aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket fsh 2>/dev/null ||
           aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket fsh
 
+  # Local mail catcher: every e-mail the API sends (confirmation, password
+  # reset, welcome) lands here and never leaves the host. Read it at
+  # http://localhost:8025 (FSH_MAILPIT_PORT). For real delivery, point the
+  # api's MailOptions__Smtp__* at your provider and remove this service.
+  # SMTP (1025) stays on the compose network.
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    container_name: fsh-mailpit
+    restart: unless-stopped
+    ports:
+      # Loopback only: the inbox holds live password-reset and confirmation links.
+      - "127.0.0.1:${FSH_MAILPIT_PORT:-8025}:8025"
+
   migrator:
     build:
       context: ../..
@@ -128,6 +142,7 @@ services:
       rustfs:      { condition: service_healthy }
       rustfs-init: { condition: service_completed_successfully }
       migrator:   { condition: service_completed_successfully }
+      mailpit:    { condition: service_started }
     environment:
       DOTNET_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -142,6 +157,10 @@ services:
       Storage__S3__SecretKey: ${RUSTFS_SECRET_KEY}
       Storage__S3__Bucket: fsh
       Storage__S3__ForcePathStyle: "true"
+      # Plain SMTP to the compose-local Mailpit, which offers no STARTTLS to upgrade to.
+      MailOptions__Smtp__Host: mailpit
+      MailOptions__Smtp__Port: "1025"
+      MailOptions__Smtp__Security: "None"
       AllowedHosts: "*"
       HangfireOptions__UserName: ${HANGFIRE_USERNAME:?HANGFIRE_USERNAME is required}
       HangfireOptions__Password: ${HANGFIRE_PASSWORD:?HANGFIRE_PASSWORD is required}
