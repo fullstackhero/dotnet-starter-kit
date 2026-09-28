@@ -694,40 +694,42 @@ const QUICK_ACTIONS: QuickAction[] = [
 ];
 
 // The card sits in one cell of a 2-up grid beside a 360px rail, so its width
-// tracks that column, not the viewport: size the tiles from the container so a
-// narrow card stacks them instead of squeezing two into a sliver.
+// tracks that column, not the viewport: go two-up only when the card itself has
+// room for two 14rem tiles, instead of squeezing two into a sliver.
 function QuickActionsBody() {
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(min(14rem,100%),1fr))] gap-2">
-      {QUICK_ACTIONS.map((a) => (
-        <Link
-          key={a.to}
-          to={a.to}
-          className={cn(
-            "group/qa flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3",
-            "transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)]",
-          )}
-        >
-          <span
-            aria-hidden
+    <div className="@container">
+      <div className="grid grid-cols-1 gap-2 @[28.5rem]:grid-cols-2">
+        {QUICK_ACTIONS.map((a) => (
+          <Link
+            key={a.to}
+            to={a.to}
             className={cn(
-              "grid size-8 shrink-0 place-items-center rounded-md",
-              STAT_TONE_BG[a.tone],
+              "group/qa flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3",
+              "transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)]",
             )}
           >
-            <a.icon className="size-3.5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-[12.5px] font-semibold tracking-tight text-foreground">
-              {a.title}
+            <span
+              aria-hidden
+              className={cn(
+                "grid size-8 shrink-0 place-items-center rounded-md",
+                STAT_TONE_BG[a.tone],
+              )}
+            >
+              <a.icon className="size-3.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[12.5px] font-semibold tracking-tight text-foreground">
+                {a.title}
+              </div>
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                {a.description}
+              </p>
             </div>
-            <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-              {a.description}
-            </p>
-          </div>
-          <ArrowRight className="size-3 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/qa:translate-x-0.5 group-hover/qa:opacity-100" />
-        </Link>
-      ))}
+            <ArrowRight className="size-3 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/qa:translate-x-0.5 group-hover/qa:opacity-100" />
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
