@@ -39,8 +39,8 @@ public sealed class SessionCleanupHostedService : BackgroundService
         {
             try
             {
-                await Task.Delay(_cleanupInterval, stoppingToken);
-                await CleanupExpiredSessionsAsync(stoppingToken);
+                await Task.Delay(_cleanupInterval, stoppingToken).ConfigureAwait(false);
+                await CleanupExpiredSessionsAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
