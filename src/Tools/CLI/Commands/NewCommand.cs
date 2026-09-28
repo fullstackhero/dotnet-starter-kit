@@ -347,7 +347,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             // Local-working defaults: the compose stack publishes these host ports.
             ["FSH_API_URL"] = "http://localhost:8080",
             ["FSH_ADMIN_URL"] = "http://localhost:8081",
-            ["FSH_DASHBOARD_URL"] = "http://localhost:8082"
+            ["FSH_DASHBOARD_URL"] = "http://localhost:8082",
+            ["FSH_S3_PUBLIC_URL"] = "http://localhost:9000"
         };
 
         string[] lines = File.ReadAllLines(examplePath);
