@@ -72,6 +72,18 @@ public sealed class SmtpConnectionSecurityTests
         security.ShouldBe(expected);
     }
 
+    [Fact]
+    public void Security_Should_FailToBind_When_TheNameIsUnknown()
+    {
+        // Arrange — a typo must stop the options from binding rather than silently fall back to a
+        // mode the operator did not ask for.
+        using var provider = BuildProvider(port: 587, security: "Plain");
+        IOptions<MailOptions> options = provider.GetRequiredService<IOptions<MailOptions>>();
+
+        // Act + Assert
+        Should.Throw<InvalidOperationException>(() => options.Value);
+    }
+
     #endregion
 
     #region Connection
