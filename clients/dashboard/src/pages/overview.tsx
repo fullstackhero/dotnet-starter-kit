@@ -693,9 +693,12 @@ const QUICK_ACTIONS: QuickAction[] = [
   },
 ];
 
+// The card sits in one cell of a 2-up grid beside a 360px rail, so its width
+// tracks that column, not the viewport: size the tiles from the container so a
+// narrow card stacks them instead of squeezing two into a sliver.
 function QuickActionsBody() {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(min(14rem,100%),1fr))] gap-2">
       {QUICK_ACTIONS.map((a) => (
         <Link
           key={a.to}

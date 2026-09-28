@@ -57,6 +57,48 @@ test.describe("overview (/)", () => {
     await expect(page.getByText(/no usage captured yet/i)).toBeVisible();
   });
 
+  test("quick-action tiles are wide enough for their title and description", async ({ page }) => {
+    // At desktop widths the card sits in a narrow column beside the 360px
+    // rail, so tiles sized off the viewport squeeze titles past their box.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/");
+    const card = page.locator("section", { has: page.getByRole("heading", { name: "Quick actions" }) });
+    await expect(card.getByRole("link")).toHaveCount(4);
+    await page.evaluate(() => document.fonts.ready);
+
+    const tiles = await card.getByRole("link").evaluateAll((links) =>
+      links.map((link) => {
+        const lineCount = (el: Element) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          const tops = new Set<number>();
+          for (const rect of Array.from(range.getClientRects())) {
+            if (rect.width > 0) tops.add(Math.round(rect.top));
+          }
+          return tops.size;
+        };
+        const title = link.querySelector("div.min-w-0 > div")!;
+        const description = link.querySelector("div.min-w-0 > p")!;
+        return {
+          title: title.textContent,
+          titleOverflow: title.scrollWidth - title.clientWidth,
+          titleLines: lineCount(title),
+          descriptionOverflow: description.scrollWidth - description.clientWidth,
+          descriptionLines: lineCount(description),
+        };
+      }),
+    );
+
+    for (const tile of tiles) {
+      expect(tile, `${tile.title}`).toMatchObject({
+        titleOverflow: 0,
+        titleLines: 1,
+        descriptionOverflow: 0,
+      });
+      expect(tile.descriptionLines, `${tile.title} description`).toBeLessThanOrEqual(2);
+    }
+  });
+
   test("Valid-for card reflects an in-grace tenant", async ({ page }) => {
     await mockJsonResponse(page, "**/api/v1/tenants/me/status**", {
       id: "acme",
