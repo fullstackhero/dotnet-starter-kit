@@ -29,9 +29,9 @@ namespace Integration.Tests.Infrastructure;
 
 public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private const string S3AccessKey = "rustfsadmin";
-    private const string S3SecretKey = "rustfsadmin";
-    private const string S3Bucket = "fsh-integration-test-uploads";
+    internal const string S3AccessKey = "rustfsadmin";
+    internal const string S3SecretKey = "rustfsadmin";
+    internal const string S3Bucket = "fsh-integration-test-uploads";
 
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
@@ -257,22 +257,28 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
             opts.Region = "us-east-1";
         });
 
-        services.AddSingleton<IAmazonS3>(_ =>
-        {
-            var config = new AmazonS3Config
-            {
-                ServiceURL = S3ServiceUrl,
-                ForcePathStyle = true,
-                UseHttp = true,
-                AuthenticationRegion = "us-east-1"
-            };
-            return new AmazonS3Client(
-                new Amazon.Runtime.BasicAWSCredentials(S3AccessKey, S3SecretKey),
-                config);
-        });
+        services.AddSingleton<IAmazonS3>(_ => CreateRustFsClient());
+        // S3StorageService presigns through a keyed client; tests reach RustFS on one address, so it matches.
+        services.AddKeyedSingleton<IAmazonS3>(
+            FSH.Framework.Storage.S3.S3StorageService.PresignClientKey,
+            (_, _) => CreateRustFsClient());
         services.AddTransient<FSH.Framework.Storage.S3.S3StorageService>();
         services.AddTransient<FSH.Framework.Storage.Services.IStorageService>(sp =>
             sp.GetRequiredService<FSH.Framework.Storage.S3.S3StorageService>());
+    }
+
+    private AmazonS3Client CreateRustFsClient()
+    {
+        var config = new AmazonS3Config
+        {
+            ServiceURL = S3ServiceUrl,
+            ForcePathStyle = true,
+            UseHttp = true,
+            AuthenticationRegion = "us-east-1"
+        };
+        return new AmazonS3Client(
+            new Amazon.Runtime.BasicAWSCredentials(S3AccessKey, S3SecretKey),
+            config);
     }
 
     protected override IHost CreateHost(IHostBuilder builder)

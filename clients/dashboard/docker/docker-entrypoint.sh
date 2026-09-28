@@ -6,8 +6,7 @@ set -e
 
 export FSH_API_URL FSH_DEFAULT_TENANT
 
-envsubst < /usr/share/nginx/html/config.json.template \
+envsubst < /etc/fsh/config.json.template \
        > /usr/share/nginx/html/config.json
-rm /usr/share/nginx/html/config.json.template
 
 exec nginx -g 'daemon off;'
