@@ -43,7 +43,7 @@ public sealed class SessionCleanupTests
         var otherAdminEmail = $"sess-clean-admin-{uniqueId}@tenant.com";
 
         await CreateTenantAsync(rootClient, otherTenantId, otherAdminEmail);
-        await WaitForProvisioningAsync(rootClient, otherTenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, otherTenantId);
 
         var now = DateTime.UtcNow;
         var rootExpired = await SeedSessionAsync(
@@ -129,37 +129,5 @@ public sealed class SessionCleanupTests
         });
         var body = await response.Content.ReadAsStringAsync();
         response.StatusCode.ShouldBe(HttpStatusCode.Created, $"Create tenant failed: {body}");
-    }
-
-    // The status body also lists each step, and a finished step reads "Completed" while later steps
-    // (seeding the tenant admin) are still running, so only the overall Status field is trusted.
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId)
-    {
-        const int maxRetries = 60;
-        for (int i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync(
-                $"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var status = await statusResponse.Content.ReadFromJsonAsync<TenantProvisioningStatusDto>();
-                if (string.Equals(status?.Status, "Completed", StringComparison.Ordinal))
-                {
-                    return;
-                }
-
-                if (string.Equals(status?.Status, "Failed", StringComparison.Ordinal))
-                {
-                    throw new InvalidOperationException(
-                        $"Tenant {tenantId} provisioning failed at {status?.CurrentStep}: {status?.Error}");
-                }
-            }
-
-            await Task.Delay(1000);
-        }
-
-        throw new TimeoutException(
-            $"Tenant {tenantId} provisioning did not complete within {maxRetries} seconds.");
     }
 }

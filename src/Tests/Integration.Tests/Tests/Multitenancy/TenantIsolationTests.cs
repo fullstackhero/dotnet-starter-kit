@@ -22,7 +22,7 @@ public sealed class TenantIsolationTests
         var tenantId = $"iso-{uniqueId}";
         var tenantAdminEmail = $"isoadmin-{uniqueId}@tenant.com";
         await CreateTenantAsync(rootClient, tenantId, tenantAdminEmail);
-        await WaitForProvisioningAsync(rootClient, tenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenantId);
 
         // Login as new tenant admin — retry because provisioning may still be finalizing
         using var tenantClient = await CreateTenantAdminClientWithRetryAsync(
@@ -64,8 +64,8 @@ public sealed class TenantIsolationTests
 
         await CreateTenantAsync(rootClient, tenant1Id, t1AdminEmail);
         await CreateTenantAsync(rootClient, tenant2Id, t2AdminEmail);
-        await WaitForProvisioningAsync(rootClient, tenant1Id);
-        await WaitForProvisioningAsync(rootClient, tenant2Id);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenant1Id);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenant2Id);
 
         // Register same email in tenant 1
         using var client1 = await CreateTenantAdminClientWithRetryAsync(
@@ -120,41 +120,5 @@ public sealed class TenantIsolationTests
         });
         var body = await response.Content.ReadAsStringAsync();
         response.StatusCode.ShouldBe(HttpStatusCode.Created, $"Create tenant failed: {body}");
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (int i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync(
-                $"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var content = await statusResponse.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException(
-                        $"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-
-            await Task.Delay(1000);
-        }
-
-        // Get final status for the error message
-        var finalResponse = await client.GetAsync(
-            $"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-        var finalContent = finalResponse.IsSuccessStatusCode
-            ? await finalResponse.Content.ReadAsStringAsync()
-            : $"HTTP {finalResponse.StatusCode}";
-
-        throw new TimeoutException(
-            $"Tenant {tenantId} provisioning did not complete within {maxRetries} seconds. Last status: {finalContent}");
     }
 }

@@ -34,7 +34,7 @@ public sealed class RolePrivilegeEscalationTests
         var tenantId = $"esc-{unique}";
         var adminEmail = $"esc-admin-{unique}@tenant.com";
         await CreateTenantAsync(rootClient, tenantId, adminEmail);
-        await WaitForProvisioningAsync(rootClient, tenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenantId);
 
         using var tenantAdmin = await CreateTenantAdminClientWithRetryAsync(
             adminEmail, TestConstants.DefaultPassword, tenantId);
@@ -121,28 +121,6 @@ public sealed class RolePrivilegeEscalationTests
             issuer = $"{tenantId}.issuer"
         });
         resp.StatusCode.ShouldBe(HttpStatusCode.Created, await resp.Content.ReadAsStringAsync());
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (var i = 0; i < maxRetries; i++)
-        {
-            var resp = await client.GetAsync($"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-            if (resp.IsSuccessStatusCode)
-            {
-                var content = await resp.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-            await Task.Delay(1000);
-        }
-        throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
     }
 
     private sealed record RoleRow
