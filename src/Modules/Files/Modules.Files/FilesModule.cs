@@ -51,6 +51,8 @@ public sealed class FilesModule : IModule
         builder.Services.AddScoped<IDbInitializer, FilesDbInitializer>();
 
         builder.Services.AddScoped<FileAccessPolicyRegistry>();
+        builder.Services.AddScoped<FileStorageRelocator>();
+        builder.Services.AddTransient<MigrateLegacyPublicFileKeysJob>();
         builder.Services.AddSingleton<IFileScanner, NoOpFileScanner>();
         builder.Services.AddValidatorsFromAssembly(typeof(FilesModule).Assembly);
 
@@ -109,5 +111,12 @@ public sealed class FilesModule : IModule
                 "30 3 * * *", // daily 03:30 UTC
                 new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
         }
+
+        // One-shot upgrade step (#1410): public files uploaded before visibility lived in the key are
+        // moved under public/, which is all bucket policies let anonymous readers see. Enqueued on every
+        // start because it is idempotent and a no-op once nothing is left to move; the job serializes
+        // itself so several instances starting together don't race.
+        endpoints.ServiceProvider.GetService<IBackgroundJobClient>()?
+            .Enqueue<MigrateLegacyPublicFileKeysJob>(j => j.RunAsync(CancellationToken.None));
     }
 }
