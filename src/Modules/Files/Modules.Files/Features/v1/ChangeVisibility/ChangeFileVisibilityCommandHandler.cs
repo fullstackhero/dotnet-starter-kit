@@ -34,6 +34,7 @@ public sealed class ChangeFileVisibilityCommandHandler(
         }
 
         var f = await db.FileAssets
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == cmd.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException("file not found");
@@ -49,8 +50,19 @@ public sealed class ChangeFileVisibilityCommandHandler(
 
         // Visibility lives in the storage key (public/ vs private/), so a flip moves the object: bucket
         // policies grant anonymous read on public/* only.
-        f.ChangeVisibility(cmd.Visibility);
-        await relocator.SaveAsync(f, cancellationToken).ConfigureAwait(false);
+        // The relocator re-reads the row under its lock, so a concurrent flip or the legacy-key migration
+        // is applied first and this change lands on top of it.
+        var changed = await relocator.ApplyAsync(cmd.FileAssetId, asset =>
+        {
+            if (asset.IsDeleted)
+            {
+                throw new NotFoundException("file not found");
+            }
+
+            asset.ChangeVisibility(cmd.Visibility);
+            return true;
+        }, cancellationToken).ConfigureAwait(false);
+        f = changed ?? throw new NotFoundException("file not found");
 
         var publicUrl = f.Visibility == Visibility.Public
             ? storage.BuildPublicUrl(f.StorageKey)
