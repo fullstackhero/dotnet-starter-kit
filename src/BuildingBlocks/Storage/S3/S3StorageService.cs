@@ -21,7 +21,9 @@ internal sealed partial class S3StorageService : IStorageService
     private readonly ILogger<S3StorageService> _logger;
     private readonly FileExtensionContentTypeProvider _contentTypeProvider;
 
-    private const string UploadBasePath = "uploads";
+    // UploadAsync always hands back a durable public URL, so these objects live under the public root
+    // that bucket policies open to anonymous reads. Keys written before the root existed stay "uploads/…".
+    private const string UploadBasePath = StorageVisibilityRoot.Public + "uploads";
 
     // Source-generated, compiled once — the inline Regex.Replace calls re-parsed the pattern on every upload.
     [GeneratedRegex("[^a-z0-9]")]
@@ -106,6 +108,30 @@ internal sealed partial class S3StorageService : IStorageService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Unexpected error deleting S3 object {Path}", path);
+        }
+    }
+
+    public async Task CopyAsync(string sourceKey, string destinationKey, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationKey);
+
+        var source = NormalizeKey(sourceKey);
+        var destination = NormalizeKey(destinationKey);
+
+        // CopyObject keeps Content-Type and user metadata (MetadataDirective COPY is the default).
+        await _s3.CopyObjectAsync(new CopyObjectRequest
+        {
+            SourceBucket = _options.Bucket,
+            SourceKey = source,
+            DestinationBucket = _options.Bucket,
+            DestinationKey = destination
+        }, cancellationToken).ConfigureAwait(false);
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Copied S3 object in bucket {Bucket} from {SourceKey} to {DestinationKey}",
+                _options.Bucket, source, destination);
         }
     }
 
