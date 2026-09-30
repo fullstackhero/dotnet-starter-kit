@@ -45,6 +45,13 @@ public sealed class FileAssetConfiguration : IEntityTypeConfiguration<FileAsset>
             .HasFilter("\"IsDeleted\" = FALSE")
             .HasDatabaseName("UX_FileAsset_StorageKey");
 
+        // Rows whose key predates the public/ and private/ roots (#1410). New keys always carry a root, so
+        // this index empties out once MigrateLegacyPublicFileKeysJob has run, and the job's per-start scan
+        // (whose predicate matches this filter exactly) becomes a probe of an empty index.
+        builder.HasIndex(x => x.Id)
+            .HasFilter("\"StorageKey\" NOT LIKE 'public/%' AND \"StorageKey\" NOT LIKE 'private/%'")
+            .HasDatabaseName("IX_FileAsset_LegacyKey");
+
         builder.Ignore(x => x.DomainEvents);
     }
 }

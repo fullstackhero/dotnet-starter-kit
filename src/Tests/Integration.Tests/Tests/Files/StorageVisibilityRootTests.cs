@@ -16,6 +16,7 @@ using FSH.Modules.Identity.Data;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using Integration.Tests.Infrastructure;
 using Integration.Tests.Infrastructure.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Integration.Tests.Tests.Files;
 
@@ -100,7 +101,7 @@ public sealed class StorageVisibilityRootTests
         publicKey.ShouldBe("public/" + privateKey["private/".Length..]);
         (await ObjectExistsAsync(publicKey)).ShouldBeTrue();
         (await ObjectExistsAsync(privateKey)).ShouldBeFalse("the old object is deleted once the row points at the new one");
-        (await DownloadAsync(client, id)).ShouldBe(bytes);
+        (await DownloadViaPresignedUrlAsync(client, id)).ShouldBe(bytes);
 
         // Act + Assert — and back again.
         using (var toPrivate = await client.PatchAsJsonAsync($"{FilesBasePath}/{id}/visibility", new { visibility = 1 }))
@@ -111,7 +112,7 @@ public sealed class StorageVisibilityRootTests
         (await ReadStorageKeyAsync(TestConstants.RootTenantId, id)).ShouldBe(privateKey);
         (await ObjectExistsAsync(privateKey)).ShouldBeTrue();
         (await ObjectExistsAsync(publicKey)).ShouldBeFalse();
-        (await DownloadAsync(client, id)).ShouldBe(bytes);
+        (await DownloadViaPresignedUrlAsync(client, id)).ShouldBe(bytes);
     }
 
     #endregion
@@ -160,9 +161,11 @@ public sealed class StorageVisibilityRootTests
         var legacyPrivate = await SeedLegacyAssetAsync(TestConstants.RootTenantId, "MyFiles", null, Visibility.Private);
         var otherTenantPublic = await SeedLegacyAssetAsync(otherTenantId, "MyFiles", null, Visibility.Public);
 
-        // …and the public URLs other modules persisted for them.
-        var originalAvatarUrl = await SetAvatarUrlAsync(adminId, PublicUrlFor(avatar.Key));
-        var productImageId = await SeedProductImageAsync(productImage.Id, PublicUrlFor(productImage.Key));
+        // …and the public URLs other modules persisted for them, built with a base browsers can't reach
+        // (what compose stored before it set PublicBaseUrl). The move must repair the base, not keep it.
+        const string StaleBase = "http://rustfs:9000/" + Bucket + "/";
+        var originalAvatarUrl = await SetAvatarUrlAsync(adminId, StaleBase + avatar.Key);
+        var productImageId = await SeedProductImageAsync(productImage.Id, StaleBase + productImage.Key);
 
         try
         {
@@ -188,7 +191,7 @@ public sealed class StorageVisibilityRootTests
             (await ReadStorageKeyAsync(TestConstants.RootTenantId, legacyPrivate.Id)).ShouldBe(legacyPrivate.Key);
             (await ObjectExistsAsync(legacyPrivate.Key)).ShouldBeTrue();
 
-            // Persisted URLs followed their objects.
+            // Persisted URLs followed their objects, onto the API's current public URL.
             (await ReadAvatarUrlAsync(adminId)).ShouldBe(PublicUrlFor("public/" + avatar.Key));
             (await ReadProductImageUrlAsync(productImageId)).ShouldBe(PublicUrlFor("public/" + productImage.Key));
 
@@ -210,6 +213,158 @@ public sealed class StorageVisibilityRootTests
 
     #endregion
 
+    [Fact]
+    public async Task MigrationJob_Should_MovePastFilesThatKeepFailing_And_StillMigrateTheFilesAfterThem()
+    {
+        // Arrange — more permanently failing rows (objects missing) than fit in one page, then good rows
+        // after them (UUIDv7 ids sort by creation time, so these come later in id order).
+        var broken = new List<LegacyAsset>();
+        for (var i = 0; i < 3; i++)
+        {
+            broken.Add(await SeedLegacyAssetAsync(TestConstants.RootTenantId, "MyFiles", null, Visibility.Public, withObject: false));
+        }
+
+        var good1 = await SeedLegacyAssetAsync(TestConstants.RootTenantId, "MyFiles", null, Visibility.Public);
+        var good2 = await SeedLegacyAssetAsync(TestConstants.RootTenantId, "MyFiles", null, Visibility.Public);
+
+        try
+        {
+            // Act — a page of 2 is smaller than the number of broken rows. The run may report the failures.
+            _ = await Record.ExceptionAsync(() => RunMigrationJobAsync(batchSize: 2));
+
+            // Assert — the broken rows did not stop the rows after them.
+            (await ReadStorageKeyAsync(TestConstants.RootTenantId, good1.Id)).ShouldBe("public/" + good1.Key);
+            (await ReadStorageKeyAsync(TestConstants.RootTenantId, good2.Id)).ShouldBe("public/" + good2.Key);
+            foreach (var asset in broken)
+            {
+                (await ReadStorageKeyAsync(TestConstants.RootTenantId, asset.Id))
+                    .ShouldBe(asset.Key, "a row whose object is missing is never repointed");
+            }
+        }
+        finally
+        {
+            // Permanently broken rows would make every later run in this DB report failures.
+            await DeleteRowsAsync(TestConstants.RootTenantId, broken.Select(b => b.Id));
+        }
+    }
+
+    [Fact]
+    public async Task MigrationJob_Should_SkipAFile_WhoseVisibilityChangedWhileTheJobWaitedForIt()
+    {
+        // Arrange — a legacy public file, then another writer holding its row (as a visibility flip would).
+        var asset = await SeedLegacyAssetAsync(TestConstants.RootTenantId, "MyFiles", null, Visibility.Public);
+        var connectionString = _factory.Services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>()["DatabaseOptions:ConnectionString"];
+
+        await using var connection = new Npgsql.NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+        await using (var lockRow = new Npgsql.NpgsqlCommand(
+            """SELECT 1 FROM files."FileAssets" WHERE "Id" = @id FOR UPDATE""", connection, transaction))
+        {
+            lockRow.Parameters.AddWithValue("id", asset.Id);
+            await lockRow.ExecuteScalarAsync();
+        }
+
+        // Act — the job starts while the row is held; the other writer makes the file private and commits.
+        var run = RunMigrationJobAsync();
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        await using (var makePrivate = new Npgsql.NpgsqlCommand(
+            """UPDATE files."FileAssets" SET "Visibility" = 1 WHERE "Id" = @id""", connection, transaction))
+        {
+            makePrivate.Parameters.AddWithValue("id", asset.Id);
+            await makePrivate.ExecuteNonQueryAsync();
+        }
+
+        await transaction.CommitAsync();
+        _ = await Record.ExceptionAsync(() => run);
+
+        // Assert — the job re-read the row after the other writer and left the now-private file alone.
+        (await ReadVisibilityAsync(TestConstants.RootTenantId, asset.Id)).ShouldBe(Visibility.Private);
+        (await ReadStorageKeyAsync(TestConstants.RootTenantId, asset.Id)).ShouldBe(asset.Key);
+        (await ReadObjectAsync(asset.Key)).ShouldBe(asset.Bytes);
+        (await ObjectExistsAsync("public/" + asset.Key)).ShouldBeFalse("a private file must not be copied under public/");
+    }
+
+    [Fact]
+    public async Task MakingAFilePrivate_Should_StillRemoveThePublicObject_When_TheFirstDeleteSilentlyFails()
+    {
+        // Arrange — a public upload, readable anonymously through the public/* policy.
+        await ApplyPublicPrefixPolicyAsync();
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var bytes = RandomBytes(256);
+        var id = await UploadAndFinalizeAsync(client, "going-private.pdf", bytes, visibility: 0);
+        var publicKey = await ReadStorageKeyAsync(TestConstants.RootTenantId, id);
+
+        // Act — make it private through a store whose first delete does nothing (S3StorageService.RemoveAsync
+        // swallows store errors), then let the outbox deliver what was committed with the move.
+        using (var scope = _factory.Services.CreateScope())
+        {
+            SetTenant(scope, TestConstants.RootTenantId);
+            var flaky = new DeleteFailsOnceStorage(scope.ServiceProvider.GetRequiredService<IStorageService>());
+            var relocator = ActivatorUtilities.CreateInstance<FSH.Modules.Files.Services.FileStorageRelocator>(scope.ServiceProvider, flaky);
+            await relocator.ApplyAsync(id, asset =>
+            {
+                asset.ChangeVisibility(Visibility.Private);
+                return true;
+            });
+            flaky.SwallowedDeletes.ShouldBe(1);
+        }
+
+        await OutboxDrain.DrainAsync(_factory.Services);
+
+        // Assert — the row moved, the bytes are intact, and the public copy is gone for anonymous readers.
+        (await ReadStorageKeyAsync(TestConstants.RootTenantId, id)).ShouldStartWith("private/");
+        (await DownloadViaPresignedUrlAsync(client, id)).ShouldBe(bytes);
+        (await ObjectExistsAsync(publicKey)).ShouldBeFalse("the retried delete must remove the old public object");
+        using var anonymous = new HttpClient();
+        using var response = await anonymous.GetAsync(new Uri($"{_factory.S3ServiceUrl}/{Bucket}/{publicKey}"));
+        response.StatusCode.ShouldNotBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Finalize_Should_MoveAnUploadPresignedBeforeTheUpgrade_UnderThePublicRoot()
+    {
+        // Arrange — a public upload whose presigned PUT (and so its key) predates visibility roots:
+        // the row is still PendingUpload at a tenants/… key and the browser has already PUT the bytes.
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var adminId = await GetUserIdAsync(TestConstants.RootTenantId, TestConstants.RootAdminEmail);
+        var id = Guid.CreateVersion7();
+        var legacyKey = $"tenants/{TestConstants.RootTenantId}/myfiles/2025/01/{id:N}/in-flight.pdf";
+        var bytes = RandomBytes(300);
+
+        var s3 = _factory.Services.GetRequiredService<IAmazonS3>();
+        using (var stream = new MemoryStream(bytes))
+        {
+            await s3.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = Bucket,
+                Key = legacyKey,
+                InputStream = stream,
+                ContentType = "application/pdf",
+            });
+        }
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            SetTenant(scope, TestConstants.RootTenantId);
+            var db = scope.ServiceProvider.GetRequiredService<FilesDbContext>();
+            db.FileAssets.Add(FileAsset.CreatePending(
+                id, "MyFiles", null, "in-flight.pdf", "in-flight.pdf", "application/pdf", bytes.Length, legacyKey,
+                Visibility.Public, createdByUserId: adminId, uploadDeadline: DateTimeOffset.UtcNow.AddMinutes(15)));
+            await db.SaveChangesAsync();
+        }
+
+        // Act
+        using var finalize = await client.PostAsync($"{FilesBasePath}/{id}/finalize", null);
+
+        // Assert — finalized straight onto the public root, not left for a later migration run.
+        finalize.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var key = await ReadStorageKeyAsync(TestConstants.RootTenantId, id);
+        key.ShouldBe("public/" + legacyKey);
+        (await ReadObjectAsync(key)).ShouldBe(bytes);
+        (await ObjectExistsAsync(legacyKey)).ShouldBeFalse();
+    }
+
     // ─── helpers ─────────────────────────────────────────────────────
 
     private sealed record LegacyAsset(Guid Id, string Key, byte[] Bytes);
@@ -224,12 +379,63 @@ public sealed class StorageVisibilityRootTests
     // Public URLs are built from the S3 endpoint + bucket in the test host (no PublicBaseUrl).
     private string PublicUrlFor(string key) => $"{_factory.S3ServiceUrl}/{Bucket}/{key}";
 
-    private async Task RunMigrationJobAsync()
+    private async Task RunMigrationJobAsync(int batchSize = 100)
     {
         // A fresh, tenant-less scope — the shape Hangfire's activator gives the enqueued job.
         using var scope = _factory.Services.CreateScope();
-        var job = ActivatorUtilities.CreateInstance<MigrateLegacyPublicFileKeysJob>(scope.ServiceProvider);
+        var options = Options.Create(new FSH.Modules.Files.FilesOptions { LegacyKeyMigrationBatchSize = batchSize });
+        var job = ActivatorUtilities.CreateInstance<MigrateLegacyPublicFileKeysJob>(scope.ServiceProvider, options);
         await job.RunAsync(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// A store whose first delete silently does nothing — what <c>S3StorageService.RemoveAsync</c> does when
+    /// the store errors, since it logs and swallows.
+    /// </summary>
+    private sealed class DeleteFailsOnceStorage(IStorageService inner) : IStorageService
+    {
+        public int SwallowedDeletes { get; private set; }
+
+        public Task RemoveAsync(string path, CancellationToken cancellationToken = default)
+        {
+            if (SwallowedDeletes == 0)
+            {
+                SwallowedDeletes++;
+                return Task.CompletedTask;
+            }
+
+            return inner.RemoveAsync(path, cancellationToken);
+        }
+
+        public Task<string> UploadAsync<T>(FSH.Framework.Shared.Storage.FileUploadRequest request, FSH.Framework.Storage.FileType fileType, CancellationToken cancellationToken = default)
+            where T : class => inner.UploadAsync<T>(request, fileType, cancellationToken);
+        public Task<FSH.Framework.Storage.DTOs.FileDownloadResponse?> DownloadAsync(string path, CancellationToken cancellationToken = default) => inner.DownloadAsync(path, cancellationToken);
+        public Task<bool> ExistsAsync(string path, CancellationToken cancellationToken = default) => inner.ExistsAsync(path, cancellationToken);
+        public Task<long> GetSizeAsync(string path, CancellationToken cancellationToken = default) => inner.GetSizeAsync(path, cancellationToken);
+        public Task CopyAsync(string sourceKey, string destinationKey, CancellationToken cancellationToken = default) => inner.CopyAsync(sourceKey, destinationKey, cancellationToken);
+        public Task<FSH.Framework.Shared.Storage.PresignedUploadUrl> GenerateUploadUrlAsync(string storageKey, string contentType, long maxBytes, TimeSpan ttl, CancellationToken cancellationToken = default)
+            => inner.GenerateUploadUrlAsync(storageKey, contentType, maxBytes, ttl, cancellationToken);
+        public Task<Uri> GenerateDownloadUrlAsync(string storageKey, TimeSpan ttl, string? responseContentDisposition = null, CancellationToken cancellationToken = default)
+            => inner.GenerateDownloadUrlAsync(storageKey, ttl, responseContentDisposition, cancellationToken);
+        public Task<FSH.Framework.Shared.Storage.StoredObjectMetadata?> HeadObjectAsync(string storageKey, CancellationToken cancellationToken = default) => inner.HeadObjectAsync(storageKey, cancellationToken);
+        public string BuildPublicUrl(string storageKey) => inner.BuildPublicUrl(storageKey);
+    }
+
+    private async Task DeleteRowsAsync(string tenantId, IEnumerable<Guid> ids)
+    {
+        var idList = ids.ToList();
+        using var scope = _factory.Services.CreateScope();
+        SetTenant(scope, tenantId);
+        var db = scope.ServiceProvider.GetRequiredService<FilesDbContext>();
+        await db.FileAssets.IgnoreQueryFilters().Where(f => idList.Contains(f.Id)).ExecuteDeleteAsync();
+    }
+
+    private async Task<Visibility> ReadVisibilityAsync(string tenantId, Guid id)
+    {
+        using var scope = _factory.Services.CreateScope();
+        SetTenant(scope, tenantId);
+        var db = scope.ServiceProvider.GetRequiredService<FilesDbContext>();
+        return await db.FileAssets.IgnoreQueryFilters().AsNoTracking().Where(f => f.Id == id).Select(f => f.Visibility).SingleAsync();
     }
 
     private async Task ApplyPublicPrefixPolicyAsync()
@@ -244,7 +450,8 @@ public sealed class StorageVisibilityRootTests
         });
     }
 
-    private async Task<LegacyAsset> SeedLegacyAssetAsync(string tenantId, string ownerType, Guid? ownerId, Visibility visibility)
+    private async Task<LegacyAsset> SeedLegacyAssetAsync(
+        string tenantId, string ownerType, Guid? ownerId, Visibility visibility, bool withObject = true)
     {
         var id = Guid.CreateVersion7();
 #pragma warning disable CA1308 // storage path segments are lower-case
@@ -253,8 +460,9 @@ public sealed class StorageVisibilityRootTests
         var bytes = RandomBytes(512);
 
         var s3 = _factory.Services.GetRequiredService<IAmazonS3>();
-        using (var stream = new MemoryStream(bytes))
+        if (withObject)
         {
+            using var stream = new MemoryStream(bytes);
             await s3.PutObjectAsync(new PutObjectRequest
             {
                 BucketName = Bucket,
@@ -370,7 +578,7 @@ public sealed class StorageVisibilityRootTests
             new MultiTenantContext<AppTenantInfo>(tenant);
     }
 
-    private static async Task<byte[]> DownloadAsync(HttpClient client, Guid id)
+    private static async Task<byte[]> DownloadViaPresignedUrlAsync(HttpClient client, Guid id)
     {
         using var urlResp = await client.GetAsync($"{FilesBasePath}/{id}/url");
         urlResp.StatusCode.ShouldBe(HttpStatusCode.OK);

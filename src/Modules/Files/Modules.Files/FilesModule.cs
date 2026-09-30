@@ -1,5 +1,7 @@
 using Asp.Versioning;
 using FluentValidation;
+using FSH.Framework.Eventing;
+using FSH.Framework.Jobs.Services;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
@@ -53,6 +55,8 @@ public sealed class FilesModule : IModule
         builder.Services.AddScoped<FileAccessPolicyRegistry>();
         builder.Services.AddScoped<FileStorageRelocator>();
         builder.Services.AddTransient<MigrateLegacyPublicFileKeysJob>();
+        // DeleteSupersededObjectHandler: durable removal of objects left behind by a storage move.
+        builder.Services.AddIntegrationEventHandlers(typeof(FilesModule).Assembly);
         builder.Services.AddSingleton<IFileScanner, NoOpFileScanner>();
         builder.Services.AddValidatorsFromAssembly(typeof(FilesModule).Assembly);
 
@@ -114,9 +118,12 @@ public sealed class FilesModule : IModule
 
         // One-shot upgrade step (#1410): public files uploaded before visibility lived in the key are
         // moved under public/, which is all bucket policies let anonymous readers see. Enqueued on every
-        // start because it is idempotent and a no-op once nothing is left to move; the job serializes
-        // itself so several instances starting together don't race.
-        endpoints.ServiceProvider.GetService<IBackgroundJobClient>()?
-            .Enqueue<MigrateLegacyPublicFileKeysJob>(j => j.RunAsync(CancellationToken.None));
+        // start: it is idempotent, reads a partial index that is empty once nothing is left to move, and
+        // per-file row locks make overlapping runs (several instances, retries) safe.
+        using (var scope = endpoints.ServiceProvider.CreateScope())
+        {
+            scope.ServiceProvider.GetService<IJobService>()?
+                .Enqueue<MigrateLegacyPublicFileKeysJob>(j => j.RunAsync(CancellationToken.None));
+        }
     }
 }
