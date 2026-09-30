@@ -6,6 +6,17 @@
 
 `UploadAsync<T>(FileUploadRequest, FileType, ct)`, `RemoveAsync(path, ct)`, `DownloadAsync`, `ExistsAsync`, `GetSizeAsync` (0 if absent), `GenerateUploadUrlAsync`/`GenerateDownloadUrlAsync` (presigned), `HeadObjectAsync`, `BuildPublicUrl(key)→string` (string, not Uri — local storage returns a server-relative path).
 
+`CopyAsync(source, destination, ct)` is a server-side copy that **throws** on failure (unlike `RemoveAsync`) — callers move objects as copy → update the reference → delete. The quota decorator charges the copy, so a move is net-zero.
+
+## Visibility lives in the key
+
+Bucket policies in every stack (Aspire bootstrap, compose `rustfs-init`, Terraform `app_s3_public_read_prefix` + the CloudFront read statement) grant anonymous `s3:GetObject` on **`public/*` only** (`StorageVisibilityRoot`). So:
+- Files keys are `{public|private}/tenants/{tenant}/{owner}/{yyyy}/{MM}/{id:N}/{name}` — `StorageKeyBuilder` (Files module) is the **one** place that decides; never hand-build a key.
+- `S3StorageService.UploadAsync<T>` always returns a public URL, so it writes under `public/uploads/…`.
+- A visibility flip moves the object (`FileStorageRelocator`: copy → commit row + `FileStorageKeyChangedIntegrationEvent` → delete old). Modules that persist a public URL must handle that event and rewrite it (`RewriteUrl`) — Catalog (product images) and Identity (avatars) do.
+- Keys from before #1410 (`tenants/…`, `uploads/…`) have no root: `MigrateLegacyPublicFileKeysJob` (enqueued on every API start, idempotent) moves public FileAssets under `public/`; legacy private ones stay put. Legacy `UploadAsync<T>` objects (`uploads/…`) are **not** migrated.
+- With `Storage:S3:Prefix` set, keys become `{Prefix}/public/…` — the policy must match that.
+
 `FileType`: `Image` (5MB), `Document`, `Pdf` (10MB) — `FileTypeMetadata.GetRules` enforces extension + size. **Always propagate `CancellationToken`.**
 
 ## Providers
