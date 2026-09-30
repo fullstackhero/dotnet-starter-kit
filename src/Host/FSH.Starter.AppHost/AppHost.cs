@@ -62,14 +62,15 @@ var rustfs = builder.AddContainer("rustfs", "rustfs/rustfs", "1.0.0")
     .WithVolume($"{appPrefix}-rustfs-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
-// Init container: bucket bootstrap (create + public-read GetObject policy). Script normalized to LF so /bin/sh in aws-cli doesn't choke on Windows CRLF.
+// Init container: bucket bootstrap (create + anonymous GetObject on public/* only — visibility lives in the key, so private/* and
+// pre-#1410 tenants/* keys stay presigned-only; the API moves legacy public files under public/ on start). Script normalized to LF so /bin/sh in aws-cli doesn't choke on Windows CRLF.
 var s3InitScript = ($$"""
 until aws --endpoint-url http://rustfs:9000 s3api list-buckets > /dev/null 2>&1; do
   echo "waiting for rustfs...";
   sleep 2;
 done;
 aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket {{S3Bucket}} 2>/dev/null || aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket {{S3Bucket}};
-aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy --bucket {{S3Bucket}} --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::{{S3Bucket}}/*"]}]}';
+aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy --bucket {{S3Bucket}} --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::{{S3Bucket}}/public/*"]}]}';
 """).ReplaceLineEndings("\n");
 
 var s3Init = builder.AddContainer("rustfs-init", "amazon/aws-cli", "2.37.3")
