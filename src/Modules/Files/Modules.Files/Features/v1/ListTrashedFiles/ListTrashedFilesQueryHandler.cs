@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Contracts.v1.Queries;
@@ -29,7 +30,7 @@ public sealed class ListTrashedFilesQueryHandler(FilesDbContext db)
         long total = await baseQuery.LongCountAsync(cancellationToken).ConfigureAwait(false);
 
         var rows = await baseQuery
-            .Skip((page - 1) * size)
+            .Skip(PaginationExtensions.GetOffset(page, size))
             .Take(size)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

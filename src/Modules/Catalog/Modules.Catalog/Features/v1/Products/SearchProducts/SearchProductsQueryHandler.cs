@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Catalog.Contracts.Dtos;
 using FSH.Modules.Catalog.Contracts.v1.Products;
@@ -48,7 +49,7 @@ public sealed class SearchProductsQueryHandler(CatalogDbContext dbContext)
 
         long total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
         var products = await q
-            .Skip((page - 1) * size)
+            .Skip(PaginationExtensions.GetOffset(page, size))
             .Take(size)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

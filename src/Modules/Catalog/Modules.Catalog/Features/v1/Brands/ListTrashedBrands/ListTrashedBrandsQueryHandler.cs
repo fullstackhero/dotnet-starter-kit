@@ -29,7 +29,7 @@ public sealed class ListTrashedBrandsQueryHandler(CatalogDbContext dbContext)
 
         long total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
         var items = await q
-            .Skip((page - 1) * size)
+            .Skip(PaginationExtensions.GetOffset(page, size))
             .Take(size)
             .Select(b => new BrandDto(
                 b.Id, b.Name, b.Slug, b.Description, b.LogoUrl,
