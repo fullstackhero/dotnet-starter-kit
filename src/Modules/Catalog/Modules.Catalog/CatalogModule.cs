@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using FSH.Framework.Eventing;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
@@ -58,6 +59,9 @@ public sealed class CatalogModule : IModule
 
         // OwnerType=Product policy for Files module attachments (product images).
         builder.Services.AddScoped<IFileAccessPolicy, ProductFileAccessPolicy>();
+
+        // Keeps persisted product-image URLs pointing at their FileAsset when Files moves its object.
+        builder.Services.AddIntegrationEventHandlers(typeof(CatalogModule).Assembly);
 
         builder.Services.AddHealthChecks()
             .AddDbContextCheck<CatalogDbContext>(
