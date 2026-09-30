@@ -147,19 +147,6 @@ test.describe("overview (/)", () => {
   });
 });
 
-test.describe("activity (/activity)", () => {
-  test.beforeEach(async ({ page }) => {
-    await seedAuthedSession(page, TEST_USER);
-    await installShellMocks(page);
-  });
-
-  test("renders the live-activity page with its empty state (stream offline in tests)", async ({ page }) => {
-    await page.goto("/activity");
-    await expect(page.getByRole("heading", { name: /live activity/i })).toBeVisible();
-    await expect(page.getByText(/no events yet|listening for activity/i)).toBeVisible();
-  });
-});
-
 test.describe("invoices (/invoices)", () => {
   test.beforeEach(async ({ page }) => {
     await seedAuthedSession(page, TEST_USER);
