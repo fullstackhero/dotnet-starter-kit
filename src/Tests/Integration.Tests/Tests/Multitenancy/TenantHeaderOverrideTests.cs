@@ -55,8 +55,8 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         await CreateTenantAsync(rootClient, _tenantA, _tenantAAdminEmail);
         await CreateTenantAsync(rootClient, _tenantB, _tenantBAdminEmail);
-        await WaitForProvisioningAsync(rootClient, _tenantA);
-        await WaitForProvisioningAsync(rootClient, _tenantB);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, _tenantA);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, _tenantB);
 
         // Provisioning can report "Completed" a tick before the seeded admin user is queryable; a
         // successful token issuance cross-checks the user exists, avoiding a first-test race on empty lists.
@@ -207,28 +207,6 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
             issuer = $"{tenantId}.issuer",
         });
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (var i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync($"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var content = await statusResponse.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-            await Task.Delay(1000);
-        }
-        throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
     }
 
     private sealed class SearchUserDto
