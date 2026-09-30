@@ -17,7 +17,8 @@ public sealed class ChangeFileVisibilityCommandHandler(
     FilesDbContext db,
     FileAccessPolicyRegistry policies,
     ICurrentUser currentUser,
-    IStorageService storage)
+    IStorageService storage,
+    FileStorageRelocator relocator)
     : ICommandHandler<ChangeFileVisibilityCommand, FileAssetDto>
 {
     public async ValueTask<FileAssetDto> Handle(ChangeFileVisibilityCommand cmd, CancellationToken cancellationToken)
@@ -46,8 +47,10 @@ public sealed class ChangeFileVisibilityCommandHandler(
             throw new ForbiddenException("not allowed to change this file's visibility");
         }
 
+        // Visibility lives in the storage key (public/ vs private/), so a flip moves the object: bucket
+        // policies grant anonymous read on public/* only.
         f.ChangeVisibility(cmd.Visibility);
-        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await relocator.SaveAsync(f, cancellationToken).ConfigureAwait(false);
 
         var publicUrl = f.Visibility == Visibility.Public
             ? storage.BuildPublicUrl(f.StorageKey)
