@@ -57,6 +57,51 @@ test.describe("overview (/)", () => {
     await expect(page.getByText(/no usage captured yet/i)).toBeVisible();
   });
 
+  // GET /audits requires AuditTrails.View; installShellMocks grants no permissions.
+  test("recent audits: without Audit trail access, no /audits call and a no-access state", async ({ page }) => {
+    let auditCalls = 0;
+    page.on("request", (req) => {
+      if (new URL(req.url()).pathname.startsWith("/api/v1/audits")) auditCalls++;
+    });
+    const errors: string[] = [];
+    page.on("pageerror", (err) => errors.push(err.message));
+
+    await page.goto("/");
+    const card = page.locator("section", { has: page.getByRole("heading", { name: "Recent audits" }) });
+    await expect(card.getByText("No access to audits")).toBeVisible();
+    await expect(card.getByRole("link", { name: /see all/i })).toHaveCount(0);
+    await expect(page.getByText(/failure|couldn't load/i)).toHaveCount(0);
+
+    expect(auditCalls).toBe(0);
+    expect(errors).toEqual([]);
+  });
+
+  test("recent audits: with Audit trail access, rows load from /audits", async ({ page }) => {
+    await mockJsonResponse(page, "**/api/v1/identity/permissions", ["Permissions.AuditTrails.View"]);
+    await mockJsonResponse(
+      page,
+      "**/api/v1/audits**",
+      paged([
+        {
+          id: "a-1",
+          occurredAtUtc: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          eventType: "Security",
+          severity: "Information",
+          tenantId: "acme",
+          userId: "u-test-1",
+          userName: "Alice Nguyen",
+          source: "api.identity.IssueJwtToken",
+          tags: 0,
+        },
+      ]),
+    );
+
+    await page.goto("/");
+    const card = page.locator("section", { has: page.getByRole("heading", { name: "Recent audits" }) });
+    await expect(card.getByText("api.identity.IssueJwtToken")).toBeVisible();
+    await expect(card.getByRole("link", { name: /see all/i })).toBeVisible();
+  });
+
   test("quick-action tiles are wide enough for their title and description", async ({ page }) => {
     // At desktop widths the card sits in a narrow column beside the 360px
     // rail, so tiles sized off the viewport squeeze titles past their box.
