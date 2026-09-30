@@ -15,7 +15,10 @@ RUN dotnet publish src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj
     --no-restore \
     -o /publish
 
-FROM mcr.microsoft.com/dotnet/nightly/aspnet:10.0-noble-chiseled AS runtime
+# Chiseled on purpose (compose). The csproj ContainerFamily (SDK publish, AWS)
+# is full noble: chiseled strips libgssapi_krb5, and Npgsql's GSSAPI probe
+# then logs a noisy (benign) load error. See the API Dockerfile.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS runtime
 WORKDIR /app
 COPY --from=build /publish .
 
