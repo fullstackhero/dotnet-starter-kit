@@ -85,7 +85,7 @@ docker compose up -d --build
 
 The `migrator` re-runs and applies any new migrations idempotently before `api` restarts.
 
-Upgrading from a release where public files had no `public/` prefix: `rustfs-init` re-applies the bucket policy on every `up`, and on start the API moves those files under `public/` (and rewrites the avatar and product-image URLs that point at them) in a background job. Watch `docker compose logs api` for `[Files] moved … legacy public file(s)`; a failure is logged and retried on the next API start.
+Upgrading from a release where public files had no `public/` prefix: `rustfs-init` re-applies the bucket policy on every `up`, and on start the API moves those files under `public/` (and rewrites the avatar and product-image URLs that point at them) in a background job. Watch `docker compose logs api` for `[Files] moved … legacy public file(s)`; failures are logged, retried by the job scheduler with backoff, and retried again on every API start. Uploads that were presigned before the upgrade are moved when they finalize.
 
 ## Backing up
 
