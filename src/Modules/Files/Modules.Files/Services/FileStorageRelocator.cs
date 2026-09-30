@@ -45,17 +45,13 @@ public sealed partial class FileStorageRelocator(
             return false;
         }
 
-        // 1. Copy. A previous attempt that crashed after its copy already left the object in place.
-        var oldExists = await storage.ExistsAsync(oldKey, cancellationToken).ConfigureAwait(false);
-        var newExists = await storage.ExistsAsync(newKey, cancellationToken).ConfigureAwait(false);
-        if (oldExists && !newExists)
+        // 1. Copy, unless a previous attempt that crashed after its copy already put the object there.
+        // ExistsAsync reports false on any store error, so only a positive answer skips the copy; the copy
+        // itself is authoritative and throws when the source is missing or the store fails, which stops
+        // the move before the row is repointed.
+        if (!await storage.ExistsAsync(newKey, cancellationToken).ConfigureAwait(false))
         {
             await storage.CopyAsync(oldKey, newKey, cancellationToken).ConfigureAwait(false);
-        }
-        else if (!oldExists && !newExists)
-        {
-            // Nothing to move (the object is gone); repoint the row anyway so it stops being revisited.
-            LogObjectMissing(logger, asset.Id, oldKey);
         }
 
         // 2. Commit the new key together with the event that tells owning modules to rewrite their URLs.
@@ -81,19 +77,13 @@ public sealed partial class FileStorageRelocator(
             await transaction.CommitAsync(ct).ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
 
-        // 3. Only now is the old object unreferenced.
-        if (oldExists)
-        {
-            await storage.RemoveAsync(oldKey, cancellationToken).ConfigureAwait(false);
-        }
+        // 3. Only now is the old object unreferenced. RemoveAsync is best-effort: a failure leaves an
+        // orphaned object behind, never a broken reference.
+        await storage.RemoveAsync(oldKey, cancellationToken).ConfigureAwait(false);
 
         LogRelocated(logger, asset.Id, oldKey, newKey);
         return true;
     }
-
-    [LoggerMessage(Level = LogLevel.Warning,
-        Message = "[Files] object for file {FileAssetId} is missing at {StorageKey}; repointing the row without a copy")]
-    private static partial void LogObjectMissing(ILogger logger, Guid fileAssetId, string storageKey);
 
     [LoggerMessage(Level = LogLevel.Information,
         Message = "[Files] moved file {FileAssetId} from {OldStorageKey} to {NewStorageKey}")]
