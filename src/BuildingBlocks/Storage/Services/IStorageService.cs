@@ -27,6 +27,16 @@ public interface IStorageService
     Task RemoveAsync(string path, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Server-side copy of the object at <paramref name="sourceKey"/> to <paramref name="destinationKey"/>,
+    /// overwriting any object already there. The source is left in place. Unlike
+    /// <see cref="RemoveAsync"/>, a failure throws (including a missing source), because callers move
+    /// objects with copy → update the reference → delete, and must not delete what they failed to copy.
+    /// Used by the Files module to move an object between the <c>public/</c> and <c>private/</c>
+    /// visibility roots (see <c>StorageVisibilityRoot</c>).
+    /// </summary>
+    Task CopyAsync(string sourceKey, string destinationKey, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Mint a short-lived presigned PUT URL the browser uses to upload bytes directly to S3-compatible storage.
     /// Returns the URL plus any headers the browser MUST include verbatim in its PUT (typically Content-Type
     /// when the signature constrains it). Used by the Files module's <c>RequestUploadUrl</c> endpoint.

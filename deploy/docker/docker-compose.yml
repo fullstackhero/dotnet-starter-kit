@@ -74,17 +74,21 @@ services:
       timeout: 3s
       retries: 12
     # The S3 API is published because browsers reach it directly through the
-    # presigned URLs the API hands out (FSH_S3_PUBLIC_URL). Uncomment the
-    # console (admin UI) line to expose it too:
+    # presigned URLs the API hands out (FSH_S3_PUBLIC_URL). This binds all
+    # interfaces: firewall the port, or when your proxy runs on this host bind
+    # it to loopback instead ("127.0.0.1:${FSH_S3_PORT:-9000}:9000") so only
+    # the proxy can reach it. Uncomment the console (admin UI) line to expose it too:
     ports:
       - "${FSH_S3_PORT:-9000}:9000"   # S3 API
     #   - "9001:9001"   # Web console
 
-  # One-shot: create the bucket the Files module writes to. The app never
-  # auto-creates it (S3StorageService just PutObjects into Storage:S3:Bucket),
-  # so without this the first upload fails with NoSuchBucket. No anonymous
-  # policy is set — objects are served via the API / presigned URLs, not a
-  # public bucket.
+  # One-shot: create the bucket the Files module writes to and open public/*
+  # to anonymous reads. The app never auto-creates the bucket (S3StorageService
+  # just PutObjects into Storage:S3:Bucket), so without this the first upload
+  # fails with NoSuchBucket. Visibility lives in the object key: public files
+  # go under public/ and are served straight from ${FSH_S3_PUBLIC_URL}/fsh/...;
+  # everything else (private/, and keys from before public/ existed) needs a
+  # presigned URL. Re-applied on every `up`, so it also narrows older policies.
   rustfs-init:
     image: amazon/aws-cli:2.37.3
     container_name: fsh-rustfs-init
@@ -99,8 +103,10 @@ services:
     command:
       - -c
       - |
+        set -e
         aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket fsh 2>/dev/null ||
           aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket fsh
+        aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy --bucket fsh --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::fsh/public/*"]}]}'
 
   migrator:
     build:
@@ -143,6 +149,9 @@ services:
       Storage__S3__ServiceUrl: http://rustfs:9000
       # Presigned upload/download URLs go to browsers, which cannot resolve rustfs:9000.
       Storage__S3__PresignServiceUrl: ${FSH_S3_PUBLIC_URL:?FSH_S3_PUBLIC_URL is required}
+      # Durable URLs for public files (avatars, product images): path-style
+      # <public S3 URL>/<bucket>/public/..., readable through the public/* policy.
+      Storage__S3__PublicBaseUrl: ${FSH_S3_PUBLIC_URL}/fsh
       Storage__S3__AccessKey: ${RUSTFS_ACCESS_KEY}
       Storage__S3__SecretKey: ${RUSTFS_SECRET_KEY}
       Storage__S3__Bucket: fsh

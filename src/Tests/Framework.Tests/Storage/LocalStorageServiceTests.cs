@@ -190,6 +190,30 @@ public sealed class LocalStorageServiceTests : IDisposable
         await Should.NotThrowAsync(() => _sut.RemoveAsync("uploads/probe/missing.png"));
     }
 
+    [Fact]
+    public async Task CopyAsync_Should_CopyBytesToTheDestinationKey_And_KeepTheSource()
+    {
+        // Arrange
+        var source = await _sut.UploadAsync<Probe>(PngRequest(), FileType.Image);
+        const string destination = "public/tenants/t/probe/copied.png";
+
+        // Act
+        await _sut.CopyAsync(source, destination);
+
+        // Assert
+        (await _sut.ExistsAsync(destination)).ShouldBeTrue();
+        (await _sut.GetSizeAsync(destination)).ShouldBe(4);
+        (await _sut.ExistsAsync(source)).ShouldBeTrue("a copy must leave the source for the caller to delete");
+    }
+
+    [Fact]
+    public async Task CopyAsync_Should_Throw_When_SourceMissing()
+    {
+        // A move deletes the source after the copy, so a failed copy must not pass silently.
+        await Should.ThrowAsync<FileNotFoundException>(
+            () => _sut.CopyAsync("uploads/probe/missing.png", "public/uploads/probe/missing.png"));
+    }
+
     #endregion
 
     public void Dispose()
