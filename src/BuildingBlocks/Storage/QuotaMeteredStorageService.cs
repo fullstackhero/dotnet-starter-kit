@@ -108,7 +108,10 @@ internal sealed class QuotaMeteredStorageService : IStorageService
 
         await _inner.RemoveAsync(path, cancellationToken).ConfigureAwait(false);
 
-        if (size > 0 && !string.IsNullOrWhiteSpace(tenantId))
+        // Providers' RemoveAsync swallows store errors, so only refund once the object is really gone —
+        // otherwise a failed delete would both keep the bytes and hand the quota back.
+        if (size > 0 && !string.IsNullOrWhiteSpace(tenantId)
+            && !await _inner.ExistsAsync(path, cancellationToken).ConfigureAwait(false))
         {
             await _quotas
                 .RecordAsync(tenantId, QuotaResource.StorageBytes, -size, CancellationToken.None)

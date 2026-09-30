@@ -82,8 +82,12 @@ public sealed class S3StorageKeyLayoutTests
     {
         // Arrange — the copy is charged and the delete that follows it is refunded, so a move is net-zero.
         var s3 = Substitute.For<IAmazonS3>();
+        // HEAD calls in order: size of the copy, size of the source before delete, existence check after it.
         s3.GetObjectMetadataAsync(Arg.Any<GetObjectMetadataRequest>(), Arg.Any<CancellationToken>())
-            .Returns(new GetObjectMetadataResponse { ContentLength = 42 });
+            .Returns(
+                _ => new GetObjectMetadataResponse { ContentLength = 42 },
+                _ => new GetObjectMetadataResponse { ContentLength = 42 },
+                _ => throw new AmazonS3Exception("gone") { StatusCode = System.Net.HttpStatusCode.NotFound });
         var quotas = Substitute.For<IQuotaService>();
         using var provider = BuildProvider(s3, quotas, tenantId: "tenant-a");
         var storage = provider.GetRequiredService<IStorageService>();
@@ -95,6 +99,26 @@ public sealed class S3StorageKeyLayoutTests
         // Assert
         await quotas.Received(1).RecordAsync("tenant-a", QuotaResource.StorageBytes, 42, Arg.Any<CancellationToken>());
         await quotas.Received(1).RecordAsync("tenant-a", QuotaResource.StorageBytes, -42, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RemoveAsync_Should_NotRefund_When_TheObjectIsStillThereAfterTheDelete()
+    {
+        // Arrange — S3StorageService.RemoveAsync swallows store errors, so a failed delete looks like success.
+        var s3 = Substitute.For<IAmazonS3>();
+        s3.DeleteObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns<DeleteObjectResponse>(_ => throw new AmazonS3Exception("SlowDown"));
+        s3.GetObjectMetadataAsync(Arg.Any<GetObjectMetadataRequest>(), Arg.Any<CancellationToken>())
+            .Returns(new GetObjectMetadataResponse { ContentLength = 42 });
+        var quotas = Substitute.For<IQuotaService>();
+        using var provider = BuildProvider(s3, quotas, tenantId: "tenant-a");
+        var storage = provider.GetRequiredService<IStorageService>();
+
+        // Act
+        await storage.RemoveAsync("public/tenants/tenant-a/x.png");
+
+        // Assert — the bytes are still stored, so the quota keeps counting them.
+        await quotas.DidNotReceive().RecordAsync(Arg.Any<string>(), Arg.Any<QuotaResource>(), Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 
     private static ServiceProvider BuildProvider(IAmazonS3 s3, IQuotaService? quotas = null, string? tenantId = null)
