@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Billing.Contracts.Dtos;
@@ -40,7 +41,7 @@ public sealed class GetTopupRequestsQueryHandler(
         var total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
         var items = await q
             .OrderByDescending(r => r.CreatedAtUtc)
-            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Skip(PaginationExtensions.GetOffset(query.PageNumber, query.PageSize))
             .Take(query.PageSize)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
 
