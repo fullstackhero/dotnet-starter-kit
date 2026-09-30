@@ -15,7 +15,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Files
                 schema: "files",
                 table: "FileAssets",
                 column: "Id",
-                filter: "\"StorageKey\" NOT LIKE 'public/%' AND \"StorageKey\" NOT LIKE 'private/%'");
+                filter: "\"StorageKey\" NOT LIKE 'public/%' AND \"StorageKey\" NOT LIKE 'private/%' AND \"Visibility\" = 0 AND \"Status\" = 1");
         }
 
         /// <inheritdoc />

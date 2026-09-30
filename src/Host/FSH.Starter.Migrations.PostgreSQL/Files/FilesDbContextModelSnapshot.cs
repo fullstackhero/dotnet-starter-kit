@@ -101,7 +101,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Files
 
                     b.HasIndex("Id")
                         .HasDatabaseName("IX_FileAsset_LegacyKey")
-                        .HasFilter("\"StorageKey\" NOT LIKE 'public/%' AND \"StorageKey\" NOT LIKE 'private/%'");
+                        .HasFilter("\"StorageKey\" NOT LIKE 'public/%' AND \"StorageKey\" NOT LIKE 'private/%' AND \"Visibility\" = 0 AND \"Status\" = 1");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("IX_FileAsset_Status");

@@ -24,8 +24,9 @@ namespace FSH.Modules.Files.Jobs;
 /// anonymous read on them any more, which is the point.
 /// <para>
 /// <b>Cost when there is nothing to do.</b> The scan reads <c>IX_FileAsset_LegacyKey</c>, a partial index over
-/// rows whose key has no visibility root. New keys always have one, so once a tenant is migrated the index
-/// is empty and each start costs one index probe per tenant database — no completion marker to keep in
+/// exactly the rows this job moves: Available public files whose key has no visibility root (legacy private,
+/// pending and quarantined rows are not in it). New keys always have a root and moved rows leave it, so once
+/// a tenant is migrated the index is empty and each start costs one index probe per tenant database — no completion marker to keep in
 /// sync, and new tenants are "done" from the start. Files finalized with a legacy key after the upgrade
 /// (presigned before it) are relocated by <c>FinalizeUpload</c> itself, and would otherwise still show up here.
 /// </para>
@@ -126,8 +127,8 @@ public sealed partial class MigrateLegacyPublicFileKeysJob(
         return (moved, failed);
     }
 
-    // The key predicate matches the filter of IX_FileAsset_LegacyKey word for word, so PostgreSQL can
-    // answer this from that (normally empty) partial index. Soft-deleted files are included, since a
+    // These four predicates are the filter of IX_FileAsset_LegacyKey (Visibility = 0, Status = 1), so
+    // PostgreSQL can answer this from that (normally empty) partial index. Soft-deleted files are included, since a
     // restore must bring back a working public URL; the tenant filter stays on. Pending uploads are left
     // to FinalizeUpload, which relocates them when they complete.
     private Task<List<Guid>> LegacyPublicIdsAsync(FilesDbContext db, Guid? lastId, CancellationToken ct)

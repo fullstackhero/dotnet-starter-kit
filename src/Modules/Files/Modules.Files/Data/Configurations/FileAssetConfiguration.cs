@@ -45,11 +45,13 @@ public sealed class FileAssetConfiguration : IEntityTypeConfiguration<FileAsset>
             .HasFilter("\"IsDeleted\" = FALSE")
             .HasDatabaseName("UX_FileAsset_StorageKey");
 
-        // Rows whose key predates the public/ and private/ roots (#1410). New keys always carry a root, so
-        // this index empties out once MigrateLegacyPublicFileKeysJob has run, and the job's per-start scan
-        // (whose predicate matches this filter exactly) becomes a probe of an empty index.
+        // Available public files whose key predates the public/ and private/ roots (#1410) — exactly the rows
+        // MigrateLegacyPublicFileKeysJob moves. Legacy private, pending and quarantined rows are left out on
+        // purpose: the job never moves them, so they would keep the index from emptying. New keys always carry
+        // a root, so once the job has run the index is empty and its per-start scan (whose predicate matches
+        // this filter) is a probe of an empty index. Visibility.Public = 0, FileAssetStatus.Available = 1.
         builder.HasIndex(x => x.Id)
-            .HasFilter("\"StorageKey\" NOT LIKE 'public/%' AND \"StorageKey\" NOT LIKE 'private/%'")
+            .HasFilter("\"StorageKey\" NOT LIKE 'public/%' AND \"StorageKey\" NOT LIKE 'private/%' AND \"Visibility\" = 0 AND \"Status\" = 1")
             .HasDatabaseName("IX_FileAsset_LegacyKey");
 
         builder.Ignore(x => x.DomainEvents);
