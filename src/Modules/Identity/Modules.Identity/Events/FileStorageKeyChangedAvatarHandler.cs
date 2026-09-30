@@ -29,8 +29,8 @@ public sealed class FileStorageKeyChangedAvatarHandler(IdentityDbContext db)
         var userId = ownerId.ToString();
         var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct).ConfigureAwait(false);
 
-        // Idempotent: once rewritten, the URL no longer ends with the old key and RewriteUrl returns null.
-        var rewritten = @event.RewriteUrl(user?.ImageUrl?.ToString());
+        // Idempotent: once rewritten, the URL no longer ends with the old key and ResolveUrl returns null.
+        var rewritten = @event.ResolveUrl(user?.ImageUrl?.ToString());
         if (user is null || rewritten is null)
         {
             return;

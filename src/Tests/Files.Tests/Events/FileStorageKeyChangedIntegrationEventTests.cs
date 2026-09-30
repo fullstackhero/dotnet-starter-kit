@@ -40,5 +40,23 @@ public class FileStorageKeyChangedIntegrationEventTests
     public void RewriteUrl_Should_ReturnNull_When_TheUrlIsForAnotherObject(string? url)
     {
         NewEvent().RewriteUrl(url).ShouldBeNull();
+        (NewEvent() with { NewPublicUrl = "https://s3.example.com/fsh/" + NewKey }).ResolveUrl(url).ShouldBeNull();
+    }
+
+    [Fact]
+    public void ResolveUrl_Should_UseTheCurrentPublicUrl_When_TheStoredUrlHasAnOutdatedBase()
+    {
+        // Compose stored http://rustfs:9000/... before PublicBaseUrl existed; browsers can't reach that host.
+        var @event = NewEvent() with { NewPublicUrl = "https://s3.example.com/fsh/" + NewKey };
+
+        @event.ResolveUrl("http://rustfs:9000/fsh/" + OldKey).ShouldBe("https://s3.example.com/fsh/" + NewKey);
+    }
+
+    [Fact]
+    public void ResolveUrl_Should_FallBackToTheRewrite_When_TheFileIsNotPublic()
+    {
+        var @event = NewEvent() with { Visibility = Visibility.Private, NewPublicUrl = null };
+
+        @event.ResolveUrl("http://rustfs:9000/fsh/" + OldKey).ShouldBe("http://rustfs:9000/fsh/" + NewKey);
     }
 }

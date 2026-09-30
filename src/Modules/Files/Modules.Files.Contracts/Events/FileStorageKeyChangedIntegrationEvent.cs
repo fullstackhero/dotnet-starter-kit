@@ -21,8 +21,24 @@ public sealed record FileStorageKeyChangedIntegrationEvent(
     Guid? OwnerId,
     string OldStorageKey,
     string NewStorageKey,
-    Visibility Visibility) : IIntegrationEvent
+    Visibility Visibility,
+    string? NewPublicUrl = null) : IIntegrationEvent
 {
+    /// <summary>
+    /// The URL a consumer should store in place of <paramref name="currentUrl"/>, or <c>null</c> when
+    /// <paramref name="currentUrl"/> is not a URL for <see cref="OldStorageKey"/> (the consumer has since
+    /// moved on to another file, or never pointed at this one) and must be left alone. For a public file
+    /// this is <see cref="NewPublicUrl"/> — the API's current public URL, which also repairs URLs stored
+    /// with an outdated base — and otherwise the old URL re-pointed at <see cref="NewStorageKey"/>.
+    /// </summary>
+#pragma warning disable CA1055 // persisted URLs are strings (local storage produces server-relative paths)
+    public string? ResolveUrl(string? currentUrl)
+#pragma warning restore CA1055
+    {
+        var rewritten = RewriteUrl(currentUrl);
+        return rewritten is null ? null : NewPublicUrl ?? rewritten;
+    }
+
     /// <summary>
     /// Returns <paramref name="url"/> pointed at <see cref="NewStorageKey"/> when it addresses
     /// <see cref="OldStorageKey"/> (public URLs end with the key, whatever the base URL or bucket

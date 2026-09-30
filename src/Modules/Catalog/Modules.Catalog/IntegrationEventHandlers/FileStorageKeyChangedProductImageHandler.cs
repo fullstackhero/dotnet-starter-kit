@@ -15,9 +15,17 @@ namespace FSH.Modules.Catalog.IntegrationEventHandlers;
 public sealed class FileStorageKeyChangedProductImageHandler(CatalogDbContext db)
     : IIntegrationEventHandler<FileStorageKeyChangedIntegrationEvent>
 {
+    private const string ProductOwnerType = "Product";
+
     public async Task HandleAsync(FileStorageKeyChangedIntegrationEvent @event, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(@event);
+
+        // Product images are uploaded with the Product owner type (see ProductFileAccessPolicy).
+        if (!string.Equals(@event.OwnerType, ProductOwnerType, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
 
         var images = await db.Set<ProductImage>()
             .Where(i => i.FileAssetId == @event.FileAssetId)
@@ -27,8 +35,8 @@ public sealed class FileStorageKeyChangedProductImageHandler(CatalogDbContext db
         var changed = false;
         foreach (var image in images)
         {
-            // Idempotent: once rewritten, the URL no longer ends with the old key and RewriteUrl returns null.
-            if (@event.RewriteUrl(image.Url) is { } rewritten)
+            // Idempotent: once rewritten, the URL no longer ends with the old key and ResolveUrl returns null.
+            if (@event.ResolveUrl(image.Url) is { } rewritten)
             {
                 image.ReplaceUrl(rewritten);
                 changed = true;
