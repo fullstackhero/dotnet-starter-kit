@@ -135,6 +135,33 @@ public sealed class UserProfileTests
     }
 
     [Fact]
+    public async Task GetProfile_Should_ReturnDifferentETags_When_TwoUsersHoldTheSameProfileValues()
+    {
+        // Arrange — the tag goes out in a header, so it must not be a bare hash of the profile:
+        // that would let anyone holding a logged tag confirm a guessed name and phone offline.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var first = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "etag-key-a");
+        var second = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "etag-key-b");
+        using var firstClient = await _auth.CreateAuthenticatedClientAsync(first.Email, first.Password);
+        using var secondClient = await _auth.CreateAuthenticatedClientAsync(second.Email, second.Password);
+
+        var sameValues = new { firstName = "Same", lastName = "Person", phoneNumber = "5550002222" };
+        (await PutProfileAsync(firstClient, sameValues, ifMatch: null)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await PutProfileAsync(secondClient, sameValues, ifMatch: null)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // Act
+        var firstRead = await firstClient.GetAsync($"{TestConstants.IdentityBasePath}/profile");
+        var secondRead = await secondClient.GetAsync($"{TestConstants.IdentityBasePath}/profile");
+
+        // Assert
+        var firstDto = await firstRead.DeserializeAsync<UserDto>();
+        var secondDto = await secondRead.DeserializeAsync<UserDto>();
+        (firstDto.FirstName, firstDto.LastName, firstDto.PhoneNumber, firstDto.ImageUrl)
+            .ShouldBe((secondDto.FirstName, secondDto.LastName, secondDto.PhoneNumber, secondDto.ImageUrl));
+        firstRead.Headers.ETag!.ToString().ShouldNotBe(secondRead.Headers.ETag!.ToString());
+    }
+
+    [Fact]
     public async Task UpdateProfile_Should_PersistAndRotateETag_When_IfMatchMatches()
     {
         // Arrange

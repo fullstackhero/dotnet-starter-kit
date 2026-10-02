@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace FSH.Modules.Identity.Services;
@@ -161,10 +162,16 @@ internal sealed class UserProfileService(
 
     // Covers only the fields PUT /profile writes. Identity's ConcurrencyStamp also rotates on
     // writes that leave the profile alone, such as the failed-sign-in counter, and would turn a
-    // wrong password typed anywhere into a 412 on an untouched form.
+    // wrong password typed anywhere into a 412 on an untouched form. Keyed with the SecurityStamp,
+    // which never leaves the server, because the tag travels in a header proxies and APM log and a
+    // plain hash of name plus phone is brute-forceable over the small phone-number space.
+    // ponytail: the stamp also rotates on a password or 2FA change, so those move the tag too;
+    // swap for a server-wide HMAC key if that ever needs to stop.
     private static string ComputeProfileVersion(FshUser user) =>
-        Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(
-            new[] { user.FirstName, user.LastName, user.PhoneNumber, user.ImageUrl?.OriginalString })));
+        Convert.ToHexStringLower(HMACSHA256.HashData(
+            Encoding.UTF8.GetBytes(user.SecurityStamp ?? string.Empty),
+            JsonSerializer.SerializeToUtf8Bytes(
+                new[] { user.FirstName, user.LastName, user.PhoneNumber, user.ImageUrl?.OriginalString })));
 
     private static CustomException StaleProfileException() =>
         new(
