@@ -89,6 +89,9 @@ export type PermissionEntry = {
 };
 
 export type PermissionGroup = {
+  /** Stable catalog key. The English `category`/`blurb`/`description` below stay as the
+   *  fallback, so an untranslated group still reads. */
+  key: string;
   /** UI-facing category name. */
   category: string;
   /** Section blurb shown under the heading. */
@@ -98,6 +101,7 @@ export type PermissionGroup = {
 
 export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
   {
+    key: "tenants",
     category: "Tenants",
     blurb: "Provision and operate tenants. Reserved for the root-tenant operator.",
     entries: [
@@ -108,6 +112,7 @@ export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
     ],
   },
   {
+    key: "users",
     category: "Users",
     blurb: "Manage tenant user accounts and their assigned roles.",
     entries: [
@@ -122,6 +127,7 @@ export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
     ],
   },
   {
+    key: "roles",
     category: "Roles",
     blurb: "Manage role definitions and their permission grants.",
     entries: [
@@ -136,6 +142,7 @@ export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
     ],
   },
   {
+    key: "sessions",
     category: "Sessions",
     blurb: "View and revoke active sessions.",
     entries: [
@@ -146,6 +153,7 @@ export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
     ],
   },
   {
+    key: "billing",
     category: "Billing",
     blurb: "Inspect and manage tenant subscriptions and invoices.",
     entries: [
@@ -154,6 +162,7 @@ export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
     ],
   },
   {
+    key: "audits",
     category: "Audit trails",
     blurb: "Inspect security and entity-change audit events.",
     entries: [
@@ -166,6 +175,7 @@ export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
     ],
   },
   {
+    key: "impersonation",
     category: "Impersonation",
     blurb: "Inspect and revoke active impersonation sessions. Revocation invalidates the issued token immediately.",
     entries: [
@@ -174,6 +184,7 @@ export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
     ],
   },
   {
+    key: "webhooks",
     category: "Webhooks",
     blurb: "Manage outbound webhook subscriptions and inspect their deliveries.",
     entries: [

@@ -1,0 +1,14 @@
+{
+  "overview": "Visão geral",
+  "tenants": "Organizações",
+  "identity": "Identidade",
+  "users": "Usuários",
+  "roles": "Funções",
+  "impersonation": "Personificação",
+  "operations": "Operações",
+  "billing": "Faturamento",
+  "webhooks": "Webhooks",
+  "audits": "Auditorias",
+  "health": "Integridade",
+  "settings": "Configurações"
+}

@@ -1,5 +1,6 @@
 {
   "apiBase": "${FSH_API_URL}",
   "defaultTenant": "${FSH_DEFAULT_TENANT}",
-  "dashboardUrl": "${FSH_DASHBOARD_URL}"
+  "dashboardUrl": "${FSH_DASHBOARD_URL}",
+  "defaultLanguage": "${FSH_DEFAULT_LANGUAGE}"
 }

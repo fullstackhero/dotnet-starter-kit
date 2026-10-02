@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -13,6 +14,7 @@ import { listInvoices, getPlans } from "@/api/billing";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EntityPageHeader, Stat, StatStrip, ToneIconTile, type ToneIconTileTone } from "@/components/list";
 import { useAuth } from "@/auth/use-auth";
+import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
 /**
@@ -21,6 +23,7 @@ import { cn } from "@/lib/cn";
  * the rest of the app. No fake "Coming soon" filler.
  */
 export function DashboardPage() {
+  const { t } = useTranslation("dashboard");
   const { user } = useAuth();
 
   const tenantsQuery = useQuery({
@@ -53,65 +56,65 @@ export function DashboardPage() {
           icon={LayoutDashboard}
           title={
             <>
-              Overview{firstName ? (
-                <span className="text-[var(--color-muted-foreground)]">, {firstName}</span>
+              {t("title")}{firstName ? (
+                <span className="text-[var(--color-muted-foreground)]">{t("greeting", { name: firstName })}</span>
               ) : null}
             </>
           }
           tone="primary"
-          description="Operate every tenant on this instance — identity, multitenancy, billing, and the rest of the system surface."
+          description={t("description")}
         />
       </div>
 
       {/* ── KPI stat strip ───────────────────────────────────────────── */}
       <StatStrip cols={4} className="fsh-enter fsh-enter-2">
         <Stat
-          label="Tenants"
+          label={t("stat.tenants")}
           value={
             tenantsQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
             ) : (
-              tenantsTotal?.toLocaleString() ?? "—"
+              tenantsTotal != null ? formatNumber(tenantsTotal) : "—"
             )
           }
-          hint="registered on this instance"
+          hint={t("stat.tenantsHint")}
         />
         <Stat
-          label="Plans"
+          label={t("stat.plans")}
           value={
             plansQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
             ) : (
-              plans.length.toLocaleString()
+              formatNumber(plans.length)
             )
           }
-          hint={`${activePlans} active`}
+          hint={t("stat.plansActive", { count: activePlans })}
         />
         <Stat
-          label="Invoices"
+          label={t("stat.invoices")}
           value={
             invoicesQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
             ) : (
-              invoicesPage?.items.length.toLocaleString() ?? "—"
+              invoicesPage != null ? formatNumber(invoicesPage.items.length) : "—"
             )
           }
           hint={
             invoicesPage
-              ? `${invoicesPage.totalCount.toLocaleString()} total ledger`
-              : "loading…"
+              ? t("stat.invoicesHint", { count: invoicesPage.totalCount })
+              : t("stat.invoicesLoading")
           }
         />
         <Stat
-          label="Outstanding"
+          label={t("stat.outstanding")}
           value={
             invoicesQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
             ) : (
-              outstandingCount.toLocaleString()
+              formatNumber(outstandingCount)
             )
           }
-          hint="issued, awaiting payment"
+          hint={t("stat.outstandingHint")}
           tone={outstandingCount > 0 ? "warning" : "default"}
         />
       </StatStrip>
@@ -119,36 +122,36 @@ export function DashboardPage() {
       {/* ── Quick pivots ─────────────────────────────────────────────── */}
       <section className="fsh-enter fsh-enter-3 space-y-3">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-          Entry points
+          {t("entryPoints")}
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <PivotCard
             to="/tenants"
             icon={Building2}
             tone="info"
-            title="Tenants"
-            description="Provision, suspend, and inspect tenants."
+            title={t("pivot.tenants.title")}
+            description={t("pivot.tenants.description")}
           />
           <PivotCard
             to="/users"
             icon={UsersRound}
             tone="primary"
-            title="Users"
-            description="Root-tenant operators and role management."
+            title={t("pivot.users.title")}
+            description={t("pivot.users.description")}
           />
           <PivotCard
             to="/billing/plans"
             icon={Receipt}
             tone="success"
-            title="Billing"
-            description="Plans, subscriptions, invoices and pricing."
+            title={t("pivot.billing.title")}
+            description={t("pivot.billing.description")}
           />
           <PivotCard
             to="/billing/invoices"
             icon={FileText}
             tone="warning"
-            title="Invoices"
-            description="Cross-tenant ledger. Issue, mark paid, void."
+            title={t("pivot.invoices.title")}
+            description={t("pivot.invoices.description")}
           />
         </div>
       </section>

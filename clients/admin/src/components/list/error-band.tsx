@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type ErrorBandProps = {
   message: string;
@@ -10,7 +11,8 @@ type ErrorBandProps = {
  * ErrorBand — inline failure surface used between toolbar and content.
  * Mono-caps eyebrow + destructive tint, matched to the rest of Console.
  */
-export function ErrorBand({ message, kind = "failure" }: ErrorBandProps) {
+export function ErrorBand({ message, kind }: ErrorBandProps) {
+  const { t } = useTranslation("common");
   return (
     <div
       role="alert"
@@ -18,7 +20,7 @@ export function ErrorBand({ message, kind = "failure" }: ErrorBandProps) {
     >
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
       <div className="min-w-0">
-        <span className="meta mr-2 text-[var(--color-destructive)]">{kind} ·</span>
+        <span className="meta mr-2 text-[var(--color-destructive)]">{kind ?? t("errorBand.failure")} ·</span>
         <span className="text-[var(--color-destructive)]">{message}</span>
       </div>
     </div>

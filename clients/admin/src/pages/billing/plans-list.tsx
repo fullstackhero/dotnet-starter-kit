@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Plus, Tag } from "lucide-react";
 import { getPlans, planTermPrice, type BillingPlanDto } from "@/api/billing";
@@ -8,36 +9,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatStrip, Stat, SettingsSection } from "@/components/list";
 import { PlanFormDialog } from "@/components/billing/plan-form-dialog";
 import { ApiRequestError } from "@/lib/api-client";
+import { formatCurrency } from "@/lib/format";
 import { useAuth } from "@/auth/use-auth";
 import { BillingPermissions } from "@/lib/permissions";
 
 // ─── helpers ──────────────────────────────────────────────────────────
 
-function formatMoney(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
-}
-
 function formatOverageRates(rates: BillingPlanDto["overageRates"], currency: string) {
   const entries = Object.entries(rates).filter(([, v]) => v && v > 0);
   if (entries.length === 0) return "—";
   return entries
-    .map(([resource, rate]) => `${resource} ${formatMoney(rate ?? 0, currency)}`)
+    .map(([resource, rate]) => `${resource} ${formatCurrency(rate ?? 0, currency)}`)
     .join(" · ");
-}
-
-function describe(err: unknown): string {
-  if (err instanceof ApiRequestError) return err.problem?.detail ?? err.problem?.title ?? err.message;
-  if (err instanceof Error) return err.message;
-  return "Failed to load plans.";
 }
 
 // ─── component ────────────────────────────────────────────────────────
 
 export function PlansListPage() {
+  const { t } = useTranslation("billing");
+  const describe = (err: unknown): string => {
+    if (err instanceof ApiRequestError)
+      return err.problem?.detail ?? err.problem?.title ?? err.message;
+    if (err instanceof Error) return err.message;
+    return t("plans.loadError");
+  };
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<BillingPlanDto | undefined>(undefined);
   const { user: currentUser } = useAuth();
@@ -78,37 +73,41 @@ export function PlansListPage() {
       {/* KPI strip */}
       <StatStrip cols={3}>
         <Stat
-          label="Plans"
+          label={t("plans.stat.plans")}
           value={query.isLoading ? <Skeleton className="h-7 w-16" /> : totals.count}
-          hint={`${totals.active} active`}
+          hint={t("plans.stat.activeCount", { count: totals.active })}
         />
         <Stat
-          label="Active"
+          label={t("plans.stat.active")}
           value={query.isLoading ? <Skeleton className="h-7 w-16" /> : totals.active}
-          hint={totals.count - totals.active > 0 ? `${totals.count - totals.active} inactive` : "all active"}
+          hint={
+            totals.count - totals.active > 0
+              ? t("plans.stat.inactiveCount", { count: totals.count - totals.active })
+              : t("plans.stat.allActive")
+          }
         />
         <Stat
-          label="Average base"
+          label={t("plans.stat.averageBase")}
           value={
             query.isLoading ? (
               <Skeleton className="h-7 w-24" />
             ) : (
-              formatMoney(totals.averagePrice, totals.currency)
+              formatCurrency(totals.averagePrice, totals.currency)
             )
           }
-          hint="monthly subscription fee"
+          hint={t("plans.stat.averageHint")}
         />
       </StatStrip>
 
       {/* Plans list */}
       <SettingsSection
         icon={Tag}
-        title="All plans"
-        description="Pricing schedule used by tenant subscriptions and invoice generation."
+        title={t("plans.section.title")}
+        description={t("plans.section.description")}
         footer={
           canManageBilling ? (
             <Button onClick={openCreate}>
-              <Plus className="mr-1 h-4 w-4" /> New plan
+              <Plus className="mr-1 h-4 w-4" /> {t("plans.newPlan")}
             </Button>
           ) : undefined
         }
@@ -130,7 +129,7 @@ export function PlansListPage() {
           </ul>
         ) : plans.length === 0 ? (
           <div className="py-10 text-center text-sm text-[var(--color-muted-foreground)]">
-            No plans yet. Create your first plan to start charging tenants.
+            {t("plans.empty")}
           </div>
         ) : (
           <ul className="-mx-5 border-t border-[var(--color-border)]">
@@ -147,16 +146,20 @@ export function PlansListPage() {
                       {plan.key}
                     </code>
                     <span className="font-display text-base font-semibold">{plan.name}</span>
-                    <Badge variant="outline">{plan.interval === "Yearly" ? "Yearly" : "Monthly"}</Badge>
+                    <Badge variant="outline">
+                      {plan.interval === "Yearly" ? t("interval.yearly") : t("interval.monthly")}
+                    </Badge>
                     {plan.isActive ? (
-                      <Badge variant="success">Active</Badge>
+                      <Badge variant="success">{t("status.active")}</Badge>
                     ) : (
-                      <Badge variant="muted">Inactive</Badge>
+                      <Badge variant="muted">{t("status.inactive")}</Badge>
                     )}
                   </div>
                   <div className="mt-1 font-mono text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
-                    currency {plan.currency} ·{" "}
-                    overage {formatOverageRates(plan.overageRates, plan.currency)}
+                    {t("plans.meta", {
+                      currency: plan.currency,
+                      overage: formatOverageRates(plan.overageRates, plan.currency),
+                    })}
                   </div>
                 </div>
 
@@ -164,17 +167,17 @@ export function PlansListPage() {
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div className="text-display text-lg font-semibold leading-none tabular-nums">
-                      {formatMoney(planTermPrice(plan), plan.currency)}
+                      {formatCurrency(planTermPrice(plan), plan.currency)}
                     </div>
                     <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                      {plan.interval === "Yearly" ? "per year" : "per month"}
+                      {plan.interval === "Yearly" ? t("perYear") : t("perMonth")}
                     </div>
                   </div>
                   {canManageBilling && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Edit ${plan.name}`}
+                      aria-label={t("plans.editAria", { name: plan.name })}
                       onClick={() => openEdit(plan)}
                     >
                       <Pencil className="h-4 w-4" />

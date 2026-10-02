@@ -244,7 +244,8 @@ module "admin_site" {
     apiBase       = local.api_origin
     defaultTenant = var.frontend_default_tenant
     # The admin app links to the tenant dashboard for the impersonation handoff.
-    dashboardUrl = local.dashboard_url
+    dashboardUrl    = local.dashboard_url
+    defaultLanguage = var.frontend_default_language
   }
 
   tags = local.common_tags

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { CreditCard, Gauge } from "lucide-react";
@@ -28,14 +29,16 @@ const PLAN_KEY_PATTERN = /^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$/;
 
 // A money/rate field is a free-text decimal string. These refinements run
 // client-side so a negative price is rejected before any network call (the
-// server also rejects it, but we don't rely on that).
-const NON_NEGATIVE_MSG = "Must be a non-negative number.";
+// server also rejects it, but we don't rely on that). Messages are i18n keys,
+// resolved to text at display time via t().
+const NON_NEGATIVE_MSG = "planForm.validation.nonNegative";
+const REQUIRED_MSG = "planForm.validation.required";
 
 /** Required non-negative decimal (e.g. monthly base price). */
 const requiredNonNegative = z
   .string()
   .trim()
-  .min(1, "Required.")
+  .min(1, REQUIRED_MSG)
   .refine((v) => Number.isFinite(Number(v)) && Number(v) >= 0, NON_NEGATIVE_MSG);
 
 /** Optional non-negative decimal (blank allowed → omitted). */
@@ -44,16 +47,11 @@ const optionalNonNegative = z
   .trim()
   .refine((v) => v === "" || (Number.isFinite(Number(v)) && Number(v) >= 0), NON_NEGATIVE_MSG);
 
-const INTERVAL_OPTIONS: SelectOption<PlanInterval>[] = [
-  { value: "Monthly", label: "Monthly", hint: "billed every month" },
-  { value: "Yearly", label: "Yearly", hint: "billed every 12 months" },
-];
-
-const OVERAGE_RESOURCES: { key: QuotaResource; label: string; placeholder: string }[] = [
-  { key: "ApiCalls", label: "API calls", placeholder: "0.0010" },
-  { key: "StorageBytes", label: "Storage bytes", placeholder: "0.00000001" },
-  { key: "Users", label: "Users", placeholder: "5.00" },
-  { key: "ActiveFeatureFlags", label: "Feature flags", placeholder: "1.00" },
+const OVERAGE_RESOURCES: { key: QuotaResource; labelKey: string; placeholder: string }[] = [
+  { key: "ApiCalls", labelKey: "planForm.overage.apiCalls", placeholder: "0.0010" },
+  { key: "StorageBytes", labelKey: "planForm.overage.storageBytes", placeholder: "0.00000001" },
+  { key: "Users", labelKey: "planForm.overage.users", placeholder: "5.00" },
+  { key: "ActiveFeatureFlags", labelKey: "planForm.overage.featureFlags", placeholder: "1.00" },
 ];
 
 type OverageState = Record<string, string>;
@@ -124,8 +122,14 @@ export function PlanFormDialog({
   onOpenChange: (open: boolean) => void;
   plan?: BillingPlanDto;
 }) {
+  const { t } = useTranslation("billing");
   const queryClient = useQueryClient();
   const isEdit = !!plan;
+
+  const INTERVAL_OPTIONS: SelectOption<PlanInterval>[] = [
+    { value: "Monthly", label: t("planForm.interval.monthly"), hint: t("planForm.interval.monthlyHint") },
+    { value: "Yearly", label: t("planForm.interval.yearly"), hint: t("planForm.interval.yearlyHint") },
+  ];
 
   const [key, setKey] = useState("");
   const [name, setName] = useState("");
@@ -180,21 +184,21 @@ export function PlanFormDialog({
   const createMutation = useMutation({
     mutationFn: createPlan,
     onSuccess: () => {
-      toast.success(`Plan "${name}" created`);
+      toast.success(t("planForm.toast.created", { name }));
       queryClient.invalidateQueries({ queryKey: ["billing", "plans"] });
       onClose();
     },
-    onError: (err) => toast.error("Create failed", { description: describe(err, "Could not create plan.") }),
+    onError: (err) => toast.error(t("planForm.toast.createFailed"), { description: describe(err, t("planForm.toast.createFailedDesc")) }),
   });
 
   const updateMutation = useMutation({
     mutationFn: updatePlan,
     onSuccess: () => {
-      toast.success(`Plan "${name}" updated`);
+      toast.success(t("planForm.toast.updated", { name }));
       queryClient.invalidateQueries({ queryKey: ["billing", "plans"] });
       onClose();
     },
-    onError: (err) => toast.error("Update failed", { description: describe(err, "Could not update plan.") }),
+    onError: (err) => toast.error(t("planForm.toast.updateFailed"), { description: describe(err, t("planForm.toast.updateFailedDesc")) }),
   });
 
   const pending = createMutation.isPending || updateMutation.isPending;
@@ -240,12 +244,10 @@ export function PlanFormDialog({
             >
               <CreditCard className="h-[18px] w-[18px]" />
             </span>
-            <DialogTitle className="text-[16px]">{isEdit ? "Edit plan" : "New plan"}</DialogTitle>
+            <DialogTitle className="text-[16px]">{isEdit ? t("planForm.editTitle") : t("planForm.newTitle")}</DialogTitle>
           </div>
           <DialogDescription className="mt-1">
-            {isEdit
-              ? "Update name, pricing, interval, or overage rates. Key and currency are immutable."
-              : "Plan keys are canonical slugs used by tenant subscriptions and quota configuration."}
+            {isEdit ? t("planForm.editDescription") : t("planForm.newDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -255,17 +257,17 @@ export function PlanFormDialog({
             <div className="space-y-3">
               <SectionLabel
                 icon={CreditCard}
-                title="Plan details"
-                description="Identity + pricing. The interval sets the term length and how often the tenant is billed."
+                title={t("planForm.section.details.title")}
+                description={t("planForm.section.details.description")}
               />
               <div className="h-px bg-[var(--color-border)] opacity-60" />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   id="pf-key"
-                  label="Key"
-                  hint="Lowercase slug (e.g. 'pro', 'team-2025'). Immutable."
+                  label={t("planForm.field.key")}
+                  hint={t("planForm.field.keyHint")}
                   required={!isEdit}
-                  error={keyInvalid ? "Invalid slug." : undefined}
+                  error={keyInvalid ? t("planForm.field.keyError") : undefined}
                 >
                   <Input
                     id="pf-key"
@@ -277,10 +279,10 @@ export function PlanFormDialog({
                     autoComplete="off"
                   />
                 </Field>
-                <Field id="pf-name" label="Display name" required>
+                <Field id="pf-name" label={t("planForm.field.name")} required>
                   <Input id="pf-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Pro" />
                 </Field>
-                <Field id="pf-currency" label="Currency" hint="ISO 4217. Immutable." required={!isEdit}>
+                <Field id="pf-currency" label={t("planForm.field.currency")} hint={t("planForm.field.currencyHint")} required={!isEdit}>
                   <Input
                     id="pf-currency"
                     value={currency}
@@ -293,10 +295,10 @@ export function PlanFormDialog({
                 </Field>
                 <Field
                   id="pf-monthlyBasePrice"
-                  label="Monthly base price"
-                  hint="Canonical monthly rate; the term price for monthly plans."
+                  label={t("planForm.field.monthlyBasePrice")}
+                  hint={t("planForm.field.monthlyBasePriceHint")}
                   required
-                  error={priceError}
+                  error={priceError ? t(priceError) : undefined}
                 >
                   <Input
                     id="pf-monthlyBasePrice"
@@ -306,7 +308,7 @@ export function PlanFormDialog({
                     placeholder="29.00"
                   />
                 </Field>
-                <Field id="pf-interval" label="Billing interval" required>
+                <Field id="pf-interval" label={t("planForm.field.interval")} required>
                   <Select<PlanInterval>
                     id="pf-interval"
                     value={interval}
@@ -317,9 +319,9 @@ export function PlanFormDialog({
                 {interval === "Yearly" && (
                   <Field
                     id="pf-annualPrice"
-                    label="Annual price"
-                    hint="Per yearly term. Blank → 12× monthly."
-                    error={annualError}
+                    label={t("planForm.field.annualPrice")}
+                    hint={t("planForm.field.annualPriceHint")}
+                    error={annualError ? t(annualError) : undefined}
                   >
                     <Input
                       id="pf-annualPrice"
@@ -337,8 +339,8 @@ export function PlanFormDialog({
             <div className="space-y-3">
               <SectionLabel
                 icon={Gauge}
-                title="Overage rates"
-                description="Per-unit price when a tenant exceeds the plan limit. Leave blank to skip a resource."
+                title={t("planForm.section.overage.title")}
+                description={t("planForm.section.overage.description")}
               />
               <div className="h-px bg-[var(--color-border)] opacity-60" />
               <div className="grid gap-4 sm:grid-cols-2">
@@ -346,8 +348,8 @@ export function PlanFormDialog({
                   <Field
                     key={res.key}
                     id={`pf-overage-${res.key}`}
-                    label={res.label}
-                    error={overageErrors[res.key]}
+                    label={t(res.labelKey)}
+                    error={overageErrors[res.key] ? t(overageErrors[res.key]!) : undefined}
                   >
                     <Input
                       id={`pf-overage-${res.key}`}
@@ -364,10 +366,10 @@ export function PlanFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
-              Cancel
+              {t("planForm.cancel")}
             </Button>
             <Button type="submit" disabled={pending || keyInvalid || pricingInvalid}>
-              {pending ? "Saving…" : isEdit ? "Save changes" : "Create plan"}
+              {pending ? t("planForm.saving") : isEdit ? t("planForm.saveChanges") : t("planForm.createPlan")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { formatTime } from "@/lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldOff, UserCog } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   listImpersonationGrants,
   type ImpersonationGrantDto,
@@ -22,6 +24,7 @@ const REFRESH_INTERVAL_MS = 5_000;
  * if the caller can't see impersonation grants (perm-gated upstream).
  */
 export function ActiveGrantsCard({ tenantId }: { tenantId: string }) {
+  const { t } = useTranslation("impersonation");
   const { user } = useAuth();
   const canView = (user?.permissions ?? []).includes(IdentityPermissions.Impersonation.View);
   const canRevoke = (user?.permissions ?? []).includes(IdentityPermissions.Impersonation.Revoke);
@@ -66,9 +69,9 @@ export function ActiveGrantsCard({ tenantId }: { tenantId: string }) {
   return (
     <>
       <SettingsSection
-        title="Active impersonations"
+        title={t("card.title")}
         icon={UserCog}
-        description="Operators currently signed in as users in this tenant. Revoking immediately invalidates the issued token; the dashboard tab will 401 on its next request."
+        description={t("card.description")}
       >
         <ul className="divide-y divide-[var(--color-border)]">
           {items.map((g) => (
@@ -121,13 +124,14 @@ function GrantRow({
   onRevoke: () => void;
   onReopen: () => void;
 }) {
+  const { t } = useTranslation("impersonation");
   return (
     <li className="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-3 first:pt-0 last:pb-0">
       {/* Live-session pulse dot */}
       <span
         aria-hidden
         className="pulse-dot"
-        title="Active session"
+        title={t("card.activeSession")}
       />
 
       {/* Session detail */}
@@ -143,12 +147,14 @@ function GrantRow({
             </span>
           </span>
           <Badge variant="brand" className="font-mono uppercase tracking-[0.14em]">
-            Active
+            {t("status.active")}
           </Badge>
         </div>
         <div className="mt-0.5 truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-          started {new Date(g.startedAtUtc).toLocaleTimeString()} · expires{" "}
-          {new Date(g.expiresAtUtc).toLocaleTimeString()}
+          {t("card.window", {
+            started: formatTime(g.startedAtUtc),
+            expires: formatTime(g.expiresAtUtc),
+          })}
           {g.reason && <> · {truncate(g.reason, 80)}</>}
         </div>
       </div>
@@ -178,10 +184,11 @@ function RowActions({
   onRevoke: () => void;
   onReopen: () => void;
 }) {
+  const { t } = useTranslation("impersonation");
   if (!canRevoke && !canReopen) {
     return (
       <Badge variant="muted" className="font-mono uppercase tracking-[0.14em]">
-        <UserCog className="h-3 w-3" /> view-only
+        <UserCog className="h-3 w-3" /> {t("card.viewOnly")}
       </Badge>
     );
   }
@@ -192,14 +199,14 @@ function RowActions({
           variant="outline"
           size="sm"
           onClick={onReopen}
-          title="Issue a fresh impersonation token — use when you lost the original dashboard tab."
+          title={t("card.reopenTooltip")}
         >
-          <UserCog className="mr-1 h-3.5 w-3.5" /> Re-open
+          <UserCog className="mr-1 h-3.5 w-3.5" /> {t("reopen")}
         </Button>
       )}
       {canRevoke && (
         <Button variant="outline" size="sm" onClick={onRevoke}>
-          <ShieldOff className="mr-1 h-3.5 w-3.5" /> Revoke
+          <ShieldOff className="mr-1 h-3.5 w-3.5" /> {t("revoke")}
         </Button>
       )}
     </div>

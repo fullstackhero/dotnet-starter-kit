@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ShieldOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
 type ForbiddenViewProps = {
@@ -13,6 +14,7 @@ type ForbiddenViewProps = {
  * as code-chips so the operator can paste them into a permission grant.
  */
 export function ForbiddenView({ missing }: ForbiddenViewProps) {
+  const { t } = useTranslation("common");
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-6">
       <div className="card-shell w-full max-w-md px-8 py-9">
@@ -21,20 +23,20 @@ export function ForbiddenView({ missing }: ForbiddenViewProps) {
             <ShieldOff className="h-5 w-5" />
           </span>
           <div className="meta text-[var(--color-muted-foreground)]">
-            // 403 · access denied
+            {t("forbidden.kicker")}
           </div>
         </div>
 
         <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight">
-          You don&apos;t hold the permissions to view this surface.
+          {t("forbidden.title")}
         </h2>
         <p className="mt-2 text-sm text-[var(--color-muted-foreground)] leading-relaxed">
-          Ask a root-tenant operator to grant the permissions below to a role you hold.
+          {t("forbidden.description")}
         </p>
 
         {missing && missing.length > 0 && (
           <div className="mt-5 space-y-1.5 border-l-2 border-[var(--color-accent-signal)] pl-3">
-            <div className="meta text-[var(--color-muted-foreground)]">missing</div>
+            <div className="meta text-[var(--color-muted-foreground)]">{t("forbidden.missing")}</div>
             <ul className="flex flex-wrap gap-1.5">
               {missing.map((p) => (
                 <li key={p}>
@@ -47,7 +49,7 @@ export function ForbiddenView({ missing }: ForbiddenViewProps) {
 
         <div className="mt-7 flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link to="/">← Overview</Link>
+            <Link to="/">{t("forbidden.overview")}</Link>
           </Button>
         </div>
       </div>
