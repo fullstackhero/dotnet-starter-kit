@@ -65,6 +65,8 @@
   "imageInput.directLink": "Direct link to an image you host elsewhere.",
   "language.saveFailed": "Language not saved",
   "language.saveFailedDetail": "The app is now in the language you picked, but the choice could not be saved and will not survive a sign-out.",
+  "language.loadFailed": "Language not changed",
+  "language.loadFailedDetail": "The language could not be loaded. Check your connection and try again.",
   "upload.cancelled": "Upload cancelled.",
   "upload.networkError": "Network error during upload.",
   "upload.putFailed": "Upload rejected by storage ({{status}}).",
