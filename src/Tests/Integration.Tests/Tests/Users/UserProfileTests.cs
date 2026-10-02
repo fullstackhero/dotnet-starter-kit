@@ -194,6 +194,62 @@ public sealed class UserProfileTests
     }
 
     [Fact]
+    public async Task UpdateProfile_Should_Succeed_When_SignInAttemptsLandAfterRead()
+    {
+        // Arrange — a wrong password bumps AccessFailedCount and the next good sign-in resets it.
+        // Both write the user row, but neither touches the profile, so neither may turn the
+        // caller's open form into a 412.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var user = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "etag-signin");
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(user.Email, user.Password);
+        var etag = await ReadProfileETagAsync(userClient);
+
+        var failedSignIn = await AttemptSignInAsync(user.Email, "Wrong-Password-1!");
+        failedSignIn.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        (await ReadProfileETagAsync(userClient)).ShouldBe(etag);
+
+        var succeededSignIn = await AttemptSignInAsync(user.Email, user.Password);
+        succeededSignIn.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await ReadProfileETagAsync(userClient)).ShouldBe(etag);
+
+        // Act
+        var response = await PutProfileAsync(userClient, new { firstName = "AfterSignIn" }, etag);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var profile = await userClient.GetAsync($"{TestConstants.IdentityBasePath}/profile");
+        var dto = await profile.DeserializeAsync<UserDto>();
+        dto.FirstName.ShouldBe("AfterSignIn");
+    }
+
+    [Fact]
+    public async Task UpdateProfile_Should_Return412_When_AvatarChangedAfterRead()
+    {
+        // Arrange — the avatar has its own endpoint, but PUT /profile writes it too, so a change
+        // made there must still invalidate a form loaded before it.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var user = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "etag-avatar");
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(user.Email, user.Password);
+        var staleETag = await ReadProfileETagAsync(userClient);
+
+        const string imageUrl = "https://cdn.example.com/avatars/set-elsewhere.png";
+        var setImage = await userClient.PutAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/profile/image", new { imageUrl });
+        setImage.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        // Act
+        var response = await PutProfileAsync(userClient, new { firstName = "Stale", deleteCurrentImage = true }, staleETag);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
+
+        var profile = await userClient.GetAsync($"{TestConstants.IdentityBasePath}/profile");
+        var dto = await profile.DeserializeAsync<UserDto>();
+        dto.ImageUrl.ShouldBe(imageUrl);
+    }
+
+    [Fact]
     public async Task UpdateProfile_Should_Succeed_When_IfMatchIsAny()
     {
         // Arrange — `*` asks only that the resource exist, so it must not block the update.
@@ -339,6 +395,15 @@ public sealed class UserProfileTests
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Headers.ETag.ShouldNotBeNull();
         return response.Headers.ETag.ToString();
+    }
+
+    private async Task<HttpResponseMessage> AttemptSignInAsync(string email, string password)
+    {
+        using var client = _factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
+        request.Headers.Add("tenant", TestConstants.RootTenantId);
+        request.Content = JsonContent.Create(new { email, password });
+        return await client.SendAsync(request);
     }
 
     private static async Task<HttpResponseMessage> PutProfileAsync(HttpClient client, object body, string? ifMatch)
