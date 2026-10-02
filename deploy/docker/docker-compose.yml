@@ -109,15 +109,13 @@ services:
           aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket fsh
         aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy --bucket fsh --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::fsh/public/*"]}]}'
 
-  # Local mail catcher: every e-mail the API sends (confirmation, password
-  # reset, welcome) lands here and never leaves the host. Read it at
-  # http://localhost:8025 (FSH_MAILPIT_PORT). For real delivery, point the
-  # api's MailOptions__Smtp__* at your provider and remove this service.
-  # SMTP (1025) stays on the compose network.
+  # Local mail catcher, started only with the mail-catcher profile
+  # (COMPOSE_PROFILES in .env). SMTP (1025) stays on the compose network.
   mailpit:
     image: axllent/mailpit:v1.31.3
     container_name: fsh-mailpit
     restart: unless-stopped
+    profiles: [mail-catcher]
     ports:
       # Loopback only: the inbox holds live password-reset and confirmation links.
       - "127.0.0.1:${FSH_MAILPIT_PORT:-8025}:8025"
@@ -153,7 +151,6 @@ services:
       rustfs:      { condition: service_healthy }
       rustfs-init: { condition: service_completed_successfully }
       migrator:   { condition: service_completed_successfully }
-      mailpit:    { condition: service_started }
     environment:
       DOTNET_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -173,10 +170,12 @@ services:
       Storage__S3__SecretKey: ${RUSTFS_SECRET_KEY}
       Storage__S3__Bucket: fsh
       Storage__S3__ForcePathStyle: "true"
-      # Plain SMTP to the compose-local Mailpit, which offers no STARTTLS to upgrade to.
-      MailOptions__Smtp__Host: mailpit
-      MailOptions__Smtp__Port: "1025"
-      MailOptions__Smtp__Security: "None"
+      # Defaults target the bundled Mailpit (plain SMTP, no STARTTLS); a real provider is set in .env only.
+      MailOptions__Smtp__Host: ${FSH_SMTP_HOST:-mailpit}
+      MailOptions__Smtp__Port: ${FSH_SMTP_PORT:-1025}
+      MailOptions__Smtp__Security: ${FSH_SMTP_SECURITY:-None}
+      MailOptions__Smtp__UserName: ${FSH_SMTP_USERNAME:-}
+      MailOptions__Smtp__Password: ${FSH_SMTP_PASSWORD:-}
       # appsettings.Production.json leaves the sender blank, and a real provider rejects an empty MAIL FROM.
       MailOptions__From: ${FSH_MAIL_FROM:-no-reply@fsh.local}
       AllowedHosts: "*"

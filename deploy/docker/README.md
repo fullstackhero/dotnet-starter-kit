@@ -11,7 +11,7 @@ This brings up the full stack on a single host:
 | `postgres` | `postgres:18-alpine` | (internal) | Identity, tenant catalog, module schemas |
 | `redis` | `valkey/valkey:9.1.0-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
 | `rustfs` | `rustfs/rustfs:1.0.0` | `FSH_S3_PORT` (default 9000), S3 API only | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)); published because browsers upload to it through presigned URLs |
-| `mailpit` | `axllent/mailpit:v1.31.3` | `127.0.0.1:FSH_MAILPIT_PORT` (default 8025), SMTP 1025 internal | Local mail catcher: every e-mail the API sends lands here ([Mailpit](https://mailpit.axllent.org)) |
+| `mailpit` | `axllent/mailpit:v1.31.3` | `127.0.0.1:FSH_MAILPIT_PORT` (default 8025), SMTP 1025 internal | Local mail catcher ([Mailpit](https://mailpit.axllent.org)), only with the `mail-catcher` profile, which `.env.example` enables |
 
 The compose file does **not** include a reverse proxy or TLS terminator. You bring your own edge — Cloudflare Tunnel, AWS ALB, Tailscale Funnel, your existing nginx, anything that can route a TLS subdomain to a host:port on this machine.
 
@@ -32,6 +32,8 @@ docker compose up -d --build
 
 First run downloads bases + builds four images (~5 min). Subsequent runs are cached.
 
+> **E-mail is not delivered by default.** With `.env.example` as shipped, every e-mail (confirmation, password reset) goes to the bundled Mailpit catcher on the host, not to the recipient. Before real users sign up, switch to your provider as described in [Reading e-mail](#reading-e-mail).
+
 ```bash
 docker compose logs -f migrator
 ```
@@ -50,11 +52,11 @@ curl -fsS  http://localhost:9000/health       # RustFS S3 API
 
 ## Reading e-mail
 
-The API sends every e-mail (confirmation, password reset, welcome) to the bundled `mailpit` service, so nothing leaves the host and no SMTP account is needed. Open **http://localhost:8025** on the Docker host to read them and follow the links. A user an operator registers must confirm the e-mail before signing in, and the confirmation link is in that inbox.
+By default (`COMPOSE_PROFILES=mail-catcher` and `FSH_SMTP_HOST=mailpit` in `.env`) the API sends every e-mail (confirmation, password reset, welcome) to the bundled `mailpit` service, so nothing leaves the host and no SMTP account is needed. Open **http://localhost:8025** on the Docker host to read them and follow the links. A user an operator registers must confirm the e-mail before signing in, and the confirmation link is in that inbox.
 
 The inbox UI is published on the host loopback only, because it holds live password-reset and confirmation links. From another machine, use an SSH tunnel (`ssh -L 8025:127.0.0.1:8025 <host>`).
 
-To deliver real mail, set `MailOptions__Smtp__Host`, `MailOptions__Smtp__Port`, `MailOptions__Smtp__UserName`, `MailOptions__Smtp__Password` and `MailOptions__Smtp__Security` on the `api` service to your provider's values (`StartTls` for port 587, `SslOnConnect` for 465), set `FSH_MAIL_FROM` in `.env` to a sender your provider accepts, and remove the `mailpit` service and its `depends_on` entry.
+To deliver real mail, edit `.env` only: set `FSH_SMTP_HOST`, `FSH_SMTP_PORT`, `FSH_SMTP_USERNAME`, `FSH_SMTP_PASSWORD` and `FSH_SMTP_SECURITY` to your provider's values (`StartTls` for port 587, `SslOnConnect` for 465), set `FSH_MAIL_FROM` to a sender your provider accepts, delete the `COMPOSE_PROFILES=mail-catcher` line, then `docker compose up -d` and `docker compose rm -sf mailpit` to drop the running catcher.
 
 ## Wire up your external proxy
 
@@ -133,6 +135,6 @@ The data-plane volumes (`pg_data`, `redis_data`, `rustfs_data`) can be deleted o
 | A reset or confirmation e-mail links to the API instead of the app | Same cause: `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` don't match the origins the browser actually uses. Both also feed `FrontendOptions__AllowedOrigins`, and `FSH_DASHBOARD_URL` feeds `FrontendOptions__DefaultOrigin`. |
 | An avatar or product image doesn't render (`403 AccessDenied` on the image URL) | The URL's key doesn't start with `public/`, or the bucket policy is missing. Check `docker compose logs rustfs-init` (it must exit 0) and the API log for the legacy-file migration. |
 | File upload fails in the browser (network error, CORS error, or `403 SignatureDoesNotMatch`) | `FSH_S3_PUBLIC_URL` doesn't match what your proxy serves on the S3 port, the proxy rewrites the `Host` header, or the page's origin isn't `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` (the RustFS CORS allow-list). |
-| No e-mail arrives, or the API logs `The SMTP server does not support the STARTTLS extension` | `MailOptions__Smtp__Security` does not match the server. The bundled Mailpit needs `None`; a provider on port 587 needs `StartTls`, on 465 `SslOnConnect`. |
+| No e-mail arrives, or the API logs `The SMTP server does not support the STARTTLS extension` | `FSH_SMTP_SECURITY` does not match the server. The bundled Mailpit needs `None`; a provider on port 587 needs `StartTls`, on 465 `SslOnConnect`. |
 | `Cannot load library libgssapi_krb5.so.2` in the API or migrator log | A connection string without `GSS Encryption Mode=Disable`. Npgsql tries GSS encryption by default and the chiseled images do not ship the Kerberos library. Harmless, but append the setting to silence it. |
 | `migrator` retries Postgres for 2 minutes then fails | Postgres didn't come up — check `docker compose logs postgres`. Most often a `POSTGRES_PASSWORD` change against an existing `pg_data` volume; delete the volume with `docker compose down -v` (destructive) and start over. |
