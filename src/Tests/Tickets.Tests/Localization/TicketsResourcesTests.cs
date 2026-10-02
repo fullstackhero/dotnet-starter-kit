@@ -10,8 +10,9 @@ namespace Tickets.Tests.Localization;
 
 // Proves the TicketsResources catalog is embedded under the correct manifest name so the module
 // resx resolves at runtime. A wrong manifest name would flip ResourceNotFound and leak raw keys or
-// English text, and a missing pt-BR entry would ship English as if it were translated. Both are caught
-// here. This is the module's only unit test project, added when Tickets exception bodies were localized.
+// English text, and a pt-BR key the neutral catalog lacks is an orphan of a rename or delete. Both are
+// caught here; a missing pt-BR entry is allowed and falls back to English. This is the module's only
+// unit test project, added when Tickets exception bodies were localized.
 public sealed class TicketsResourcesTests
 {
     private static IStringLocalizer BuildLocalizer()
@@ -44,14 +45,15 @@ public sealed class TicketsResourcesTests
     }
 
     [Fact]
-    public void Neutral_and_ptBR_catalogs_have_matching_keys()
+    public void Every_ptBR_key_exists_in_the_neutral_catalog()
     {
         var neutral = KeysFor(string.Empty);   // TicketsResources.resx (English / fallback)
         var pt = KeysFor("pt-BR");                 // TicketsResources.pt-BR.resx
 
         neutral.ShouldNotBeEmpty();
-        pt.OrderBy(k => k, StringComparer.Ordinal)
-            .ShouldBe(neutral.OrderBy(k => k, StringComparer.Ordinal));
+        pt.Except(neutral, StringComparer.Ordinal)
+            .OrderBy(k => k, StringComparer.Ordinal)
+            .ShouldBeEmpty();
     }
 
     [Fact]
@@ -107,22 +109,20 @@ public sealed class TicketsResourcesTests
     }
 
     // An enum handed to a message as an argument is looked up as "{EnumType}.{Member}" by
-    // GlobalExceptionHandler. A member with no entry falls back to its C# name, which puts an
-    // English word inside an otherwise translated sentence, so every member needs both entries.
+    // GlobalExceptionHandler. A member with no entry falls back to its C# name, which is a code
+    // identifier, not display text, so every member needs a neutral entry; pt-BR may omit it and fall back.
     [Theory]
     [InlineData(typeof(TicketStatus))]
-    public void Every_enum_member_that_reaches_a_message_is_translated(Type enumType)
+    public void Every_enum_member_that_reaches_a_message_has_a_neutral_entry(Type enumType)
     {
         ArgumentNullException.ThrowIfNull(enumType);
 
         var neutral = KeysFor(string.Empty);
-        var pt = KeysFor("pt-BR");
 
         foreach (var member in Enum.GetNames(enumType))
         {
             var key = $"{enumType.Name}.{member}";
             neutral.ShouldContain(key);
-            pt.ShouldContain(key);
         }
     }
 }

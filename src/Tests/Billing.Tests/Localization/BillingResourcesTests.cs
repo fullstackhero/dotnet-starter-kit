@@ -10,7 +10,8 @@ namespace Billing.Tests.Localization;
 
 // Proves the BillingResources catalog is embedded under the correct manifest name (ResourcesPath="" =>
 // co-located marker + resx). A wrong manifest name flips ResourceNotFound and leaks raw keys; a
-// missing pt-BR entry ships English as "translated". Both are caught here.
+// pt-BR key the neutral catalog lacks is an orphan of a rename or delete. Both are caught here.
+// A missing pt-BR entry is allowed: it falls back to English.
 public sealed class BillingResourcesTests
 {
     private static IStringLocalizer BuildLocalizer()
@@ -43,14 +44,15 @@ public sealed class BillingResourcesTests
     }
 
     [Fact]
-    public void Neutral_and_ptBR_catalogs_have_matching_keys()
+    public void Every_ptBR_key_exists_in_the_neutral_catalog()
     {
         var neutral = KeysFor(string.Empty);   // BillingResources.resx (English / fallback)
         var pt = KeysFor("pt-BR");                 // BillingResources.pt-BR.resx
 
         neutral.ShouldNotBeEmpty();
-        pt.OrderBy(k => k, StringComparer.Ordinal)
-            .ShouldBe(neutral.OrderBy(k => k, StringComparer.Ordinal));
+        pt.Except(neutral, StringComparer.Ordinal)
+            .OrderBy(k => k, StringComparer.Ordinal)
+            .ShouldBeEmpty();
     }
 
     [Fact]
@@ -81,22 +83,20 @@ public sealed class BillingResourcesTests
     }
 
     // An enum handed to a message as an argument is looked up as "{EnumType}.{Member}" by
-    // GlobalExceptionHandler. A member with no entry falls back to its C# name, which puts an
-    // English word inside an otherwise translated sentence, so every member needs both entries.
+    // GlobalExceptionHandler. A member with no entry falls back to its C# name, which is a code
+    // identifier, not display text, so every member needs a neutral entry; pt-BR may omit it and fall back.
     [Theory]
     [InlineData(typeof(TopupRequestStatus))]
-    public void Every_enum_member_that_reaches_a_message_is_translated(Type enumType)
+    public void Every_enum_member_that_reaches_a_message_has_a_neutral_entry(Type enumType)
     {
         ArgumentNullException.ThrowIfNull(enumType);
 
         var neutral = KeysFor(string.Empty);
-        var pt = KeysFor("pt-BR");
 
         foreach (var member in Enum.GetNames(enumType))
         {
             var key = $"{enumType.Name}.{member}";
             neutral.ShouldContain(key);
-            pt.ShouldContain(key);
         }
     }
 }

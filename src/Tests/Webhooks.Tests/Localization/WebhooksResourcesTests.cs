@@ -8,7 +8,8 @@ namespace Webhooks.Tests.Localization;
 
 // Proves the WebhooksResources catalog is embedded under the correct manifest name (ResourcesPath="" =>
 // co-located marker + resx). A wrong manifest name flips ResourceNotFound and leaks raw keys; a
-// missing pt-BR entry ships English as "translated". Both are caught here.
+// pt-BR key the neutral catalog lacks is an orphan of a rename or delete. Both are caught here.
+// A missing pt-BR entry is allowed: it falls back to English.
 public sealed class WebhooksResourcesTests
 {
     private static IStringLocalizer BuildLocalizer()
@@ -41,14 +42,15 @@ public sealed class WebhooksResourcesTests
     }
 
     [Fact]
-    public void Neutral_and_ptBR_catalogs_have_matching_keys()
+    public void Every_ptBR_key_exists_in_the_neutral_catalog()
     {
         var neutral = KeysFor(string.Empty);   // WebhooksResources.resx (English / fallback)
         var pt = KeysFor("pt-BR");                 // WebhooksResources.pt-BR.resx
 
         neutral.ShouldNotBeEmpty();
-        pt.OrderBy(k => k, StringComparer.Ordinal)
-            .ShouldBe(neutral.OrderBy(k => k, StringComparer.Ordinal));
+        pt.Except(neutral, StringComparer.Ordinal)
+            .OrderBy(k => k, StringComparer.Ordinal)
+            .ShouldBeEmpty();
     }
 
     [Fact]

@@ -17,9 +17,11 @@ namespace Architecture.Tests;
 /// test at all. This closes that class of gap: a new module catalog is covered the moment
 /// its assembly lands in the output, with no new test to write.
 ///
-/// Parity matters because a key missing from a translated catalog does not fail — resource
-/// fallback quietly serves the neutral (English) string, so an untranslated message ships
-/// looking translated.
+/// A translation is optional: a key missing from a translated catalog falls back to the
+/// neutral (English) string at runtime, so a contributor never has to write Portuguese to
+/// get a green build. What fails is a translated key the neutral catalog does not declare
+/// (an orphan left by a rename or delete, which never resolves) and a translation whose
+/// `{n}` placeholders differ from the neutral string.
 /// </summary>
 public sealed class CatalogParityTests
 {
@@ -61,8 +63,8 @@ public sealed class CatalogParityTests
 
     /// <summary>
     /// Keys declared by this culture's OWN catalog. `tryParents: false` is the whole point:
-    /// with parent fallback on, a missing pt-BR key would be answered by the neutral catalog
-    /// and parity would look perfect while half the strings were English.
+    /// with parent fallback on, every neutral key would appear in pt-BR too, and its English
+    /// value would be compared against itself in the placeholder check.
     /// </summary>
     private static Dictionary<string, string>? OwnEntries(ResourceManager manager, CultureInfo culture)
     {
@@ -103,7 +105,7 @@ public sealed class CatalogParityTests
         new(@"\{(\d+)(?::[^}]*)?\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     [Fact]
-    public void Every_Catalog_Has_Matching_Keys_In_Every_Supported_Culture()
+    public void Every_Translated_Catalog_Stays_Consistent_With_Its_Neutral_Catalog()
     {
         var markers = DiscoverCatalogMarkers();
 
@@ -133,20 +135,11 @@ public sealed class CatalogParityTests
                 // `*.en-US.resx` and there should not be one.
                 if (tag == SupportedCultures.Default) continue;
 
+                // A catalog nobody has translated yet is the same case as a missing key, one level up.
                 var translated = OwnEntries(manager, new CultureInfo(tag));
-                if (translated is null)
-                {
-                    violations.Add($"{marker.FullName}: no `.{tag}.resx` catalog at all");
-                    continue;
-                }
+                if (translated is null) continue;
 
-                var missing = neutral.Keys.Except(translated.Keys, StringComparer.Ordinal).OrderBy(k => k, StringComparer.Ordinal).ToList();
                 var extra = translated.Keys.Except(neutral.Keys, StringComparer.Ordinal).OrderBy(k => k, StringComparer.Ordinal).ToList();
-
-                if (missing.Count > 0)
-                {
-                    violations.Add($"{marker.FullName} [{tag}]: missing {missing.Count} key(s) — {string.Join(", ", missing)}");
-                }
 
                 if (extra.Count > 0)
                 {
@@ -175,8 +168,8 @@ public sealed class CatalogParityTests
         }
 
         violations.ShouldBeEmpty(
-            "Every resx catalog must declare the same keys in every supported culture. A key " +
-            "present only in the neutral catalog falls back to English and ships as if it were " +
-            "translated. Violations:\n  " + string.Join("\n  ", violations));
+            "A translated resx catalog may omit keys (they fall back to English), but it must not " +
+            "declare a key the neutral catalog lacks, nor change a message's placeholders. " +
+            "Violations:\n  " + string.Join("\n  ", violations));
     }
 }
