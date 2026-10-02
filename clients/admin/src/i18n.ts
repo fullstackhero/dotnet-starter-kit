@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
-import { missingKeyFallback } from "@/lib/i18n-fallback";
+import { fallbackChain, missingKeyFallback } from "@/lib/i18n-fallback";
 import enCommon from "@/locales/en-US/common.json";
 import ptCommon from "@/locales/pt-BR/common.json";
 import enNav from "@/locales/en-US/nav.json";
@@ -36,11 +36,14 @@ import ptDashboard from "@/locales/pt-BR/dashboard.json";
 // Canonical tags: specific (what the switcher offers, User.Locale persists, the claim carries).
 export const SUPPORTED = ["en-US", "pt-BR"] as const;
 
+type Catalog = Record<string, string>;
+
 // Translation namespaces keyed by name → per-locale catalog. This map is the
 // single source string-migration waves extend: to add a namespace, import its
-// two JSON catalogs and add one entry here — `resources` and `ns` below derive
-// from it, so no other wiring changes.
-const CATALOGS = {
+// en-US catalog (plus pt-BR if you have a translation) and add one entry here —
+// `resources` and `ns` below derive from it, so no other wiring changes. A
+// namespace or key pt-BR lacks renders in English through fallbackChain.
+const CATALOGS: Record<string, { "en-US": Catalog; "pt-BR"?: Catalog }> = {
   common: { "en-US": enCommon, "pt-BR": ptCommon },
   nav: { "en-US": enNav, "pt-BR": ptNav },
   auth: { "en-US": enAuth, "pt-BR": ptAuth },
@@ -56,7 +59,7 @@ const CATALOGS = {
   notifications: { "en-US": enNotifications, "pt-BR": ptNotifications },
   health: { "en-US": enHealth, "pt-BR": ptHealth },
   dashboard: { "en-US": enDashboard, "pt-BR": ptDashboard },
-} as const;
+};
 
 // react-i18next wants resources shaped { <lng>: { <ns>: catalog } }. Build it from
 // CATALOGS so SUPPORTED (what the switcher offers) and the namespace list stay the
@@ -65,7 +68,7 @@ const resources = Object.fromEntries(
   SUPPORTED.map((lng) => [
     lng,
     Object.fromEntries(
-      Object.entries(CATALOGS).map(([ns, byLng]) => [ns, byLng[lng]]),
+      Object.entries(CATALOGS).map(([ns, byLng]) => [ns, byLng[lng] ?? {}]),
     ),
   ]),
 );
@@ -95,9 +98,7 @@ export function initI18n(deploymentDefault: string) {
     .init({
       resources,
       ns: Object.keys(CATALOGS),
-      fallbackLng: (SUPPORTED as readonly string[]).includes(deploymentDefault)
-        ? deploymentDefault
-        : "en-US",
+      fallbackLng: fallbackChain(deploymentDefault, SUPPORTED),
       supportedLngs: [...SUPPORTED],
       defaultNS: "common",
       interpolation: { escapeValue: false },
