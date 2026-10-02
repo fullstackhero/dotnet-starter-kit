@@ -18,7 +18,7 @@ public class UpdateUserCommand : ICommand<Unit>
     /// Concurrency tokens the caller is willing to overwrite, taken from the request's
     /// <c>If-Match</c> header by the endpoint. <see langword="null"/> means the caller sent no
     /// precondition and accepts whatever version is stored; a non-null list means the update
-    /// only proceeds when the stored token matches one of the entries.
+    /// only proceeds when the current profile version matches one of the entries.
     /// </summary>
     /// <remarks>
     /// Header-derived, never read from the request body — the endpoint always overwrites it.

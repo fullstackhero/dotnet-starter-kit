@@ -10,6 +10,9 @@ using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace FSH.Modules.Identity.Services;
 
@@ -44,7 +47,7 @@ internal sealed class UserProfileService(
             EmailConfirmed = user.EmailConfirmed,
             PhoneNumber = user.PhoneNumber,
             TwoFactorEnabled = user.TwoFactorEnabled,
-            ConcurrencyStamp = user.ConcurrencyStamp,
+            ProfileVersion = ComputeProfileVersion(user),
         };
     }
 
@@ -82,7 +85,7 @@ internal sealed class UserProfileService(
         // silently blank whatever changed since. The precondition is checked here, before the
         // storage calls below: a rejected update must not leave an orphan upload behind, and on
         // the deleteCurrentImage path it must not remove the avatar with no database change.
-        EnsureConcurrencyStampMatches(user, expectedConcurrencyStamps);
+        EnsureProfileUnchanged(user, expectedConcurrencyStamps);
 
         // The old blob is only deleted once the database write has gone through. UpdateAsync can
         // still lose a race here — the If-Match check above is not the last word, because another
@@ -120,9 +123,11 @@ internal sealed class UserProfileService(
         if (!result.Succeeded)
         {
             // Identity's store answers a lost race with ConcurrencyFailure instead of throwing,
-            // so it would otherwise surface as a generic 500. It is the same condition the
-            // If-Match check above reports, just detected one layer down: another writer landed
-            // between our read and our save.
+            // so it would otherwise surface as a generic 500. The store compares its own
+            // ConcurrencyStamp, which every write to the row rotates, so a failed sign-in landing
+            // between our read and our save also ends here, as a 412 with the profile untouched.
+            // Accepted: the window is this request's own, and re-reading and saving again recovers
+            // exactly as it does from a real conflict.
             if (result.Errors.Any(error => string.Equals(error.Code, errorDescriber.ConcurrencyFailure().Code, StringComparison.Ordinal)))
             {
                 throw StaleProfileException();
@@ -139,7 +144,7 @@ internal sealed class UserProfileService(
         await signInManager.RefreshSignInAsync(user);
     }
 
-    private static void EnsureConcurrencyStampMatches(FshUser user, IReadOnlyList<string>? expectedConcurrencyStamps)
+    private static void EnsureProfileUnchanged(FshUser user, IReadOnlyList<string>? expectedConcurrencyStamps)
     {
         // A null list means the caller sent no If-Match and accepts the stored version as-is.
         // ponytail: keep the precondition optional for backward compatibility; a future major can
@@ -149,12 +154,24 @@ internal sealed class UserProfileService(
             return;
         }
 
-        var storedStamp = user.ConcurrencyStamp;
-        if (storedStamp is null || !expectedConcurrencyStamps.Contains(storedStamp, StringComparer.Ordinal))
+        if (!expectedConcurrencyStamps.Contains(ComputeProfileVersion(user), StringComparer.Ordinal))
         {
             throw StaleProfileException();
         }
     }
+
+    // Covers only the fields PUT /profile writes. Identity's ConcurrencyStamp also rotates on
+    // writes that leave the profile alone, such as the failed-sign-in counter, and would turn a
+    // wrong password typed anywhere into a 412 on an untouched form. Keyed with the SecurityStamp,
+    // which never leaves the server, because the tag travels in a header proxies and APM log and a
+    // plain hash of name plus phone is brute-forceable over the small phone-number space.
+    // ponytail: the stamp also rotates on a password or 2FA change, so those move the tag too;
+    // swap for a server-wide HMAC key if that ever needs to stop.
+    private static string ComputeProfileVersion(FshUser user) =>
+        Convert.ToHexStringLower(HMACSHA256.HashData(
+            Encoding.UTF8.GetBytes(user.SecurityStamp ?? string.Empty),
+            JsonSerializer.SerializeToUtf8Bytes(
+                new[] { user.FirstName, user.LastName, user.PhoneNumber, user.ImageUrl?.OriginalString })));
 
     private static CustomException StaleProfileException() =>
         new(
