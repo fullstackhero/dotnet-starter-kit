@@ -17,6 +17,9 @@ public sealed class FilesOptions
     /// <summary>How long a soft-deleted FileAsset stays in trash before bytes + row are hard-purged.</summary>
     public int SoftDeleteRetentionDays { get; set; } = 30;
 
+    /// <summary>Rows per page for <c>MigrateLegacyPublicFileKeysJob</c> (keyset-paginated, one DI scope per page).</summary>
+    public int LegacyKeyMigrationBatchSize { get; set; } = 100;
+
     /// <summary>Categories of files the module accepts, with per-category extension whitelists and size caps.</summary>
     public Dictionary<string, FileCategoryOptions> Categories { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }

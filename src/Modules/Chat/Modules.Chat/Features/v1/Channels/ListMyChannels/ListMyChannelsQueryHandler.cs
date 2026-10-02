@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Contracts.v1.Queries;
 using FSH.Modules.Chat.Data;
@@ -28,7 +29,7 @@ public sealed class ListMyChannelsQueryHandler(
         var channels = await db.Channels.AsNoTracking()
             .Where(c => c.Members.Any(m => m.UserId == currentUserId))
             .OrderByDescending(c => c.LastMessageAtUtc ?? c.CreatedAtUtc)
-            .Skip((page - 1) * pageSize)
+            .Skip(PaginationExtensions.GetOffset(page, pageSize))
             .Take(pageSize)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

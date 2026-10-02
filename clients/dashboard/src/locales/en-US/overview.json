@@ -62,6 +62,8 @@
   "audits.eventFallback": "Event",
   "audits.systemActor": "system",
   "audits.ago": "{{value}} ago",
+  "audits.noAccessTitle": "No access to audits",
+  "audits.noAccessBody": "Recent audits need the Audit trail permission. Ask an administrator if you need it.",
 
   "quick.inviteUsers.title": "Invite users",
   "quick.inviteUsers.description": "Add teammates, assign roles.",

@@ -11,6 +11,7 @@ import {
   ChevronRight,
   CreditCard,
   Gauge,
+  Lock,
   Package,
   RefreshCw,
   ScrollText,
@@ -558,6 +559,38 @@ function recentEventTypeIcon(eventType: AuditEventType): React.ComponentType<{ c
   return Activity;
 }
 
+/** Mirrors the permission GET /api/v1/audits enforces server-side. */
+const AUDIT_VIEW_PERMISSION = "Permissions.AuditTrails.View";
+
+function RecentAuditsSkeleton() {
+  return (
+    <ul className="space-y-2.5">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <li key={i} className="flex items-center gap-3">
+          <Skeleton className="size-7 rounded-md" />
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="ml-auto h-3 w-16" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function RecentAuditsNoAccess() {
+  const { t } = useTranslation("overview");
+  return (
+    <div className="flex flex-col items-center gap-2 py-6 text-center">
+      <Lock className="size-4 text-muted-foreground" />
+      <div className="text-[13px] font-semibold tracking-tight text-foreground">
+        {t("audits.noAccessTitle")}
+      </div>
+      <p className="max-w-sm text-[11.5px] text-muted-foreground">
+        {t("audits.noAccessBody")}
+      </p>
+    </div>
+  );
+}
+
 function RecentAuditsBody() {
   const { t } = useTranslation("overview");
   const recentAudits = useQuery({
@@ -577,17 +610,7 @@ function RecentAuditsBody() {
   const items = recentAudits.data?.items ?? [];
 
   if (recentAudits.isLoading) {
-    return (
-      <ul className="space-y-2.5">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <li key={i} className="flex items-center gap-3">
-            <Skeleton className="size-7 rounded-md" />
-            <Skeleton className="h-3 w-32" />
-            <Skeleton className="ml-auto h-3 w-16" />
-          </li>
-        ))}
-      </ul>
-    );
+    return <RecentAuditsSkeleton />;
   }
 
   if (items.length === 0) {
@@ -951,7 +974,11 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
 
 export function OverviewPage() {
   const { t } = useTranslation("overview");
-  const { user } = useAuth();
+  const { user, permissionsHydrated } = useAuth();
+  // GET /audits requires AuditTrails.View — only mount the query for users who
+  // hold it, so everyone else gets a quiet no-access state instead of a 403.
+  const canViewAudits =
+    permissionsHydrated && (user?.permissions.includes(AUDIT_VIEW_PERMISSION) ?? false);
   const { status: sseStatus, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
@@ -1228,15 +1255,23 @@ export function OverviewPage() {
             icon={ScrollText}
             description={t("section.recentAuditsDesc")}
             action={
-              <Link
-                to="/system/audits"
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {t("seeAll")} <ArrowUpRight className="size-3" />
-              </Link>
+              canViewAudits ? (
+                <Link
+                  to="/system/audits"
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {t("seeAll")} <ArrowUpRight className="size-3" />
+                </Link>
+              ) : undefined
             }
           >
-            <RecentAuditsBody />
+            {!permissionsHydrated ? (
+              <RecentAuditsSkeleton />
+            ) : canViewAudits ? (
+              <RecentAuditsBody />
+            ) : (
+              <RecentAuditsNoAccess />
+            )}
           </EntityDetailSection>
 
           <EntityDetailSection

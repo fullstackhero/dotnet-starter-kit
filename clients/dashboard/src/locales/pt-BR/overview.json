@@ -55,6 +55,8 @@
   "audits.eventFallback": "Evento",
   "audits.systemActor": "sistema",
   "audits.ago": "há {{value}}",
+  "audits.noAccessTitle": "Sem acesso às auditorias",
+  "audits.noAccessBody": "As auditorias recentes exigem a permissão de Trilha de auditoria. Peça a um administrador se precisar dela.",
   "quick.inviteUsers.title": "Convidar usuários",
   "quick.inviteUsers.description": "Adicione colegas, atribua funções.",
   "quick.browseCatalog.title": "Explorar catálogo",

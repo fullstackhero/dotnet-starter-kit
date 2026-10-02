@@ -142,6 +142,32 @@ public sealed partial class LocalStorageService : IStorageService
         return Task.CompletedTask;
     }
 
+    public Task CopyAsync(string sourceKey, string destinationKey, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationKey);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var sourcePath = ResolvePath(sourceKey);
+        var destinationPath = ResolvePath(destinationKey);
+
+        // Callers delete the source after a copy, so a failed copy must not look like a successful one.
+        if (!File.Exists(sourcePath))
+        {
+            throw new FileNotFoundException($"Cannot copy '{sourceKey}': the object does not exist.", sourceKey);
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+        File.Copy(sourcePath, destinationPath, overwrite: true);
+        return Task.CompletedTask;
+    }
+
+    private string ResolvePath(string key)
+    {
+        var normalized = key.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal);
+        return Path.Combine(_rootPath, normalized);
+    }
+
     private static string SanitizeFileName(string fileName)
     {
         return FileNameSanitizer().Replace(fileName, "_");
