@@ -135,6 +135,8 @@
   "errorBand.failure": "Falha",
   "language.saveFailed": "Idioma não salvo",
   "language.saveFailedDetail": "O app está no idioma escolhido, mas não foi possível salvar a escolha, que não vai persistir depois que você sair da conta.",
+  "language.loadFailed": "Idioma não alterado",
+  "language.loadFailedDetail": "Não foi possível carregar o idioma. Verifique sua conexão e tente novamente.",
   "upload.cancelled": "Envio cancelado.",
   "upload.networkError": "Erro de rede durante o envio.",
   "upload.putFailed": "Envio recusado pelo armazenamento ({{status}}).",

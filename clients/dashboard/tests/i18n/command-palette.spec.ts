@@ -15,6 +15,9 @@ test.beforeEach(async ({ page }) => {
 test.describe("command palette search terms", () => {
   test("pt-BR keywords match, and the English ones no longer do", async ({ page }) => {
     await page.goto("/?culture=pt-BR");
+    // The pt-BR catalog loads before the first render, after the load event: a shortcut pressed
+    // before the shell mounts has no listener to reach.
+    await expect(page.getByRole("button", { name: "Abrir menu do perfil" })).toBeVisible();
     await page.keyboard.press("Control+k");
 
     const search = page.getByPlaceholder("Digite um comando ou busque…");
@@ -31,6 +34,7 @@ test.describe("command palette search terms", () => {
 
   test("en-US keywords still match", async ({ page }) => {
     await page.goto("/?culture=en-US");
+    await expect(page.getByRole("button", { name: "Open profile menu" })).toBeVisible();
     await page.keyboard.press("Control+k");
 
     const search = page.getByPlaceholder("Type a command or search…");

@@ -1,5 +1,5 @@
 import { tokenStore } from "@/auth/token-store";
-import i18n, { SUPPORTED } from "@/i18n";
+import i18n, { changeLanguage, SUPPORTED } from "@/i18n";
 
 /**
  * Cross-app impersonation handoff. The admin app issues an impersonation
@@ -50,8 +50,14 @@ export async function installImpersonationFromHash(): Promise<void> {
   // side: apiFetch derives Accept-Language from i18n.language, so responses come
   // back in the operator's language instead of the browser-detected one.
   // Unsupported or absent tags are ignored, leaving normal detection in place.
+  // main.tsx awaits this before the first render, so a catalog that fails to load must not throw
+  // out of it: the session still starts, in the language normal detection picked.
   if (locale && (SUPPORTED as readonly string[]).includes(locale) && i18n.language !== locale) {
-    await i18n.changeLanguage(locale);
+    try {
+      await changeLanguage(locale);
+    } catch (error) {
+      console.warn(`[i18n] could not load the ${locale} catalog for the impersonation handoff.`, error);
+    }
   }
 }
 

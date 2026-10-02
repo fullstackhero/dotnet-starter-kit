@@ -42,7 +42,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { getMyProfileWithETag, updateMyProfile } from "@/api/identity";
 import { refreshAccessToken } from "@/lib/api-client";
 import { formatNumber } from "@/lib/list-helpers";
-import i18n, { SUPPORTED } from "@/i18n";
+import i18n, { changeLanguage, SUPPORTED } from "@/i18n";
 import { useAuth } from "@/auth/use-auth";
 import { useSseStatus } from "@/sse/sse-context";
 import { useTheme } from "@/components/theme/theme-provider";
@@ -218,7 +218,9 @@ export function Topbar() {
   useEffect(() => {
     if (languageChosenThisSession.current) return;
     if (persistedLocale && persistedLocale !== i18n.language) {
-      void i18n.changeLanguage(persistedLocale);
+      void changeLanguage(persistedLocale).catch((error: unknown) => {
+        console.warn(`[i18n] could not load the ${persistedLocale} catalog from the profile.`, error);
+      });
     }
   }, [persistedLocale]);
 
@@ -274,11 +276,21 @@ export function Topbar() {
   // mutation argument (never closed-over state). During an impersonation session
   // the switch stays client-side only: persisting would write the operator's
   // language onto the impersonated user's profile.
+  //
+  // The locale is saved only once its catalog has loaded: a failed load leaves the app in the
+  // current language, so persisting the new one would hand the next session a choice that never
+  // took effect.
   const onSelectLanguage = (tag: string) => {
     languageChosenThisSession.current = true;
-    void i18n.changeLanguage(tag);
-    if (isImpersonating) return;
-    updateProfile.mutate(tag);
+    changeLanguage(tag).then(
+      (applied) => {
+        if (applied && !isImpersonating) updateProfile.mutate(tag);
+      },
+      (error: unknown) => {
+        console.warn(`[i18n] could not load the ${tag} catalog; staying on ${i18n.language}.`, error);
+        toast.error(t("language.loadFailed"), { description: t("language.loadFailedDetail") });
+      },
+    );
   };
 
   const onConfirmSignOut = () => {
