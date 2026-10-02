@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using FSH.Framework.Persistence;
 using FSH.Framework.Storage.Services;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Contracts.v1.Queries;
@@ -34,7 +35,7 @@ public sealed class ListSharedFilesQueryHandler(FilesDbContext db, IStorageServi
                 && f.Status == FileAssetStatus.Available
                 && SharedOwnerTypes.Contains(f.OwnerType))
             .OrderByDescending(f => f.CreatedAtUtc)
-            .Skip((page - 1) * pageSize)
+            .Skip(PaginationExtensions.GetOffset(page, pageSize))
             .Take(pageSize)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

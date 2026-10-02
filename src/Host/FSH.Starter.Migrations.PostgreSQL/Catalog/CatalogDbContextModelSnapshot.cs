@@ -18,7 +18,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("catalog")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -250,6 +250,8 @@ namespace FSH.Starter.Migrations.PostgreSQL.Catalog
                         .HasColumnType("character varying(2048)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FileAssetId");
 
                     b.HasIndex("ProductId");
 

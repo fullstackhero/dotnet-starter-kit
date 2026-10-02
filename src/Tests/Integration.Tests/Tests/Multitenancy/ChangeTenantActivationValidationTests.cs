@@ -121,7 +121,7 @@ public sealed class ChangeTenantActivationValidationTests
         var unique = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"act-reactivate-{unique}";
         await CreateTenantAsync(rootClient, tenantId, $"act-reactivate-{unique}@tenant.com");
-        await WaitForProvisioningAsync(rootClient, tenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenantId);
         await WaitForStableCompletedAsync(rootClient, tenantId);
 
         var deactivate = await rootClient.PostAsJsonAsync(
@@ -194,28 +194,6 @@ public sealed class ChangeTenantActivationValidationTests
         });
         var body = await response.Content.ReadAsStringAsync();
         response.StatusCode.ShouldBe(HttpStatusCode.Created, $"Create tenant failed: {body}");
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (var i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync($"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var content = await statusResponse.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-            await Task.Delay(1000);
-        }
-        throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
     }
 
     /// <summary>

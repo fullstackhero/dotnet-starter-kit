@@ -22,12 +22,19 @@ namespace FSH.Framework.Web.Validation;
 public sealed class PagedQueryValidator<T> : AbstractValidator<T>
     where T : IPagedQuery
 {
+    /// <summary>
+    /// Largest accepted page number. At the maximum page size (100) the deepest offset is ~100M rows,
+    /// well inside <see cref="int"/> range (the overflow point is int.MaxValue / 100, about 21.4M pages)
+    /// and far past any listing a client genuinely pages through; anything larger is a malformed request.
+    /// </summary>
+    public const int MaxPageNumber = 1_000_000;
+
     public PagedQueryValidator(IStringLocalizer<SharedResources> localizer)
     {
         RuleFor(q => q.PageNumber)
-            .GreaterThan(0)
+            .InclusiveBetween(1, MaxPageNumber)
             .When(q => q.PageNumber.HasValue)
-            .WithMessage(_ => localizer["Validation.PageNumberMinimum"]);
+            .WithMessage(_ => localizer["Validation.PageNumberRange", MaxPageNumber]);
 
         RuleFor(q => q.PageSize)
             .InclusiveBetween(1, 100)

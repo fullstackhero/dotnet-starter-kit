@@ -48,6 +48,25 @@ public static class PaginationExtensions
         return ToPagedResponseInternalAsync(source, pageNumber, pageSize, cancellationToken);
     }
 
+    /// <summary>
+    /// Computes the zero-based row offset for a 1-based page number without <see cref="int"/> overflow.
+    /// Page numbers below 1 are treated as page 1; an offset beyond <see cref="int.MaxValue"/> is clamped to it,
+    /// which yields an empty page instead of wrapping into a negative OFFSET the database rejects.
+    /// </summary>
+    /// <param name="pageNumber">The 1-based page number.</param>
+    /// <param name="pageSize">The page size (values below 1 yield an offset of 0).</param>
+    /// <returns>The number of rows to skip, always in the range [0, <see cref="int.MaxValue"/>].</returns>
+    public static int GetOffset(int pageNumber, int pageSize)
+    {
+        if (pageNumber <= 1 || pageSize <= 0)
+        {
+            return 0;
+        }
+
+        long offset = (pageNumber - 1L) * pageSize;
+        return offset > int.MaxValue ? int.MaxValue : (int)offset;
+    }
+
     private static async Task<PagedResponse<T>> ToPagedResponseInternalAsync<T>(
         IQueryable<T> source,
         int pageNumber,
@@ -57,19 +76,29 @@ public static class PaginationExtensions
     {
         var totalCount = await source.LongCountAsync(cancellationToken).ConfigureAwait(false);
 
-        var totalPages = totalCount == 0
-            ? 0
-            : (int)Math.Ceiling(totalCount / (double)pageSize);
+        // Nothing to page through: skip the item query and report page 1 of 0, so an out-of-range
+        // page number on an empty listing never reaches the OFFSET arithmetic (#1416).
+        if (totalCount == 0)
+        {
+            return EmptyPage<T>(pageNumber: 1, pageSize, totalCount: 0, totalPages: 0);
+        }
 
-        if (pageNumber > totalPages && totalPages > 0)
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        if (pageNumber > totalPages)
         {
             pageNumber = totalPages;
         }
 
-        var skip = (pageNumber - 1) * pageSize;
+        // Clamping keeps this in range for any real table; the long math is a defensive backstop.
+        long skip = (pageNumber - 1L) * pageSize;
+        if (skip > int.MaxValue)
+        {
+            return EmptyPage<T>(pageNumber, pageSize, totalCount, totalPages);
+        }
 
         var items = await source
-            .Skip(skip)
+            .Skip((int)skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -83,4 +112,14 @@ public static class PaginationExtensions
             TotalPages = totalPages
         };
     }
+
+    private static PagedResponse<T> EmptyPage<T>(int pageNumber, int pageSize, long totalCount, int totalPages)
+        => new()
+        {
+            Items = Array.Empty<T>(),
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages
+        };
 }

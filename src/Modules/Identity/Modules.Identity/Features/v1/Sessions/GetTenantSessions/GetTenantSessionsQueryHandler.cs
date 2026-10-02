@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
@@ -21,7 +22,7 @@ public sealed class GetTenantSessionsQueryHandler(ISessionService sessionService
         var (items, total) = await sessionService.GetTenantSessionsAsync(
             includeInactive: query.IncludeInactive,
             search: query.Search,
-            skip: (page - 1) * size,
+            skip: PaginationExtensions.GetOffset(page, size),
             take: size,
             cancellationToken: cancellationToken)
             .ConfigureAwait(false);
