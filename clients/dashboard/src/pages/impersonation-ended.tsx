@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { LogIn, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/use-auth";
@@ -24,6 +25,7 @@ import { useAuth } from "@/auth/use-auth";
  * line, and a single primary affordance.
  */
 export function ImpersonationEndedPage() {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
@@ -64,11 +66,10 @@ export function ImpersonationEndedPage() {
         </div>
 
         <h1 className="mb-2 font-display text-display-stat font-semibold tracking-tight text-[var(--color-foreground)]">
-          Impersonation ended
+          {t("impersonationEnded.title")}
         </h1>
         <p className="mb-7 max-w-[380px] text-[14px] leading-relaxed text-[var(--color-muted-foreground)]">
-          The operator's access to this session was revoked or has expired. Sign
-          in with your own account to continue.
+          {t("impersonationEnded.body")}
         </p>
 
         {/* Primary action */}
@@ -78,7 +79,7 @@ export function ImpersonationEndedPage() {
           className="group h-11 px-5 text-[14px] font-semibold"
         >
           <LogIn className="size-4" />
-          <span>Back to sign in</span>
+          <span>{t("backToSignIn")}</span>
         </Button>
 
         {/* Dev-only diagnostic — the JwtBearer rejection reason. Hidden in prod

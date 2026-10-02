@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { useUserDisplay } from "@/lib/use-user-display";
 
@@ -19,6 +20,7 @@ export function TypingIndicator({
   channelId: string;
   selfUserId?: string;
 }) {
+  const { t } = useTranslation("chat");
   const [markers, setMarkers] = useState<Marker[]>([]);
 
   useRealtimeEvent<{ channelId: string; userId: string }>(
@@ -48,10 +50,23 @@ export function TypingIndicator({
     return () => clearInterval(tick);
   }, [markers.length]);
 
+  // Resolve up to two names via fixed hook calls (hooks can't run inside a
+  // .map). Ids may be undefined when fewer markers are active — the hook
+  // tolerates that and the phrase below only reads the names it needs.
+  const name0 = useUserDisplay(markers[0]?.userId).name;
+  const name1 = useUserDisplay(markers[1]?.userId).name;
+
   if (markers.length === 0) {
     // Reserve the line height so the composer doesn't jump when typing starts.
     return <div className="h-5 px-4" aria-hidden />;
   }
+
+  const phrase =
+    markers.length === 1
+      ? t("typing.one", { name: name0 })
+      : markers.length === 2
+        ? t("typing.two", { a: name0, b: name1 })
+        : t("typing.many", { a: name0, count: markers.length - 1 });
 
   return (
     <div
@@ -65,32 +80,7 @@ export function TypingIndicator({
         <span className="chat-typing-dot inline-block h-1 w-1 rounded-full bg-[var(--color-primary)]" />
         <span className="chat-typing-dot inline-block h-1 w-1 rounded-full bg-[var(--color-primary)]" />
       </span>
-      <span>
-        {markers.length === 1 ? (
-          <>
-            <UserName userId={markers[0].userId} /> is typing…
-          </>
-        ) : markers.length === 2 ? (
-          <>
-            <UserName userId={markers[0].userId} /> and <UserName userId={markers[1].userId} /> are
-            typing…
-          </>
-        ) : (
-          <>
-            <UserName userId={markers[0].userId} /> and {markers.length - 1} others are typing…
-          </>
-        )}
-      </span>
+      <span>{phrase}</span>
     </div>
   );
-}
-
-/**
- * Inline name resolver — extracted so each marker can have its own
- * useUserDisplay hook (you can't call hooks inside an array .map). Renders
- * just the resolved name as a fragment.
- */
-function UserName({ userId }: { userId: string }) {
-  const u = useUserDisplay(userId);
-  return <>{u.name}</>;
 }

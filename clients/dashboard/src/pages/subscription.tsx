@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   ArrowUpRight,
   CalendarClock,
@@ -29,15 +31,12 @@ import {
   ErrorBand,
   type EntityStatusTone,
 } from "@/components/list";
-import { describe, formatDate, formatMoney } from "@/lib/list-helpers";
+import { describe, formatDate, formatMoney, formatNumber } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────
 // Pure view helpers — module scope.
 // ────────────────────────────────────────────────────────────────────
-
-const numberFmt = new Intl.NumberFormat("en-US");
-const formatNumber = (n: number) => numberFmt.format(n);
 
 type UsageRowVm = {
   resource: string;
@@ -65,17 +64,17 @@ function toUsageRows(snapshots: UsageSnapshotDto[]): UsageRowVm[] {
 
 function expiryTone(state: TenantExpiryState | undefined): {
   tone: EntityStatusTone;
-  label: string;
+  labelKey: string;
 } {
   switch (state) {
     case "InGrace":
-      return { tone: "warning", label: "In grace" };
+      return { tone: "warning", labelKey: "validity.state.inGrace" };
     case "Expired":
-      return { tone: "danger", label: "Expired" };
+      return { tone: "danger", labelKey: "validity.state.expired" };
     case "Active":
-      return { tone: "success", label: "Active" };
+      return { tone: "success", labelKey: "validity.state.active" };
     default:
-      return { tone: "default", label: "Unknown" };
+      return { tone: "default", labelKey: "validity.state.unknown" };
   }
 }
 
@@ -96,11 +95,20 @@ function formatPeriod(year: number, month: number) {
   return `${year}-${String(month).padStart(2, "0")}`;
 }
 
+function invoiceStatusLabel(status: InvoiceStatus, t: TFunction): string {
+  return t(`invoices.status.${status}`, { defaultValue: status });
+}
+
+function subscriptionStatusLabel(status: string, t: TFunction): string {
+  return t(`plan.status.${status}`, { defaultValue: status });
+}
+
 // ────────────────────────────────────────────────────────────────────
 // Page
 // ────────────────────────────────────────────────────────────────────
 
 export function SubscriptionPage() {
+  const { t } = useTranslation("subscription");
   const status = useQuery({
     queryKey: ["tenant", "me", "status"],
     queryFn: () => getMyStatus(),
@@ -150,8 +158,8 @@ export function SubscriptionPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={CreditCard}
-        title="Subscription"
-        description="Your tenant's plan, validity, usage, and recent invoices."
+        title={t("title")}
+        description={t("description")}
       />
 
       {errorMessage && <ErrorBand message={errorMessage} />}
@@ -159,7 +167,7 @@ export function SubscriptionPage() {
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Left rail — plan + validity */}
         <aside className="w-full space-y-4 lg:w-[360px] lg:shrink-0">
-          <EntityDetailSection title="Plan" icon={CreditCard}>
+          <EntityDetailSection title={t("plan.title")} icon={CreditCard}>
             <PlanBody
               planName={planName}
               subscription={subscription.data}
@@ -167,7 +175,7 @@ export function SubscriptionPage() {
             />
           </EntityDetailSection>
 
-          <EntityDetailSection title="Validity" icon={CalendarClock}>
+          <EntityDetailSection title={t("validity.title")} icon={CalendarClock}>
             <ValidityBody status={status.data} loading={status.isLoading} />
           </EntityDetailSection>
         </aside>
@@ -175,9 +183,9 @@ export function SubscriptionPage() {
         {/* Right column — usage + invoices */}
         <div className="w-full min-w-0 flex-1 space-y-4">
           <EntityDetailSection
-            title="Usage by resource"
+            title={t("usage.title")}
             icon={Gauge}
-            description="Current-month consumption against your plan limits."
+            description={t("usage.description")}
           >
             <UsageBody
               rows={usageRows}
@@ -187,15 +195,15 @@ export function SubscriptionPage() {
           </EntityDetailSection>
 
           <EntityDetailSection
-            title="Recent invoices"
+            title={t("recent.title")}
             icon={Receipt}
-            description="Your five most recent invoices."
+            description={t("recent.description")}
             action={
               <Link
                 to="/invoices"
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
               >
-                See all <ArrowUpRight className="size-3" />
+                {t("recent.seeAll")} <ArrowUpRight className="size-3" />
               </Link>
             }
           >
@@ -224,6 +232,7 @@ function PlanBody({
   subscription: SubscriptionDto | null | undefined;
   loading: boolean;
 }) {
+  const { t } = useTranslation("subscription");
   if (loading) {
     return (
       <div className="space-y-3">
@@ -238,11 +247,10 @@ function PlanBody({
     return (
       <div className="space-y-1">
         <div className="text-[13px] font-semibold tracking-tight text-[var(--color-foreground)]">
-          No active subscription
+          {t("plan.noneTitle")}
         </div>
         <p className="text-[11.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-          Your tenant has no plan assigned. Contact your operator to enable
-          billing, quotas, and overage tracking.
+          {t("plan.noneBody")}
         </p>
       </div>
     );
@@ -257,30 +265,29 @@ function PlanBody({
         {subscription && (
           // The dashboard's /subscriptions/me only ever surfaces the ACTIVE
           // subscription (or null), so the badge is always the active tone.
-          <Badge variant="success">{subscription.status}</Badge>
+          <Badge variant="success">{subscriptionStatusLabel(subscription.status, t)}</Badge>
         )}
       </div>
 
       {subscription && (
         <dl className="space-y-1.5 text-[12px]">
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-[var(--color-muted-foreground)]">Started</dt>
+            <dt className="text-[var(--color-muted-foreground)]">{t("plan.started")}</dt>
             <dd className="tabular-nums text-[var(--color-foreground)]">
               {formatDate(subscription.startUtc)}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-[var(--color-muted-foreground)]">Ends</dt>
+            <dt className="text-[var(--color-muted-foreground)]">{t("plan.ends")}</dt>
             <dd className="tabular-nums text-[var(--color-foreground)]">
-              {subscription.endUtc ? formatDate(subscription.endUtc) : "open-ended"}
+              {subscription.endUtc ? formatDate(subscription.endUtc) : t("plan.openEnded")}
             </dd>
           </div>
         </dl>
       )}
 
       <p className="text-[11px] leading-relaxed text-[var(--color-muted-foreground)]">
-        Plan changes are operator-driven. Contact your operator to upgrade,
-        renew, or cancel.
+        {t("plan.changesNote")}
       </p>
     </div>
   );
@@ -297,6 +304,7 @@ function ValidityBody({
   status: TenantStatusDto | undefined;
   loading: boolean;
 }) {
+  const { t } = useTranslation("subscription");
   if (loading) {
     return (
       <div className="space-y-3">
@@ -309,32 +317,32 @@ function ValidityBody({
   if (!status) {
     return (
       <p className="text-[12px] text-[var(--color-muted-foreground)]">
-        Tenant status is unavailable right now.
+        {t("validity.unavailable")}
       </p>
     );
   }
 
-  const { tone, label } = expiryTone(status.expiryState);
+  const { tone, labelKey } = expiryTone(status.expiryState);
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <EntityStatusBadge tone={tone}>{label}</EntityStatusBadge>
+        <EntityStatusBadge tone={tone}>{t(labelKey)}</EntityStatusBadge>
         {!status.isActive && (
-          <EntityStatusBadge tone="danger">Inactive</EntityStatusBadge>
+          <EntityStatusBadge tone="danger">{t("validity.inactive")}</EntityStatusBadge>
         )}
       </div>
 
       <dl className="space-y-1.5 text-[12px]">
         <div className="flex items-center justify-between gap-3">
-          <dt className="text-[var(--color-muted-foreground)]">Valid until</dt>
+          <dt className="text-[var(--color-muted-foreground)]">{t("validity.validUntil")}</dt>
           <dd className="tabular-nums text-[var(--color-foreground)]">
             {formatDate(status.validUpto)}
           </dd>
         </div>
         {status.expiryState === "InGrace" && (
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-[var(--color-muted-foreground)]">Grace ends</dt>
+            <dt className="text-[var(--color-muted-foreground)]">{t("validity.graceEnds")}</dt>
             <dd className="tabular-nums text-[var(--color-warning)]">
               {formatDate(status.graceEndsUtc)}
             </dd>
@@ -358,6 +366,7 @@ function UsageBody({
   loading: boolean;
   isError: boolean;
 }) {
+  const { t } = useTranslation("subscription");
   if (loading) {
     return (
       <ul className="space-y-3">
@@ -377,7 +386,7 @@ function UsageBody({
   if (isError) {
     return (
       <p className="py-6 text-center text-[12px] text-[var(--color-muted-foreground)]">
-        Couldn't load usage. Try refreshing.
+        {t("usage.loadError")}
       </p>
     );
   }
@@ -392,10 +401,10 @@ function UsageBody({
           <Gauge className="size-3.5 text-[var(--color-primary)]" />
         </span>
         <div className="text-[13px] font-semibold tracking-tight text-[var(--color-foreground)]">
-          No usage captured yet
+          {t("usage.emptyTitle")}
         </div>
         <p className="max-w-sm text-[11.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-          Consumption will appear here as snapshots are recorded for this period.
+          {t("usage.emptyBody")}
         </p>
       </div>
     );
@@ -466,6 +475,7 @@ function RecentInvoicesBody({
   loading: boolean;
   isError: boolean;
 }) {
+  const { t } = useTranslation("subscription");
   if (loading) {
     return (
       <ul className="space-y-2.5">
@@ -483,7 +493,7 @@ function RecentInvoicesBody({
   if (isError) {
     return (
       <p className="py-6 text-center text-[12px] text-[var(--color-muted-foreground)]">
-        Couldn't load invoices. Try refreshing.
+        {t("recent.loadError")}
       </p>
     );
   }
@@ -493,10 +503,10 @@ function RecentInvoicesBody({
       <div className="flex flex-col items-center gap-2 py-6 text-center">
         <Receipt className="size-4 text-[var(--color-muted-foreground)]" />
         <div className="text-[13px] font-semibold tracking-tight text-[var(--color-foreground)]">
-          No invoices yet
+          {t("invoices.empty.emptyTitle")}
         </div>
         <p className="max-w-sm text-[11.5px] text-[var(--color-muted-foreground)]">
-          Once your tenant has been billed for a period, invoices will appear here.
+          {t("invoices.empty.emptyBody")}
         </p>
       </div>
     );
@@ -522,11 +532,11 @@ function RecentInvoicesBody({
                   {invoice.invoiceNumber}
                 </code>
                 <EntityStatusBadge tone={invoiceStatusTone(invoice.status)}>
-                  {invoice.status}
+                  {invoiceStatusLabel(invoice.status, t)}
                 </EntityStatusBadge>
               </div>
               <div className="mt-0.5 font-mono text-[11px] text-[var(--color-muted-foreground)]">
-                period {formatPeriod(invoice.periodYear, invoice.periodMonth)}
+                {t("invoices.period", { period: formatPeriod(invoice.periodYear, invoice.periodMonth) })}
               </div>
             </div>
             <span className="shrink-0 font-display text-[13px] font-semibold tabular-nums text-[var(--color-foreground)]">

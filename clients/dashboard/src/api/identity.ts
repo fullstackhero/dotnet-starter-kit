@@ -16,6 +16,7 @@ export type UserDto = {
   phoneNumber?: string;
   imageUrl?: string;
   twoFactorEnabled?: boolean;
+  locale?: string | null;
 };
 
 export type UserRoleDto = {
@@ -398,6 +399,8 @@ export type UpdateProfileInput = {
   firstName: string | null;
   lastName: string | null;
   phoneNumber: string | null;
+  /** BCP 47 UI language tag persisted on the user (drives the JWT locale claim). */
+  locale: string | null;
 };
 
 /**
@@ -447,6 +450,7 @@ export async function updateMyProfile(input: UpdateProfileInput): Promise<void> 
       firstName: input.firstName ?? profile.firstName ?? null,
       lastName: input.lastName ?? profile.lastName ?? null,
       phoneNumber: input.phoneNumber ?? profile.phoneNumber ?? null,
+      locale: input.locale ?? profile.locale ?? null,
       email: profile.email,
       deleteCurrentImage: false,
     }),

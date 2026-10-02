@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 
 /**
@@ -20,6 +21,7 @@ export function Field({
   required?: boolean;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation("common");
   return (
     <div className="space-y-1.5">
       <Label
@@ -30,7 +32,7 @@ export function Field({
         {required && (
           <>
             <span aria-hidden className="text-[var(--color-destructive)]">·</span>
-            <span className="sr-only">required</span>
+            <span className="sr-only">{t("field.required")}</span>
           </>
         )}
       </Label>
