@@ -21,6 +21,12 @@ test.describe("lazy pt-BR catalog", () => {
         }
       }).observe(document, { childList: true, subtree: true, characterData: true });
     });
+    // A slow catalog is what turns a missing await into a visible English first paint; on a fast
+    // local dev server the lazy route chunk alone can hide it.
+    await page.route(PT_BR_CATALOG, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 750));
+      await route.continue();
+    });
 
     await page.goto("/login?culture=pt-BR");
 
