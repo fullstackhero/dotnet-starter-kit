@@ -136,13 +136,17 @@ public sealed class RolePermissionSyncerTests
         var rootTenant = await GetRootTenantAsync();
         PermissionConstants.Root.ShouldNotBeEmpty();
 
-        await RunSyncerAsync(rootTenant);
+        // Checked after two passes: a sync that adds and removes against different targets flips the claims on each run.
+        for (int pass = 1; pass <= 2; pass++)
+        {
+            await RunSyncerAsync(rootTenant);
 
-        var admin = await GetClaimsAsync(rootTenant, "Admin", ClaimConstants.Permission);
-        var missing = PermissionConstants.Root.Select(p => p.Name).Where(p => !admin.Contains(p)).ToList();
-        missing.ShouldBeEmpty(
-            $"Syncer stripped {missing.Count} root permission(s) from the root tenant's Admin: " +
-            $"[{string.Join(", ", missing)}]");
+            var admin = await GetClaimsAsync(rootTenant, "Admin", ClaimConstants.Permission);
+            var missing = PermissionConstants.Root.Select(p => p.Name).Where(p => !admin.Contains(p)).ToList();
+            missing.ShouldBeEmpty(
+                $"Sync pass {pass} stripped {missing.Count} root permission(s) from the root tenant's Admin: " +
+                $"[{string.Join(", ", missing)}]");
+        }
     }
 
     // ─── helpers ─────────────────────────────────────────────────────
