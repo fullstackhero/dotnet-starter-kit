@@ -167,7 +167,7 @@ function validityView(status: TenantStatusDto | undefined): {
 
 function formatClock(ts: number) {
   // 24h hh:mm:ss in the active locale — no list-helper covers second precision.
-  return new Intl.DateTimeFormat(i18n.language, {
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -1043,7 +1043,7 @@ export function OverviewPage() {
 
   // ── Header strings ────────────────────────────────────────────────────
   const now = new Date();
-  const dateCaption = now.toLocaleDateString(i18n.language, {
+  const dateCaption = now.toLocaleDateString(i18n.resolvedLanguage, {
     weekday: "long",
     day: "2-digit",
     month: "short",

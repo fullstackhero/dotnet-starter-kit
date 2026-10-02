@@ -656,7 +656,7 @@ function SummaryStrip({
             {t("summary.window", { range })}
           </div>
           <div className="mt-1 font-display text-2xl font-semibold tabular-nums leading-none">
-            {new Intl.NumberFormat(i18n.language).format(total)}
+            {new Intl.NumberFormat(i18n.resolvedLanguage).format(total)}
           </div>
           <div className="mt-1 text-[11px] text-[var(--color-muted-foreground)]">{t("summary.events")}</div>
         </div>

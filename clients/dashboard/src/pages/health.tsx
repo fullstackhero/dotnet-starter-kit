@@ -346,7 +346,7 @@ function HeroPanel({
             <Vital
               label={t("vital.lastPoll")}
               value={formatRelative(snapshot.fetchedAt)}
-              hint={new Date(snapshot.fetchedAt).toLocaleTimeString(i18n.language, {
+              hint={new Date(snapshot.fetchedAt).toLocaleTimeString(i18n.resolvedLanguage, {
                 hour12: false,
               })}
             />
@@ -419,7 +419,7 @@ function HistoryPips({ ticks }: { ticks: Tick[] }) {
             tick
               ? t("historyTick", {
                   status: t(`status.${tick.status}`),
-                  time: new Date(tick.at).toLocaleTimeString(i18n.language),
+                  time: new Date(tick.at).toLocaleTimeString(i18n.resolvedLanguage),
                 })
               : t("historyNoData")
           }

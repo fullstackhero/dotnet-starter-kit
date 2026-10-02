@@ -270,5 +270,5 @@ function relativeTime(iso: string): string {
   if (days < 7) return i18n.t("notifications:rel.days", { n: days });
   const weeks = Math.round(days / 7);
   if (weeks < 5) return i18n.t("notifications:rel.weeks", { n: weeks });
-  return new Date(iso).toLocaleDateString(i18n.language, { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString(i18n.resolvedLanguage, { month: "short", day: "numeric" });
 }

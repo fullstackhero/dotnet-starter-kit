@@ -42,9 +42,9 @@ export function dayRuleLabel(iso: string): string {
   if (days === 0) return i18n.t("chat:day.today");
   if (days === 1) return i18n.t("chat:day.yesterday");
   if (days < 7) {
-    return d.toLocaleDateString(i18n.language, { weekday: "long" });
+    return d.toLocaleDateString(i18n.resolvedLanguage, { weekday: "long" });
   }
-  return d.toLocaleDateString(i18n.language, {
+  return d.toLocaleDateString(i18n.resolvedLanguage, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -54,7 +54,7 @@ export function dayRuleLabel(iso: string): string {
 /** "HH:MM" / "h:MM AM" — sender-time chip next to the author's name. */
 export function shortTime(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString(i18n.resolvedLanguage, { hour: "numeric", minute: "2-digit" });
 }
 
 /** "Today 10:42" / "Yesterday 4:18 PM" / "Mar 3 9:01 AM" — for search results

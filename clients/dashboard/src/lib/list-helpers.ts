@@ -5,7 +5,7 @@ import { ApiRequestError } from "@/lib/api-client";
 // locale. Building an Intl formatter per row is wasteful in long ledgers and
 // the locale only changes on a language switch, so cache one formatter per
 // (locale) — the cache re-fills lazily under the new locale after a switch.
-const activeLocale = (locale?: string) => locale ?? i18n.language ?? "en-US";
+const activeLocale = (locale?: string) => locale ?? i18n.resolvedLanguage ?? "en-US";
 
 const dateLongByLocale = new Map<string, Intl.DateTimeFormat>();
 function dateLongFor(locale: string) {

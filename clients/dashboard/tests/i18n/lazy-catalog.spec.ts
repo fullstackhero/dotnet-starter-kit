@@ -4,11 +4,28 @@ import { installShellMocks } from "../helpers/shell-mocks";
 
 // Only en-US ships in the main bundle; pt-BR is one lazy chunk (src/locales/pt-BR.ts). That makes
 // two failure modes possible that a static import could not have: a pt-BR user seeing English
-// until the chunk lands, and a switch whose chunk never arrives. In dev the "chunk" is the module
-// request for src/locales/pt-BR.ts and its JSON files, which is what the abort below matches.
-const PT_BR_CATALOG = /\/src\/locales\/pt-BR/;
+// until the chunk lands, and a catalog that never arrives. In dev the "chunk" is the module request
+// for src/locales/pt-BR.ts and its JSON files; in a build it is assets/pt-BR-<hash>.js.
+const PT_BR_CATALOG = /\/(src\/locales\/pt-BR|assets\/pt-BR-)/;
 
 test.describe("lazy pt-BR catalog", () => {
+  test("a pt-BR catalog that fails at boot leaves every language signal on English", async ({ page }) => {
+    await seedAuthedSession(page, TEST_USER);
+    await installShellMocks(page);
+    await page.route(PT_BR_CATALOG, (route) => route.abort());
+
+    const profileReq = page.waitForRequest(
+      (r) => r.url().includes("/api/v1/identity/profile") && r.method() === "GET",
+    );
+    await page.goto("/?culture=pt-BR");
+
+    // The text falls back to English, so the document, the API and the switcher must say so too:
+    // a pt-BR lang over English text misleads screen readers and asks the API for Portuguese.
+    await expect(page.getByRole("button", { name: /open profile menu/i })).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", "en-US");
+    expect((await profileReq).headers()["accept-language"]).toBe("en-US");
+  });
+
   test("a pt-BR visitor gets Portuguese on the first render, never English first", async ({ page }) => {
     // Record every state the app root goes through, from before the app's own scripts run.
     await page.addInitScript(() => {

@@ -229,7 +229,7 @@ export async function apiFetch<T = unknown>(
   // locale drives it; the backend resolution chain still falls through to its
   // own default for anything unsupported.
   if (!mergedHeaders.has("Accept-Language")) {
-    mergedHeaders.set("Accept-Language", i18n.language || "en-US");
+    mergedHeaders.set("Accept-Language", i18n.resolvedLanguage || "en-US");
   }
 
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;

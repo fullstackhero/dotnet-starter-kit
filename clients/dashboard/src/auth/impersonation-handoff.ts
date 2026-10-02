@@ -47,12 +47,12 @@ export async function installImpersonationFromHash(): Promise<void> {
   // strips the target's `locale` claim on purpose, and this app is normally on a
   // different origin than admin, so the handoff parameter is the only channel
   // that carries the operator's choice. Applying it here also fixes the API
-  // side: apiFetch derives Accept-Language from i18n.language, so responses come
+  // side: apiFetch derives Accept-Language from i18n.resolvedLanguage, so responses come
   // back in the operator's language instead of the browser-detected one.
   // Unsupported or absent tags are ignored, leaving normal detection in place.
   // main.tsx awaits this before the first render, so a catalog that fails to load must not throw
   // out of it: the session still starts, in the language normal detection picked.
-  if (locale && (SUPPORTED as readonly string[]).includes(locale) && i18n.language !== locale) {
+  if (locale && (SUPPORTED as readonly string[]).includes(locale) && i18n.resolvedLanguage !== locale) {
     try {
       await changeLanguage(locale);
     } catch (error) {

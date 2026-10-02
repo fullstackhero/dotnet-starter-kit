@@ -75,10 +75,16 @@ let latestSwitch = 0;
 // react-i18next re-renders on languageChanged, not when a bundle is added. When the chunk fails
 // to load this rejects before i18next sees the new language, so neither the UI nor the
 // detector's persisted choice moves. Resolves false when a later switch landed while this
-// catalog was loading: applying it now would undo the newer choice.
+// catalog was loading: applying it now would undo the newer choice, and reporting its failure
+// would contradict the language the user now sees.
 export async function changeLanguage(lng: string): Promise<boolean> {
   const thisSwitch = ++latestSwitch;
-  await loadLanguage(lng);
+  try {
+    await loadLanguage(lng);
+  } catch (error) {
+    if (thisSwitch !== latestSwitch) return false;
+    throw error;
+  }
   if (thisSwitch !== latestSwitch) return false;
   await i18n.changeLanguage(lng);
   return true;
@@ -93,10 +99,11 @@ const toCanonical = (lng: string) =>
 // Keep the document's language attribute in step with the active locale. index.html ships a
 // static lang="en"; without this, a Portuguese UI still declares itself English to screen
 // readers, browser translation and hyphenation. Registered once, before init, so it also fires
-// for the initial language.
+// for the initial language. It reads resolvedLanguage, the language the text is actually in:
+// when a catalog failed to load, `lng` is still the requested one while the UI shows English.
 if (typeof document !== "undefined") {
   i18n.on("languageChanged", (lng) => {
-    document.documentElement.lang = lng;
+    document.documentElement.lang = i18n.resolvedLanguage ?? lng;
   });
 }
 
@@ -137,7 +144,9 @@ export async function initI18n(deploymentDefault: string) {
 
   // The detected (or deployment-default) language may be a lazy one: fetch it before the first
   // render so a pt-BR user never sees English first. If the chunk fails, the app still boots and
-  // renders English through the fallback chain; the next switch retries the load.
+  // renders English through the fallback chain. i18next has already set (and the detector saved)
+  // `language` to the requested tag; switching to en-US here would overwrite that saved choice,
+  // so code that needs the language on screen reads resolvedLanguage, which stays en-US.
   try {
     await changeLanguage(i18n.language);
   } catch (error) {

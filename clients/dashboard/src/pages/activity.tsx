@@ -61,7 +61,7 @@ const SEVERITY_KEY: Record<AuditSeverity, string> = {
 
 function formatTime(ts: number) {
   // 24h hh:mm:ss in the active locale — no list-helper covers second precision.
-  return new Intl.DateTimeFormat(i18n.language, {
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -124,7 +124,7 @@ function auditActor(row: AuditSummaryDto): string {
 function formatAuditTime(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat(i18n.language, {
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
