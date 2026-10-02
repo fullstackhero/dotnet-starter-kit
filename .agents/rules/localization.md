@@ -13,7 +13,7 @@
 ## Catalogs — hybrid, one marker per catalog
 
 - **Core (`SharedResources`)** — generic / cross-cutting messages: ProblemDetails titles (`Error.*`), cross-module errors (`Error.TenantContextRequired`, `Error.NoCurrentUser`, …), and shared validation (`Validation.*`).
-- **Per module (`<Module>Resources`)** — domain-specific messages owned by the module: `src/Modules/<Module>/Modules.<Module>/Localization/<Module>Resources.cs` (marker `public sealed class <Module>Resources;`) + co-located `<Module>Resources.resx` (neutral / en-US) + `<Module>Resources.pt-BR.resx`. `ResourcesPath = ""` (co-located), so the resx manifest name must equal the marker's full type name.
+- **Per module (`<Module>Resources`)** — domain-specific messages owned by the module: `src/Modules/<Module>/Modules.<Module>/Localization/<Module>Resources.cs` (marker `public sealed class <Module>Resources;`) + co-located `<Module>Resources.resx` (neutral / en-US) + an optional `<Module>Resources.pt-BR.resx`. `ResourcesPath = ""` (co-located), so the resx manifest name must equal the marker's full type name.
 
 Catalogs are named for **specific** cultures (`.pt-BR`, never a neutral `.pt`), matching the front-end catalog folders. The neutral, un-suffixed `.resx` is the en-US / ultimate-fallback catalog.
 
@@ -68,7 +68,7 @@ Always the `.WithMessage(_ => localizer["Key"])` lambda (resolution is deferred 
 
 ## Tests (required with every catalog change)
 
-- **Parity** — every key present in both the neutral and the `pt-BR` catalog, for Core and every `<Module>Resources`. Per-catalog tests live in each module's test project; `CatalogParityTests` in `Architecture.Tests` enumerates every module catalog generically, so a **new** module catalog is covered without adding a test.
+- **Parity** — add every new key to the neutral (English) catalog; the `pt-BR` entry is optional, and a key it lacks falls back to English at runtime, so nobody has to write Portuguese to get a green build. The build fails only on a `pt-BR` key the neutral catalog does not have (an orphan, usually a renamed or deleted key) or on a `pt-BR` value whose `{n}` placeholders differ from the English one. Applies to Core and every `<Module>Resources`. Per-catalog tests live in each module's test project; `CatalogParityTests` in `Architecture.Tests` enumerates every module catalog generically, so a **new** module catalog is covered without adding a test.
 - **Code → resx guard** — every referenced key (`MessageKey`, `localizer["…"]`) must exist in its catalog, or the build fails. This is what catches a forgotten/typo `ResourceSource` (which would otherwise fall back silently).
 - Build validators/handlers with a real localizer from the embedded catalog via `SharedResourcesLocalizerFactory.Create()` (test-project `Support/` helper), not a stub.
 
