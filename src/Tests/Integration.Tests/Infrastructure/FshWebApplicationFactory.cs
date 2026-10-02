@@ -175,6 +175,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         {
             // Stamp the connection IP from a test header so forwarded-headers trust checks are testable.
             services.AddSingleton<IStartupFilter, TestRemoteIpStartupFilter>();
+            services.AddSingleton<IStartupFilter, TestPermissionEndpointStartupFilter>();
 
             // The production TrustedProxyOptions read happens eagerly, before the test config overlay
             // applies (same quirk as storage below), so bind the trusted upstream here instead. Note what
