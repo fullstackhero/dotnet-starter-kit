@@ -5,6 +5,7 @@ using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Impersonation.EndImpersonation;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
@@ -66,7 +67,11 @@ public sealed class EndImpersonationCommandHandler
             throw new CustomException(
                 "current session is not an impersonation session",
                 errors: null,
-                System.Net.HttpStatusCode.BadRequest);
+                System.Net.HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Identity.NotAnImpersonationSession",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         var impersonatedUserId = _currentUser.GetUserId().ToString();
@@ -93,7 +98,11 @@ public sealed class EndImpersonationCommandHandler
 
         if (actorClaimsResult is null)
         {
-            throw new NotFoundException("original actor not found");
+            throw new NotFoundException("original actor not found")
+            {
+                MessageKey = "Identity.OriginalActorNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         var (subject, actorClaims) = actorClaimsResult.Value;

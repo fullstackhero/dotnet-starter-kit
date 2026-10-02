@@ -7,6 +7,7 @@ using FSH.Modules.Files.Contracts.v1.Queries;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Features.v1.Internal;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -27,16 +28,29 @@ public sealed class GetFileMetadataQueryHandler(
         var f = await db.FileAssets.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == q.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
 
         var userId = currentUser.GetUserId().ToString();
+        // don't leak existence on missing policy
         var policy = policies.Resolve(f.OwnerType)
-            ?? throw new NotFoundException("file not found"); // don't leak existence on missing policy
+            ?? throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
 
         var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
         if (!await policy.CanReadAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
-            throw new NotFoundException("file not found");
+            throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
         }
 
         // Public files get a durable URL safe to persist long-term, while private files mint a

@@ -2,6 +2,7 @@ using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.v1.TwoFactor;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.AspNetCore.Identity;
 
@@ -31,13 +32,22 @@ public sealed class DisableTwoFactorCommandHandler
 
         var userId = _currentUser.GetUserId().ToString();
         var user = await _userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException($"User {userId} not found.");
+            ?? throw new NotFoundException($"User {userId} not found.")
+            {
+                MessageKey = "Identity.UserNotFoundById",
+                MessageArgs = [userId],
+                ResourceSource = typeof(IdentityResources),
+            };
 
         // Require current password so a stolen access token alone can't downgrade
         // account security.
         if (!await _userManager.CheckPasswordAsync(user, command.CurrentPassword))
         {
-            throw new UnauthorizedException("Current password is incorrect.");
+            throw new UnauthorizedException("Current password is incorrect.")
+            {
+                MessageKey = "Identity.CurrentPasswordIncorrect",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         await _userManager.SetTwoFactorEnabledAsync(user, false);

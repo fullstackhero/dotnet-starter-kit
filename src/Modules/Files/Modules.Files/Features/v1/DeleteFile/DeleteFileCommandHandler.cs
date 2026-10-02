@@ -3,6 +3,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Files.Contracts;
 using FSH.Modules.Files.Contracts.v1.Commands;
 using FSH.Modules.Files.Data;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -22,15 +23,27 @@ public sealed class DeleteFileCommandHandler(
         var f = await db.FileAssets
             .FirstOrDefaultAsync(x => x.Id == cmd.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found")
+            {
+                MessageKey = "Files.FileNotFound",
+                ResourceSource = typeof(FilesResources),
+            };
 
         var userId = currentUser.GetUserId().ToString();
         var policy = policies.Resolve(f.OwnerType)
-            ?? throw new ForbiddenException("no policy");
+            ?? throw new ForbiddenException("no policy")
+            {
+                MessageKey = "Files.NoAccessPolicy",
+                ResourceSource = typeof(FilesResources),
+            };
         var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
         if (!await policy.CanDeleteAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
-            throw new ForbiddenException("not allowed to delete this file");
+            throw new ForbiddenException("not allowed to delete this file")
+            {
+                MessageKey = "Files.NotAllowedToDelete",
+                ResourceSource = typeof(FilesResources),
+            };
         }
 
         // Soft-delete: AuditableEntitySaveChangesInterceptor sets IsDeleted/DeletedOnUtc/DeletedBy on

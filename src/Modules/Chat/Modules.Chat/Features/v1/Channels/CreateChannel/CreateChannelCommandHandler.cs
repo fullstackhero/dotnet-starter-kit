@@ -18,7 +18,7 @@ public sealed class CreateChannelCommandHandler(
         var userId = currentUser.GetUserId().ToString();
         if (userId == Guid.Empty.ToString())
         {
-            throw new UnauthorizedException("no current user");
+            throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         }
 
         var channel = ChatChannel.CreateChannel(cmd.Name, cmd.Description, cmd.IsPrivate, userId);

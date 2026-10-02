@@ -3,7 +3,8 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Catalog</RootNamespace>
 		<AssemblyName>FSH.Modules.Catalog</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267</NoWarn>
+		<!-- CatalogResources is an intentional empty localizer marker (see Localization/CatalogResources.cs). -->
+		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267;S2094</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -3,6 +3,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,11 +18,15 @@ public sealed class ArchiveChannelCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
 
         var channel = await db.Channels.FirstOrDefaultAsync(c => c.Id == cmd.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Channel not found.");
+            ?? throw new NotFoundException("Channel not found.")
+            {
+                MessageKey = "Chat.ChannelNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
 
         channel.RequireAdmin(userId.ToString());
 

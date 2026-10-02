@@ -5,6 +5,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Tickets.Contracts.v1.Tickets;
 using FSH.Modules.Tickets.Data;
 using FSH.Modules.Tickets.Domain;
+using FSH.Modules.Tickets.Localization;
 using Mediator;
 using FSH.Framework.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,11 @@ public sealed class CreateTicketCommandHandler(
             throw new CustomException(
                 "Cannot create a ticket without an authenticated reporter.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Unauthorized);
+                HttpStatusCode.Unauthorized)
+            {
+                MessageKey = "Tickets.ReporterRequired",
+                ResourceSource = typeof(TicketsResources),
+            };
         }
 
         // Sequential, tenant-scoped ticket numbers (TK-1, …). Count ALL rows incl. soft-deleted so a

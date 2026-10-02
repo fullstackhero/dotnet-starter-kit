@@ -3,7 +3,8 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Chat</RootNamespace>
 		<AssemblyName>FSH.Modules.Chat</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;CA1002;CA2227;S3267</NoWarn>
+		<!-- ChatResources is an intentional empty localizer marker (see Localization/ChatResources.cs). -->
+		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;CA1002;CA2227;S3267;S2094</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

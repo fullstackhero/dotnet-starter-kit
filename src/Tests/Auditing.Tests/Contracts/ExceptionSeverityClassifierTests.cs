@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Auditing.Contracts;
 
 namespace Auditing.Tests.Contracts;
@@ -138,6 +139,45 @@ public sealed class ExceptionSeverityClassifierTests
 
         // Assert
         result.ShouldBe(AuditSeverity.Information);
+    }
+
+    // The localization work introduced LocalizedUnauthorizedAccessException specifically so that
+    // subclassing the BCL type — rather than swapping it for a CustomException — keeps this
+    // classifier mapping unauthorized access to Warning. That intent lived only in a code
+    // comment: changing the base type would silently reclassify every unauthorized access as
+    // Error and no test would have noticed. This is the test that notices.
+    [Fact]
+    public void Classify_Should_ReturnWarning_For_LocalizedUnauthorizedAccessException()
+    {
+        // Arrange
+        var exception = new LocalizedUnauthorizedAccessException("Authentication failed.")
+        {
+            MessageKey = "Error.AuthenticationFailed",
+        };
+
+        // Act
+        var result = ExceptionSeverityClassifier.Classify(exception);
+
+        // Assert
+        result.ShouldBe(AuditSeverity.Warning);
+    }
+
+    // The KeyNotFound counterpart lands on Error either way; pinned so the classification is
+    // stated rather than left to be derived from the switch's default arm.
+    [Fact]
+    public void Classify_Should_ReturnError_For_LocalizedKeyNotFoundException()
+    {
+        // Arrange
+        var exception = new LocalizedKeyNotFoundException("Not found.")
+        {
+            MessageKey = "Error.NotFound",
+        };
+
+        // Act
+        var result = ExceptionSeverityClassifier.Classify(exception);
+
+        // Assert
+        result.ShouldBe(AuditSeverity.Error);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Implement standard exception constructors", Justification = "Test-only exception class")]

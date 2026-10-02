@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Auditing.Contracts;
 using System.Diagnostics;
 
@@ -56,12 +57,20 @@ public static class Audit
                 eventType: AuditEventType.Exception,
                 severity: severity ?? DefaultSeverity(ex),
                 payload: new ExceptionEventPayload(area,
-                    ex.GetType().FullName ?? "Exception",
+                    RealExceptionType(ex).FullName ?? "Exception",
                     ex.Message ?? string.Empty,
                     StackTop(ex, maxFrames: 20),
                     ToDict(ex.Data),
                     routeOrLocation));
     }
+
+    // Localization wrappers (LocalizedKeyNotFoundException, LocalizedUnauthorizedAccessException) exist
+    // only to translate the response body; for audit type identity and exceptionType filtering they must
+    // present as their BCL base so queries stay stable. CustomException-derived types keep their own identity.
+    private static Type RealExceptionType(Exception ex) =>
+        ex is ILocalizableMessage and not CustomException && ex.GetType().BaseType is { } baseType
+            ? baseType
+            : ex.GetType();
 
     private static AuditSeverity DefaultSeverity(Exception ex)
     {

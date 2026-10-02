@@ -1,33 +1,35 @@
 using FluentValidation;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.UpdateTenantTheme;
+using FSH.Modules.Multitenancy.Localization;
+using Microsoft.Extensions.Localization;
 using System.Text.RegularExpressions;
 
 namespace FSH.Modules.Multitenancy.Features.v1.UpdateTenantTheme;
 
 public partial class UpdateTenantThemeCommandValidator : AbstractValidator<UpdateTenantThemeCommand>
 {
-    public UpdateTenantThemeCommandValidator()
+    public UpdateTenantThemeCommandValidator(IStringLocalizer<MultitenancyResources> localizer)
     {
         RuleFor(x => x.Theme)
             .NotNull()
-            .WithMessage("Theme is required.");
+            .WithMessage(_ => localizer["Validation.ThemeRequired"]);
 
         RuleFor(x => x.Theme.LightPalette)
             .NotNull()
-            .SetValidator(new PaletteValidator());
+            .SetValidator(new PaletteValidator(localizer));
 
         RuleFor(x => x.Theme.DarkPalette)
             .NotNull()
-            .SetValidator(new PaletteValidator());
+            .SetValidator(new PaletteValidator(localizer));
 
         RuleFor(x => x.Theme.Typography)
             .NotNull()
-            .SetValidator(new TypographyValidator());
+            .SetValidator(new TypographyValidator(localizer));
 
         RuleFor(x => x.Theme.Layout)
             .NotNull()
-            .SetValidator(new LayoutValidator());
+            .SetValidator(new LayoutValidator(localizer));
     }
 
     [GeneratedRegex("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$")]
@@ -35,17 +37,17 @@ public partial class UpdateTenantThemeCommandValidator : AbstractValidator<Updat
 
     private sealed class PaletteValidator : AbstractValidator<PaletteDto>
     {
-        public PaletteValidator()
+        public PaletteValidator(IStringLocalizer<MultitenancyResources> localizer)
         {
-            RuleFor(x => x.Primary).Must(BeValidHexColor).WithMessage("Primary must be a valid hex color.");
-            RuleFor(x => x.Secondary).Must(BeValidHexColor).WithMessage("Secondary must be a valid hex color.");
-            RuleFor(x => x.Tertiary).Must(BeValidHexColor).WithMessage("Tertiary must be a valid hex color.");
-            RuleFor(x => x.Background).Must(BeValidHexColor).WithMessage("Background must be a valid hex color.");
-            RuleFor(x => x.Surface).Must(BeValidHexColor).WithMessage("Surface must be a valid hex color.");
-            RuleFor(x => x.Error).Must(BeValidHexColor).WithMessage("Error must be a valid hex color.");
-            RuleFor(x => x.Warning).Must(BeValidHexColor).WithMessage("Warning must be a valid hex color.");
-            RuleFor(x => x.Success).Must(BeValidHexColor).WithMessage("Success must be a valid hex color.");
-            RuleFor(x => x.Info).Must(BeValidHexColor).WithMessage("Info must be a valid hex color.");
+            RuleFor(x => x.Primary).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Primary"]);
+            RuleFor(x => x.Secondary).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Secondary"]);
+            RuleFor(x => x.Tertiary).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Tertiary"]);
+            RuleFor(x => x.Background).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Background"]);
+            RuleFor(x => x.Surface).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Surface"]);
+            RuleFor(x => x.Error).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Error"]);
+            RuleFor(x => x.Warning).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Warning"]);
+            RuleFor(x => x.Success).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Success"]);
+            RuleFor(x => x.Info).Must(BeValidHexColor).WithMessage(_ => localizer["Validation.ColorMustBeHex", "Info"]);
         }
 
         private static bool BeValidHexColor(string color) =>
@@ -54,27 +56,27 @@ public partial class UpdateTenantThemeCommandValidator : AbstractValidator<Updat
 
     private sealed class TypographyValidator : AbstractValidator<TypographyDto>
     {
-        public TypographyValidator()
+        public TypographyValidator(IStringLocalizer<MultitenancyResources> localizer)
         {
             RuleFor(x => x.FontFamily)
                 .NotEmpty()
                 .MaximumLength(200)
                 .Must(BeValidFontFamily)
-                .WithMessage("FontFamily must be a valid web-safe font.");
+                .WithMessage(_ => localizer["Validation.FontFamilyWebSafe", "FontFamily"]);
 
             RuleFor(x => x.HeadingFontFamily)
                 .NotEmpty()
                 .MaximumLength(200)
                 .Must(BeValidFontFamily)
-                .WithMessage("HeadingFontFamily must be a valid web-safe font.");
+                .WithMessage(_ => localizer["Validation.FontFamilyWebSafe", "HeadingFontFamily"]);
 
             RuleFor(x => x.FontSizeBase)
                 .InclusiveBetween(10, 24)
-                .WithMessage("FontSizeBase must be between 10 and 24.");
+                .WithMessage(_ => localizer["Validation.FontSizeBaseRange"]);
 
             RuleFor(x => x.LineHeightBase)
                 .InclusiveBetween(1.0, 2.5)
-                .WithMessage("LineHeightBase must be between 1.0 and 2.5.");
+                .WithMessage(_ => localizer["Validation.LineHeightBaseRange"]);
         }
 
         private static bool BeValidFontFamily(string fontFamily) =>
@@ -83,17 +85,17 @@ public partial class UpdateTenantThemeCommandValidator : AbstractValidator<Updat
 
     private sealed class LayoutValidator : AbstractValidator<LayoutDto>
     {
-        public LayoutValidator()
+        public LayoutValidator(IStringLocalizer<MultitenancyResources> localizer)
         {
             RuleFor(x => x.BorderRadius)
                 .NotEmpty()
                 .MaximumLength(20)
                 .Matches(@"^\d+(px|rem|em|%)$")
-                .WithMessage("BorderRadius must be a valid CSS value (e.g., '4px', '0.5rem').");
+                .WithMessage(_ => localizer["Validation.BorderRadiusInvalid"]);
 
             RuleFor(x => x.DefaultElevation)
                 .InclusiveBetween(0, 24)
-                .WithMessage("DefaultElevation must be between 0 and 24.");
+                .WithMessage(_ => localizer["Validation.DefaultElevationRange"]);
         }
     }
 }

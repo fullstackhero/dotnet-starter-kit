@@ -5,6 +5,7 @@ using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Domain;
 using FSH.Modules.Chat.Features.v1.Internal;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -21,12 +22,16 @@ public sealed class RemoveChannelMemberCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         var channel = await db.Channels.FirstOrDefaultAsync(c => c.Id == cmd.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Channel not found.");
+            ?? throw new NotFoundException("Channel not found.")
+            {
+                MessageKey = "Chat.ChannelNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
 
         // Self-leave is always allowed for the current user. Removing someone else requires Admin.
         var isSelfLeave = string.Equals(cmd.UserId, currentUserId, StringComparison.Ordinal);

@@ -31,6 +31,7 @@ public sealed class UserDto
     public bool EmailConfirmed { get; set; }
     public string? PhoneNumber { get; set; }
     public string? ImageUrl { get; set; }
+    public string? Locale { get; set; }
 }
 
 public sealed class RoleDto

@@ -3,6 +3,7 @@ using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Tickets.Contracts.Dtos;
 using FSH.Modules.Tickets.Domain.Events;
+using FSH.Modules.Tickets.Localization;
 
 namespace FSH.Modules.Tickets.Domain;
 
@@ -87,7 +88,7 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
 
     public void Assign(Guid? assigneeUserId)
     {
-        ThrowIfClosedOrResolved("assign");
+        ThrowIfNotAssignable();
 
         if (assigneeUserId == AssignedToUserId)
         {
@@ -120,7 +121,11 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
             throw new CustomException(
                 "A closed ticket cannot be resolved — reopen it first.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Tickets.ClosedCannotResolve",
+                ResourceSource = typeof(TicketsResources),
+            };
         }
         if (Status == TicketStatus.Resolved)
         {
@@ -148,7 +153,12 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
             throw new CustomException(
                 $"Only a resolved ticket can be closed — current status is {Status}. Resolve it first.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Tickets.OnlyResolvedCanClose",
+                MessageArgs = [Status],
+                ResourceSource = typeof(TicketsResources),
+            };
         }
 
         ClosedAtUtc = DateTime.UtcNow;
@@ -168,7 +178,11 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
             throw new CustomException(
                 "A closed ticket cannot be edited — reopen it first.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Tickets.ClosedCannotEdit",
+                ResourceSource = typeof(TicketsResources),
+            };
         }
 
         Title = title.Trim();
@@ -201,7 +215,11 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
             throw new CustomException(
                 "A closed ticket cannot accept new comments — reopen it first.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Tickets.ClosedCannotComment",
+                ResourceSource = typeof(TicketsResources),
+            };
         }
 
         var comment = TicketComment.Create(Id, authorUserId, body);
@@ -227,14 +245,19 @@ public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
             (id, ts) => new TicketStatusChangedDomainEvent(Id, previous, next, id, ts)));
     }
 
-    private void ThrowIfClosedOrResolved(string action)
+    private void ThrowIfNotAssignable()
     {
         if (Status is TicketStatus.Closed or TicketStatus.Resolved)
         {
             throw new CustomException(
-                $"Cannot {action} a ticket in status {Status} — reopen it first.",
+                $"Cannot assign a ticket in status {Status} — reopen it first.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Tickets.CannotAssignInStatus",
+                MessageArgs = [Status],
+                ResourceSource = typeof(TicketsResources),
+            };
         }
     }
 }

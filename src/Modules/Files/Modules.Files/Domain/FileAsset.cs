@@ -3,6 +3,7 @@ using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Domain.Events;
+using FSH.Modules.Files.Localization;
 
 namespace FSH.Modules.Files.Domain;
 
@@ -87,7 +88,12 @@ public sealed class FileAsset : AggregateRoot<Guid>, ISoftDeletable
             throw new CustomException(
                 $"Cannot finalize file in status {Status}.",
                 errors: null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Files.CannotFinalizeInStatus",
+                MessageArgs = [Status],
+                ResourceSource = typeof(FilesResources),
+            };
         }
         if (actualSize <= 0)
         {
@@ -126,7 +132,12 @@ public sealed class FileAsset : AggregateRoot<Guid>, ISoftDeletable
             throw new CustomException(
                 $"Cannot change visibility while file is in status {Status}.",
                 errors: null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Files.CannotChangeVisibilityInStatus",
+                MessageArgs = [Status],
+                ResourceSource = typeof(FilesResources),
+            };
         }
         if (Visibility == next) return;
         Visibility = next;

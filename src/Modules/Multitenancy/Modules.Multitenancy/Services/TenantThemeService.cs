@@ -10,6 +10,7 @@ using FSH.Modules.Multitenancy.Contracts;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Data;
 using FSH.Modules.Multitenancy.Domain;
+using FSH.Modules.Multitenancy.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
@@ -220,7 +221,11 @@ public sealed class TenantThemeService : ITenantThemeService
         var currentTenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id;
         if (currentTenantId != MultitenancyConstants.Root.Id)
         {
-            throw new ForbiddenException("Only the root tenant can set the default theme");
+            throw new ForbiddenException("Only the root tenant can set the default theme")
+            {
+                MessageKey = "Multitenancy.OnlyRootCanSetDefaultTheme",
+                ResourceSource = typeof(MultitenancyResources),
+            };
         }
 
         // Clear existing default
@@ -240,7 +245,12 @@ public sealed class TenantThemeService : ITenantThemeService
 
         if (entity is null)
         {
-            throw new NotFoundException($"Theme for tenant {tenantId} not found");
+            throw new NotFoundException($"Theme for tenant {tenantId} not found")
+            {
+                MessageKey = "Multitenancy.TenantThemeNotFound",
+                MessageArgs = [tenantId],
+                ResourceSource = typeof(MultitenancyResources),
+            };
         }
 
         entity.IsDefault = true;

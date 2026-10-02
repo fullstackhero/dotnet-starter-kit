@@ -20,7 +20,10 @@ public sealed class GetImpersonationGrantsQueryHandler(
         ArgumentNullException.ThrowIfNull(request);
 
         var callerTenant = currentUser.GetTenant()
-            ?? throw new UnauthorizedException("missing tenant context");
+            ?? throw new UnauthorizedException("missing tenant context")
+            {
+                MessageKey = "Error.InvalidTenant",
+            };
         var isRoot = string.Equals(callerTenant, MultitenancyConstants.Root.Id, StringComparison.Ordinal);
 
         // Tenant scoping: root operators target any tenant; tenant admins are locked to their

@@ -1,5 +1,7 @@
 using FluentValidation;
+using FSH.Framework.Core.Localization;
 using FSH.Framework.Shared.Persistence;
+using Microsoft.Extensions.Localization;
 
 namespace FSH.Framework.Web.Validation;
 
@@ -10,9 +12,9 @@ namespace FSH.Framework.Web.Validation;
 /// <example>
 /// public class MyQueryValidator : AbstractValidator&lt;MyQuery&gt;
 /// {
-///     public MyQueryValidator()
+///     public MyQueryValidator(IStringLocalizer&lt;SharedResources&gt; localizer)
 ///     {
-///         Include(new PagedQueryValidator&lt;MyQuery&gt;());
+///         Include(new PagedQueryValidator&lt;MyQuery&gt;(localizer));
 ///         // Add additional rules...
 ///     }
 /// }
@@ -27,21 +29,21 @@ public sealed class PagedQueryValidator<T> : AbstractValidator<T>
     /// </summary>
     public const int MaxPageNumber = 1_000_000;
 
-    public PagedQueryValidator()
+    public PagedQueryValidator(IStringLocalizer<SharedResources> localizer)
     {
         RuleFor(q => q.PageNumber)
             .InclusiveBetween(1, MaxPageNumber)
             .When(q => q.PageNumber.HasValue)
-            .WithMessage($"Page number must be between 1 and {MaxPageNumber}.");
+            .WithMessage(_ => localizer["Validation.PageNumberRange", MaxPageNumber]);
 
         RuleFor(q => q.PageSize)
             .InclusiveBetween(1, 100)
             .When(q => q.PageSize.HasValue)
-            .WithMessage("Page size must be between 1 and 100.");
+            .WithMessage(_ => localizer["Validation.PageSizeRange"]);
 
         RuleFor(q => q.Sort)
             .MaximumLength(200)
             .When(q => !string.IsNullOrEmpty(q.Sort))
-            .WithMessage("Sort expression must not exceed 200 characters.");
+            .WithMessage(_ => localizer["Validation.SortMaxLength"]);
     }
 }

@@ -4,6 +4,7 @@ using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Impersonation;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 
@@ -82,7 +83,11 @@ internal sealed class ImpersonationGrantService(
         var grant = await db.ImpersonationGrants
             .FirstOrDefaultAsync(g => g.Id == id, ct)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("impersonation grant not found");
+            ?? throw new NotFoundException("impersonation grant not found")
+            {
+                MessageKey = "Identity.ImpersonationGrantNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         if (grant.IsTerminal)
         {

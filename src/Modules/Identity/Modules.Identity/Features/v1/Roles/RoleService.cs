@@ -10,6 +10,7 @@ using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,10 +59,18 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         CancellationToken cancellationToken = default)
     {
         if (roleManager is null)
-            throw new NotFoundException("RoleManager<FshRole> not resolved. Check Identity registration.");
+            throw new NotFoundException("RoleManager<FshRole> not resolved. Check Identity registration.")
+            {
+                MessageKey = "Identity.RoleManagerNotResolved",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         if (roleManager.Roles is null)
-            throw new NotFoundException("Role store not configured. Ensure .AddRoles<FshRole>() and EF stores.");
+            throw new NotFoundException("Role store not configured. Ensure .AddRoles<FshRole>() and EF stores.")
+            {
+                MessageKey = "Identity.RoleStoreNotConfigured",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         var page = Math.Max(1, pageNumber);
         var size = Math.Clamp(pageSize, 1, 200);
@@ -98,7 +107,11 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
     {
         FshRole? role = await roleManager.FindByIdAsync(id);
 
-        _ = role ?? throw new NotFoundException("role not found");
+        _ = role ?? throw new NotFoundException("role not found")
+        {
+            MessageKey = "Identity.RoleNotFound",
+            ResourceSource = typeof(IdentityResources),
+        };
 
         return new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description };
     }
@@ -112,9 +125,9 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         if (role != null)
         {
             // System roles cannot be modified — neither renamed nor re-described.
-            EnsureNotSystemRole(role.Name, "System roles cannot be modified.");
+            EnsureNotSystemRole(role.Name, "System roles cannot be modified.", "Identity.SystemRoleCannotBeModified");
             // And no custom role can be renamed to a system role's name.
-            EnsureNotSystemRole(name, "Cannot rename a role to a system role's name.");
+            EnsureNotSystemRole(name, "Cannot rename a role to a system role's name.", "Identity.CannotRenameToSystemRole");
 
             role.Name = name;
             role.Description = description;
@@ -123,7 +136,7 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         else
         {
             // No new role can be created using a system role's name.
-            EnsureNotSystemRole(name, "Cannot create a role using a system role's name.");
+            EnsureNotSystemRole(name, "Cannot create a role using a system role's name.", "Identity.CannotCreateWithSystemRoleName");
 
             role = new FshRole(name, description);
             await roleManager.CreateAsync(role);
@@ -136,9 +149,13 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
     {
         FshRole? role = await roleManager.FindByIdAsync(id);
 
-        _ = role ?? throw new NotFoundException("role not found");
+        _ = role ?? throw new NotFoundException("role not found")
+        {
+            MessageKey = "Identity.RoleNotFound",
+            ResourceSource = typeof(IdentityResources),
+        };
 
-        EnsureNotSystemRole(role.Name, "System roles cannot be deleted.");
+        EnsureNotSystemRole(role.Name, "System roles cannot be deleted.", "Identity.SystemRolesCannotBeDeleted");
 
         // Snapshot affected users BEFORE the cascade removes the role-mapping rows,
         // otherwise the lookup returns an empty set after delete.
@@ -150,7 +167,11 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
     public async Task<RoleDto> GetWithPermissionsAsync(string id, CancellationToken cancellationToken = default)
     {
         var role = await GetRoleAsync(id, cancellationToken);
-        _ = role ?? throw new NotFoundException("role not found");
+        _ = role ?? throw new NotFoundException("role not found")
+        {
+            MessageKey = "Identity.RoleNotFound",
+            ResourceSource = typeof(IdentityResources),
+        };
 
         role.Permissions = await context.RoleClaims
             .AsNoTracking()
@@ -166,9 +187,13 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         ArgumentNullException.ThrowIfNull(permissions);
 
         var role = await roleManager.FindByIdAsync(roleId)
-            ?? throw new NotFoundException("role not found");
+            ?? throw new NotFoundException("role not found")
+            {
+                MessageKey = "Identity.RoleNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
 
-        EnsureNotSystemRole(role.Name, "System role permissions are managed by the framework and cannot be modified.");
+        EnsureNotSystemRole(role.Name, "System role permissions are managed by the framework and cannot be modified.", "Identity.SystemRolePermissionsManaged");
         FilterRootPermissions(permissions);
 
         var currentClaims = await roleManager.GetClaimsAsync(role);
@@ -182,11 +207,15 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         return "permissions updated";
     }
 
-    private static void EnsureNotSystemRole(string? roleName, string message)
+    private static void EnsureNotSystemRole(string? roleName, string message, string messageKey)
     {
         if (!string.IsNullOrEmpty(roleName) && RoleConstants.IsDefault(roleName))
         {
-            throw new CustomException(message, Array.Empty<string>(), HttpStatusCode.BadRequest);
+            throw new CustomException(message, Array.Empty<string>(), HttpStatusCode.BadRequest)
+            {
+                MessageKey = messageKey,
+                ResourceSource = typeof(IdentityResources),
+            };
         }
     }
 
@@ -215,7 +244,11 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
             if (!result.Succeeded)
             {
                 var errors = result.Errors.Select(error => error.Description).ToList();
-                throw new CustomException("operation failed", errors);
+                throw new CustomException("operation failed", errors)
+                {
+                    MessageKey = "Identity.OperationFailed",
+                    ResourceSource = typeof(IdentityResources),
+                };
             }
         }
     }

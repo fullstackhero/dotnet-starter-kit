@@ -2,6 +2,7 @@ using System.Net;
 using FSH.Modules.Webhooks.Contracts.v1.CreateWebhookSubscription;
 using FSH.Modules.Webhooks.Features.v1.CreateWebhookSubscription;
 using FSH.Modules.Webhooks.Services;
+using Webhooks.Tests.Support;
 
 namespace Webhooks.Tests;
 
@@ -13,7 +14,7 @@ namespace Webhooks.Tests;
 /// </summary>
 public sealed class CreateWebhookSubscriptionSsrfValidatorTests
 {
-    private readonly CreateWebhookSubscriptionCommandValidator _validator = new();
+    private readonly CreateWebhookSubscriptionCommandValidator _validator = new(WebhooksResourcesLocalizerFactory.Create());
 
     [Theory]
     [InlineData("http://169.254.169.254/latest/meta-data/")] // cloud instance metadata

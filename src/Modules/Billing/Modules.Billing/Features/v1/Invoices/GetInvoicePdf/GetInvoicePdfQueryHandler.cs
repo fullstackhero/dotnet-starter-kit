@@ -2,6 +2,7 @@ using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Billing.Data;
+using FSH.Modules.Billing.Localization;
 using FSH.Modules.Billing.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,10 @@ public sealed class GetInvoicePdfQueryHandler(
         // BillingDbContext is not tenant-filtered: root may download ANY tenant's invoice PDF; a tenant
         // caller is pinned to its own, so a cross-tenant id resolves to 404 and never leaks a PDF.
         var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
+            ?? throw new UnauthorizedException("Tenant context is required.")
+            {
+                MessageKey = "Error.TenantContextRequired",
+            };
         var isRoot = callerTenantId == MultitenancyConstants.Root.Id;
 
         var invoice = await dbContext.Invoices.AsNoTracking()
@@ -30,7 +34,12 @@ public sealed class GetInvoicePdfQueryHandler(
                 i => i.Id == query.InvoiceId && (isRoot || i.TenantId == callerTenantId),
                 cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Invoice {query.InvoiceId} not found.");
+            ?? throw new NotFoundException($"Invoice {query.InvoiceId} not found.")
+            {
+                MessageKey = "Billing.InvoiceNotFound",
+                MessageArgs = [query.InvoiceId],
+                ResourceSource = typeof(BillingResources),
+            };
 
         var dto = invoice.ToDto();
         var content = renderer.Render(dto);

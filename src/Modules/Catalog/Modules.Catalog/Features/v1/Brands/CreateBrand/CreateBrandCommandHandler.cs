@@ -3,6 +3,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Brands;
 using FSH.Modules.Catalog.Data;
 using FSH.Modules.Catalog.Domain;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +26,12 @@ public sealed class CreateBrandCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"A brand with name '{command.Name}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.BrandNameAlreadyExists",
+                MessageArgs = [command.Name],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         dbContext.Brands.Add(brand);

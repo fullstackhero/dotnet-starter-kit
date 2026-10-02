@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
+using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Eventing.Outbox;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Auditing.Contracts;
@@ -7,6 +8,7 @@ using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Events;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -70,7 +72,11 @@ public sealed class GenerateTokenCommandHandler
                 ip: ip,
                 ct: cancellationToken);
 
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new LocalizedUnauthorizedAccessException("Invalid credentials.")
+            {
+                MessageKey = "Identity.InvalidCredentials",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // Unpack subject + claims

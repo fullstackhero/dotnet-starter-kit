@@ -1,5 +1,6 @@
 using FSH.Modules.Identity.Contracts.v1.Users.DeleteUser;
 using FSH.Modules.Identity.Features.v1.Users.DeleteUser;
+using Identity.Tests.Support;
 using Shouldly;
 using Xunit;
 
@@ -7,7 +8,7 @@ namespace Identity.Tests.Validators;
 
 public sealed class DeleteUserCommandValidatorTests
 {
-    private readonly DeleteUserCommandValidator _sut = new();
+    private readonly DeleteUserCommandValidator _sut = new(SharedResourcesLocalizerFactory.Create());
 
     [Fact]
     public void Validate_Should_Pass_When_IdIsProvided()

@@ -3,7 +3,8 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Tickets</RootNamespace>
 		<AssemblyName>FSH.Modules.Tickets</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267</NoWarn>
+		<!-- TicketsResources is an intentional empty localizer marker (see Localization/TicketsResources.cs). -->
+		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267;S2094</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

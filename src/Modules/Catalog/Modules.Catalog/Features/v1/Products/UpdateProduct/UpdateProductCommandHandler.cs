@@ -2,6 +2,7 @@ using System.Net;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,12 @@ public sealed class UpdateProductCommandHandler(CatalogDbContext dbContext)
         var product = await dbContext.Products
             .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Product {command.ProductId} not found.");
+            ?? throw new NotFoundException($"Product {command.ProductId} not found.")
+            {
+                MessageKey = "Catalog.ProductNotFound",
+                MessageArgs = [command.ProductId],
+                ResourceSource = typeof(CatalogResources),
+            };
 
         if (product.BrandId != command.BrandId)
         {
@@ -26,7 +32,12 @@ public sealed class UpdateProductCommandHandler(CatalogDbContext dbContext)
                 .ConfigureAwait(false);
             if (!brandExists)
             {
-                throw new NotFoundException($"Brand {command.BrandId} not found.");
+                throw new NotFoundException($"Brand {command.BrandId} not found.")
+                {
+                    MessageKey = "Catalog.BrandNotFound",
+                    MessageArgs = [command.BrandId],
+                    ResourceSource = typeof(CatalogResources),
+                };
             }
         }
 
@@ -37,7 +48,12 @@ public sealed class UpdateProductCommandHandler(CatalogDbContext dbContext)
                 .ConfigureAwait(false);
             if (!categoryExists)
             {
-                throw new NotFoundException($"Category {command.CategoryId} not found.");
+                throw new NotFoundException($"Category {command.CategoryId} not found.")
+                {
+                    MessageKey = "Catalog.CategoryNotFound",
+                    MessageArgs = [command.CategoryId],
+                    ResourceSource = typeof(CatalogResources),
+                };
             }
         }
 
@@ -56,7 +72,12 @@ public sealed class UpdateProductCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"Another product with name '{command.Name}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+            {
+                MessageKey = "Catalog.AnotherProductNameAlreadyExists",
+                MessageArgs = [command.Name],
+                ResourceSource = typeof(CatalogResources),
+            };
         }
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

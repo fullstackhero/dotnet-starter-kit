@@ -1,5 +1,6 @@
 using FSH.Modules.Identity.Contracts.v1.Groups.CreateGroup;
 using FSH.Modules.Identity.Features.v1.Groups.CreateGroup;
+using Identity.Tests.Support;
 
 namespace Identity.Tests.Validators;
 
@@ -8,7 +9,7 @@ namespace Identity.Tests.Validators;
 /// </summary>
 public sealed class CreateGroupCommandValidatorTests
 {
-    private readonly CreateGroupCommandValidator _sut = new();
+    private readonly CreateGroupCommandValidator _sut = new(SharedResourcesLocalizerFactory.Create());
 
     #region Name Validation
 

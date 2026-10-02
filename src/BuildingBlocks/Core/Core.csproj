@@ -3,6 +3,8 @@
     <PropertyGroup>
 	    <RootNamespace>FSH.Framework.Core</RootNamespace>
 	    <AssemblyName>FSH.Framework.Core</AssemblyName>
+	    <!-- SharedResources is an intentional empty localizer marker (see Localization/SharedResources.cs). -->
+	    <NoWarn>$(NoWarn);S2094</NoWarn>
     </PropertyGroup>
 
 	<ItemGroup>

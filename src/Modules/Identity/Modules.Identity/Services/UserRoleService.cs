@@ -8,6 +8,7 @@ using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,7 +27,11 @@ internal sealed class UserRoleService(
         var user = await userManager.Users
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new NotFoundException("user not found");
+            ?? throw new NotFoundException("user not found")
+            {
+                MessageKey = "Identity.UserNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         await ValidateAdminRoleChangeAsync(user, userRoles);
 
@@ -44,10 +49,18 @@ internal sealed class UserRoleService(
     public async Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException("user not found");
+            ?? throw new NotFoundException("user not found")
+            {
+                MessageKey = "Identity.UserNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         var roles = await roleManager.Roles.AsNoTracking().ToListAsync(cancellationToken)
-            ?? throw new NotFoundException("roles not found");
+            ?? throw new NotFoundException("roles not found")
+            {
+                MessageKey = "Identity.RolesNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         // Single membership query instead of one IsInRoleAsync round-trip per role.
         var memberships = await userManager.GetRolesAsync(user);
@@ -90,13 +103,21 @@ internal sealed class UserRoleService(
             throw new CustomException(
                 "Administrators cannot remove their own admin role.",
                 Array.Empty<string>(),
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Identity.AdminCannotRemoveOwnRole",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // The root tenant's seed admin is the framework's last-resort recovery account.
         if (IsRootTenantAdmin(user))
         {
-            throw new ForbiddenException("The root tenant administrator cannot be demoted.");
+            throw new ForbiddenException("The root tenant administrator cannot be demoted.")
+            {
+                MessageKey = "Identity.RootAdminCannotBeDemoted",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // After this removal, at least one admin must remain in the tenant — matches
@@ -118,7 +139,11 @@ internal sealed class UserRoleService(
             throw new CustomException(
                 "Tenant must retain at least one administrator.",
                 Array.Empty<string>(),
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+            {
+                MessageKey = "Identity.TenantMustRetainOneAdmin",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
     }
 

@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Tickets.Contracts.Dtos;
+using FSH.Modules.Tickets.Localization;
 using FSH.Modules.Tickets.Contracts.v1.Tickets;
 using FSH.Modules.Tickets.Data;
 using FSH.Modules.Tickets.Domain;
@@ -22,7 +23,12 @@ public sealed class GetTicketByIdQueryHandler(TicketsDbContext dbContext)
 
         if (ticket is null)
         {
-            throw new NotFoundException($"Ticket {query.TicketId} not found.");
+            throw new NotFoundException($"Ticket {query.TicketId} not found.")
+            {
+                MessageKey = "Tickets.TicketNotFound",
+                MessageArgs = [query.TicketId],
+                ResourceSource = typeof(TicketsResources),
+            };
         }
 
         int commentCount = await dbContext.TicketComments

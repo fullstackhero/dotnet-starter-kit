@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -912,6 +913,49 @@ public sealed class IdempotencyEndpointFilterReplayTests
             "to store its response — the reservation TTL is the worst case, not the hint.");
     }
 
+    // The 409 is built by the filter, not thrown, so the global handler never localizes it. It has to
+    // do so itself, and carry the same `code` extension every other localized error carries.
+    [Fact]
+    public async Task Conflict_Should_BeLocalizedAndCarryCode_When_ADuplicateIsStillInFlight()
+    {
+        var provider = BuildProvider();
+        var filter = new IdempotencyEndpointFilter();
+        var previousUiCulture = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = new CultureInfo("pt-BR");
+        try
+        {
+            var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var holderCall = filter.InvokeAsync(
+                new TestFilterContext(NewContext(provider, new MemoryStream())),
+                async _ =>
+                {
+                    started.SetResult();
+                    await release.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                    return TypedResults.Ok(new SampleDto(Guid.NewGuid(), "holder"));
+                }).AsTask();
+            await started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            var result = await filter.InvokeAsync(
+                new TestFilterContext(NewContext(provider, new MemoryStream())),
+                _ => throw new InvalidOperationException("the duplicate's handler must not run"));
+
+            release.SetResult();
+            await holderCall.WaitAsync(TimeSpan.FromSeconds(10));
+
+            var problem = result.ShouldBeOfType<ProblemHttpResult>().ProblemDetails;
+            problem.Status.ShouldBe(StatusCodes.Status409Conflict);
+            problem.Title.ShouldBe("Conflito");
+            problem.Detail.ShouldBe("Uma requisição com esta Idempotency-Key já está sendo processada. Tente de novo em instantes.");
+            problem.Extensions["code"].ShouldBe("Idempotency.RequestInProgress");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previousUiCulture;
+        }
+    }
+
     // Every other concurrency test runs with `multiplexer: null`, i.e. against the in-process
     // dictionary. The Redis branch — `StringSetAsync(..., When.NotExists)` coming back false — is the
     // one that actually refuses a duplicate in a multi-instance deployment, which is the whole reason
@@ -1233,6 +1277,7 @@ public sealed class IdempotencyEndpointFilterReplayTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddLocalization(o => o.ResourcesPath = "");
         services.AddDistributedMemoryCache();
         services.AddSingleton<IOptions<IdempotencyOptions>>(Options.Create(options));
         if (multiplexer is not null)
@@ -1259,6 +1304,7 @@ public sealed class IdempotencyEndpointFilterReplayTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddLocalization(o => o.ResourcesPath = "");
         services.AddSingleton(cache);
         services.AddSingleton<IOptions<IdempotencyOptions>>(Options.Create(new IdempotencyOptions()));
         if (tenantAccessor is not null)

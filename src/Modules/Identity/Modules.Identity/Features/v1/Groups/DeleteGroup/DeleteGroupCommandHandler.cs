@@ -3,6 +3,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Groups.DeleteGroup;
 using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,11 +28,20 @@ public sealed class DeleteGroupCommandHandler : ICommandHandler<DeleteGroupComma
 
         var group = await _dbContext.Groups
             .FirstOrDefaultAsync(g => g.Id == command.Id, cancellationToken)
-            ?? throw new NotFoundException($"Group with ID '{command.Id}' not found.");
+            ?? throw new NotFoundException($"Group with ID '{command.Id}' not found.")
+            {
+                MessageKey = "Identity.GroupNotFound",
+                MessageArgs = [command.Id],
+                ResourceSource = typeof(IdentityResources),
+            };
 
         if (group.IsSystemGroup)
         {
-            throw new ForbiddenException("System groups cannot be deleted.");
+            throw new ForbiddenException("System groups cannot be deleted.")
+            {
+                MessageKey = "Identity.SystemGroupsCannotBeDeleted",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         // Snapshot members before delete; soft-delete flips IsDeleted but membership rows

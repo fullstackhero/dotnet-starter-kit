@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Web.Exceptions;
+using Framework.Tests.Localization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Net;
@@ -14,7 +15,10 @@ public sealed class GlobalExceptionHandlerTests
         context.Request.Path = "/api/v1/identity/forgot-password";
         context.Response.Body = new MemoryStream();
 
-        var handler = new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance);
+        var handler = new GlobalExceptionHandler(
+            NullLogger<GlobalExceptionHandler>.Instance,
+            SharedResourcesLocalizerFactory.Create(),
+            SharedResourcesLocalizerFactory.CreateFactory());
         await handler.TryHandleAsync(context, exception, CancellationToken.None);
         return context;
     }

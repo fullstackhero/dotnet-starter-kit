@@ -4,6 +4,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.TwoFactor;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.AspNetCore.Identity;
 
@@ -35,13 +36,22 @@ public sealed class EnrollTwoFactorCommandHandler
 
         var userId = _currentUser.GetUserId().ToString();
         var user = await _userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException($"User {userId} not found.");
+            ?? throw new NotFoundException($"User {userId} not found.")
+            {
+                MessageKey = "Identity.UserNotFoundById",
+                MessageArgs = [userId],
+                ResourceSource = typeof(IdentityResources),
+            };
 
         // Always reset so calling enroll twice rotates the secret — prevents stale codes
         // from a prior incomplete enrollment from silently succeeding.
         await _userManager.ResetAuthenticatorKeyAsync(user);
         var sharedKey = await _userManager.GetAuthenticatorKeyAsync(user)
-            ?? throw new CustomException("Failed to generate authenticator key.");
+            ?? throw new CustomException("Failed to generate authenticator key.")
+            {
+                MessageKey = "Identity.FailedToGenerateAuthenticatorKey",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         var email = user.Email ?? user.UserName ?? user.Id;
         var authenticatorUri = string.Format(

@@ -4,6 +4,7 @@ using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -20,19 +21,30 @@ public sealed class MarkChannelReadCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user") { MessageKey = "Error.NoCurrentUser" };
         var currentUserId = userId.ToString();
 
         var channel = await db.Channels.FirstOrDefaultAsync(c => c.Id == cmd.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Channel not found.");
+            ?? throw new NotFoundException("Channel not found.")
+            {
+                MessageKey = "Chat.ChannelNotFound",
+                ResourceSource = typeof(ChatResources),
+            };
         channel.RequireMember(currentUserId);
 
         // Verify the marker message actually exists in this channel.
         var exists = await db.Messages
             .AnyAsync(m => m.Id == cmd.MessageId && m.ChannelId == cmd.ChannelId, cancellationToken)
             .ConfigureAwait(false);
-        if (!exists) throw new NotFoundException("Message not found in this channel.");
+        if (!exists)
+        {
+            throw new NotFoundException("Message not found in this channel.")
+            {
+                MessageKey = "Chat.MessageNotFoundInChannel",
+                ResourceSource = typeof(ChatResources),
+            };
+        }
 
         channel.MarkRead(currentUserId, cmd.MessageId);
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

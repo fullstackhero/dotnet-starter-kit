@@ -1,4 +1,5 @@
 ﻿using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Core.Localization;
 using FSH.Framework.Shared.Constants;
 using FSH.Modules.Identity.Contracts.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -99,14 +101,20 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                     // from "no token at all" — both produce 401 but for very different reasons.
                     bool hadAuthHeader = !string.IsNullOrEmpty(context.HttpContext.Request.Headers.Authorization);
 
+                    // Resolved per request: UseRequestLocalization runs ahead of UseAuthorization,
+                    // which is where this challenge is emitted, so the negotiated UI culture is already
+                    // in place and this 401 reads in the same language as every other error.
+                    var localizer = context.HttpContext.RequestServices
+                        .GetRequiredService<IStringLocalizer<SharedResources>>();
+
                     // RFC 9457 ProblemDetails — matches the contract the rest of the API uses
                     // for error responses (via the global exception handler).
                     var problem = new ProblemDetails
                     {
                         Type = "https://datatracker.ietf.org/doc/html/rfc7235#section-3.1",
-                        Title = "Unauthorized",
+                        Title = localizer["Error.Unauthorized"],
                         Status = StatusCodes.Status401Unauthorized,
-                        Detail = "Authentication is required to access this resource.",
+                        Detail = localizer["Error.AuthenticationRequired"],
                         Instance = context.HttpContext.Request.Path,
                     };
 
