@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
-import { missingKeyFallback } from "@/lib/i18n-fallback";
+import { fallbackChain, missingKeyFallback } from "@/lib/i18n-fallback";
 import enCommon from "@/locales/en-US/common.json";
 import ptCommon from "@/locales/pt-BR/common.json";
 import enAuth from "@/locales/en-US/auth.json";
@@ -41,10 +41,11 @@ export const SUPPORTED = ["en-US", "pt-BR"] as const;
 type Catalog = Record<string, string>;
 
 // Translation catalogs keyed by namespace, then by locale. To add a namespace
-// in a later wave: import its two JSON files and add one row here — `resources`,
-// the namespace list, and parity tests all derive from this single map, so no
-// other wiring changes.
-const catalogs: Record<string, Record<(typeof SUPPORTED)[number], Catalog>> = {
+// in a later wave: import its en-US JSON file (plus pt-BR if you have a
+// translation) and add one row here — `resources` and the namespace list derive
+// from this single map, so no other wiring changes. A namespace or key pt-BR
+// lacks renders in English through fallbackChain.
+const catalogs: Record<string, { "en-US": Catalog; "pt-BR"?: Catalog }> = {
   common: { "en-US": enCommon, "pt-BR": ptCommon },
   auth: { "en-US": enAuth, "pt-BR": ptAuth },
   settings: { "en-US": enSettings, "pt-BR": ptSettings },
@@ -70,7 +71,7 @@ export const NAMESPACES = Object.keys(catalogs);
 const resources = Object.fromEntries(
   SUPPORTED.map((lng) => [
     lng,
-    Object.fromEntries(Object.entries(catalogs).map(([ns, byLng]) => [ns, byLng[lng]])),
+    Object.fromEntries(Object.entries(catalogs).map(([ns, byLng]) => [ns, byLng[lng] ?? {}])),
   ]),
 );
 
@@ -98,9 +99,7 @@ export function initI18n(deploymentDefault: string) {
     .use(initReactI18next)
     .init({
       resources,
-      fallbackLng: (SUPPORTED as readonly string[]).includes(deploymentDefault)
-        ? deploymentDefault
-        : "en-US",
+      fallbackLng: fallbackChain(deploymentDefault, SUPPORTED),
       supportedLngs: [...SUPPORTED],
       ns: NAMESPACES,
       defaultNS: "common",
