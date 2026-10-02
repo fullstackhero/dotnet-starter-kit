@@ -95,4 +95,33 @@ public class FileAssetTests
         f.Restore();
         f.IsDeleted.ShouldBeFalse();
     }
+
+    [Fact]
+    public void RelocateStorage_Should_PointTheAssetAtTheNewKey()
+    {
+        var f = NewPending();
+
+        f.RelocateStorage("public/tenants/t/product/2026/05/abc/x.png");
+
+        f.StorageKey.ShouldBe("public/tenants/t/product/2026/05/abc/x.png");
+        f.UpdatedAtUtc.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void RelocateStorage_Should_BeANoOp_When_TheKeyIsUnchanged()
+    {
+        var f = NewPending();
+
+        f.RelocateStorage(f.StorageKey);
+
+        f.UpdatedAtUtc.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void RelocateStorage_Should_RejectAnEmptyKey(string key)
+    {
+        Should.Throw<ArgumentException>(() => NewPending().RelocateStorage(key));
+    }
 }

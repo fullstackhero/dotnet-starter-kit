@@ -67,7 +67,7 @@ public sealed class TenantMigrationsTests
         var unique = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"mig-{unique}";
         await CreateTenantAsync(rootClient, tenantId, $"mig-{unique}@tenant.com");
-        await WaitForProvisioningAsync(rootClient, tenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenantId);
 
         // Act
         var response = await rootClient.GetAsync(MigrationsPath);
@@ -112,7 +112,7 @@ public sealed class TenantMigrationsTests
         var tenantId = $"mig-authz-{unique}";
         var adminEmail = $"mig-authz-{unique}@tenant.com";
         await CreateTenantAsync(rootClient, tenantId, adminEmail);
-        await WaitForProvisioningAsync(rootClient, tenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenantId);
 
         using var tenantClient = await CreateTenantAdminClientWithRetryAsync(
             adminEmail, TestConstants.DefaultPassword, tenantId);
@@ -158,28 +158,6 @@ public sealed class TenantMigrationsTests
         });
         var body = await response.Content.ReadAsStringAsync();
         response.StatusCode.ShouldBe(HttpStatusCode.Created, $"Create tenant failed: {body}");
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (var i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync($"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var content = await statusResponse.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-            await Task.Delay(1000);
-        }
-        throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
     }
 
     private sealed record MigrationStatus

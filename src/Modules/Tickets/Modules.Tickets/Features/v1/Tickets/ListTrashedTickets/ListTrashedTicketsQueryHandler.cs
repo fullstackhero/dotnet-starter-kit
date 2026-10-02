@@ -28,7 +28,7 @@ public sealed class ListTrashedTicketsQueryHandler(TicketsDbContext dbContext)
 
         long total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
         var tickets = await q
-            .Skip((page - 1) * size)
+            .Skip(PaginationExtensions.GetOffset(page, size))
             .Take(size)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);

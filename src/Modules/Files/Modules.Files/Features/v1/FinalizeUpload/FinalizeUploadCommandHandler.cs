@@ -24,7 +24,8 @@ public sealed class FinalizeUploadCommandHandler(
     IFileScanner scanner,
     IQuotaService quotas,
     IOutboxWriter outbox,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    FileStorageRelocator relocator)
     : ICommandHandler<FinalizeUploadCommand, FileAssetDto>
 {
     public async ValueTask<FileAssetDto> Handle(FinalizeUploadCommand cmd, CancellationToken cancellationToken)
@@ -98,6 +99,18 @@ public sealed class FinalizeUploadCommandHandler(
             ContentType: asset.ContentType,
             SizeBytes: asset.SizeBytes,
             FinalStatus: (int)asset.Status), cancellationToken).ConfigureAwait(false);
+
+        // Uploads presigned before visibility lived in the key (#1410) finalize at a key without a
+        // visibility root; move them now so a public file is actually readable under public/.
+        if (asset.Status == FileAssetStatus.Available
+            && !StorageKeyBuilder.IsUnderVisibilityRoot(asset.StorageKey, asset.Visibility))
+        {
+            asset = await relocator.ApplyAsync(
+                asset.Id,
+                a => a.Status == FileAssetStatus.Available
+                    && !StorageKeyBuilder.IsUnderVisibilityRoot(a.StorageKey, a.Visibility),
+                cancellationToken).ConfigureAwait(false) ?? asset;
+        }
 
         return FileAssetMapper.ToDto(asset);
     }

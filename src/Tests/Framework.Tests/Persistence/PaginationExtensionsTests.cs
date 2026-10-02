@@ -126,6 +126,59 @@ public sealed class PaginationExtensionsTests
     }
 
     [Fact]
+    public async Task ToPagedResponseAsync_Should_ReturnEmptyFirstPage_When_NoItemsAndPageNumberIsIntMax()
+    {
+        // Arrange — regression for #1416: an empty set skipped the clamp, so (int.MaxValue - 1) * 100
+        // overflowed into a negative OFFSET that PostgreSQL rejects with a 500.
+        var query = new PagedQuery { PageNumber = int.MaxValue, PageSize = 100 };
+
+        // Act
+        var response = await Source(0).ToPagedResponseAsync(query);
+
+        // Assert
+        response.Items.ShouldBeEmpty();
+        response.TotalCount.ShouldBe(0);
+        response.TotalPages.ShouldBe(0);
+        response.PageNumber.ShouldBe(1);
+        response.PageSize.ShouldBe(100);
+        response.HasNext.ShouldBeFalse();
+        response.HasPrevious.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ToPagedResponseAsync_Should_ClampToLastPage_When_PageNumberIsIntMax()
+    {
+        // Arrange
+        var query = new PagedQuery { PageNumber = int.MaxValue, PageSize = 100 };
+
+        // Act
+        var response = await Source(250).ToPagedResponseAsync(query);
+
+        // Assert
+        response.PageNumber.ShouldBe(3);
+        response.Items.Count.ShouldBe(50);
+        response.Items.First().Value.ShouldBe(201);
+    }
+
+    [Theory]
+    [InlineData(1, 20, 0)]
+    [InlineData(3, 10, 20)]
+    [InlineData(0, 10, 0)]
+    [InlineData(-5, 10, 0)]
+    [InlineData(21_474_837, 100, 2_147_483_600)]
+    [InlineData(21_474_838, 100, int.MaxValue)]
+    [InlineData(int.MaxValue, 100, int.MaxValue)]
+    [InlineData(int.MaxValue, int.MaxValue, int.MaxValue)]
+    public void GetOffset_Should_NeverOverflow_When_PageNumberIsLarge(int pageNumber, int pageSize, int expected)
+    {
+        // Act
+        var offset = PaginationExtensions.GetOffset(pageNumber, pageSize);
+
+        // Assert
+        offset.ShouldBe(expected);
+    }
+
+    [Fact]
     public async Task ToPagedResponseAsync_Should_Throw_When_SourceOrPaginationNull()
     {
         // Arrange

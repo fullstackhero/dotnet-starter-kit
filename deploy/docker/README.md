@@ -71,6 +71,10 @@ Make sure the URLs you serve match the `FSH_API_URL` / `FSH_ADMIN_URL` / `FSH_DA
 
 Presigned uploads and downloads skip the API: the browser talks to RustFS through presigned URLs, which the API signs for `FSH_S3_PUBLIC_URL` (it reaches RustFS itself on the internal `http://rustfs:9000`). Set `FSH_S3_PUBLIC_URL` to the URL your proxy serves the S3 port on, and make the proxy forward the original `Host` header: the signature covers it, so a rewritten host fails with `SignatureDoesNotMatch`. RustFS only grants CORS to `FSH_ADMIN_URL` and `FSH_DASHBOARD_URL`, so a browser on any other origin blocks the PUT.
 
+Public files (avatars, product images) are served without a signature: the API keeps them under the `public/` prefix, hands out `FSH_S3_PUBLIC_URL/fsh/public/...` URLs, and `rustfs-init` grants anonymous read on `public/*` of the `fsh` bucket only. Private files live under `private/` and are only reachable through presigned URLs.
+
+**Lock down the S3 port.** Compose publishes `FSH_S3_PORT` on all interfaces. Firewall it so only your proxy can reach it, or, when the proxy runs on the same host, bind it to loopback by changing the `rustfs` port mapping to `"127.0.0.1:${FSH_S3_PORT:-9000}:9000"`.
+
 ## Sign in for the first time
 
 Open `https://admin.example.com`, sign in as:
@@ -89,6 +93,8 @@ docker compose up -d --build
 ```
 
 The `migrator` re-runs and applies any new migrations idempotently before `api` restarts.
+
+Upgrading from a release where public files had no `public/` prefix: `rustfs-init` re-applies the bucket policy on every `up`, and on start the API moves those files under `public/` (and rewrites the avatar and product-image URLs that point at them) in a background job. Watch `docker compose logs api` for `[Files] moved … legacy public file(s)`; failures are logged, retried by the job scheduler with backoff, and retried again on every API start. Uploads that were presigned before the upgrade are moved when they finalize.
 
 ## Backing up
 
@@ -125,6 +131,7 @@ The data-plane volumes (`pg_data`, `redis_data`, `rustfs_data`) can be deleted o
 | `OptionsValidationException: SigningKey looks like a sample placeholder` | `JWT_SIGNING_KEY` contains `replace-with` (the framework's placeholder detector). Generate a real key: `openssl rand -base64 48`. |
 | API up but admin shows a CORS error | `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` in `.env` doesn't match what your external proxy serves. Both go on the CORS allow-list. |
 | A reset or confirmation e-mail links to the API instead of the app | Same cause: `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` don't match the origins the browser actually uses. Both also feed `FrontendOptions__AllowedOrigins`, and `FSH_DASHBOARD_URL` feeds `FrontendOptions__DefaultOrigin`. |
+| An avatar or product image doesn't render (`403 AccessDenied` on the image URL) | The URL's key doesn't start with `public/`, or the bucket policy is missing. Check `docker compose logs rustfs-init` (it must exit 0) and the API log for the legacy-file migration. |
 | File upload fails in the browser (network error, CORS error, or `403 SignatureDoesNotMatch`) | `FSH_S3_PUBLIC_URL` doesn't match what your proxy serves on the S3 port, the proxy rewrites the `Host` header, or the page's origin isn't `FSH_ADMIN_URL` / `FSH_DASHBOARD_URL` (the RustFS CORS allow-list). |
 | No e-mail arrives, or the API logs `The SMTP server does not support the STARTTLS extension` | `MailOptions__Smtp__Security` does not match the server. The bundled Mailpit needs `None`; a provider on port 587 needs `StartTls`, on 465 `SslOnConnect`. |
 | `Cannot load library libgssapi_krb5.so.2` in the API or migrator log | A connection string without `GSS Encryption Mode=Disable`. Npgsql tries GSS encryption by default and the chiseled images do not ship the Kerberos library. Harmless, but append the setting to silence it. |
