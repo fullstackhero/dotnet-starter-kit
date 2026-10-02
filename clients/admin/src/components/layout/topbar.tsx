@@ -210,7 +210,7 @@ export function Topbar() {
   const persistedLocale = profile.data?.locale;
   useEffect(() => {
     if (languageChosenThisSession.current) return;
-    if (persistedLocale && persistedLocale !== i18n.language) {
+    if (persistedLocale && persistedLocale !== i18n.resolvedLanguage) {
       void changeLanguage(persistedLocale).catch((error: unknown) => {
         console.warn(`[i18n] could not load the ${persistedLocale} catalog from the profile.`, error);
       });
@@ -258,13 +258,16 @@ export function Topbar() {
   // current language, so persisting the new one would hand the next session a choice that never
   // took effect.
   const onSelectLanguage = (tag: string) => {
+    const chosenBefore = languageChosenThisSession.current;
     languageChosenThisSession.current = true;
     changeLanguage(tag).then(
       (applied) => {
         if (applied) updateProfile.mutate({ locale: tag });
       },
       (error: unknown) => {
-        console.warn(`[i18n] could not load the ${tag} catalog; staying on ${i18n.language}.`, error);
+        // A switch that never took effect is not a choice: let profile hydration apply again.
+        languageChosenThisSession.current = chosenBefore;
+        console.warn(`[i18n] could not load the ${tag} catalog; staying on ${i18n.resolvedLanguage}.`, error);
         toast.error(t("language.loadFailed"), { description: t("language.loadFailedDetail") });
       },
     );
@@ -389,7 +392,7 @@ export function Topbar() {
               <LanguageMenuItem
                 key={tag}
                 label={t(`language.${tag.replace("-", "")}`)}
-                active={i18n.language === tag}
+                active={i18n.resolvedLanguage === tag}
                 onSelect={() => onSelectLanguage(tag)}
               />
             ))}

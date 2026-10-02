@@ -283,7 +283,7 @@ export function describeUploadError(e: unknown, t: TFunction, fallback?: string)
 
   if (e instanceof ApiRequestError) {
     // ProblemDetails comes back in the caller's language: apiFetch sends Accept-Language from
-    // i18n.language and the API negotiates on it, so this text is already localized.
+    // i18n.resolvedLanguage and the API negotiates on it, so this text is already localized.
     return e.problem?.detail ?? e.problem?.title ?? e.message;
   }
 

@@ -462,7 +462,7 @@ function handoffToDashboard(response: ImpersonationResponse, tenantId: string) {
   params.set("token", response.accessToken);
   params.set("tenant", tenantId);
   params.set("expiresAt", response.accessTokenExpiresAt);
-  params.set("locale", i18n.language);
+  params.set("locale", i18n.resolvedLanguage ?? "en-US");
   const url = `${env.dashboardUrl}/#impersonate?${params.toString()}`;
   // noopener+noreferrer so the opened tab can't navigate this one and the
   // referrer header is suppressed entirely (defense in depth — the hash
