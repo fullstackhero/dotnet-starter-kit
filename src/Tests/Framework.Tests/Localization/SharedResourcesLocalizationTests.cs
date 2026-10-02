@@ -48,4 +48,35 @@ public sealed class SharedResourcesLocalizationTests
             CultureInfo.CurrentUICulture = previous;
         }
     }
+
+    // A pt-BR translation is optional for contributors, which only holds if a key the .pt-BR resx
+    // lacks still resolves (to English) under the production wiring instead of leaking the raw key.
+    [Fact]
+    public void Key_missing_from_the_ptBR_catalog_falls_back_to_English()
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddHeroLocalization(configuration);
+        var localizer = services.BuildServiceProvider()
+            .GetRequiredService<IStringLocalizerFactory>()
+            .Create(typeof(FallbackProbeResources));
+
+        var previous = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("pt-BR");
+
+            // Without this, a pt-BR satellite that never got built would pass the fallback assertion below.
+            localizer["Probe.Translated"].Value.ShouldBe("Traduzido em português");
+
+            var englishOnly = localizer["Probe.EnglishOnly"];
+            englishOnly.ResourceNotFound.ShouldBeFalse();
+            englishOnly.Value.ShouldBe("Only in English");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
+    }
 }

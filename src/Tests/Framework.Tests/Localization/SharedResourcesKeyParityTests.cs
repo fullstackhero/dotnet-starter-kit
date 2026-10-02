@@ -4,9 +4,10 @@ using System.Text.RegularExpressions;
 
 namespace Framework.Tests.Localization;
 
-// Guards against an English key missing from the .pt-BR catalog (a silent English fallback shipped as
-// "translated"). Enumerates each culture's own embedded resx (includeParentCultures: false) and
-// asserts identical key sets.
+// A pt-BR entry is optional: a key the .pt-BR catalog lacks falls back to English at runtime, so a
+// contributor never has to write Portuguese. What fails is a pt-BR key the neutral catalog does not
+// have (left behind by a rename or delete, it never resolves) and a translation whose placeholders
+// drift. Enumerates each culture's own embedded resx (includeParentCultures: false).
 public sealed class SharedResourcesKeyParityTests
 {
     private static List<string> KeysFor(string culture) =>
@@ -42,14 +43,15 @@ public sealed class SharedResourcesKeyParityTests
                 .OrderBy(i => int.Parse(i, CultureInfo.InvariantCulture)));
 
     [Fact]
-    public void Neutral_and_ptBR_catalogs_have_matching_keys()
+    public void Every_ptBR_key_exists_in_the_neutral_catalog()
     {
         var neutral = KeysFor(string.Empty);   // SharedResources.resx (English / fallback)
         var pt = KeysFor("pt-BR");                 // SharedResources.pt-BR.resx
 
         neutral.ShouldNotBeEmpty();
-        pt.OrderBy(k => k, StringComparer.Ordinal)
-            .ShouldBe(neutral.OrderBy(k => k, StringComparer.Ordinal));
+        pt.Except(neutral, StringComparer.Ordinal)
+            .OrderBy(k => k, StringComparer.Ordinal)
+            .ShouldBeEmpty();
     }
 
     // Matching keys are not enough. A translation that drops {0}, or renumbers it, either
