@@ -7,3 +7,6 @@
 # Dockerfiles
 Dockerfile text eol=lf
 *.dockerfile text eol=lf
+
+# Front-end image files are copied verbatim into a Linux image and served from it
+clients/*/docker/** text eol=lf

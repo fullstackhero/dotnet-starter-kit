@@ -190,6 +190,41 @@ public sealed class UserQueryTests
     }
 
     [Fact]
+    public async Task SearchUsers_Should_Return400_When_PageNumberIsAbsurdOnEmptyResult()
+    {
+        // Arrange — regression for #1416: an empty result + huge page number overflowed the
+        // OFFSET into a negative value and PostgreSQL failed the request with a 500.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var noMatch = $"nomatch{Guid.NewGuid():N}";
+
+        // Act
+        var response = await adminClient.GetAsync(
+            $"{TestConstants.IdentityBasePath}/users/search?search={noMatch}&pageNumber=30000000&pageSize=100");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task SearchUsers_Should_ReturnEmptyFirstPage_When_PageNumberAtBoundOnEmptyResult()
+    {
+        // Arrange
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var noMatch = $"nomatch{Guid.NewGuid():N}";
+
+        // Act
+        var response = await adminClient.GetAsync(
+            $"{TestConstants.IdentityBasePath}/users/search?search={noMatch}&pageNumber=1000000&pageSize=100");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var page = await response.DeserializeAsync<PagedResponse<UserDto>>();
+        page.Items.ShouldBeEmpty();
+        page.TotalCount.ShouldBe(0);
+        page.PageNumber.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task SearchUsers_Should_SortByLastNameDescending_When_SortPrefixedWithDash()
     {
         // Arrange — seed two users sharing a unique surname prefix so we can assert ordering

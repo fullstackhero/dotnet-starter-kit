@@ -9,6 +9,7 @@ import {
   ChevronRight,
   CreditCard,
   Gauge,
+  Lock,
   Package,
   RefreshCw,
   ScrollText,
@@ -559,6 +560,37 @@ function recentEventTypeIcon(eventType: AuditEventType): React.ComponentType<{ c
   return Activity;
 }
 
+/** Mirrors the permission GET /api/v1/audits enforces server-side. */
+const AUDIT_VIEW_PERMISSION = "Permissions.AuditTrails.View";
+
+function RecentAuditsSkeleton() {
+  return (
+    <ul className="space-y-2.5">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <li key={i} className="flex items-center gap-3">
+          <Skeleton className="size-7 rounded-md" />
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="ml-auto h-3 w-16" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function RecentAuditsNoAccess() {
+  return (
+    <div className="flex flex-col items-center gap-2 py-6 text-center">
+      <Lock className="size-4 text-muted-foreground" />
+      <div className="text-[13px] font-semibold tracking-tight text-foreground">
+        No access to audits
+      </div>
+      <p className="max-w-sm text-[11.5px] text-muted-foreground">
+        Recent audits need the Audit trail permission. Ask an administrator if you need it.
+      </p>
+    </div>
+  );
+}
+
 function RecentAuditsBody() {
   const recentAudits = useQuery({
     queryKey: ["audits", "recent", "overview"],
@@ -577,17 +609,7 @@ function RecentAuditsBody() {
   const items = recentAudits.data?.items ?? [];
 
   if (recentAudits.isLoading) {
-    return (
-      <ul className="space-y-2.5">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <li key={i} className="flex items-center gap-3">
-            <Skeleton className="size-7 rounded-md" />
-            <Skeleton className="h-3 w-32" />
-            <Skeleton className="ml-auto h-3 w-16" />
-          </li>
-        ))}
-      </ul>
-    );
+    return <RecentAuditsSkeleton />;
   }
 
   if (items.length === 0) {
@@ -693,38 +715,43 @@ const QUICK_ACTIONS: QuickAction[] = [
   },
 ];
 
+// The card sits in one cell of a 2-up grid beside a 360px rail, so its width
+// tracks that column, not the viewport: go two-up only when the card itself has
+// room for two 14rem tiles, instead of squeezing two into a sliver.
 function QuickActionsBody() {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-      {QUICK_ACTIONS.map((a) => (
-        <Link
-          key={a.to}
-          to={a.to}
-          className={cn(
-            "group/qa flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3",
-            "transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)]",
-          )}
-        >
-          <span
-            aria-hidden
+    <div className="@container">
+      <div className="grid grid-cols-1 gap-2 @[28.5rem]:grid-cols-2">
+        {QUICK_ACTIONS.map((a) => (
+          <Link
+            key={a.to}
+            to={a.to}
             className={cn(
-              "grid size-8 shrink-0 place-items-center rounded-md",
-              STAT_TONE_BG[a.tone],
+              "group/qa flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3",
+              "transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)]",
             )}
           >
-            <a.icon className="size-3.5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-[12.5px] font-semibold tracking-tight text-foreground">
-              {a.title}
+            <span
+              aria-hidden
+              className={cn(
+                "grid size-8 shrink-0 place-items-center rounded-md",
+                STAT_TONE_BG[a.tone],
+              )}
+            >
+              <a.icon className="size-3.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[12.5px] font-semibold tracking-tight text-foreground">
+                {a.title}
+              </div>
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                {a.description}
+              </p>
             </div>
-            <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-              {a.description}
-            </p>
-          </div>
-          <ArrowRight className="size-3 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/qa:translate-x-0.5 group-hover/qa:opacity-100" />
-        </Link>
-      ))}
+            <ArrowRight className="size-3 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/qa:translate-x-0.5 group-hover/qa:opacity-100" />
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -940,7 +967,11 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
 // ────────────────────────────────────────────────────────────────────────
 
 export function OverviewPage() {
-  const { user } = useAuth();
+  const { user, permissionsHydrated } = useAuth();
+  // GET /audits requires AuditTrails.View — only mount the query for users who
+  // hold it, so everyone else gets a quiet no-access state instead of a 403.
+  const canViewAudits =
+    permissionsHydrated && (user?.permissions.includes(AUDIT_VIEW_PERMISSION) ?? false);
   const { status: sseStatus, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
@@ -1223,15 +1254,23 @@ export function OverviewPage() {
             icon={ScrollText}
             description="Last 24 hours, top 5 events."
             action={
-              <Link
-                to="/system/audits"
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                See all <ArrowUpRight className="size-3" />
-              </Link>
+              canViewAudits ? (
+                <Link
+                  to="/system/audits"
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  See all <ArrowUpRight className="size-3" />
+                </Link>
+              ) : undefined
             }
           >
-            <RecentAuditsBody />
+            {!permissionsHydrated ? (
+              <RecentAuditsSkeleton />
+            ) : canViewAudits ? (
+              <RecentAuditsBody />
+            ) : (
+              <RecentAuditsNoAccess />
+            )}
           </EntityDetailSection>
 
           <EntityDetailSection

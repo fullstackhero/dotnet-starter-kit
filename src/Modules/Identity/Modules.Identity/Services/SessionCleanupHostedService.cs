@@ -1,3 +1,6 @@
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +11,7 @@ namespace FSH.Modules.Identity.Services;
 
 /// <summary>
 /// Background service that periodically cleans up expired sessions.
-/// Runs every hour and removes sessions that have been expired for more than 30 days.
+/// Runs every hour and, in every tenant, removes sessions that have been expired for more than 30 days.
 /// </summary>
 public sealed class SessionCleanupHostedService : BackgroundService
 {
@@ -36,8 +39,8 @@ public sealed class SessionCleanupHostedService : BackgroundService
         {
             try
             {
-                await Task.Delay(_cleanupInterval, stoppingToken);
-                await CleanupExpiredSessionsAsync(stoppingToken);
+                await Task.Delay(_cleanupInterval, stoppingToken).ConfigureAwait(false);
+                await CleanupExpiredSessionsAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -54,20 +57,50 @@ public sealed class SessionCleanupHostedService : BackgroundService
         _logger.LogInformation("Session cleanup service stopped");
     }
 
-    private async Task CleanupExpiredSessionsAsync(CancellationToken cancellationToken)
+    internal async Task CleanupExpiredSessionsAsync(CancellationToken cancellationToken)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        // A hosted service has no request, so no tenant is resolved and the default-on tenant filter on
+        // UserSessions has nothing to compare against. Each tenant is cleaned inside its own context,
+        // which also points IdentityDbContext at a tenant's dedicated database when it has one.
+        List<AppTenantInfo> tenants;
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
+            tenants = (await tenantStore.GetAllAsync().ConfigureAwait(false)).ToList();
+        }
 
         // cutoffDate = now - retentionDays, so ExpiresAt < cutoffDate already implies ExpiresAt < now.
         var cutoffDate = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-_retentionDays);
-        var deleted = await db.UserSessions
-            .Where(s => s.ExpiresAt < cutoffDate)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        if (deleted > 0 && _logger.IsEnabled(LogLevel.Information))
+        foreach (var tenant in tenants)
         {
-            _logger.LogInformation("Cleaned up {Count} expired sessions", deleted);
+            cancellationToken.ThrowIfCancellationRequested();
+            await CleanupTenantSessionsAsync(tenant, cutoffDate, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async Task CleanupTenantSessionsAsync(AppTenantInfo tenant, DateTime cutoffDate, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+                .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
+
+            var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+            var deleted = await db.UserSessions
+                .Where(s => s.ExpiresAt < cutoffDate)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            if (deleted > 0 && _logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Cleaned up {Count} expired sessions for tenant {TenantId}", deleted, tenant.Id);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // One tenant's database being unreachable must not keep the other tenants' sessions around.
+            _logger.LogError(ex, "Session cleanup failed for tenant {TenantId}", tenant.Id);
         }
     }
 }

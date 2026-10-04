@@ -20,6 +20,8 @@ public sealed class ProductImageConfiguration : IEntityTypeConfiguration<Product
         builder.HasIndex(x => x.ProductId);
 
         builder.Property(x => x.FileAssetId);
+        // Lookup by FileAsset when the Files module moves an object (FileStorageKeyChangedIntegrationEvent).
+        builder.HasIndex(x => x.FileAssetId);
         builder.Property(x => x.Url).IsRequired().HasMaxLength(2048);
         builder.Property(x => x.IsThumbnail).IsRequired();
         builder.Property(x => x.SortOrder).IsRequired();

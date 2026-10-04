@@ -281,6 +281,8 @@ locals {
         Resource  = "arn:aws:s3:::${aws_s3_bucket.this.bucket}/${var.public_read_prefix}*"
       }
     ] : [],
+    # CloudFront serves anyone who has the URL, so it only gets the public prefix: private objects
+    # stay reachable through presigned S3 URLs alone.
     var.enable_cloudfront ? [
       {
         Sid    = "AllowCloudFrontRead"
@@ -289,7 +291,7 @@ locals {
           Service = "cloudfront.amazonaws.com"
         }
         Action   = ["s3:GetObject"]
-        Resource = "arn:aws:s3:::${aws_s3_bucket.this.bucket}/*"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.this.bucket}/${var.public_read_prefix}*"
         Condition = {
           StringEquals = {
             "AWS:SourceArn" = aws_cloudfront_distribution.this[0].arn

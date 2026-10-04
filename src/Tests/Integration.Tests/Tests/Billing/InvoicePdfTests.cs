@@ -33,7 +33,7 @@ public sealed class InvoicePdfTests
         var adminEmail = $"pdf-{unique}@tenant.com";
         var planKey = await CreatePlanAsync(rootClient, $"pdf-m-{unique}", 29m);
         await CreateTenantAsync(rootClient, tenantId, adminEmail, planKey);
-        await WaitForProvisioningAsync(rootClient, tenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, tenantId);
 
         // TenantSubscribed goes through the outbox now, so the invoice is issued on the next
         // dispatch cycle rather than inside the create request.
@@ -62,7 +62,7 @@ public sealed class InvoicePdfTests
         var otherTenantId = $"pdf-other-{otherUnique}";
         var otherEmail = $"pdf-other-{otherUnique}@tenant.com";
         await CreateTenantAsync(rootClient, otherTenantId, otherEmail, planKey);
-        await WaitForProvisioningAsync(rootClient, otherTenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, otherTenantId);
         using var otherClient = await CreateTenantAdminClientWithRetryAsync(
             otherEmail, TestConstants.DefaultPassword, otherTenantId);
 
@@ -120,27 +120,5 @@ public sealed class InvoicePdfTests
         });
         var body = await response.Content.ReadAsStringAsync();
         response.StatusCode.ShouldBe(HttpStatusCode.Created, $"Create tenant failed: {body}");
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (var i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync($"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var content = await statusResponse.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-            await Task.Delay(1000);
-        }
-        throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
     }
 }

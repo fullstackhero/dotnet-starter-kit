@@ -112,10 +112,38 @@ internal sealed class QuotaMeteredStorageService : IStorageService
 
         await _inner.RemoveAsync(path, cancellationToken).ConfigureAwait(false);
 
-        if (size > 0 && !string.IsNullOrWhiteSpace(tenantId))
+        // Providers' RemoveAsync swallows store errors, so only refund once the object is really gone —
+        // otherwise a failed delete would both keep the bytes and hand the quota back.
+        if (size > 0 && !string.IsNullOrWhiteSpace(tenantId)
+            && !await _inner.ExistsAsync(path, cancellationToken).ConfigureAwait(false))
         {
             await _quotas
                 .RecordAsync(tenantId, QuotaResource.StorageBytes, -size, CancellationToken.None)
+                .ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// A copy stores the bytes a second time, so it is charged like an upload. That keeps a move
+    /// (copy → delete) net-zero: <see cref="RemoveAsync"/> refunds the source's size afterwards.
+    /// Not quota-gated — a move between visibility roots must not fail because the tenant is at its
+    /// limit, since it frees the same amount a moment later.
+    /// </summary>
+    public async Task CopyAsync(string sourceKey, string destinationKey, CancellationToken cancellationToken = default)
+    {
+        await _inner.CopyAsync(sourceKey, destinationKey, cancellationToken).ConfigureAwait(false);
+
+        var tenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id;
+        if (string.IsNullOrWhiteSpace(tenantId))
+        {
+            return;
+        }
+
+        var size = await _inner.GetSizeAsync(destinationKey, cancellationToken).ConfigureAwait(false);
+        if (size > 0)
+        {
+            await _quotas
+                .RecordAsync(tenantId, QuotaResource.StorageBytes, size, CancellationToken.None)
                 .ConfigureAwait(false);
         }
     }

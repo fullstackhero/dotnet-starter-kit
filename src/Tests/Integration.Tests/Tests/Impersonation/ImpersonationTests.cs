@@ -58,7 +58,7 @@ public sealed class ImpersonationTests : IAsyncLifetime
 
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         await CreateTenantAsync(rootClient, _tenantId, _tenantAdminEmail);
-        await WaitForProvisioningAsync(rootClient, _tenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, _tenantId);
 
         // Sign in as the seeded tenant admin to capture their userId from the JWT — the search
         // endpoint would couple these tests to the (currently buggy) cross-tenant search override.
@@ -552,7 +552,7 @@ public sealed class ImpersonationTests : IAsyncLifetime
 
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         await CreateTenantAsync(rootClient, otherTenantId, otherAdminEmail);
-        await WaitForProvisioningAsync(rootClient, otherTenantId);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, otherTenantId);
         var otherToken = await GetTokenWithRetryAsync(otherAdminEmail, TestConstants.DefaultPassword, otherTenantId);
         var otherAdminUserId = ReadSubject(otherToken.AccessToken);
 
@@ -903,28 +903,6 @@ public sealed class ImpersonationTests : IAsyncLifetime
             issuer = $"{tenantId}.issuer",
         });
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (var i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync($"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var content = await statusResponse.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-            await Task.Delay(1000);
-        }
-        throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
     }
 
     // ─── shape mirrors ─────────────────────────────────────────────────

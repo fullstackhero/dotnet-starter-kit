@@ -116,6 +116,51 @@ public sealed class PagedQueryValidatorTests
     }
 
     [Fact]
+    public void PageNumber_Should_Pass_When_AtUpperBound_Auditing()
+    {
+        // Arrange
+        var validator = new GetAuditsQueryValidator();
+        var query = new GetAuditsQuery { PageNumber = 1_000_000 };
+
+        // Act
+        var result = validator.Validate(query);
+
+        // Assert
+        result.Errors.ShouldNotContain(e => e.PropertyName == "PageNumber");
+    }
+
+    [Theory]
+    [InlineData(1_000_001)]
+    [InlineData(99_999_999)]
+    [InlineData(int.MaxValue)]
+    public void PageNumber_Should_Fail_When_AboveUpperBound_Auditing(int pageNumber)
+    {
+        // Arrange
+        var validator = new GetAuditsQueryValidator();
+        var query = new GetAuditsQuery { PageNumber = pageNumber };
+
+        // Act
+        var result = validator.Validate(query);
+
+        // Assert
+        result.Errors.ShouldContain(e => e.PropertyName == "PageNumber");
+    }
+
+    [Fact]
+    public void PageNumber_Should_Fail_When_AboveUpperBound_Identity()
+    {
+        // Arrange
+        var validator = new SearchUsersQueryValidator();
+        var query = new SearchUsersQuery { PageNumber = int.MaxValue };
+
+        // Act
+        var result = validator.Validate(query);
+
+        // Assert
+        result.Errors.ShouldContain(e => e.PropertyName == "PageNumber");
+    }
+
+    [Fact]
     public void PageSize_Should_Pass_When_Null_Auditing()
     {
         // Arrange

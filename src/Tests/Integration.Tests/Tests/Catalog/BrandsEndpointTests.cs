@@ -60,6 +60,22 @@ public sealed class BrandsEndpointTests
     }
 
     [Fact]
+    public async Task SearchBrands_Should_ReturnEmptyPage_When_PageNumberIsAbsurdOnEmptyResult()
+    {
+        // Regression for #1416: the hand-rolled (page - 1) * size overflowed int into a negative
+        // OFFSET, which PostgreSQL rejects — the request failed with a 500 instead of an empty page.
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var noMatch = UniqueName("NoMatch");
+
+        var response = await client.GetAsync(
+            $"{TestConstants.CatalogBasePath}/brands?search={Uri.EscapeDataString(noMatch)}&pageNumber=30000000&pageSize=100");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var page = await response.DeserializeAsync<PagedResult<BrandDto>>();
+        page.Items.ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task UpdateBrand_Should_PersistChanges()
     {
         using var client = await _auth.CreateRootAdminClientAsync();
