@@ -13,6 +13,7 @@ public class UpdateUserCommand : ICommand<Unit>
     public string? Email { get; set; }
     public FileUploadRequest? Image { get; set; }
     public bool DeleteCurrentImage { get; set; }
+    public string? Locale { get; set; }
 
     /// <summary>
     /// Concurrency tokens the caller is willing to overwrite, taken from the request's

@@ -12,6 +12,12 @@
 		<ContainerUser>1654</ContainerUser>
 		<ContainerFamily>noble</ContainerFamily>
 		<ContainerRepository>fsh-api</ContainerRepository>
+
+		<!-- The chiseled runtime image ships without ICU and sets DOTNET_SYSTEM_GLOBALIZATION_INVARIANT,
+		     where only predefined cultures may be created, so request localization's new CultureInfo("pt-BR")
+		     kills startup. Named cultures are all it needs: resource lookup goes by name, and formatting is
+		     pinned to InvariantCulture by design (see UseHeroLocalization). -->
+		<PredefinedCulturesOnly>false</PredefinedCulturesOnly>
 	</PropertyGroup>
 
 	<ItemGroup>
