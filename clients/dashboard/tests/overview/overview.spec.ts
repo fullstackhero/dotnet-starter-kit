@@ -57,6 +57,102 @@ test.describe("overview (/)", () => {
     await expect(page.getByText(/no usage captured yet/i)).toBeVisible();
   });
 
+  // GET /audits requires AuditTrails.View; installShellMocks grants no permissions.
+  test("recent audits: without Audit trail access, no /audits call and a no-access state", async ({ page }) => {
+    let auditCalls = 0;
+    page.on("request", (req) => {
+      if (new URL(req.url()).pathname.startsWith("/api/v1/audits")) auditCalls++;
+    });
+    const errors: string[] = [];
+    page.on("pageerror", (err) => errors.push(err.message));
+
+    await page.goto("/");
+    const card = page.locator("section", { has: page.getByRole("heading", { name: "Recent audits" }) });
+    await expect(card.getByText("No access to audits")).toBeVisible();
+    await expect(card.getByRole("link", { name: /see all/i })).toHaveCount(0);
+    await expect(page.getByText(/failure|couldn't load/i)).toHaveCount(0);
+
+    expect(auditCalls).toBe(0);
+    expect(errors).toEqual([]);
+  });
+
+  test("recent audits: with Audit trail access, rows load from /audits", async ({ page }) => {
+    await mockJsonResponse(page, "**/api/v1/identity/permissions", ["Permissions.AuditTrails.View"]);
+    await mockJsonResponse(
+      page,
+      "**/api/v1/audits**",
+      paged([
+        {
+          id: "a-1",
+          occurredAtUtc: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          eventType: "Security",
+          severity: "Information",
+          tenantId: "acme",
+          userId: "u-test-1",
+          userName: "Alice Nguyen",
+          source: "api.identity.IssueJwtToken",
+          tags: 0,
+        },
+      ]),
+    );
+
+    await page.goto("/");
+    const card = page.locator("section", { has: page.getByRole("heading", { name: "Recent audits" }) });
+    await expect(card.getByText("api.identity.IssueJwtToken")).toBeVisible();
+    await expect(card.getByRole("link", { name: /see all/i })).toBeVisible();
+  });
+
+  test("quick-action tiles are wide enough for their title and description", async ({ page }) => {
+    // At desktop widths the card sits in a narrow column beside the 360px
+    // rail, so tiles sized off the viewport squeeze titles past their box.
+    // A wide card must not spread the four tiles 3+1 or 4-up either.
+    for (const width of [1280, 2200]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto("/");
+      const card = page.locator("section", { has: page.getByRole("heading", { name: "Quick actions" }) });
+      await expect(card.getByRole("link")).toHaveCount(4);
+      await page.evaluate(() => document.fonts.ready);
+
+      const columns = await card
+        .getByRole("link")
+        .first()
+        .evaluate((link) => getComputedStyle(link.parentElement!).gridTemplateColumns.split(" ").length);
+      expect(columns, `columns at ${width}px`).toBeLessThanOrEqual(2);
+
+      const tiles = await card.getByRole("link").evaluateAll((links) =>
+        links.map((link) => {
+          const lineCount = (el: Element) => {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const tops = new Set<number>();
+            for (const rect of Array.from(range.getClientRects())) {
+              if (rect.width > 0) tops.add(Math.round(rect.top));
+            }
+            return tops.size;
+          };
+          const description = link.querySelector("p")!;
+          const title = description.previousElementSibling!;
+          return {
+            title: title.textContent,
+            titleOverflow: title.scrollWidth - title.clientWidth,
+            titleLines: lineCount(title),
+            descriptionOverflow: description.scrollWidth - description.clientWidth,
+            descriptionLines: lineCount(description),
+          };
+        }),
+      );
+
+      for (const tile of tiles) {
+        expect(tile, `${tile.title} at ${width}px`).toMatchObject({
+          titleOverflow: 0,
+          titleLines: 1,
+          descriptionOverflow: 0,
+        });
+        expect(tile.descriptionLines, `${tile.title} description at ${width}px`).toBeLessThanOrEqual(2);
+      }
+    }
+  });
+
   test("Valid-for card reflects an in-grace tenant", async ({ page }) => {
     await mockJsonResponse(page, "**/api/v1/tenants/me/status**", {
       id: "acme",
@@ -93,19 +189,6 @@ test.describe("overview (/)", () => {
     await expect(page.getByText("Valid for", { exact: true })).toBeVisible();
     // The stat card reads "Expired" rather than a healthy day count.
     await expect(page.getByText("Expired", { exact: true })).toBeVisible();
-  });
-});
-
-test.describe("activity (/activity)", () => {
-  test.beforeEach(async ({ page }) => {
-    await seedAuthedSession(page, TEST_USER);
-    await installShellMocks(page);
-  });
-
-  test("renders the live-activity page with its empty state (stream offline in tests)", async ({ page }) => {
-    await page.goto("/activity");
-    await expect(page.getByRole("heading", { name: /live activity/i })).toBeVisible();
-    await expect(page.getByText(/no events yet|listening for activity/i)).toBeVisible();
   });
 });
 

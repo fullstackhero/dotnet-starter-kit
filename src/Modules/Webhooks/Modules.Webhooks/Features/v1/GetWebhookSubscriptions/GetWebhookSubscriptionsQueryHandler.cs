@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Webhooks.Contracts.Dtos;
 using FSH.Modules.Webhooks.Contracts.v1.GetWebhookSubscriptions;
@@ -22,7 +23,7 @@ public sealed class GetWebhookSubscriptionsQueryHandler(
         var totalCount = await dbQuery.CountAsync(cancellationToken).ConfigureAwait(false);
 
         var items = await dbQuery
-            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Skip(PaginationExtensions.GetOffset(query.PageNumber, query.PageSize))
             .Take(query.PageSize)
             .Select(s => new WebhookSubscriptionDto
             {

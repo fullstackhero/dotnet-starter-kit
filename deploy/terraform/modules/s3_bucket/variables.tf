@@ -46,8 +46,8 @@ variable "enable_public_read" {
 
 variable "public_read_prefix" {
   type        = string
-  description = "Prefix to allow public read (e.g., uploads/). Leave empty to disable public policy."
-  default     = "uploads/"
+  description = "Key prefix that is publicly readable: anonymously when enable_public_read is true, and through CloudFront when enable_cloudfront is true. Leave empty to disable the anonymous policy and let CloudFront read the whole bucket."
+  default     = "public/"
 }
 
 ################################################################################

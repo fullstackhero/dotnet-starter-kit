@@ -132,4 +132,16 @@ public sealed class FileAsset : AggregateRoot<Guid>, ISoftDeletable
         Visibility = next;
         UpdatedAtUtc = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Point the asset at the key its object was copied to. The caller owns the object move itself
+    /// (copy → save this → delete the old object); see <c>FileStorageRelocator</c>.
+    /// </summary>
+    public void RelocateStorage(string newStorageKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newStorageKey);
+        if (string.Equals(StorageKey, newStorageKey, StringComparison.Ordinal)) return;
+        StorageKey = newStorageKey;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 }

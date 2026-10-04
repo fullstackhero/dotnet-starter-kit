@@ -27,7 +27,7 @@ public sealed class ListTrashedCategoriesQueryHandler(CatalogDbContext dbContext
 
         long total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
         var items = await q
-            .Skip((page - 1) * size)
+            .Skip(PaginationExtensions.GetOffset(page, size))
             .Take(size)
             .Select(c => new CategoryDto(
                 c.Id, c.Name, c.Slug, c.Description, c.ParentCategoryId,

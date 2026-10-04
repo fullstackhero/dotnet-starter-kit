@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Contracts.v1.Queries;
 using FSH.Modules.Chat.Data;
@@ -48,7 +49,7 @@ public sealed class SearchMessagesQueryHandler(
 
         // Interpolation is parameterized (sanitized literal, not raw SQL); websearch_to_tsquery lets
         // callers use natural syntax (quoted phrases, OR, -exclude) with no pre-processing.
-        int offset = (page - 1) * pageSize;
+        int offset = PaginationExtensions.GetOffset(page, pageSize);
         FormattableString sql = $@"
 SELECT m.*
 FROM chat.""Messages"" m

@@ -1,8 +1,13 @@
 #pragma warning disable S1144 // Unused private members — populated by JSON
 #pragma warning disable S3459 // Unassigned members — populated by JSON
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
+using FSH.Framework.Caching;
 using Integration.Tests.Infrastructure;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Integration.Tests.Tests.Multitenancy;
 
@@ -50,8 +55,8 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         await CreateTenantAsync(rootClient, _tenantA, _tenantAAdminEmail);
         await CreateTenantAsync(rootClient, _tenantB, _tenantBAdminEmail);
-        await WaitForProvisioningAsync(rootClient, _tenantA);
-        await WaitForProvisioningAsync(rootClient, _tenantB);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, _tenantA);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, _tenantB);
 
         // Provisioning can report "Completed" a tick before the seeded admin user is queryable; a
         // successful token issuance cross-checks the user exists, avoiding a first-test race on empty lists.
@@ -84,6 +89,32 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
         page.Items.ShouldNotContain(u => u.Email == TestConstants.RootAdminEmail);
         // Tenant B's users must NOT leak through.
         page.Items.ShouldNotContain(u => u.Email == _tenantBAdminEmail);
+    }
+
+    [Fact]
+    public async Task RootOperator_Should_TargetOtherTenant_When_PermissionCacheIsCold()
+    {
+        // Arrange — evict the root admin's cached permission set, as its 2-minute local expiry (or any
+        // role/group invalidation) does, so the next permission check has to load it again. The cache key
+        // carries no tenant, and this request resolves to tenant A.
+        var rootToken = await _auth.GetRootAdminTokenAsync();
+        var rootUserId = new JwtSecurityTokenHandler().ReadJwtToken(rootToken.AccessToken)
+            .Claims.First(c => c.Type is ClaimTypes.NameIdentifier or "nameid").Value;
+        await _factory.Services.GetRequiredService<HybridCache>()
+            .RemoveAsync(CacheKeys.UserPermissions(rootUserId));
+
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", rootToken.AccessToken);
+        client.DefaultRequestHeaders.Add("tenant", _tenantA);
+
+        // Act
+        var response = await client.GetAsync($"{TestConstants.IdentityBasePath}/users/search?PageNumber=1&PageSize=50");
+
+        // Assert — the root user does not exist in tenant A, so a load under the request's tenant 401s.
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+        var page = await response.Content.ReadFromJsonAsync<PagedResult<SearchUserDto>>(Json);
+        page.ShouldNotBeNull();
+        page.Items.ShouldContain(u => u.Email == _tenantAAdminEmail);
     }
 
     [Fact]
@@ -176,28 +207,6 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
             issuer = $"{tenantId}.issuer",
         });
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
-    }
-
-    private static async Task WaitForProvisioningAsync(HttpClient client, string tenantId, int maxRetries = 60)
-    {
-        for (var i = 0; i < maxRetries; i++)
-        {
-            var statusResponse = await client.GetAsync($"{TestConstants.TenantsBasePath}/{tenantId}/provisioning");
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var content = await statusResponse.Content.ReadAsStringAsync();
-                if (content.Contains("Completed", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                if (content.Contains("Failed", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Tenant {tenantId} provisioning failed: {content}");
-                }
-            }
-            await Task.Delay(1000);
-        }
-        throw new TimeoutException($"Tenant {tenantId} did not finish provisioning.");
     }
 
     private sealed class SearchUserDto

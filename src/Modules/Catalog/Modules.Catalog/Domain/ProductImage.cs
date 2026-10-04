@@ -53,4 +53,11 @@ public sealed class ProductImage : BaseEntity<Guid>
     internal void MarkThumbnail(bool value) => IsThumbnail = value;
 
     internal void SetSortOrder(int order) => SortOrder = order;
+
+    /// <summary>Follows the underlying FileAsset to a new storage key (see <c>FileStorageKeyChangedIntegrationEvent</c>).</summary>
+    internal void ReplaceUrl(string url)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(url);
+        Url = url.Trim();
+    }
 }

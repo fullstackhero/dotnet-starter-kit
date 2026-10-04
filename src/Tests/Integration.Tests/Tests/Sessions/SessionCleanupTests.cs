@@ -1,0 +1,133 @@
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Services;
+using FSH.Modules.Multitenancy.Contracts.Dtos;
+using Integration.Tests.Infrastructure;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Hosting;
+
+namespace Integration.Tests.Tests.Sessions;
+
+/// <summary>
+/// The hourly session cleanup runs outside any request, so there is no ambient tenant. UserSessions
+/// carry the default-on tenant filter, which means the cleanup only reaches a tenant's rows when it
+/// runs inside that tenant's context. Sessions are seeded in two tenants and the registered hosted
+/// service's single run is invoked directly, so the test does not wait for the hourly timer.
+/// </summary>
+[Collection(FshCollectionDefinition.Name)]
+public sealed class SessionCleanupTests
+{
+    // The service keeps sessions for 30 days past expiry; 31 is safely past the cutoff, 1 is inside it.
+    private const int DaysPastRetention = 31;
+    private const int DaysInsideRetention = 1;
+
+    private readonly FshWebApplicationFactory _factory;
+    private readonly AuthHelper _auth;
+
+    public SessionCleanupTests(FshWebApplicationFactory factory)
+    {
+        _factory = factory;
+        _auth = new AuthHelper(factory);
+    }
+
+    [Fact]
+    public async Task Cleanup_Should_DeleteSessionsPastRetention_InEveryTenant_And_KeepTheRest()
+    {
+        // Arrange
+        using var rootClient = await _auth.CreateRootAdminClientAsync();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var otherTenantId = $"sess-clean-{uniqueId}";
+        var otherAdminEmail = $"sess-clean-admin-{uniqueId}@tenant.com";
+
+        await CreateTenantAsync(rootClient, otherTenantId, otherAdminEmail);
+        await TenantProvisioningWait.WaitForProvisioningAsync(rootClient, otherTenantId);
+
+        var now = DateTime.UtcNow;
+        var rootExpired = await SeedSessionAsync(
+            TestConstants.RootTenantId, TestConstants.RootAdminEmail, now.AddDays(-DaysPastRetention));
+        var otherExpired = await SeedSessionAsync(
+            otherTenantId, otherAdminEmail, now.AddDays(-DaysPastRetention));
+        var rootInsideRetention = await SeedSessionAsync(
+            TestConstants.RootTenantId, TestConstants.RootAdminEmail, now.AddDays(-DaysInsideRetention));
+        var otherActive = await SeedSessionAsync(
+            otherTenantId, otherAdminEmail, now.AddDays(7));
+
+        var cleanup = _factory.Services.GetServices<IHostedService>()
+            .OfType<SessionCleanupHostedService>()
+            .Single();
+
+        // Act
+        await cleanup.CleanupExpiredSessionsAsync(CancellationToken.None);
+
+        // Assert
+        (await SessionExistsAsync(TestConstants.RootTenantId, rootExpired))
+            .ShouldBeFalse("a root-tenant session expired past retention must be deleted");
+        (await SessionExistsAsync(otherTenantId, otherExpired))
+            .ShouldBeFalse("a session expired past retention in a non-root tenant must be deleted");
+        (await SessionExistsAsync(TestConstants.RootTenantId, rootInsideRetention))
+            .ShouldBeTrue("a session expired inside the retention window must be kept");
+        (await SessionExistsAsync(otherTenantId, otherActive))
+            .ShouldBeTrue("a session that has not expired must be kept");
+    }
+
+    // Tenant context is an AsyncLocal, so it is set in the same method as the DbContext call.
+    private async Task<Guid> SeedSessionAsync(string tenantId, string userEmail, DateTime expiresAt)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var tenant = await scope.ServiceProvider
+            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
+            .GetAsync(tenantId);
+        tenant.ShouldNotBeNull();
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
+
+        var user = await scope.ServiceProvider
+            .GetRequiredService<UserManager<FshUser>>()
+            .FindByEmailAsync(userEmail);
+        user.ShouldNotBeNull();
+
+        var session = UserSession.Create(
+            user.Id,
+            Guid.NewGuid().ToString("N"),
+            "127.0.0.1",
+            "session-cleanup-test",
+            expiresAt);
+
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        db.UserSessions.Add(session);
+        await db.SaveChangesAsync();
+        return session.Id;
+    }
+
+    private async Task<bool> SessionExistsAsync(string tenantId, Guid sessionId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var tenant = await scope.ServiceProvider
+            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
+            .GetAsync(tenantId);
+        tenant.ShouldNotBeNull();
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
+
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        return await db.UserSessions.AsNoTracking().AnyAsync(s => s.Id == sessionId);
+    }
+
+    private static async Task CreateTenantAsync(HttpClient rootClient, string tenantId, string adminEmail)
+    {
+        var response = await rootClient.PostAsJsonAsync(TestConstants.TenantsBasePath, new
+        {
+            id = tenantId,
+            name = $"Tenant {tenantId}",
+            connectionString = (string?)null,
+            adminEmail,
+            adminPassword = TestConstants.DefaultPassword,
+            issuer = $"{tenantId}.issuer"
+        });
+        var body = await response.Content.ReadAsStringAsync();
+        response.StatusCode.ShouldBe(HttpStatusCode.Created, $"Create tenant failed: {body}");
+    }
+}

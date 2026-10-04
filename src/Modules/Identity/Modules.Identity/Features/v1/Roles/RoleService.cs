@@ -2,6 +2,7 @@ using System.Net;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Persistence;
@@ -77,7 +78,7 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         var total = await query.LongCountAsync(cancellationToken).ConfigureAwait(false);
         var rows = await query
             .OrderBy(r => r.Name)
-            .Skip((page - 1) * size)
+            .Skip(PaginationExtensions.GetOffset(page, size))
             .Take(size)
             .Select(r => new RoleDto { Id = r.Id, Name = r.Name!, Description = r.Description })
             .ToListAsync(cancellationToken)
