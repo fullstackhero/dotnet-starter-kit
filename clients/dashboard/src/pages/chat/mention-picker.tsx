@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { AtSign } from "lucide-react";
 import type { UserDto } from "@/api/identity";
 import { Avatar } from "@/components/ui/avatar";
@@ -28,10 +30,11 @@ export function MentionPicker({
   loading: boolean;
   className?: string;
 }) {
+  const { t } = useTranslation("chat");
   return (
     <div
       role="listbox"
-      aria-label="Mention suggestions"
+      aria-label={t("mention.listboxAria")}
       className={cn(
         "z-20 rounded-xl border bg-[var(--color-popover)] shadow-[var(--shadow-lift)]",
         "border-[var(--color-border)]",
@@ -41,15 +44,15 @@ export function MentionPicker({
       <div className="flex items-center gap-1.5 border-b border-[var(--color-border)] px-3 py-1.5">
         <AtSign className="h-3 w-3 text-[var(--color-muted-foreground)]" aria-hidden />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-          Mention
+          {t("mention.title")}
         </span>
         <span className="ml-auto text-[11px] text-[var(--color-muted-foreground)]">
-          ↑↓ navigate · Enter select · Esc cancel
+          {t("mention.hint")}
         </span>
       </div>
       <ul className="max-h-[240px] overflow-y-auto p-1">
         {candidates.map((user, i) => {
-          const display = renderName(user);
+          const display = renderName(user, t);
           const isHighlighted = i === highlight;
           return (
             <li key={user.id ?? `${i}-${display}`}>
@@ -96,7 +99,7 @@ export function MentionPicker({
       {loading && (
         <div className="border-t border-[var(--color-border)] px-3 py-1.5">
           <span className="text-[11px] text-[var(--color-muted-foreground)]">
-            Searching…
+            {t("mention.searching")}
           </span>
         </div>
       )}
@@ -104,7 +107,7 @@ export function MentionPicker({
   );
 }
 
-function renderName(u: UserDto): string {
+function renderName(u: UserDto, t: TFunction): string {
   const full = [u.firstName, u.lastName].filter(Boolean).join(" ").trim();
-  return full || u.userName || u.email || "(unnamed)";
+  return full || u.userName || u.email || t("chat:unnamed");
 }

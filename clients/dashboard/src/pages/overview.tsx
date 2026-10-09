@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   Activity,
   ArrowRight,
@@ -45,6 +47,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EntityDetailSection } from "@/components/list";
 import { useAuth } from "@/auth/use-auth";
 import { useSseEvents, useSseStatus, type SseEvent, type SseStatus } from "@/sse/sse-context";
+import i18n from "@/i18n";
+import { formatDate, formatNumber } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────────
@@ -58,9 +62,6 @@ type UsageRowVm = {
   overage: number;
   utilization: number;
 };
-
-const numberFmt = new Intl.NumberFormat("en-US");
-const formatNumber = (n: number) => numberFmt.format(n);
 
 function toUsageRows(snapshots: UsageSnapshotDto[]): UsageRowVm[] {
   const now = new Date();
@@ -109,11 +110,11 @@ function daysUntil(iso: string, now: Date = new Date()): number {
  * evening (rest). Mirrors the dentalOS dashboard greeting helper so the
  * tone of voice matches across products.
  */
-function getGreeting(): "Good morning" | "Good afternoon" | "Good evening" {
+function greetingKey(): "greeting.morning" | "greeting.afternoon" | "greeting.evening" {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return "greeting.morning";
+  if (hour < 17) return "greeting.afternoon";
+  return "greeting.evening";
 }
 
 function relativeTime(iso: string, now: number = Date.now()): string {
@@ -164,14 +165,18 @@ function validityView(status: TenantStatusDto | undefined): {
   };
 }
 
-const timeFmt = new Intl.DateTimeFormat("en-US", {
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-});
 function formatClock(ts: number) {
-  return timeFmt.format(new Date(ts));
+  // 24h hh:mm:ss in the active locale — no list-helper covers second precision.
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(new Date(ts));
+}
+
+function statusLabel(status: string, t: TFunction): string {
+  return t(`stat.status.${status}`, { defaultValue: status });
 }
 
 function eventTone(type: string): "default" | "success" | "warning" | "danger" | "brand" {
@@ -356,6 +361,7 @@ function SubscriptionBody({
   loading: boolean;
   isError: boolean;
 }) {
+  const { t } = useTranslation("overview");
   if (loading) {
     return (
       <div className="space-y-3">
@@ -371,10 +377,10 @@ function SubscriptionBody({
       <div className="flex flex-col items-start gap-3">
         <div>
           <div className="text-[13px] font-semibold tracking-tight text-foreground">
-            Couldn't load subscription
+            {t("subscription.loadErrorTitle")}
           </div>
           <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
-            The subscription endpoint returned an error. Try refreshing.
+            {t("subscription.loadErrorBody")}
           </p>
         </div>
       </div>
@@ -385,14 +391,14 @@ function SubscriptionBody({
       <div className="flex flex-col items-start gap-3">
         <div>
           <div className="text-[13px] font-semibold tracking-tight text-foreground">
-            No active subscription
+            {t("subscription.noneTitle")}
           </div>
           <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
-            Pick a plan to enable billing, quotas, and overage tracking.
+            {t("subscription.noneBody")}
           </p>
         </div>
         <Button asChild variant="soft" size="sm">
-          <Link to="/subscription">View subscription</Link>
+          <Link to="/subscription">{t("subscription.viewCta")}</Link>
         </Button>
       </div>
     );
@@ -401,12 +407,6 @@ function SubscriptionBody({
   const progress = subscriptionProgress(data.startUtc, data.endUtc);
   const progressPct = progress === null ? null : Math.round(progress * 100);
   const daysLeft = data.endUtc ? daysUntil(data.endUtc) : null;
-
-  const dateFmt: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  };
 
   return (
     <div className="space-y-4">
@@ -422,34 +422,32 @@ function SubscriptionBody({
             className="pulse-dot inline-block h-1.5 w-1.5 rounded-full"
             style={{ backgroundColor: "var(--color-success)", color: "var(--color-success)" }}
           />
-          {data.status}
+          {statusLabel(data.status, t)}
         </Badge>
       </div>
 
       <dl className="space-y-1.5 text-[12px]">
         <div className="flex items-center justify-between gap-3">
-          <dt className="text-muted-foreground">Started</dt>
+          <dt className="text-muted-foreground">{t("subscription.started")}</dt>
           <dd className="tabular-nums text-foreground">
-            {new Date(data.startUtc).toLocaleDateString("en-US", dateFmt)}
+            {formatDate(data.startUtc)}
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <dt className="text-muted-foreground">Ends</dt>
+          <dt className="text-muted-foreground">{t("subscription.ends")}</dt>
           <dd className="tabular-nums text-foreground">
-            {data.endUtc
-              ? new Date(data.endUtc).toLocaleDateString("en-US", dateFmt)
-              : "open-ended"}
+            {data.endUtc ? formatDate(data.endUtc) : t("subscription.openEnded")}
           </dd>
         </div>
       </dl>
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="text-muted-foreground">Current term</span>
+          <span className="text-muted-foreground">{t("subscription.currentTerm")}</span>
           <span className="tabular-nums text-foreground">
             {progressPct === null
-              ? "open-ended"
-              : `${progressPct}% · ${daysLeft}d left`}
+              ? t("subscription.openEnded")
+              : t("subscription.termProgress", { pct: progressPct, days: daysLeft })}
           </span>
         </div>
         {progressPct !== null && (
@@ -476,6 +474,7 @@ function SystemStatusBody({
   sseStatus: SseStatus;
   eventCount: number;
 }) {
+  const { t } = useTranslation("overview");
   const live = sseStatus === "connected";
   const errored = sseStatus === "error";
   const Icon = live ? Wifi : WifiOff;
@@ -513,24 +512,24 @@ function SystemStatusBody({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-[13px] font-semibold capitalize tracking-tight text-foreground">
-              {live ? "Stream live" : sseStatus}
+              {live ? t("system.streamLive") : t(`connState.${sseStatus}`)}
             </span>
             {live && <Badge variant="success">SSE</Badge>}
-            {errored && <Badge variant="danger">offline</Badge>}
+            {errored && <Badge variant="danger">{t("system.offline")}</Badge>}
           </div>
           <p className="mt-0.5 text-[11.5px] text-muted-foreground">
             {live
-              ? "Backend events are flowing in real time."
+              ? t("system.liveDesc")
               : errored
-                ? "Stream disconnected. Events will queue once it recovers."
-                : "Waiting for the stream to come online."}
+                ? t("system.erroredDesc")
+                : t("system.waitingDesc")}
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between border-t border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] pt-3">
         <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Events this session
+          {t("system.eventsThisSession")}
         </span>
         <span className="font-display text-[16px] font-bold tabular-nums text-foreground">
           {formatNumber(eventCount)}
@@ -578,20 +577,22 @@ function RecentAuditsSkeleton() {
 }
 
 function RecentAuditsNoAccess() {
+  const { t } = useTranslation("overview");
   return (
     <div className="flex flex-col items-center gap-2 py-6 text-center">
       <Lock className="size-4 text-muted-foreground" />
       <div className="text-[13px] font-semibold tracking-tight text-foreground">
-        No access to audits
+        {t("audits.noAccessTitle")}
       </div>
       <p className="max-w-sm text-[11.5px] text-muted-foreground">
-        Recent audits need the Audit trail permission. Ask an administrator if you need it.
+        {t("audits.noAccessBody")}
       </p>
     </div>
   );
 }
 
 function RecentAuditsBody() {
+  const { t } = useTranslation("overview");
   const recentAudits = useQuery({
     queryKey: ["audits", "recent", "overview"],
     queryFn: ({ signal }) => {
@@ -617,10 +618,10 @@ function RecentAuditsBody() {
       <div className="flex flex-col items-center gap-2 py-6 text-center">
         <ScrollText className="size-4 text-muted-foreground" />
         <div className="text-[13px] font-semibold tracking-tight text-foreground">
-          No recent activity
+          {t("audits.emptyTitle")}
         </div>
         <p className="max-w-sm text-[11.5px] text-muted-foreground">
-          Audited actions in the last 24 hours will appear here.
+          {t("audits.emptyBody")}
         </p>
       </div>
     );
@@ -636,6 +637,7 @@ function RecentAuditsBody() {
 }
 
 function RecentAuditRow({ row }: { row: AuditSummaryDto }) {
+  const { t } = useTranslation("overview");
   const Icon = recentEventTypeIcon(row.eventType);
   const tone = recentSeverityColor(row.severity);
   return (
@@ -656,14 +658,14 @@ function RecentAuditRow({ row }: { row: AuditSummaryDto }) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[12.5px] font-medium tracking-tight text-foreground">
-            {row.source ?? AUDIT_EVENT_TYPE_LABELS[row.eventType] ?? "Event"}
+            {row.source ?? AUDIT_EVENT_TYPE_LABELS[row.eventType] ?? t("audits.eventFallback")}
           </div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="truncate">
-              {row.userName ?? row.userId?.slice(0, 8) ?? "system"}
+              {row.userName ?? row.userId?.slice(0, 8) ?? t("audits.systemActor")}
             </span>
             <span aria-hidden>·</span>
-            <span className="tabular-nums">{relativeTime(row.occurredAtUtc)} ago</span>
+            <span className="tabular-nums">{t("audits.ago", { value: relativeTime(row.occurredAtUtc) })}</span>
           </div>
         </div>
         <ChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover/row:translate-x-0.5" />
@@ -678,8 +680,8 @@ function RecentAuditRow({ row }: { row: AuditSummaryDto }) {
 
 type QuickAction = {
   to: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ComponentType<{ className?: string }>;
   tone: StatTone;
 };
@@ -687,29 +689,29 @@ type QuickAction = {
 const QUICK_ACTIONS: QuickAction[] = [
   {
     to: "/identity/users",
-    title: "Invite users",
-    description: "Add teammates, assign roles.",
+    titleKey: "quick.inviteUsers.title",
+    descriptionKey: "quick.inviteUsers.description",
     icon: UsersRound,
     tone: "info",
   },
   {
     to: "/catalog/products",
-    title: "Browse catalog",
-    description: "Products, brands, categories.",
+    titleKey: "quick.browseCatalog.title",
+    descriptionKey: "quick.browseCatalog.description",
     icon: Package,
     tone: "success",
   },
   {
     to: "/subscription",
-    title: "Subscription",
-    description: "Plan, usage, invoices.",
+    titleKey: "quick.subscription.title",
+    descriptionKey: "quick.subscription.description",
     icon: CreditCard,
     tone: "primary",
   },
   {
     to: "/activity",
-    title: "Live activity",
-    description: "Real-time event stream.",
+    titleKey: "quick.liveActivity.title",
+    descriptionKey: "quick.liveActivity.description",
     icon: Activity,
     tone: "warning",
   },
@@ -719,6 +721,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 // tracks that column, not the viewport: go two-up only when the card itself has
 // room for two 14rem tiles, instead of squeezing two into a sliver.
 function QuickActionsBody() {
+  const { t } = useTranslation("overview");
   return (
     <div className="@container">
       <div className="grid grid-cols-1 gap-2 @[28.5rem]:grid-cols-2">
@@ -742,10 +745,10 @@ function QuickActionsBody() {
             </span>
             <div className="min-w-0 flex-1">
               <div className="text-[12.5px] font-semibold tracking-tight text-foreground">
-                {a.title}
+                {t(a.titleKey)}
               </div>
               <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-                {a.description}
+                {t(a.descriptionKey)}
               </p>
             </div>
             <ArrowRight className="size-3 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/qa:translate-x-0.5 group-hover/qa:opacity-100" />
@@ -762,6 +765,7 @@ function QuickActionsBody() {
 // ────────────────────────────────────────────────────────────────────────
 
 function LiveFeedBody({ events }: { events: SseEvent[] }) {
+  const { t } = useTranslation("overview");
   const visible = useMemo(() => events.slice(0, 5), [events]);
 
   if (visible.length === 0) {
@@ -769,10 +773,10 @@ function LiveFeedBody({ events }: { events: SseEvent[] }) {
       <div className="flex flex-col items-center gap-2 py-6 text-center">
         <Activity className="size-4 text-muted-foreground" />
         <div className="text-[13px] font-semibold tracking-tight text-foreground">
-          Listening for activity
+          {t("liveFeed.emptyTitle")}
         </div>
         <p className="max-w-sm text-[11.5px] text-muted-foreground">
-          Events will appear here as the backend publishes them.
+          {t("liveFeed.emptyBody")}
         </p>
       </div>
     );
@@ -825,8 +829,8 @@ function writeDismissed(tenantId: string | undefined, value: boolean): void {
 type SetupTileSpec = {
   to: string;
   step: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ComponentType<{ className?: string }>;
   tone: StatTone;
 };
@@ -835,32 +839,32 @@ const SETUP_TILES: SetupTileSpec[] = [
   {
     to: "/invoices",
     step: "01",
-    title: "Pick a plan",
-    description: "Enable billing, quotas, and overage tracking.",
+    titleKey: "firstRun.tile.plan.title",
+    descriptionKey: "firstRun.tile.plan.description",
     icon: Sparkles,
     tone: "primary",
   },
   {
     to: "/identity/users",
     step: "02",
-    title: "Invite your team",
-    description: "Add teammates, assign roles, and group them.",
+    titleKey: "firstRun.tile.team.title",
+    descriptionKey: "firstRun.tile.team.description",
     icon: UsersRound,
     tone: "info",
   },
   {
     to: "/catalog/products",
     step: "03",
-    title: "Browse catalog",
-    description: "Sample products, brands, categories ready to go.",
+    titleKey: "firstRun.tile.catalog.title",
+    descriptionKey: "firstRun.tile.catalog.description",
     icon: Package,
     tone: "success",
   },
   {
     to: "/activity",
     step: "04",
-    title: "Watch live",
-    description: "SSE stream right into the dashboard.",
+    titleKey: "firstRun.tile.watch.title",
+    descriptionKey: "firstRun.tile.watch.description",
     icon: Activity,
     tone: "warning",
   },
@@ -875,6 +879,7 @@ function FirstRunPanel({
   tenantId: string | undefined;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation("overview");
   return (
     <section
       aria-labelledby="firstrun-heading"
@@ -886,8 +891,8 @@ function FirstRunPanel({
           writeDismissed(tenantId, true);
           onDismiss();
         }}
-        aria-label="Dismiss setup checklist"
-        title="Skip for now"
+        aria-label={t("firstRun.dismissAria")}
+        title={t("firstRun.skipTitle")}
         className="absolute right-3 top-3 z-10 grid size-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-[var(--color-accent)] hover:text-foreground"
       >
         <X className="size-3.5" />
@@ -898,10 +903,10 @@ function FirstRunPanel({
           id="firstrun-heading"
           className="font-display text-[20px] font-bold tracking-tight text-foreground sm:text-[22px]"
         >
-          Welcome to {tenantName}
+          {t("firstRun.welcome", { name: tenantName })}
         </h2>
         <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-muted-foreground">
-          Your tenant is provisioned and ready. Here's where most teams start.
+          {t("firstRun.subtitle")}
         </p>
 
         <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
@@ -921,6 +926,7 @@ function FirstRunPanel({
 }
 
 function SetupTile({ spec }: { spec: SetupTileSpec }) {
+  const { t } = useTranslation("overview");
   const Icon = spec.icon;
   return (
     <Link
@@ -941,21 +947,21 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
           <Icon className="size-3.5" />
         </span>
         <span className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">
-          Step {spec.step}
+          {t("firstRun.step", { step: spec.step })}
         </span>
       </div>
 
       <div>
         <div className="text-[13px] font-semibold tracking-tight text-foreground">
-          {spec.title}
+          {t(spec.titleKey)}
         </div>
         <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-          {spec.description}
+          {t(spec.descriptionKey)}
         </p>
       </div>
 
       <div className="mt-auto flex items-center gap-1 pt-1 text-[11px] font-medium text-muted-foreground transition-colors group-hover/tile:text-foreground">
-        Open
+        {t("open")}
         <ArrowRight className="size-3 transition-transform group-hover/tile:translate-x-0.5" />
       </div>
     </Link>
@@ -967,6 +973,7 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
 // ────────────────────────────────────────────────────────────────────────
 
 export function OverviewPage() {
+  const { t } = useTranslation("overview");
   const { user, permissionsHydrated } = useAuth();
   // GET /audits requires AuditTrails.View — only mount the query for users who
   // hold it, so everyone else gets a quiet no-access state instead of a 403.
@@ -1036,17 +1043,16 @@ export function OverviewPage() {
 
   // ── Header strings ────────────────────────────────────────────────────
   const now = new Date();
-  const dateCaption = now.toLocaleDateString("en-US", {
+  const dateCaption = now.toLocaleDateString(i18n.resolvedLanguage, {
     weekday: "long",
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
-  const greeting = getGreeting();
-  const firstName = (user?.name ?? user?.email?.split("@")[0] ?? "operator")
+  const firstName = (user?.name ?? user?.email?.split("@")[0] ?? t("operator"))
     .toString()
     .split(" ")[0];
-  const tenantLabel = user?.tenant ?? "your tenant";
+  const tenantLabel = user?.tenant ?? t("yourTenant");
 
   // ── Stat values ───────────────────────────────────────────────────────
   const planValue = subscription.isLoading ? (
@@ -1055,10 +1061,10 @@ export function OverviewPage() {
     subscription.data?.planKey ?? "—"
   );
   const planSub = subscription.isError
-    ? "Unavailable"
+    ? t("stat.unavailable")
     : subscription.data
-      ? subscription.data.status
-      : "No subscription";
+      ? statusLabel(subscription.data.status, t)
+      : t("stat.noSubscription");
 
   // ── Validity card — driven by the tenant's expiry state (validUpto /
   // graceEndsUtc), so an in-grace tenant counts down to grace-end and an
@@ -1066,19 +1072,14 @@ export function OverviewPage() {
   // banner and the Subscription page. Falls back gracefully when status is
   // unavailable.
   const validity = useMemo(() => validityView(status.data), [status.data]);
-  const validityDateFmt: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  };
   const validityValue = status.isLoading ? (
     <Skeleton className="h-5 w-16" />
   ) : status.isError || !status.data ? (
     "—"
   ) : validity.state === "Expired" ? (
-    <span className="text-[var(--color-destructive)]">Expired</span>
+    <span className="text-[var(--color-destructive)]">{t("validity.expired")}</span>
   ) : validity.daysLeft === null ? (
-    "Open-ended"
+    t("validity.openEnded")
   ) : (
     <span className="inline-flex items-baseline gap-1">
       <span
@@ -1089,22 +1090,22 @@ export function OverviewPage() {
       >
         {formatNumber(validity.daysLeft)}
       </span>
-      <span className="text-[12px] font-medium text-muted-foreground">days</span>
+      <span className="text-[12px] font-medium text-muted-foreground">{t("validity.days")}</span>
     </span>
   );
   const validitySub = status.isLoading
     ? undefined
     : status.isError || !status.data
-      ? "Status unavailable"
+      ? t("validity.statusUnavailable")
       : validity.state === "Expired"
-        ? "Contact your operator to renew"
+        ? t("validity.renew")
         : validity.state === "InGrace"
           ? validity.targetUtc
-            ? `grace ends ${new Date(validity.targetUtc).toLocaleDateString("en-US", validityDateFmt)}`
-            : "in grace period"
+            ? t("validity.graceEnds", { date: formatDate(validity.targetUtc) })
+            : t("validity.inGracePeriod")
           : validity.targetUtc
-            ? `until ${new Date(validity.targetUtc).toLocaleDateString("en-US", validityDateFmt)}`
-            : "no end date";
+            ? t("validity.until", { date: formatDate(validity.targetUtc) })
+            : t("validity.noEndDate");
 
   const resourcesValue = usage.isLoading ? (
     <Skeleton className="h-5 w-10" />
@@ -1114,12 +1115,12 @@ export function OverviewPage() {
   const resourcesSub = (
     <>
       <span className="tabular-nums">{totalsView.avgUtilization.toFixed(0)}%</span>{" "}
-      avg utilization
+      {t("resources.avgUtilization")}
       {totalsView.overage > 0 && (
         <>
           {" · "}
           <span className="text-[var(--color-destructive)]">
-            {formatNumber(totalsView.overage)} overage
+            {formatNumber(totalsView.overage)} {t("resources.overage")}
           </span>
         </>
       )}
@@ -1145,24 +1146,24 @@ export function OverviewPage() {
             {dateCaption} · {tenantLabel}
           </p>
           <h1 className="mt-1 font-display text-display-page font-bold leading-tight tracking-tight text-foreground">
-            {greeting}, {firstName}
+            {t(greetingKey(), { name: firstName })}
           </h1>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" disabled={refreshing} onClick={onRefresh}>
             <RefreshCw className={cn("mr-1.5 size-3.5", refreshing && "animate-spin")} />
-            Refresh
+            {t("refresh")}
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/activity">
               <Activity className="mr-1.5 size-3.5" />
-              View activity
+              {t("viewActivity")}
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/system/audits">
               <ScrollText className="mr-1.5 size-3.5" />
-              View audits
+              {t("viewAudits")}
             </Link>
           </Button>
         </div>
@@ -1174,7 +1175,7 @@ export function OverviewPage() {
           index={0}
           tone="primary"
           icon={Server}
-          label="Plan"
+          label={t("stat.plan")}
           value={planValue}
           sublabel={planSub}
         />
@@ -1182,7 +1183,7 @@ export function OverviewPage() {
           index={1}
           tone={status.isLoading || status.isError || !status.data ? "success" : validity.tone}
           icon={Calendar}
-          label="Valid for"
+          label={t("stat.validFor")}
           value={validityValue}
           sublabel={validitySub}
         />
@@ -1190,7 +1191,7 @@ export function OverviewPage() {
           index={2}
           tone="warning"
           icon={Gauge}
-          label="Resources"
+          label={t("stat.resources")}
           value={resourcesValue}
           sublabel={resourcesSub}
         />
@@ -1198,7 +1199,7 @@ export function OverviewPage() {
           index={3}
           tone="info"
           icon={Zap}
-          label="Live events"
+          label={t("stat.liveEvents")}
           value={<span className="tabular-nums">{formatNumber(eventCount)}</span>}
           sublabel={
             <span className="inline-flex items-center gap-1.5">
@@ -1220,7 +1221,7 @@ export function OverviewPage() {
                         : "var(--color-muted-foreground)",
                 }}
               />
-              <span className="capitalize">{sseStatus}</span>
+              <span className="capitalize">{t(`connState.${sseStatus}`)}</span>
             </span>
           }
           href="/activity"
@@ -1234,7 +1235,7 @@ export function OverviewPage() {
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Left rail */}
         <aside className="w-full space-y-4 lg:w-[360px] lg:shrink-0">
-          <EntityDetailSection title="Subscription" icon={CreditCard}>
+          <EntityDetailSection title={t("section.subscription")} icon={CreditCard}>
             <SubscriptionBody
               data={subscription.data}
               loading={subscription.isLoading}
@@ -1242,7 +1243,7 @@ export function OverviewPage() {
             />
           </EntityDetailSection>
 
-          <EntityDetailSection title="System status" icon={Wifi}>
+          <EntityDetailSection title={t("section.systemStatus")} icon={Wifi}>
             <SystemStatusBody sseStatus={sseStatus} eventCount={eventCount} />
           </EntityDetailSection>
         </aside>
@@ -1250,16 +1251,16 @@ export function OverviewPage() {
         {/* Right column — 2-up widget grid */}
         <div className="grid w-full min-w-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
           <EntityDetailSection
-            title="Recent audits"
+            title={t("section.recentAudits")}
             icon={ScrollText}
-            description="Last 24 hours, top 5 events."
+            description={t("section.recentAuditsDesc")}
             action={
               canViewAudits ? (
                 <Link
                   to="/system/audits"
                   className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  See all <ArrowUpRight className="size-3" />
+                  {t("seeAll")} <ArrowUpRight className="size-3" />
                 </Link>
               ) : undefined
             }
@@ -1274,24 +1275,24 @@ export function OverviewPage() {
           </EntityDetailSection>
 
           <EntityDetailSection
-            title="Usage by resource"
+            title={t("section.usage")}
             icon={Gauge}
-            description="Current-month consumption against plan limits."
+            description={t("section.usageDesc")}
             action={
-              totalsView.overage > 0 ? <Badge variant="danger">overage</Badge> : undefined
+              totalsView.overage > 0 ? <Badge variant="danger">{t("usageOverageBadge")}</Badge> : undefined
             }
           >
             {usage.isLoading ? (
               <UsageSkeleton />
             ) : usage.isError ? (
               <UsageEmpty
-                title="Couldn't load usage"
-                description="The usage endpoint returned an error. Try refreshing."
+                title={t("usage.errorTitle")}
+                description={t("usage.errorBody")}
               />
             ) : rows.length === 0 ? (
               <UsageEmpty
-                title="No usage captured yet"
-                description="Activity will appear here as the backend records snapshots for this period."
+                title={t("usage.emptyTitle")}
+                description={t("usage.emptyBody")}
               />
             ) : (
               <ul>
@@ -1303,23 +1304,23 @@ export function OverviewPage() {
           </EntityDetailSection>
 
           <EntityDetailSection
-            title="Quick actions"
+            title={t("section.quickActions")}
             icon={Sparkles}
-            description="Jump into the most-used destinations."
+            description={t("section.quickActionsDesc")}
           >
             <QuickActionsBody />
           </EntityDetailSection>
 
           <EntityDetailSection
-            title="Live feed"
+            title={t("section.liveFeed")}
             icon={Activity}
-            description="Real-time backend events over SSE."
+            description={t("section.liveFeedDesc")}
             action={
               <Link
                 to="/activity"
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
-                Open <ArrowUpRight className="size-3" />
+                {t("open")} <ArrowUpRight className="size-3" />
               </Link>
             }
           >

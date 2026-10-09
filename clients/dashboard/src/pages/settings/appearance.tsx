@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Monitor, Moon, Palette, Sun } from "lucide-react";
 import {
   Card,
@@ -33,16 +34,17 @@ import { cn } from "@/lib/cn";
 
 const themeOptions: Array<{
   value: ThemeMode;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   Icon: React.ComponentType<{ className?: string }>;
 }> = [
-  { value: "light", label: "Light", description: "Bright canvas, day-shift comfort.", Icon: Sun },
-  { value: "system", label: "System", description: "Follow the OS preference.", Icon: Monitor },
-  { value: "dark", label: "Dark", description: "Reduced glare for long sessions.", Icon: Moon },
+  { value: "light", labelKey: "appearance.theme.light", descriptionKey: "appearance.theme.lightBlurb", Icon: Sun },
+  { value: "system", labelKey: "appearance.theme.system", descriptionKey: "appearance.theme.systemBlurb", Icon: Monitor },
+  { value: "dark", labelKey: "appearance.theme.dark", descriptionKey: "appearance.theme.darkBlurb", Icon: Moon },
 ];
 
 export function AppearanceSettings() {
+  const { t } = useTranslation("settings");
   const {
     mode, setMode,
     font, setFont,
@@ -65,21 +67,22 @@ export function AppearanceSettings() {
       {/* Theme */}
       <Card>
         <CardHeader>
-          <CardTitle>Theme</CardTitle>
+          <CardTitle>{t("appearance.theme.title")}</CardTitle>
           <CardDescription>
-            Pick a colour mode for the dashboard. System follows your OS.
+            {t("appearance.theme.description")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 px-6 pb-5 pt-1 sm:grid-cols-3">
-          {themeOptions.map(({ value, label, description, Icon }) => {
+          {themeOptions.map(({ value, labelKey, descriptionKey, Icon }) => {
             const active = mode === value;
+            const label = t(labelKey);
             return (
               <SwatchButton
                 key={value}
                 active={active}
                 onClick={() => setMode(value)}
                 aria-pressed={active}
-                aria-label={`${label} theme`}
+                aria-label={t("appearance.theme.ariaLabel", { label })}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <Icon
@@ -93,7 +96,7 @@ export function AppearanceSettings() {
                   {active && <ActiveTag />}
                 </div>
                 <SwatchTitle active={active}>{label}</SwatchTitle>
-                <SwatchSubtitle>{description}</SwatchSubtitle>
+                <SwatchSubtitle>{t(descriptionKey)}</SwatchSubtitle>
               </SwatchButton>
             );
           })}
@@ -103,10 +106,9 @@ export function AppearanceSettings() {
       {/* Accent — six brand palettes */}
       <Card>
         <CardHeader>
-          <CardTitle>Accent</CardTitle>
+          <CardTitle>{t("appearance.accent.title")}</CardTitle>
           <CardDescription>
-            Pick the brand colour used for primary actions, charts, and
-            highlights across the dashboard.
+            {t("appearance.accent.description")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 px-6 pb-5 pt-1 sm:grid-cols-3 lg:grid-cols-7">
@@ -141,9 +143,9 @@ export function AppearanceSettings() {
       {/* Font — four selectable families */}
       <Card>
         <CardHeader>
-          <CardTitle>Font</CardTitle>
+          <CardTitle>{t("appearance.font.title")}</CardTitle>
           <CardDescription>
-            The UI typeface. Mono code blocks always use JetBrains Mono.
+            {t("appearance.font.description")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 px-6 pb-5 pt-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -161,19 +163,19 @@ export function AppearanceSettings() {
       {/* Density */}
       <Card>
         <CardHeader>
-          <CardTitle>Density</CardTitle>
+          <CardTitle>{t("appearance.density.title")}</CardTitle>
           <CardDescription>
-            Compact mode reduces card padding and row height for data-dense screens.
+            {t("appearance.density.description")}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4 px-6 pb-5 pt-1">
           <div className="text-sm text-[var(--color-muted-foreground)]">
-            Use compact spacing across the dashboard.
+            {t("appearance.density.toggle")}
           </div>
           <Switch
             checked={density === "compact"}
             onCheckedChange={(checked) => setDensity(checked ? "compact" : "comfortable")}
-            aria-label="Compact density"
+            aria-label={t("appearance.density.ariaLabel")}
           />
         </CardContent>
       </Card>
@@ -181,23 +183,23 @@ export function AppearanceSettings() {
       {/* Motion */}
       <Card>
         <CardHeader>
-          <CardTitle>Motion</CardTitle>
+          <CardTitle>{t("appearance.motion.title")}</CardTitle>
           <CardDescription>
-            Override the system{" "}
+            {t("appearance.motion.descPre")}{" "}
             <code className="rounded bg-[var(--color-muted)] px-1 font-mono text-[11px]">
               prefers-reduced-motion
             </code>{" "}
-            setting.
+            {t("appearance.motion.descPost")}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4 px-6 pb-5 pt-1">
           <div className="text-sm text-[var(--color-muted-foreground)]">
-            Disable transitions and decorative animations.
+            {t("appearance.motion.toggle")}
           </div>
           <Switch
             checked={reducedMotion}
             onCheckedChange={setReducedMotion}
-            aria-label="Reduce motion"
+            aria-label={t("appearance.motion.ariaLabel")}
           />
         </CardContent>
       </Card>
@@ -234,9 +236,10 @@ function SwatchButton({ active, className, children, ...props }: SwatchProps) {
 }
 
 function ActiveTag() {
+  const { t } = useTranslation("settings");
   return (
     <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-primary)]">
-      Active
+      {t("appearance.active")}
     </span>
   );
 }
@@ -271,12 +274,13 @@ function AccentCard({
   active: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation("settings");
   return (
     <SwatchButton
       active={active}
       onClick={onSelect}
       aria-pressed={active}
-      aria-label={`${option.label} accent`}
+      aria-label={t("appearance.accent.ariaLabel", { label: option.label })}
       title={option.label}
     >
       {/* Two-tone swatch — primary fill on top, soft tint below to
@@ -306,12 +310,13 @@ function FontCard({
   active: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation("settings");
   return (
     <SwatchButton
       active={active}
       onClick={onSelect}
       aria-pressed={active}
-      aria-label={`${option.label} font`}
+      aria-label={t("appearance.font.ariaLabel", { label: option.label })}
       title={option.label}
     >
       {/* Live-preview sample rendered in the candidate font. */}
@@ -364,6 +369,7 @@ function CustomAccentCard({
   onOpen: () => void;
   onActivate: () => void;
 }) {
+  const { t } = useTranslation("settings");
   const swatch = specToSwatch(spec);
   return (
     <SwatchButton
@@ -373,8 +379,8 @@ function CustomAccentCard({
         onOpen();
       }}
       aria-pressed={active}
-      aria-label="Custom accent"
-      title="Custom accent — click to edit"
+      aria-label={t("appearance.custom.ariaLabel")}
+      title={t("appearance.custom.title")}
     >
       <div
         className="mb-3 h-12 w-full overflow-hidden rounded-lg shadow-[var(--shadow-xs),var(--highlight-top)]"
@@ -386,7 +392,7 @@ function CustomAccentCard({
       <div className="flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5">
           <Palette className="h-3 w-3 text-[var(--color-muted-foreground)]" aria-hidden />
-          <SwatchTitle active={active}>Custom</SwatchTitle>
+          <SwatchTitle active={active}>{t("appearance.custom.label")}</SwatchTitle>
         </span>
         {active && <ActiveTag />}
       </div>
@@ -410,6 +416,7 @@ function CustomAccentDialog({
   spec: CustomAccentSpec;
   onApply: (next: CustomAccentSpec) => void;
 }) {
+  const { t } = useTranslation("settings");
   // Local draft so dragging the slider previews live without committing
   // until Apply. Initialised from the current spec on each open.
   const [draft, setDraft] = useState<CustomAccentSpec>(spec);
@@ -432,17 +439,16 @@ function CustomAccentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>Pick your brand colour</DialogTitle>
+          <DialogTitle>{t("appearance.custom.dialogTitle")}</DialogTitle>
           <DialogDescription>
-            Drag the hue ribbon to recolour the accent. Saturation scales
-            chroma uniformly across the eleven brand stops.
+            {t("appearance.custom.dialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <DialogBody className="space-y-5">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-              <span>Hue</span>
+              <span>{t("appearance.custom.hue")}</span>
               <span className="tabular-nums text-[var(--color-foreground)]">
                 {Math.round(draft.h)}°
               </span>
@@ -462,14 +468,14 @@ function CustomAccentDialog({
                 value={Math.round(draft.h)}
                 onChange={(e) => setDraft((d) => ({ ...d, h: Number(e.target.value) }))}
                 className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-1.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[oklch(0_0_0_/_0.4)] [&::-webkit-slider-thumb]:bg-[var(--color-overlay-foreground)] [&::-webkit-slider-thumb]:shadow-[0_2px_6px_-2px_oklch(0_0_0_/_0.4)] [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:w-1.5 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-[oklch(0_0_0_/_0.4)] [&::-moz-range-thumb]:bg-[var(--color-overlay-foreground)]"
-                aria-label="Hue"
+                aria-label={t("appearance.custom.hue")}
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-              <span>Saturation</span>
+              <span>{t("appearance.custom.saturation")}</span>
               <span className="tabular-nums text-[var(--color-foreground)]">
                 {(draft.c * 100).toFixed(0)}%
               </span>
@@ -484,13 +490,13 @@ function CustomAccentDialog({
                 setDraft((d) => ({ ...d, c: Number(e.target.value) / 100 }))
               }
               className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--color-muted)] [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-foreground)] [&::-webkit-slider-thumb]:shadow-[0_1px_3px_oklch(0_0_0_/_0.30)] [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-[var(--color-foreground)]"
-              aria-label="Saturation"
+              aria-label={t("appearance.custom.saturation")}
             />
           </div>
 
           <div className="space-y-1.5">
             <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-              Brand ladder
+              {t("appearance.custom.brandLadder")}
             </div>
             <div className="flex h-7 w-full overflow-hidden rounded-md border border-[var(--color-border)]">
               {stops.map((s) => (
@@ -506,7 +512,7 @@ function CustomAccentDialog({
 
           <div className="space-y-1.5">
             <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-              Preview
+              {t("appearance.custom.preview")}
             </div>
             <div
               className="rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] p-4"
@@ -514,7 +520,7 @@ function CustomAccentDialog({
             >
               <div className="flex items-center justify-between">
                 <span className="text-[12.5px] font-medium tracking-tight">
-                  Subscription <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">· active</span>
+                  {t("appearance.custom.previewSubscription")} <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">· {t("appearance.custom.previewActive")}</span>
                 </span>
                 <span
                   aria-hidden
@@ -534,7 +540,7 @@ function CustomAccentDialog({
                   className="rounded-md px-3 py-1.5 text-[11.5px] font-medium text-[var(--color-primary-foreground)] shadow-[var(--highlight-top)]"
                   style={{ background: swatch600 }}
                 >
-                  Primary action
+                  {t("appearance.custom.primaryAction")}
                 </button>
                 <code
                   className="rounded px-1.5 py-0.5 font-mono text-[10.5px] font-medium"
@@ -552,7 +558,7 @@ function CustomAccentDialog({
 
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("appearance.custom.cancel")}
           </Button>
           <Button
             size="sm"
@@ -561,7 +567,7 @@ function CustomAccentDialog({
               onOpenChange(false);
             }}
           >
-            Apply accent
+            {t("appearance.custom.apply")}
           </Button>
         </DialogFooter>
       </DialogContent>

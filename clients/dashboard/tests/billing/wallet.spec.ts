@@ -23,7 +23,9 @@ const EXISTING_REQUEST = {
   tenantId: "acme",
   amount: 250,
   currency: "USD",
-  note: "June campaign budget",
+  // Nullable on the wire — a top-up can be filed without a note, and the POST
+  // handler below echoes back whatever was (or wasn't) posted.
+  note: "June campaign budget" as string | null,
   status: "Pending",
   invoiceId: null,
   requestedBy: "alice@acme.com",

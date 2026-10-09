@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
 import {
   Sheet,
@@ -61,6 +62,7 @@ export function MobileNavProvider({ children }: { children: ReactNode }) {
  * or any non-NavLink navigation while the drawer is open).
  */
 export function MobileNavRoot() {
+  const { t } = useTranslation("common");
   const { open, setOpen } = useMobileNav();
   const location = useLocation();
 
@@ -87,9 +89,9 @@ export function MobileNavRoot() {
       <SheetContent side="left" className="flex flex-col p-0">
         {/* Radix Dialog requires a Title for the accessible name; keep it
             visually hidden so the drawer chrome is unchanged. */}
-        <DialogTitle className="sr-only">Primary navigation</DialogTitle>
+        <DialogTitle className="sr-only">{t("nav.primary")}</DialogTitle>
         <DialogDescription className="sr-only">
-          Site sections and account links.
+          {t("nav.primaryDescription")}
         </DialogDescription>
         {/* Brand row — matches Topbar height so the drawer top aligns
             with the rest of the chrome. */}
@@ -129,12 +131,13 @@ export function MobileNavRoot() {
  * the first child so it sits at the leading edge on small screens).
  */
 export function MobileNavTrigger({ className }: { className?: string }) {
+  const { t } = useTranslation("common");
   const { setOpen } = useMobileNav();
   const onClick = useCallback(() => setOpen(true), [setOpen]);
   return (
     <button
       type="button"
-      aria-label="Open navigation menu"
+      aria-label={t("nav.openMenu")}
       onClick={onClick}
       className={cn(
         "grid h-9 w-9 cursor-pointer place-items-center rounded-md md:hidden",

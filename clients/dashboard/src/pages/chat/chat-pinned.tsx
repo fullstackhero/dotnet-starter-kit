@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Pin } from "lucide-react";
 import { listPinnedMessages, type MessageDto } from "@/api/chat";
@@ -27,6 +28,7 @@ export function ChatPinnedBar({
   channelId: string;
   onJump: (messageId: string) => void;
 }) {
+  const { t } = useTranslation("chat");
   const [open, setOpen] = useState(false);
 
   // Eager (not gated on `open`) so the bar knows the count and can show or
@@ -47,7 +49,7 @@ export function ChatPinnedBar({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={`${pinned.length} pinned ${pinned.length === 1 ? "message" : "messages"}, click to review`}
+          aria-label={t("pinned.countAria", { count: pinned.length })}
           className={cn(
             "flex w-full shrink-0 cursor-pointer items-center gap-2 px-4 py-1.5 text-[12px]",
             "border-b border-[var(--color-border)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.06)]",
@@ -58,7 +60,7 @@ export function ChatPinnedBar({
         >
           <Pin className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" aria-hidden />
           <span className="font-medium">
-            {pinned.length} pinned {pinned.length === 1 ? "message" : "messages"}
+            {t("pinned.bar", { count: pinned.length })}
           </span>
           <ChevronDown
             className={cn(
@@ -76,7 +78,7 @@ export function ChatPinnedBar({
       >
         <div className="border-b border-[var(--color-border)] px-3 py-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Pinned messages
+            {t("pinned.panelTitle")}
           </p>
         </div>
         <div className="max-h-[60vh] overflow-y-auto">
@@ -105,14 +107,18 @@ function PinnedRow({
   message: MessageDto;
   onPick: () => void;
 }) {
+  const { t } = useTranslation("chat");
   const author = useUserDisplay(message.authorUserId);
   const preview =
     (message.body ?? "").trim() ||
     (message.attachments.length > 0
-      ? `📎 ${message.attachments[0].originalFileName}${
-          message.attachments.length > 1 ? ` (+${message.attachments.length - 1})` : ""
-        }`
-      : "(no text)");
+      ? message.attachments.length > 1
+        ? t("pinned.attachmentMore", {
+            name: message.attachments[0].originalFileName,
+            count: message.attachments.length - 1,
+          })
+        : t("pinned.attachment", { name: message.attachments[0].originalFileName })
+      : t("pinned.noText"));
   return (
     <li>
       <button

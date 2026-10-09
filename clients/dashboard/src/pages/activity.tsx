@@ -1,12 +1,12 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, History, Inbox, Radio, RefreshCw, ScrollText, type LucideIcon } from "lucide-react";
+import i18n from "@/i18n";
 import { useSseEvents, useSseStatus, type SseEvent } from "@/sse/sse-context";
 import { useAuth } from "@/auth/use-auth";
 import {
-  AUDIT_EVENT_TYPE_LABELS,
-  AUDIT_SEVERITY_LABELS,
   AuditEventType,
   AuditSeverity,
   auditPredicate,
@@ -27,7 +27,7 @@ import {
   ErrorBand,
   type EntityStatusTone,
 } from "@/components/list";
-import { describe, formatRelative } from "@/lib/list-helpers";
+import { describe, formatNumber, formatRelative } from "@/lib/list-helpers";
 
 // Live SSE events exist only in memory (SseProvider) — by design, so nothing
 // from one session can leak into the next after a logout or tenant switch.
@@ -41,15 +41,32 @@ const AUDIT_VIEW_PERMISSION = "Permissions.AuditTrails.View";
 const HISTORY_PAGE_SIZE = 25;
 const MAX_LIVE_EVENTS = 200;
 
-const timeFmt = new Intl.DateTimeFormat("en-US", {
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-});
+// Audit enum labels resolve against the "audits" ns, same keys as the Audit trail page.
+const EVENT_TYPE_KEY: Record<AuditEventType, string> = {
+  None: "audits:eventType.none",
+  EntityChange: "audits:eventType.entity",
+  Security: "audits:eventType.security",
+  Activity: "audits:eventType.activity",
+  Exception: "audits:eventType.exception",
+};
+const SEVERITY_KEY: Record<AuditSeverity, string> = {
+  None: "audits:severity.none",
+  Trace: "audits:severity.trace",
+  Debug: "audits:severity.debug",
+  Information: "audits:severity.info",
+  Warning: "audits:severity.warn",
+  Error: "audits:severity.error",
+  Critical: "audits:severity.critical",
+};
 
 function formatTime(ts: number) {
-  return timeFmt.format(new Date(ts));
+  // 24h hh:mm:ss in the active locale — no list-helper covers second precision.
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(new Date(ts));
 }
 
 function payloadSummary(data: unknown, raw: string): string {
@@ -98,20 +115,22 @@ function severityTone(severity: AuditSeverity): EntityStatusTone {
 }
 
 function auditActor(row: AuditSummaryDto): string {
-  return row.userName ?? (row.userId ? `${row.userId.slice(0, 8)}…` : "System");
+  return (
+    row.userName ??
+    (row.userId ? `${row.userId.slice(0, 8)}…` : i18n.t("actor.system", { ns: "audits" }))
+  );
 }
-
-const auditTimeFmt = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
 
 function formatAuditTime(iso: string) {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "—" : auditTimeFmt.format(d);
+  if (Number.isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
 }
 
 // ───────────────────────────────────────────────────────────────────────
@@ -122,6 +141,7 @@ const LIVE_GRID = "grid-cols-[1fr_240px_120px]";
 const HISTORY_GRID = "grid-cols-[1fr_200px_140px]";
 
 export function ActivityPage() {
+  const { t } = useTranslation("activity");
   const { status, eventCount } = useSseStatus();
   const { events } = useSseEvents();
   const { user, permissionsHydrated } = useAuth();
@@ -136,21 +156,17 @@ export function ActivityPage() {
     <div className="space-y-6 sm:space-y-8">
       <EntityPageHeader
         icon={Activity}
-        title="Live activity"
+        title={t("title")}
         total={eventCount}
         unit="event"
-        description={
-          canViewHistory
-            ? "Events streamed over Server-Sent Events while this tab is connected, above the tenant's recent audit history."
-            : "Events streamed from the API over Server-Sent Events while this tab is connected."
-        }
+        description={canViewHistory ? t("descriptionWithHistory") : t("descriptionLiveOnly")}
       >
         {isLive ? (
-          <Badge variant="success">streaming</Badge>
+          <Badge variant="success">{t("status.streaming")}</Badge>
         ) : status === "error" ? (
-          <Badge variant="danger">offline</Badge>
+          <Badge variant="danger">{t("status.offline")}</Badge>
         ) : (
-          <Badge variant="default">{status}</Badge>
+          <Badge variant="default">{t(`status.${status}`)}</Badge>
         )}
       </EntityPageHeader>
 
@@ -207,19 +223,20 @@ function LiveSection({
   isLive: boolean;
   eventCount: number;
 }) {
+  const { t } = useTranslation("activity");
   return (
     <section aria-labelledby="activity-live-heading">
       <SectionHeading
         id="activity-live-heading"
         icon={Radio}
-        title="Live"
-        caption="Received since this tab connected. Not kept across a page refresh."
+        title={t("live.title")}
+        caption={t("live.caption")}
       >
         {items.length > 0 && (
           <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
-            {items.length} event{items.length === 1 ? "" : "s"} shown
+            {t("shown", { count: items.length })}
             <span className="ml-2 opacity-60">
-              · {new Intl.NumberFormat("en-US").format(eventCount)} total
+              · {t("totalCount", { total: formatNumber(eventCount) })}
             </span>
           </p>
         )}
@@ -231,12 +248,10 @@ function LiveSection({
             <Inbox className="size-4 shrink-0 text-[var(--color-muted-foreground)]" />
             <div className="min-w-0">
               <p className="text-[13px] font-semibold text-[var(--color-foreground)]">
-                {isLive ? "Listening for activity" : "No events yet"}
+                {isLive ? t("empty.listeningTitle") : t("empty.noEventsTitle")}
               </p>
               <p className="text-[12px] text-[var(--color-muted-foreground)]">
-                {isLive
-                  ? "The stream is open. Events will appear here as the backend publishes them."
-                  : "The activity stream is not connected. Events will appear once the connection comes online."}
+                {isLive ? t("empty.listeningBody") : t("empty.offlineBody")}
               </p>
             </div>
           </div>
@@ -249,7 +264,7 @@ function LiveSection({
             role="log"
             aria-live="polite"
             aria-relevant="additions"
-            aria-label="Live activity events"
+            aria-label={t("ariaLabel")}
           >
             {items.map((ev) => (
               <LiveMobileCard key={ev.id} ev={ev} />
@@ -262,12 +277,12 @@ function LiveSection({
             role="log"
             aria-live="polite"
             aria-relevant="additions"
-            aria-label="Live activity events"
+            aria-label={t("ariaLabel")}
           >
             <EntityListHeader className={LIVE_GRID}>
-              <span>Event</span>
-              <span>Entity</span>
-              <span className="text-right">Time</span>
+              <span>{t("col.event")}</span>
+              <span>{t("col.entity")}</span>
+              <span className="text-right">{t("col.time")}</span>
             </EntityListHeader>
             {items.map((ev, i) => (
               <LiveDesktopRow key={ev.id} ev={ev} isLast={i === items.length - 1} />
@@ -326,6 +341,7 @@ function LiveDesktopRow({ ev, isLast }: { ev: SseEvent; isLast: boolean }) {
 // ───────────────────────────────────────────────────────────────────────
 
 function HistorySection() {
+  const { t } = useTranslation(["activity", "audits"]);
   const history = useQuery({
     queryKey: ["audits", "activity-history"],
     queryFn: ({ signal }) =>
@@ -349,23 +365,23 @@ function HistorySection() {
       <SectionHeading
         id="activity-history-heading"
         icon={History}
-        title="Recent history"
-        caption={`The latest ${HISTORY_PAGE_SIZE} audited events for this tenant, excluding per-request system activity.`}
+        title={t("history.title")}
+        caption={t("history.caption", { size: HISTORY_PAGE_SIZE })}
       >
         <Button
           variant="outline"
           size="sm"
           onClick={() => void history.refetch()}
           disabled={history.isFetching}
-          aria-label="Refresh history"
+          aria-label={t("history.refreshAria")}
         >
           <RefreshCw className={history.isFetching ? "animate-spin" : undefined} />
-          Refresh
+          {t("history.refresh")}
         </Button>
         <Button asChild variant="ghost" size="sm">
           <Link to="/system/audits">
             <ScrollText />
-            Audit trail
+            {t("history.auditTrail")}
           </Link>
         </Button>
       </SectionHeading>
@@ -382,23 +398,23 @@ function HistorySection() {
         !history.isError && (
           <EntityEmpty
             icon={ScrollText}
-            title="No history yet"
-            body="Audited changes, sign-ins and errors in this tenant will show up here."
+            title={t("history.emptyTitle")}
+            body={t("history.emptyBody")}
           />
         )
       ) : (
         <>
-          <div className="space-y-2 md:hidden" aria-label="Recent history">
+          <div className="space-y-2 md:hidden" aria-label={t("history.title")}>
             {rows.map((row) => (
               <HistoryMobileCard key={row.id} row={row} />
             ))}
           </div>
 
-          <EntityListCard className="hidden md:block" aria-label="Recent history">
+          <EntityListCard className="hidden md:block" aria-label={t("history.title")}>
             <EntityListHeader className={HISTORY_GRID}>
-              <span>Event</span>
-              <span>Severity</span>
-              <span className="text-right">Time</span>
+              <span>{t("col.event")}</span>
+              <span>{t("col.severity")}</span>
+              <span className="text-right">{t("col.time")}</span>
             </EntityListHeader>
             {rows.map((row, i) => (
               <HistoryDesktopRow key={row.id} row={row} isLast={i === rows.length - 1} />
@@ -411,11 +427,12 @@ function HistorySection() {
 }
 
 function HistoryMobileCard({ row }: { row: AuditSummaryDto }) {
+  const { t } = useTranslation(["activity", "audits"]);
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs">
       <div className="flex items-center justify-between gap-2">
         <EntityStatusBadge tone={severityTone(row.severity)}>
-          {AUDIT_EVENT_TYPE_LABELS[row.eventType] ?? row.eventType}
+          {EVENT_TYPE_KEY[row.eventType] ? t(EVENT_TYPE_KEY[row.eventType]) : row.eventType}
         </EntityStatusBadge>
         <span
           title={formatAuditTime(row.occurredAtUtc)}
@@ -432,18 +449,19 @@ function HistoryMobileCard({ row }: { row: AuditSummaryDto }) {
 }
 
 function HistoryDesktopRow({ row, isLast }: { row: AuditSummaryDto; isLast: boolean }) {
+  const { t } = useTranslation(["activity", "audits"]);
   return (
     <EntityListRow className={HISTORY_GRID} isLast={isLast}>
       <div className="flex min-w-0 items-center gap-2">
         <EntityStatusBadge tone={severityTone(row.severity)}>
-          {AUDIT_EVENT_TYPE_LABELS[row.eventType] ?? row.eventType}
+          {EVENT_TYPE_KEY[row.eventType] ? t(EVENT_TYPE_KEY[row.eventType]) : row.eventType}
         </EntityStatusBadge>
         <p className="truncate text-[13px] text-[var(--color-foreground)]">
           <span className="font-semibold">{auditActor(row)}</span> {auditPredicate(row)}
         </p>
       </div>
       <span className="text-[12px] text-[var(--color-muted-foreground)]">
-        {AUDIT_SEVERITY_LABELS[row.severity] ?? row.severity}
+        {SEVERITY_KEY[row.severity] ? t(SEVERITY_KEY[row.severity]) : row.severity}
       </span>
       <span
         title={formatAuditTime(row.occurredAtUtc)}
@@ -458,6 +476,7 @@ function HistoryDesktopRow({ row, isLast }: { row: AuditSummaryDto; isLast: bool
 // Users without Audit trail access never call GET /audits (it would 403).
 // Be upfront that the page only shows what arrives while it's open.
 function LiveOnlyNotice() {
+  const { t } = useTranslation("activity");
   return (
     <div
       role="note"
@@ -466,12 +485,10 @@ function LiveOnlyNotice() {
       <History className="mt-0.5 size-4 shrink-0 text-[var(--color-muted-foreground)]" />
       <div className="min-w-0">
         <p className="text-[13px] font-semibold text-[var(--color-foreground)]">
-          Showing live events only
+          {t("liveOnly.title")}
         </p>
         <p className="mt-0.5 text-[12px] text-[var(--color-muted-foreground)]">
-          This feed shows events received since this tab connected, so it starts empty after a
-          refresh. Past activity lives in the audit trail, which needs the Audit trail permission.
-          Ask an administrator if you need it.
+          {t("liveOnly.body")}
         </p>
       </div>
     </div>
