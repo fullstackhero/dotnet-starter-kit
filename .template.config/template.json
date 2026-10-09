@@ -35,6 +35,12 @@
             "description": "Include the React admin + dashboard client apps (clients/).",
             "defaultValue": "true"
         },
+        "agents": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Include the AI coding guides (AGENTS.md, CLAUDE.md, GEMINI.md and .agents/).",
+            "defaultValue": "true"
+        },
         "skipRestore": {
             "type": "parameter",
             "datatype": "bool",
@@ -112,6 +118,23 @@
         "underscoreForm": { "identifier": "replace", "pattern": "\\.", "replacement": "_" },
         "displayForm": { "identifier": "replace", "pattern": "[._-]+", "replacement": " " }
     },
+    "SpecialCustomOperations": {
+        "**/*.md": {
+            "operations": [
+                {
+                    "type": "conditional",
+                    "configuration": {
+                        "if": ["<!--#if"],
+                        "else": ["<!--#else"],
+                        "elseif": ["<!--#elseif"],
+                        "endif": ["<!--#endif"],
+                        "trim": "true",
+                        "wholeLine": "true"
+                    }
+                }
+            ]
+        }
+    },
     "sources": [
         {
             "source": "./",
@@ -122,10 +145,11 @@
                 "**/.vscode/**",
                 "**/.vs/**",
                 ".github/**",
-                ".agents/**",
                 ".claude/**",
                 ".devcontainer/**",
                 ".git/**",
+                ".git",
+                "superpowers/**",
                 "templates/**/*",
                 "demo/**",
                 "docs/**",
@@ -150,8 +174,6 @@
                 "**/obj/**",
                 ".mcp.json",
                 "global.json",
-                "CLAUDE.md",
-                "GEMINI.md",
                 "README.md",
                 "LICENSE"
             ],
@@ -163,6 +185,15 @@
                     "condition": "(!aspire)",
                     "exclude": [
                         "src/Host/FSH.Starter.AppHost/**"
+                    ]
+                },
+                {
+                    "condition": "(!agents)",
+                    "exclude": [
+                        "AGENTS.md",
+                        "CLAUDE.md",
+                        "GEMINI.md",
+                        ".agents/**"
                     ]
                 },
                 {
