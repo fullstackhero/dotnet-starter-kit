@@ -28,6 +28,11 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         [DefaultValue(false)]
         public bool NoFrontend { get; init; }
 
+        [Description("Exclude the AI coding guides (AGENTS.md, CLAUDE.md, GEMINI.md, .agents/).")]
+        [CommandOption("--no-agents")]
+        [DefaultValue(false)]
+        public bool NoAgents { get; init; }
+
         [Description("Skip 'npm install' for the React apps after scaffolding.")]
         [CommandOption("--skip-install")]
         [DefaultValue(false)]
@@ -69,6 +74,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
         bool frontend = await ResolveFrontendAsync(settings, cancellationToken).ConfigureAwait(false);
 
+        bool agents = !settings.NoAgents;
+
         string output = settings.Output ?? Path.GetFullPath(name);
 
         // 2. Check for existing directory
@@ -89,7 +96,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         }
 
         // 3. Print summary
-        PrintSummary(name, aspire, frontend, output, settings.DryRun);
+        PrintSummary(name, aspire, frontend, agents, output, settings.DryRun);
 
         if (settings.DryRun)
         {
@@ -102,7 +109,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             return 1;
 
         // 5. Scaffold project
-        int result = await ScaffoldProjectAsync(name, aspire, frontend, output, cancellationToken).ConfigureAwait(false);
+        int result = await ScaffoldProjectAsync(name, aspire, frontend, agents, output, cancellationToken).ConfigureAwait(false);
         if (result != 0)
         {
             AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]Scaffolding failed. Check the output above for errors.[/]");
@@ -179,7 +186,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
     }
 
-    private static void PrintSummary(string name, bool aspire, bool frontend, string output, bool dryRun)
+    private static void PrintSummary(string name, bool aspire, bool frontend, bool agents, string output, bool dryRun)
     {
         AnsiConsole.WriteLine();
 
@@ -187,6 +194,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         AnsiConsole.MarkupLine($"[bold]Creating project:[/] {name.EscapeMarkup()}{mode}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Aspire:[/]    {(aspire ? "yes" : "no")}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Frontend:[/]  {(frontend ? "yes (admin + dashboard)" : "no")}");
+        AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]AI guides:[/] {(agents ? "yes (AGENTS.md, CLAUDE.md, GEMINI.md, .agents/)" : "no")}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Output:[/]    {output.EscapeMarkup()}");
         AnsiConsole.WriteLine();
     }
@@ -224,7 +232,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
     }
 
     private static async Task<int> ScaffoldProjectAsync(
-        string name, bool aspire, bool frontend, string output, CancellationToken cancellationToken)
+        string name, bool aspire, bool frontend, bool agents, string output, CancellationToken cancellationToken)
     {
         return await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
@@ -233,7 +241,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             {
                 string aspireFlag = aspire ? "true" : "false";
                 string frontendFlag = frontend ? "true" : "false";
-                string args = $"new {FshConstants.TemplateShortName} -n {name} -o \"{output}\" --aspire {aspireFlag} --frontend {frontendFlag} --force";
+                string agentsFlag = agents ? "true" : "false";
+                string args = $"new {FshConstants.TemplateShortName} -n {name} -o \"{output}\" --aspire {aspireFlag} --frontend {frontendFlag} --agents {agentsFlag} --force";
                 await ProcessRunner.RunAsync("dotnet", args, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 

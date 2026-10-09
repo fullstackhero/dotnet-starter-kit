@@ -29,10 +29,13 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 | `src/Host/FSH.Starter.DbMigrator` | One-shot migrate/seed runner. DB is **not** migrated at API startup. |
 | `src/Host/FSH.Starter.Migrations.PostgreSQL` | All EF migrations, organized per-module by folder. |
 | `src/Tests/` | Per-module tests, `Architecture.Tests` (NetArchTest), `Integration.Tests` (Testcontainers). |
-| `src/Tools/CLI` | The `fsh` CLI (Spectre.Console). |
 | `clients/admin`, `clients/dashboard` | The two React apps. |
 | `deploy/` | Infra (docker, terraform, dokploy). |
 
+<!--#if (includeTools) -->
+The `fsh` CLI (Spectre.Console) lives in `src/Tools/CLI`.
+
+<!--#endif -->
 ## Tech stack
 
 | Backend | | Frontend | |
@@ -70,10 +73,12 @@ dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending
 
 **Ports:** API 7030 (https)/5030 (http) · admin 5173 · dashboard 5174 · Postgres 5432 · pgAdmin 5050 · Valkey 6379 · RustFS 9000/9001 (S3 API/console).
 
+<!--#if (includeTools) -->
 ## Branching & PRs
 
 Single long-lived branch: **`main`** (the default) — there is **no `develop`**. Branch from and target `main`; stable releases are cut from `v*` tags. CI is split into path-scoped **Backend CI** (`src/**`) and **Frontend CI** (`clients/**`) workflows; branch protection requires only those two gate checks — never the individual jobs, which are skipped on the other side's PRs.
 
+<!--#endif -->
 ## Golden rules (do not break)
 
 1. **Module boundaries** — a module references another module only through its `.Contracts` project, never its runtime project. Enforced by `Architecture.Tests`.
@@ -85,7 +90,9 @@ Single long-lived branch: **`main`** (the default) — there is **no `develop`**
 7. **Propagate `CancellationToken`** into every EF/IO call; add as `= default` on public service methods.
 8. **Every command handler + paginated query handler needs a validator** (`{Name}Validator`). Enforced by `Architecture.Tests`.
 9. **Frontend: pass per-call data through `mutate(arg)`**, never via state the mutation callbacks close over (execute-time race). See `frontend/shared.md`.
+<!--#if (includeTools) -->
 10. **Docs + changelog travel with the change** — a user-facing change (feature, endpoint, config, infra, breaking change) isn't done until the **separate docs repo** (`github.com/fullstackhero/docs`, the Astro site) is updated to match **and** a changelog entry is added (`src/content/docs/changelog/`). Don't let the docs drift from the code.
+<!--#endif -->
 
 ## Rules index — read the relevant file before you work
 
