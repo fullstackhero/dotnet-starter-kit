@@ -69,7 +69,7 @@ public static class UpdateUserEndpoint
         }
 
         // If-Match mandates the strong comparison function, so a weak validator can never match.
-        // Dropping the weak entries leaves a list no stored token matches, which is exactly the
+        // Dropping the weak entries leaves a list no profile version matches, which is exactly the
         // 412 the RFC asks for.
         return entityTags
             .Where(entityTag => !entityTag.IsWeak)

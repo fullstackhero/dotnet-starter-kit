@@ -26,12 +26,12 @@ public class UserDto
     public bool TwoFactorEnabled { get; set; }
 
     /// <summary>
-    /// The stored optimistic-concurrency token for this user, populated only by the self-profile
-    /// read. It never reaches the response body — <c>GET /identity/profile</c> turns it into the
-    /// response's <c>ETag</c>, and that header is the token clients echo back in <c>If-Match</c>.
+    /// A hash of the profile fields <c>PUT /identity/profile</c> writes, populated only by the
+    /// self-profile read. It never reaches the response body — <c>GET /identity/profile</c> turns it
+    /// into the response's <c>ETag</c>, and that header is the token clients echo back in <c>If-Match</c>.
     /// </summary>
     [JsonIgnore]
-    public string? ConcurrencyStamp { get; set; }
+    public string? ProfileVersion { get; set; }
 
     /// <summary>BCP 47 UI language tag (e.g. "pt-BR"); null resolves to the default culture.</summary>
     public string? Locale { get; set; }

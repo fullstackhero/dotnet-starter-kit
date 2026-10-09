@@ -7,6 +7,7 @@
 # the FSH services and the RustFS S3 API on host ports (browsers upload
 # straight to presigned S3 URLs); postgres/redis stay compose-internal
 # unless you uncomment their ports blocks.
+# The Mailpit inbox UI is published too, bound to the host loopback only.
 
 name: fsh
 
@@ -108,6 +109,17 @@ services:
           aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket fsh
         aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy --bucket fsh --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::fsh/public/*"]}]}'
 
+  # Local mail catcher, started only with the mail-catcher profile
+  # (COMPOSE_PROFILES in .env). SMTP (1025) stays on the compose network.
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    container_name: fsh-mailpit
+    restart: unless-stopped
+    profiles: [mail-catcher]
+    ports:
+      # Loopback only: the inbox holds live password-reset and confirmation links.
+      - "127.0.0.1:${FSH_MAILPIT_PORT:-8025}:8025"
+
   migrator:
     build:
       context: ../..
@@ -119,7 +131,8 @@ services:
       postgres: { condition: service_healthy }
     environment:
       DOTNET_ENVIRONMENT: Production
-      DatabaseOptions__ConnectionString: Host=postgres;Database=fsh;Username=fsh;Password=${POSTGRES_PASSWORD}
+      # The chiseled image has no libgssapi_krb5; Npgsql's default GSS Prefer logs a load failure per start.
+      DatabaseOptions__ConnectionString: Host=postgres;Database=fsh;Username=fsh;Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
       CachingOptions__Redis: redis,password=${REDIS_PASSWORD}
       JwtOptions__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
       Seed__DefaultAdminPassword: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
@@ -141,7 +154,8 @@ services:
     environment:
       DOTNET_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      DatabaseOptions__ConnectionString: Host=postgres;Database=fsh;Username=fsh;Password=${POSTGRES_PASSWORD}
+      # Same chiseled-image reason as the migrator: no libgssapi_krb5, so skip the GSS attempt.
+      DatabaseOptions__ConnectionString: Host=postgres;Database=fsh;Username=fsh;Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
       CachingOptions__Redis: redis,password=${REDIS_PASSWORD}
       JwtOptions__SigningKey: ${JWT_SIGNING_KEY}
       Seed__DefaultAdminPassword: ${SEED_ADMIN_PASSWORD}
@@ -156,6 +170,14 @@ services:
       Storage__S3__SecretKey: ${RUSTFS_SECRET_KEY}
       Storage__S3__Bucket: fsh
       Storage__S3__ForcePathStyle: "true"
+      # Defaults target the bundled Mailpit (plain SMTP, no STARTTLS); a real provider is set in .env only.
+      MailOptions__Smtp__Host: ${FSH_SMTP_HOST:-mailpit}
+      MailOptions__Smtp__Port: ${FSH_SMTP_PORT:-1025}
+      MailOptions__Smtp__Security: ${FSH_SMTP_SECURITY:-None}
+      MailOptions__Smtp__UserName: ${FSH_SMTP_USERNAME:-}
+      MailOptions__Smtp__Password: ${FSH_SMTP_PASSWORD:-}
+      # appsettings.Production.json leaves the sender blank, and a real provider rejects an empty MAIL FROM.
+      MailOptions__From: ${FSH_MAIL_FROM:-no-reply@fsh.local}
       AllowedHosts: "*"
       HangfireOptions__UserName: ${HANGFIRE_USERNAME:?HANGFIRE_USERNAME is required}
       HangfireOptions__Password: ${HANGFIRE_PASSWORD:?HANGFIRE_PASSWORD is required}

@@ -1,4 +1,3 @@
-using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -136,7 +135,7 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
 
         try
         {
-            await client.ConnectAsync(_settings.Smtp!.Host!, _settings.Smtp.Port, SecureSocketOptions.StartTls, ct);
+            await client.ConnectAsync(_settings.Smtp!.Host!, _settings.Smtp.Port, _settings.Smtp.Security, ct);
             
             if (!string.IsNullOrWhiteSpace(_settings.Smtp.UserName) && !string.IsNullOrWhiteSpace(_settings.Smtp.Password))
             {
