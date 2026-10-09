@@ -1,4 +1,6 @@
-﻿namespace FSH.Framework.Mailing;
+﻿using MailKit.Security;
+
+namespace FSH.Framework.Mailing;
 
 public sealed class MailOptions
 {
@@ -15,6 +17,10 @@ public sealed class SmtpOptions
     public int Port { get; set; }
     public string? UserName { get; set; }
     public string? Password { get; set; }
+
+    // StartTls keeps every existing deployment's behaviour; a local catcher that speaks plain SMTP
+    // (Mailpit, MailHog, smtp4dev) needs None, and implicit-TLS port 465 needs SslOnConnect.
+    public SecureSocketOptions Security { get; set; } = SecureSocketOptions.StartTls;
 }
 
 public sealed class SendGridOptions
