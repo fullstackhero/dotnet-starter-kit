@@ -1,7 +1,10 @@
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.Authorization;
+using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
 using Integration.Tests.Infrastructure.Extensions;
@@ -170,6 +173,37 @@ public sealed class PermissionCacheInvalidationTests
 
     #endregion
 
+    #region Role permission sync
+
+    [Fact]
+    public async Task RolePermissionSync_Should_EvictCachedPermissions_When_It_RevokesAClaim()
+    {
+        // Arrange — a Basic user whose role carries a permission the catalog no longer registers.
+        const string retiredPermission = "Permissions.RetiredCacheProbe.View";
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        var (email, password, userId) = await CreateActiveUserAsync($"syncuser-{uniqueId}");
+        await AssignRoleAsync(adminClient, userId, RoleConstants.Basic);
+        await SeedRootRoleClaimAsync(RoleConstants.Basic, retiredPermission);
+
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(email, password);
+
+        var warmed = await GetOwnPermissionsAsync(userClient);
+        warmed.ShouldContain(retiredPermission,
+            "Pre-condition: the user must hold the retired permission via Basic before the sync.");
+
+        // Act — the startup sync revokes it from Basic and must drop the warmed entry with it.
+        await RunRootTenantSyncAsync();
+
+        // Assert
+        var afterSync = await GetOwnPermissionsAsync(userClient);
+        afterSync.ShouldNotContain(retiredPermission,
+            "Cache was NOT invalidated: a permission the sync revoked is still being served from the stale cache entry.");
+    }
+
+    #endregion
+
     // ─── helpers ─────────────────────────────────────────────────────
 
     private static async Task<RoleDto> CreateRoleAsync(HttpClient adminClient, string name)
@@ -256,5 +290,37 @@ public sealed class PermissionCacheInvalidationTests
             $"Seeding active user failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
 
         return (email, password, user.Id);
+    }
+
+    // System roles reject permission edits through the API, so the claim goes in directly.
+    private async Task SeedRootRoleClaimAsync(string roleName, string permission)
+    {
+        using var scope = _factory.Services.CreateScope();
+
+        var tenant = await scope.ServiceProvider
+            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
+            .GetAsync(TestConstants.RootTenantId);
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
+
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<FshRole>>();
+        var role = await roleManager.Roles.SingleAsync(r => r.Name == roleName);
+
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        db.RoleClaims.Add(new FshRoleClaim { RoleId = role.Id, ClaimType = ClaimConstants.Permission, ClaimValue = permission });
+        await db.SaveChangesAsync();
+    }
+
+    private async Task RunRootTenantSyncAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+
+        var tenant = await scope.ServiceProvider
+            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
+            .GetAsync(TestConstants.RootTenantId);
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
+
+        await scope.ServiceProvider.GetRequiredService<RolePermissionSyncer>().SyncAsync(CancellationToken.None);
     }
 }

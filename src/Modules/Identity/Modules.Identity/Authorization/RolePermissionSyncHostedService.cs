@@ -8,10 +8,10 @@ using Microsoft.Extensions.Logging;
 namespace FSH.Modules.Identity.Authorization;
 
 /// <summary>
-/// Runs once on host startup: iterates every tenant and adds any permission claims that
-/// have been registered via <see cref="FSH.Framework.Shared.Constants.PermissionConstants"/>
-/// but are missing from the role claims table for that tenant. Idempotent and lightweight —
-/// only writes when there's something new, so it's safe to run unconditionally.
+/// Runs once on host startup: iterates every tenant and reconciles the built-in roles' permission
+/// claims with the ones registered via <see cref="FSH.Framework.Shared.Constants.PermissionConstants"/>,
+/// adding the missing ones and removing the ones no longer granted. Idempotent and lightweight —
+/// only writes when something changed, so it's safe to run unconditionally.
 /// </summary>
 /// <remarks>
 /// Implemented as a <see cref="BackgroundService"/> so it does not block host startup.
