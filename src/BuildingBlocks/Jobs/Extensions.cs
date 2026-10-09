@@ -32,7 +32,10 @@ public static class Extensions
         {
             var configuration = provider.GetRequiredService<IConfiguration>();
             var dbOptions = configuration.GetSection(nameof(DatabaseOptions)).Get<DatabaseOptions>()
-                ?? throw new CustomException("Database options not found");
+                ?? throw new CustomException("Database options not found")
+                {
+                    MessageKey = "Jobs.DatabaseOptionsNotFound",
+                };
 
             switch (dbOptions.Provider.ToUpperInvariant())
             {
@@ -48,7 +51,11 @@ public static class Extensions
                     break;
 
                 default:
-                    throw new CustomException($"Hangfire storage provider {dbOptions.Provider} is not supported");
+                    throw new CustomException($"Hangfire storage provider {dbOptions.Provider} is not supported")
+                    {
+                        MessageKey = "Jobs.UnsupportedStorageProvider",
+                        MessageArgs = [dbOptions.Provider],
+                    };
             }
 
             config.UseActivator(new FshJobActivator(provider.GetRequiredService<IServiceScopeFactory>()));

@@ -12,6 +12,7 @@ public class UnauthorizedException : CustomException
     public UnauthorizedException()
         : base("Authentication failed.", Array.Empty<string>(), HttpStatusCode.Unauthorized)
     {
+        MessageKey = "Error.AuthenticationFailed";
     }
 
     /// <summary>

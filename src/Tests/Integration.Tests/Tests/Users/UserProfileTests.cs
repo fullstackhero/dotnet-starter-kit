@@ -111,6 +111,43 @@ public sealed class UserProfileTests
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task UpdateProfile_Should_KeepChosenLocale_When_BodyCarriesAnEmptyLocale()
+    {
+        // Arrange — the validator reads an empty locale as "not provided" (its rule is
+        // guarded by .When(!IsNullOrWhiteSpace)), so an edit that serialises the field as
+        // "" must leave the language the user already picked alone.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var user = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "upd-locale");
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(user.Email, user.Password);
+
+        var chosen = await userClient.PutAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/profile", new
+            {
+                firstName = "Ana",
+                lastName = "Souza",
+                locale = "pt-BR"
+            });
+        chosen.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // Act — a text-only edit whose form serialises the untouched locale field as "".
+        var response = await userClient.PutAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/profile", new
+            {
+                firstName = "Ana Maria",
+                lastName = "Souza",
+                locale = ""
+            });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var profile = await userClient.GetAsync($"{TestConstants.IdentityBasePath}/profile");
+        var dto = await profile.DeserializeAsync<UserDto>();
+        dto.FirstName.ShouldBe("Ana Maria");
+        dto.Locale.ShouldBe("pt-BR");
+    }
+
     #endregion
 
     #region Optimistic concurrency (ETag / If-Match)
@@ -218,6 +255,32 @@ public sealed class UserProfileTests
         dto.FirstName.ShouldBe("Concurrent");
         dto.LastName.ShouldBe("Winner");
         dto.PhoneNumber.ShouldBe("5550001111");
+    }
+
+    [Fact]
+    public async Task UpdateProfile_Should_Return412_When_OnlyTheLocaleChangedSinceTheRead()
+    {
+        // Arrange — PUT /profile writes the locale too, so a language switch in another tab must
+        // move the tag, or a stale form would save over it.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var user = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "etag-locale");
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(user.Email, user.Password);
+
+        var profile = new { firstName = "Same", lastName = "Person" };
+        (await PutProfileAsync(userClient, profile, ifMatch: null)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        var staleETag = await ReadProfileETagAsync(userClient);
+
+        var switched = await PutProfileAsync(
+            userClient,
+            new { firstName = "Same", lastName = "Person", locale = "pt-BR" },
+            ifMatch: null);
+        switched.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        // Act
+        var response = await PutProfileAsync(userClient, new { firstName = "Stale", lastName = "Person" }, staleETag);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
     }
 
     [Fact]

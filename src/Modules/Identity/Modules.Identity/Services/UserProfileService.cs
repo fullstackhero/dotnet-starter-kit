@@ -7,6 +7,7 @@ using FSH.Framework.Storage.Services;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -33,7 +34,11 @@ internal sealed class UserProfileService(
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        _ = user ?? throw new NotFoundException("user not found");
+        _ = user ?? throw new NotFoundException("user not found")
+        {
+            MessageKey = "Identity.UserNotFound",
+            ResourceSource = typeof(IdentityResources),
+        };
 
         return new UserDto
         {
@@ -47,6 +52,7 @@ internal sealed class UserProfileService(
             EmailConfirmed = user.EmailConfirmed,
             PhoneNumber = user.PhoneNumber,
             TwoFactorEnabled = user.TwoFactorEnabled,
+            Locale = user.Locale,
             ProfileVersion = ComputeProfileVersion(user),
         };
     }
@@ -75,11 +81,15 @@ internal sealed class UserProfileService(
         return result;
     }
 
-    public async Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, IReadOnlyList<string>? expectedConcurrencyStamps, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, string? locale, IReadOnlyList<string>? expectedConcurrencyStamps, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId);
 
-        _ = user ?? throw new NotFoundException("user not found");
+        _ = user ?? throw new NotFoundException("user not found")
+        {
+            MessageKey = "Identity.UserNotFound",
+            ResourceSource = typeof(IdentityResources),
+        };
 
         // This is a full-representation update, so a caller working from a stale read would
         // silently blank whatever changed since. The precondition is checked here, before the
@@ -112,6 +122,17 @@ internal sealed class UserProfileService(
 
         user.FirstName = firstName;
         user.LastName = lastName;
+        // An absent locale means "not provided by this update" — preserve the existing value so a
+        // text-only profile edit never clears a language the user already chose. Blank counts as
+        // absent, matching the validator: its allow-list rule is guarded by
+        // .When(!IsNullOrWhiteSpace), so "" never reaches the allow-list and must not reach the
+        // user either. A form that serialises its untouched locale field as "" would otherwise
+        // wipe the preference on every unrelated save.
+        if (!string.IsNullOrWhiteSpace(locale))
+        {
+            user.Locale = locale;
+        }
+
         string? currentPhoneNumber = await userManager.GetPhoneNumberAsync(user);
         if (phoneNumber != currentPhoneNumber)
         {
@@ -133,7 +154,11 @@ internal sealed class UserProfileService(
                 throw StaleProfileException();
             }
 
-            throw new CustomException("Update profile failed");
+            throw new CustomException("Update profile failed")
+            {
+                MessageKey = "Identity.UpdateProfileFailed",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         if (replacedBlob is not null)
@@ -171,19 +196,27 @@ internal sealed class UserProfileService(
         Convert.ToHexStringLower(HMACSHA256.HashData(
             Encoding.UTF8.GetBytes(user.SecurityStamp ?? string.Empty),
             JsonSerializer.SerializeToUtf8Bytes(
-                new[] { user.FirstName, user.LastName, user.PhoneNumber, user.ImageUrl?.OriginalString })));
+                new[] { user.FirstName, user.LastName, user.PhoneNumber, user.ImageUrl?.OriginalString, user.Locale })));
 
     private static CustomException StaleProfileException() =>
         new(
             "The profile changed since you loaded it. Reload it and apply your changes again.",
             errors: null,
-            HttpStatusCode.PreconditionFailed);
+            HttpStatusCode.PreconditionFailed)
+        {
+            MessageKey = "Identity.ProfileChangedSinceLoaded",
+            ResourceSource = typeof(IdentityResources),
+        };
 
     public async Task SetImageUrlAsync(string userId, string? imageUrl, CancellationToken cancellationToken)
     {
         EnsureValidTenant();
         var user = await userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException("user not found");
+            ?? throw new NotFoundException("user not found")
+            {
+                MessageKey = "Identity.UserNotFound",
+                ResourceSource = typeof(IdentityResources),
+            };
 
         user.ImageUrl = string.IsNullOrWhiteSpace(imageUrl)
             ? null
@@ -192,7 +225,11 @@ internal sealed class UserProfileService(
         var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
-            throw new CustomException("Update profile image failed");
+            throw new CustomException("Update profile image failed")
+            {
+                MessageKey = "Identity.UpdateProfileImageFailed",
+                ResourceSource = typeof(IdentityResources),
+            };
         }
 
         await signInManager.RefreshSignInAsync(user);
@@ -220,7 +257,10 @@ internal sealed class UserProfileService(
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedException("invalid tenant");
+            throw new UnauthorizedException("invalid tenant")
+            {
+                MessageKey = "Error.InvalidTenant",
+            };
         }
     }
 
