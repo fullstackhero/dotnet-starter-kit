@@ -32,10 +32,21 @@ public sealed class RequiredPermissionAuthorizationHandler(IUserService userServ
             return;
         }
 
-        var cancellationToken = httpContext?.RequestAborted ?? CancellationToken.None;
-        if (context.User?.GetUserId() is { } userId && await userService.HasPermissionAsync(userId, requiredPermissions.First(), cancellationToken).ConfigureAwait(false))
+        // An empty set comes from a blank RequirePermission("") and must deny, not fall through to Succeed.
+        if (requiredPermissions.Count == 0 || context.User?.GetUserId() is not { } userId)
         {
-            context.Succeed(requirement);
+            return;
         }
+
+        var cancellationToken = httpContext?.RequestAborted ?? CancellationToken.None;
+        foreach (var permission in requiredPermissions)
+        {
+            if (!await userService.HasPermissionAsync(userId, permission, cancellationToken).ConfigureAwait(false))
+            {
+                return;
+            }
+        }
+
+        context.Succeed(requirement);
     }
 }
