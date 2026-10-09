@@ -140,8 +140,8 @@ export function ProfileSettings() {
     mutationFn: (url: string | null) => setProfileImage(url),
     onSuccess: async () => {
       toast.success("Profile image updated");
-      // Setting the image is a second write to the same row, so ASP.NET Identity rotates the
-      // concurrency stamp and the tag this form is holding is spent. Adopting the new version (which
+      // The avatar URL is one of the fields the profile version hashes, so setting the image moves
+      // the tag and the one this form is holding is spent. Adopting the new version (which
       // also refreshes the cache, so the topbar avatar still updates) keeps the next save from
       // answering 412 and telling the user someone else edited their profile.
       await adoptCurrentVersion();
