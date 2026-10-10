@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -46,8 +47,10 @@ import {
 } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/format";
 
 export function TenantDetailPage() {
+  const { t } = useTranslation("tenants");
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -94,21 +97,21 @@ export function TenantDetailPage() {
   const activationMutation = useMutation({
     mutationFn: (isActive: boolean) => changeTenantActivation(id, isActive),
     onSuccess: (result) => {
-      toast.success(result.isActive ? "Tenant activated" : "Tenant deactivated");
+      toast.success(result.isActive ? t("detail.toast.activated") : t("detail.toast.deactivated"));
       setActivationConfirmOpen(false);
       queryClient.invalidateQueries({ queryKey: ["tenant", id] });
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
     },
-    onError: (err) => toast.error("Activation change failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("detail.toast.activationFailed"), { description: describe(err) }),
   });
 
   const retryMutation = useMutation({
     mutationFn: () => retryTenantProvisioning(id),
     onSuccess: () => {
-      toast.success("Provisioning re-queued");
+      toast.success(t("detail.toast.reQueued"));
       queryClient.invalidateQueries({ queryKey: ["tenant", id, "provisioning"] });
     },
-    onError: (err) => toast.error("Retry failed", { description: describe(err) }),
+    onError: (err) => toast.error(t("detail.toast.retryFailed"), { description: describe(err) }),
   });
 
   const tenant = tenantQuery.data;
@@ -121,12 +124,12 @@ export function TenantDetailPage() {
     <div className="space-y-8">
       <EntityPageHeader
         icon={Building2}
-        title={tenant?.name ?? "Tenant"}
+        title={tenant?.name ?? t("detail.header.fallbackTitle")}
         tone="info"
         description={tenant?.adminEmail}
       >
         <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
-          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
+          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("detail.back")}
         </Button>
       </EntityPageHeader>
 
@@ -134,12 +137,12 @@ export function TenantDetailPage() {
         <ErrorBand message={describe(tenantQuery.error)} />
       )}
 
-      {tenantQuery.isLoading && !tenant && <LoadingRow label="Loading tenant" />}
+      {tenantQuery.isLoading && !tenant && <LoadingRow label={t("detail.loading")} />}
 
       {tenant && (
         <>
           {/* ── Hero identity card ─────────────────────────────────────── */}
-          <SettingsSection title="Overview" icon={Building2}>
+          <SettingsSection title={t("detail.overview.title")} icon={Building2}>
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               {/* Left: monogram + name + meta + badges */}
               <div className="flex items-start gap-4">
@@ -160,11 +163,11 @@ export function TenantDetailPage() {
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Badge variant={tenant.isActive ? "success" : "muted"}>
-                      {tenant.isActive ? "Active" : "Inactive"}
+                      {tenant.isActive ? t("detail.badge.active") : t("detail.badge.inactive")}
                     </Badge>
                     {tenant.expiryState && tenant.expiryState !== "Active" && (
                       <Badge variant={expiryVariant(tenant.expiryState)}>
-                        {tenant.expiryState === "InGrace" ? "In grace" : "Expired"}
+                        {tenant.expiryState === "InGrace" ? t("detail.expiry.inGrace") : t("detail.expiry.expired")}
                       </Badge>
                     )}
                     {tenant.plan && (
@@ -175,7 +178,7 @@ export function TenantDetailPage() {
                     )}
                     <Badge variant="outline">
                       <CalendarClock className="h-3 w-3" />
-                      Valid until {formatDate(tenant.validUpto)}
+                      {t("detail.validUntil", { date: formatDate(tenant.validUpto) })}
                     </Badge>
                     {tenant.issuer && (
                       <Badge variant="outline" className="font-mono text-[10.5px]">
@@ -193,10 +196,10 @@ export function TenantDetailPage() {
                     variant="signal"
                     onClick={() => setImpersonateOpen(true)}
                     className="shrink-0"
-                    title="Sign in as a user inside this tenant"
+                    title={t("detail.actions.impersonateHint")}
                   >
                     <UserCog className="mr-1.5 h-3.5 w-3.5" />
-                    Impersonate user
+                    {t("detail.actions.impersonate")}
                   </Button>
                 )}
                 {canManageSubscription && (
@@ -204,10 +207,10 @@ export function TenantDetailPage() {
                     variant="outline"
                     onClick={() => setRenewOpen(true)}
                     className="shrink-0"
-                    title="Extend validity by one plan term, or switch plans"
+                    title={t("detail.actions.renewHint")}
                   >
                     <CalendarClock className="mr-1.5 h-3.5 w-3.5" />
-                    Renew / change plan
+                    {t("detail.actions.renew")}
                   </Button>
                 )}
                 {canManageSubscription && (
@@ -215,10 +218,10 @@ export function TenantDetailPage() {
                     variant="outline"
                     onClick={() => setAdjustOpen(true)}
                     className="shrink-0"
-                    title="Set the expiry date directly with no invoice (operator override)"
+                    title={t("detail.actions.adjustHint")}
                   >
                     <CalendarCog className="mr-1.5 h-3.5 w-3.5" />
-                    Adjust validity
+                    {t("detail.actions.adjust")}
                   </Button>
                 )}
                 {canUpdateTenant && (
@@ -229,10 +232,10 @@ export function TenantDetailPage() {
                     className="shrink-0"
                   >
                     {activationMutation.isPending
-                      ? "Updating…"
+                      ? t("detail.actions.updating")
                       : tenant.isActive
-                        ? "Deactivate tenant"
-                        : "Activate tenant"}
+                        ? t("detail.actions.deactivate")
+                        : t("detail.actions.activate")}
                   </Button>
                 )}
               </div>
@@ -270,22 +273,13 @@ export function TenantDetailPage() {
             open={activationConfirmOpen}
             onOpenChange={setActivationConfirmOpen}
             destructive={tenant.isActive}
-            title={tenant.isActive ? "Deactivate tenant?" : "Activate tenant?"}
+            title={tenant.isActive ? t("detail.confirm.deactivateTitle") : t("detail.confirm.activateTitle")}
             description={
-              tenant.isActive ? (
-                <>
-                  Users of <strong className="text-[var(--color-foreground)]">{tenant.name}</strong> will
-                  be blocked from signing in and all their API requests will be rejected until you
-                  reactivate the tenant.
-                </>
-              ) : (
-                <>
-                  <strong className="text-[var(--color-foreground)]">{tenant.name}</strong>&apos;s users
-                  will be able to sign in and use the platform again.
-                </>
-              )
+              tenant.isActive
+                ? t("detail.confirm.deactivateBody", { name: tenant.name })
+                : t("detail.confirm.activateBody", { name: tenant.name })
             }
-            confirmLabel={tenant.isActive ? "Deactivate" : "Activate"}
+            confirmLabel={tenant.isActive ? t("detail.confirm.deactivate") : t("detail.confirm.activate")}
             pending={activationMutation.isPending}
             onConfirm={() => activationMutation.mutate(!tenant.isActive)}
           />
@@ -297,30 +291,30 @@ export function TenantDetailPage() {
 
           {/* ── Details section ────────────────────────────────────────── */}
           <SettingsSection
-            title="Details"
+            title={t("detail.details.title")}
             icon={Info}
-            description="The tenant's identity, contact, and subscription window. Identifiers are immutable; the issuer scopes JWTs to this tenant."
+            description={t("detail.details.description")}
           >
             <div className="space-y-0">
-              <InfoRow label="Identifier" mono>{tenant.id}</InfoRow>
-              <InfoRow label="Name">{tenant.name}</InfoRow>
-              <InfoRow label="Admin email" mono>{tenant.adminEmail}</InfoRow>
-              <InfoRow label="JWT issuer" mono>{tenant.issuer ?? "—"}</InfoRow>
-              <InfoRow label="Plan">{tenant.plan ?? "—"}</InfoRow>
-              <InfoRow label="Valid until">
+              <InfoRow label={t("detail.row.identifier")} mono>{tenant.id}</InfoRow>
+              <InfoRow label={t("detail.row.name")}>{tenant.name}</InfoRow>
+              <InfoRow label={t("detail.row.adminEmail")} mono>{tenant.adminEmail}</InfoRow>
+              <InfoRow label={t("detail.row.jwtIssuer")} mono>{tenant.issuer ?? "—"}</InfoRow>
+              <InfoRow label={t("detail.row.plan")}>{tenant.plan ?? "—"}</InfoRow>
+              <InfoRow label={t("detail.row.validUntil")}>
                 <span className="flex items-center gap-1.5">
                   <CalendarClock className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
                   {formatDate(tenant.validUpto)}
                   {tenant.expiryState && tenant.expiryState !== "Active" && (
                     <Badge variant={expiryVariant(tenant.expiryState)}>
-                      {tenant.expiryState === "InGrace" ? "In grace" : "Expired"}
+                      {tenant.expiryState === "InGrace" ? t("detail.expiry.inGrace") : t("detail.expiry.expired")}
                     </Badge>
                   )}
                 </span>
               </InfoRow>
-              <InfoRow label="Status" isLast>
+              <InfoRow label={t("detail.row.status")} isLast>
                 <Badge variant={tenant.isActive ? "success" : "muted"}>
-                  {tenant.isActive ? "Active" : "Inactive"}
+                  {tenant.isActive ? t("detail.badge.active") : t("detail.badge.inactive")}
                 </Badge>
               </InfoRow>
             </div>
@@ -328,9 +322,9 @@ export function TenantDetailPage() {
 
           {/* ── Provisioning section ───────────────────────────────────── */}
           <SettingsSection
-            title="Provisioning"
+            title={t("detail.provisioning.title")}
             icon={ClipboardList}
-            description="Live status of the background pipeline that seeds the tenant database, default roles, and admin user. Polls every 2 seconds while running."
+            description={t("detail.provisioning.description")}
           >
             <ProvisioningPanel
               steps={provisioning?.steps ?? []}
@@ -426,7 +420,10 @@ function ProvisioningPanel({
   retryPending: boolean;
   canRetry?: boolean;
 }) {
-  const overall = notTracked ? "Not tracked" : status ?? (loading ? "Loading" : "Unknown");
+  const { t } = useTranslation("tenants");
+  const overall = notTracked
+    ? t("detail.provisioning.notTracked")
+    : status ?? (loading ? t("detail.provisioning.loading") : t("detail.provisioning.unknown"));
 
   const overallVariant =
     status === "Completed"
@@ -445,7 +442,7 @@ function ProvisioningPanel({
           <OverallStatusDot status={notTracked ? "NotTracked" : (status ?? "Unknown")} />
           <Badge variant={overallVariant}>
             {status === "Failed"
-              ? `Failed at ${currentStep ?? "unknown step"}`
+              ? t("detail.provisioning.failedAt", { step: currentStep ?? t("detail.provisioning.unknownStep") })
               : currentStep
                 ? `${overall} · ${currentStep}`
                 : overall}
@@ -454,7 +451,7 @@ function ProvisioningPanel({
         {status === "Failed" && canRetry && (
           <Button size="sm" variant="outline" onClick={onRetry} disabled={retryPending}>
             <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", retryPending && "animate-spin")} />
-            {retryPending ? "Re-queuing…" : "Retry provisioning"}
+            {retryPending ? t("detail.provisioning.reQueuing") : t("detail.provisioning.retry")}
           </Button>
         )}
       </div>
@@ -463,7 +460,7 @@ function ProvisioningPanel({
       {error ? (
         <ErrorBand message={describe(error)} />
       ) : loading && steps.length === 0 ? (
-        <p className="text-[13px] text-[var(--color-muted-foreground)]">Loading…</p>
+        <p className="text-[13px] text-[var(--color-muted-foreground)]">{t("detail.provisioning.loadingBody")}</p>
       ) : notTracked ? (
         <div className="flex items-start gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3.5">
           <ServerCrash
@@ -471,13 +468,12 @@ function ProvisioningPanel({
             className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]"
           />
           <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-            This tenant wasn't created through the provisioning pipeline, so there's no run
-            history to show. Tenants created via the console report their seed/migrate steps here.
+            {t("detail.provisioning.notTrackedBody")}
           </p>
         </div>
       ) : steps.length === 0 ? (
         <p className="text-[13px] text-[var(--color-muted-foreground)]">
-          No provisioning runs recorded.
+          {t("detail.provisioning.noRuns")}
         </p>
       ) : (
         <StepTimeline steps={steps} />
@@ -548,6 +544,7 @@ function StepRow({
   index: number;
   isLast: boolean;
 }) {
+  const { t } = useTranslation("tenants");
   const isCompleted = step.status === "Completed";
   const isFailed = step.status === "Failed";
   const isRunning = step.status === "Running";
@@ -589,7 +586,7 @@ function StepRow({
     step.startedUtc && step.completedUtc
       ? formatDuration(step.startedUtc, step.completedUtc)
       : step.startedUtc
-        ? "in flight"
+        ? t("detail.provisioning.inFlight")
         : null;
 
   return (
@@ -658,12 +655,6 @@ function StepRow({
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────────
-
-function formatDate(value: string | undefined): string {
-  if (!value) return "—";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString();
-}
 
 function expiryVariant(state: string): React.ComponentProps<typeof Badge>["variant"] {
   return state === "Expired" ? "danger" : state === "InGrace" ? "warning" : "outline";

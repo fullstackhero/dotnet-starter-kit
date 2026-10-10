@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -28,6 +29,7 @@ import { env } from "@/env";
  * account existence. Always render the same "check your inbox" success.
  */
 export function ForgotPasswordPage() {
+  const { t } = useTranslation("auth");
   const { isAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
   const [tenant, setTenant] = useState(env.defaultTenant);
@@ -88,7 +90,7 @@ export function ForgotPasswordPage() {
           </div>
           <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
-            <span>.NET 10 Starter Kit</span>
+            <span>{t("tagline.starterKit")}</span>
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
           </div>
         </div>
@@ -108,24 +110,25 @@ export function ForgotPasswordPage() {
                 </div>
                 <div>
                   <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
-                    Check your{" "}
-                    <span className="text-[var(--color-primary)]">inbox</span>
+                    {t("forgot.successTitleLead")}{" "}
+                    <span className="text-[var(--color-primary)]">{t("forgot.successTitleAccent")}</span>
                   </h1>
                   <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-                    If an account exists for{" "}
-                    <span className="text-[var(--color-foreground)]">{email}</span> in tenant{" "}
-                    <span className="text-[var(--color-foreground)]">{tenant}</span>, a one-time
-                    reset link is on its way. The link expires in 30 minutes.
+                    {t("forgot.successPre")}{" "}
+                    <span className="text-[var(--color-foreground)]">{email}</span>{" "}
+                    {t("forgot.successMid")}{" "}
+                    <span className="text-[var(--color-foreground)]">{tenant}</span>
+                    {t("forgot.successPost")}
                   </p>
                 </div>
                 <ul className="space-y-1.5 text-left text-[12.5px] text-[var(--color-muted-foreground)]">
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 size-3.5 shrink-0 text-[var(--color-success)]" />
-                    Didn't get it? Wait a minute, then check spam.
+                    {t("forgot.tip1")}
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 size-3.5 shrink-0 text-[var(--color-success)]" />
-                    Still nothing? Confirm the email + tenant and retry.
+                    {t("forgot.tip2")}
                   </li>
                 </ul>
                 <div className="flex items-center gap-2 pt-1">
@@ -137,11 +140,11 @@ export function ForgotPasswordPage() {
                       setError(null);
                     }}
                   >
-                    Try a different address
+                    {t("forgot.tryDifferent")}
                   </Button>
                   <Link to="/login" className="ml-auto">
                     <Button type="button" variant="outline">
-                      Back to sign in
+                      {t("forgot.backToSignIn")}
                     </Button>
                   </Link>
                 </div>
@@ -150,11 +153,11 @@ export function ForgotPasswordPage() {
               <>
                 <div className="mb-6 sm:mb-8">
                   <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
-                    Reset your{" "}
-                    <span className="text-[var(--color-primary)]">password</span>
+                    {t("forgot.titleLead")}{" "}
+                    <span className="text-[var(--color-primary)]">{t("forgot.titleAccent")}</span>
                   </h1>
                   <p className="text-[13px] text-[var(--color-muted-foreground)]">
-                    Enter the email + tenant you sign in with. We'll dispatch a one-time link.
+                    {t("forgot.subtitle")}
                   </p>
                 </div>
 
@@ -169,7 +172,7 @@ export function ForgotPasswordPage() {
                       htmlFor="reset-tenant"
                       className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
                     >
-                      Tenant
+                      {t("forgot.tenant")}
                     </Label>
                     <div className="relative">
                       <Building2 className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]" />
@@ -179,7 +182,7 @@ export function ForgotPasswordPage() {
                         onChange={(e) => setTenant(e.target.value)}
                         required
                         autoComplete="organization"
-                        placeholder="root"
+                        placeholder={t("forgot.tenantPlaceholder")}
                         aria-invalid={error ? true : undefined}
                         aria-describedby={error ? "forgot-error" : undefined}
                         className="h-11 pl-10 text-[14px]"
@@ -191,7 +194,7 @@ export function ForgotPasswordPage() {
                       htmlFor="reset-email"
                       className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
                     >
-                      Email
+                      {t("forgot.email")}
                     </Label>
                     <div className="relative">
                       <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]" />
@@ -203,7 +206,7 @@ export function ForgotPasswordPage() {
                         required
                         autoComplete="email"
                         autoFocus
-                        placeholder="operator@root.example"
+                        placeholder={t("forgot.emailPlaceholder")}
                         aria-invalid={error ? true : undefined}
                         aria-describedby={error ? "forgot-error" : undefined}
                         className="h-11 pl-10 text-[14px]"
@@ -236,11 +239,11 @@ export function ForgotPasswordPage() {
                       {mutation.isPending ? (
                         <>
                           <Loader2 className="size-4 animate-spin" />
-                          <span>Dispatching link…</span>
+                          <span>{t("forgot.submitting")}</span>
                         </>
                       ) : (
                         <>
-                          <span>Send reset link</span>
+                          <span>{t("forgot.submit")}</span>
                           <ArrowRight className="size-[14px] opacity-60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
                         </>
                       )}
@@ -253,18 +256,18 @@ export function ForgotPasswordPage() {
         </div>
 
         <div className="mt-6 text-center text-[12.5px] text-[var(--color-muted-foreground)]">
-          Remembered it?{" "}
+          {t("forgot.remembered")}{" "}
           <Link
             to="/login"
             className="text-[var(--color-foreground)] underline-offset-4 hover:underline"
           >
-            Sign in
+            {t("forgot.signIn")}
           </Link>
         </div>
 
         <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-[var(--color-muted-foreground)]">
           <ShieldCheck className="size-3" />
-          <span>Encrypted in transit · JWT-secured session</span>
+          <span>{t("encrypted")}</span>
         </div>
       </div>
     </div>

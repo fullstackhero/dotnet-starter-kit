@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -35,13 +36,14 @@ function scorePassword(value: string): Strength | null {
   return "strong";
 }
 
-const STRENGTH_META: Record<Strength, { label: string; fill: string; bar: string }> = {
-  weak: { label: "Weak", fill: "bg-[var(--color-destructive)]", bar: "w-1/3" },
-  fair: { label: "Fair", fill: "bg-[var(--color-warning)]", bar: "w-2/3" },
-  strong: { label: "Strong", fill: "bg-[var(--color-success)]", bar: "w-full" },
+const STRENGTH_META: Record<Strength, { fill: string; bar: string }> = {
+  weak: { fill: "bg-[var(--color-destructive)]", bar: "w-1/3" },
+  fair: { fill: "bg-[var(--color-warning)]", bar: "w-2/3" },
+  strong: { fill: "bg-[var(--color-success)]", bar: "w-full" },
 };
 
 export function ResetPasswordPage() {
+  const { t } = useTranslation("auth");
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -63,8 +65,8 @@ export function ResetPasswordPage() {
   const mutation = useMutation({
     mutationFn: () => resetPassword({ email, password, token, tenant }),
     onSuccess: () => {
-      toast.success("Password updated", {
-        description: "Sign in with your new password to continue.",
+      toast.success(t("reset.toastTitle"), {
+        description: t("reset.toastDesc"),
       });
       navigate("/login", { replace: true });
     },
@@ -86,11 +88,11 @@ export function ResetPasswordPage() {
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!matches) {
-      setError("Passwords don't match.");
+      setError(t("reset.errMismatch"));
       return;
     }
     if (password.length < 8) {
-      setError("Use at least 8 characters.");
+      setError(t("reset.errTooShort"));
       return;
     }
     mutation.mutate();
@@ -130,7 +132,7 @@ export function ResetPasswordPage() {
           </div>
           <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
-            <span>.NET 10 Starter Kit</span>
+            <span>{t("tagline.starterKit")}</span>
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
           </div>
         </div>
@@ -142,27 +144,27 @@ export function ResetPasswordPage() {
               <div className="space-y-4">
                 <div className="mb-2">
                   <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
-                    This link is{" "}
-                    <span className="text-[var(--color-primary)]">incomplete</span>
+                    {t("reset.incompleteTitleLead")}{" "}
+                    <span className="text-[var(--color-primary)]">{t("reset.incompleteTitleAccent")}</span>
                   </h1>
                   <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-                    The link is missing one of{" "}
-                    <span className="text-[var(--color-foreground)]">token</span>,{" "}
-                    <span className="text-[var(--color-foreground)]">email</span>, or{" "}
-                    <span className="text-[var(--color-foreground)]">tenant</span>. Some email
-                    clients clip long URLs — try copy-pasting the full link from the original
-                    email into your browser's address bar, or request a new one.
+                    {t("reset.incompletePre")}{" "}
+                    <span className="text-[var(--color-foreground)]">{t("reset.fieldToken")}</span>,{" "}
+                    <span className="text-[var(--color-foreground)]">{t("reset.fieldEmail")}</span>,{" "}
+                    {t("reset.or")}{" "}
+                    <span className="text-[var(--color-foreground)]">{t("reset.fieldTenant")}</span>.{" "}
+                    {t("reset.incompletePost")}
                   </p>
                 </div>
                 <div className="flex gap-2 pt-1">
                   <Link to="/forgot-password">
                     <Button type="button" variant="outline">
-                      Request a new link
+                      {t("reset.requestNewLink")}
                     </Button>
                   </Link>
                   <Link to="/login">
                     <Button type="button" variant="ghost">
-                      Back to sign in
+                      {t("reset.backToSignIn")}
                     </Button>
                   </Link>
                 </div>
@@ -171,13 +173,15 @@ export function ResetPasswordPage() {
               <>
                 <div className="mb-6 sm:mb-8">
                   <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
-                    Set a new{" "}
-                    <span className="text-[var(--color-primary)]">password</span>
+                    {t("reset.titleLead")}{" "}
+                    <span className="text-[var(--color-primary)]">{t("reset.titleAccent")}</span>
                   </h1>
                   <p className="text-[13px] text-[var(--color-muted-foreground)]">
-                    Resetting password for{" "}
-                    <span className="text-[var(--color-foreground)]">{email}</span> on{" "}
-                    <span className="text-[var(--color-foreground)]">{tenant}</span>.
+                    {t("reset.subtitlePre")}{" "}
+                    <span className="text-[var(--color-foreground)]">{email}</span>{" "}
+                    {t("reset.subtitleMid")}{" "}
+                    <span className="text-[var(--color-foreground)]">{tenant}</span>
+                    {t("reset.subtitlePost")}
                   </p>
                 </div>
 
@@ -192,7 +196,7 @@ export function ResetPasswordPage() {
                       htmlFor="new-password"
                       className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
                     >
-                      New password
+                      {t("reset.newPassword")}
                     </Label>
                     <div className="relative">
                       <Input
@@ -204,7 +208,7 @@ export function ResetPasswordPage() {
                         autoComplete="new-password"
                         autoFocus
                         minLength={8}
-                        placeholder="At least 8 characters"
+                        placeholder={t("reset.newPasswordPlaceholder")}
                         aria-invalid={error ? true : undefined}
                         aria-describedby={error ? "reset-error" : undefined}
                         className="h-11 pr-11 text-[14px]"
@@ -212,7 +216,7 @@ export function ResetPasswordPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword((v) => !v)}
-                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-label={showPassword ? t("reset.hidePassword") : t("reset.showPassword")}
                         className="absolute right-3.5 top-1/2 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
                       >
                         {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -230,7 +234,7 @@ export function ResetPasswordPage() {
                           />
                         </div>
                         <span className="min-w-[3.5rem] text-right text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                          {STRENGTH_META[strength].label}
+                          {t(`reset.strength_${strength}`)}
                         </span>
                       </div>
                     )}
@@ -241,7 +245,7 @@ export function ResetPasswordPage() {
                       htmlFor="confirm-password"
                       className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
                     >
-                      Confirm password
+                      {t("reset.confirmPassword")}
                     </Label>
                     <div className="relative">
                       <Input
@@ -252,7 +256,7 @@ export function ResetPasswordPage() {
                         required
                         autoComplete="new-password"
                         minLength={8}
-                        placeholder="Re-enter password"
+                        placeholder={t("reset.confirmPasswordPlaceholder")}
                         aria-invalid={error ? true : undefined}
                         aria-describedby={error ? "reset-error" : undefined}
                         className="h-11 pr-11 text-[14px]"
@@ -260,7 +264,7 @@ export function ResetPasswordPage() {
                       <button
                         type="button"
                         onClick={() => setShowConfirm((v) => !v)}
-                        aria-label={showConfirm ? "Hide password" : "Show password"}
+                        aria-label={showConfirm ? t("reset.hidePassword") : t("reset.showPassword")}
                         className="absolute right-3.5 top-1/2 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
                       >
                         {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -278,7 +282,7 @@ export function ResetPasswordPage() {
                         <Check
                           className={cn("size-3.5", matches ? "opacity-100" : "opacity-40")}
                         />
-                        <span>{matches ? "Passwords match" : "Doesn't match yet"}</span>
+                        <span>{matches ? t("reset.matches") : t("reset.notMatchYet")}</span>
                       </div>
                     )}
                   </div>
@@ -308,12 +312,12 @@ export function ResetPasswordPage() {
                       {mutation.isPending ? (
                         <>
                           <Loader2 className="size-4 animate-spin" />
-                          <span>Updating password…</span>
+                          <span>{t("reset.submitting")}</span>
                         </>
                       ) : (
                         <>
                           <ShieldCheck className="size-4" />
-                          <span>Set new password</span>
+                          <span>{t("reset.submit")}</span>
                           <ArrowRight className="size-[14px] opacity-60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
                         </>
                       )}
@@ -326,12 +330,12 @@ export function ResetPasswordPage() {
         </div>
 
         <div className="mt-6 text-center text-[12.5px] text-[var(--color-muted-foreground)]">
-          Changed your mind?{" "}
+          {t("reset.changedMind")}{" "}
           <Link
             to="/login"
             className="text-[var(--color-foreground)] underline-offset-4 hover:underline"
           >
-            Sign in
+            {t("reset.signIn")}
           </Link>
         </div>
       </div>

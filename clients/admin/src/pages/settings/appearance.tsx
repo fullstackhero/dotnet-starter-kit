@@ -1,4 +1,5 @@
 import { Moon, Palette, Sun } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Button } from "@/components/ui/button";
 import { SettingsSection } from "@/components/list";
@@ -8,21 +9,21 @@ type Mode = "light" | "dark";
 
 const MODES: {
   value: Mode;
-  label: string;
+  labelKey: string;
   icon: typeof Sun;
-  blurb: string;
+  blurbKey: string;
 }[] = [
   {
     value: "light",
-    label: "Light",
+    labelKey: "appearance.theme.light",
     icon: Sun,
-    blurb: "Paper-white surfaces, magazine-print mood.",
+    blurbKey: "appearance.theme.lightBlurb",
   },
   {
     value: "dark",
-    label: "Dark",
+    labelKey: "appearance.theme.dark",
     icon: Moon,
-    blurb: "Console-default. Lower glare for long sessions.",
+    blurbKey: "appearance.theme.darkBlurb",
   },
 ];
 
@@ -32,18 +33,19 @@ const MODES: {
  * to a tri-state. Persistence is handled by the provider; we just call setTheme.
  */
 export function AppearanceSettings() {
+  const { t } = useTranslation("settings");
   const { theme, setTheme } = useTheme();
 
   return (
     <div className="space-y-5 fsh-enter">
       {/* Theme */}
       <SettingsSection
-        title="Theme"
+        title={t("appearance.theme.title")}
         icon={Palette}
-        description="Console looks good in both modes — the editorial-terminal language is built around tone-neutral surfaces with a single chartreuse accent that reads identically on either."
+        description={t("appearance.theme.description")}
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {MODES.map(({ value, label, icon: Icon, blurb }) => {
+          {MODES.map(({ value, labelKey, icon: Icon, blurbKey }) => {
             const active = theme === value;
             return (
               <button
@@ -73,7 +75,7 @@ export function AppearanceSettings() {
                   </span>
                   {active && (
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent-signal)]">
-                      Active
+                      {t("appearance.active")}
                     </span>
                   )}
                 </div>
@@ -83,10 +85,10 @@ export function AppearanceSettings() {
                     active && "text-[var(--color-accent-signal)]",
                   )}
                 >
-                  {label}
+                  {t(labelKey)}
                 </span>
                 <span className="text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-                  {blurb}
+                  {t(blurbKey)}
                 </span>
               </button>
             );
@@ -96,12 +98,12 @@ export function AppearanceSettings() {
 
       {/* Density — placeholder for a future compact toggle */}
       <SettingsSection
-        title="Density"
+        title={t("appearance.density.title")}
         icon={Palette}
-        description="Compact mode will reduce card padding and row height for data-dense screens — similar to the dashboard's density toggle."
+        description={t("appearance.density.description")}
       >
         <Button variant="outline" size="sm" disabled>
-          Compact rows · coming soon
+          {t("appearance.density.comingSoon")}
         </Button>
       </SettingsSection>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ type Status =
  * as the login and other auth pages.
  */
 export function ConfirmEmailPage() {
+  const { t } = useTranslation("auth");
   const [params] = useSearchParams();
   const userId = params.get("userId") ?? "";
   const code = params.get("code") ?? "";
@@ -31,8 +33,7 @@ export function ConfirmEmailPage() {
     if (malformed) {
       setStatus({
         kind: "error",
-        message:
-          "This confirmation link is missing required parameters. It may have been clipped by your email client.",
+        message: t("confirm.malformed"),
       });
       return;
     }
@@ -45,7 +46,7 @@ export function ConfirmEmailPage() {
           message:
             typeof message === "string" && message.length > 0
               ? message
-              : "Your email is confirmed. You can now sign in.",
+              : t("confirm.successFallback"),
         });
       })
       .catch((err: unknown) => {
@@ -59,7 +60,7 @@ export function ConfirmEmailPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId, code, tenant, malformed]);
+  }, [userId, code, tenant, malformed, t]);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--color-background)] px-5 py-8 sm:py-12">
@@ -95,7 +96,7 @@ export function ConfirmEmailPage() {
           </div>
           <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
-            <span>.NET 10 Starter Kit</span>
+            <span>{t("tagline.starterKit")}</span>
             <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
           </div>
         </div>
@@ -115,11 +116,11 @@ export function ConfirmEmailPage() {
                 </div>
                 <div>
                   <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
-                    Verifying your{" "}
-                    <span className="text-[var(--color-primary)]">email…</span>
+                    {t("confirm.verifyingTitleLead")}{" "}
+                    <span className="text-[var(--color-primary)]">{t("confirm.verifyingTitleAccent")}</span>
                   </h1>
                   <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-                    One moment — checking the confirmation token with the server.
+                    {t("confirm.verifyingBody")}
                   </p>
                 </div>
               </div>
@@ -137,8 +138,8 @@ export function ConfirmEmailPage() {
                 </div>
                 <div>
                   <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
-                    Email{" "}
-                    <span className="text-[var(--color-primary)]">confirmed</span>
+                    {t("confirm.successTitleLead")}{" "}
+                    <span className="text-[var(--color-primary)]">{t("confirm.successTitleAccent")}</span>
                   </h1>
                   <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
                     {status.message}
@@ -146,7 +147,7 @@ export function ConfirmEmailPage() {
                 </div>
                 <Link to="/login" className="block">
                   <Button type="button" className="group h-11 w-full text-[14px] font-semibold">
-                    <span>Continue to sign in</span>
+                    <span>{t("confirm.continueSignIn")}</span>
                     <ArrowRight className="size-[14px] opacity-60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </Button>
                 </Link>
@@ -165,27 +166,26 @@ export function ConfirmEmailPage() {
                 </div>
                 <div>
                   <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
-                    Couldn't{" "}
-                    <span className="text-[var(--color-primary)]">confirm</span>{" "}
-                    your email
+                    {t("confirm.errorTitleLead")}{" "}
+                    <span className="text-[var(--color-primary)]">{t("confirm.errorTitleAccent")}</span>{" "}
+                    {t("confirm.errorTitleTrail")}
                   </h1>
                   <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
                     {status.message}
                   </p>
                   <p className="mt-2 text-[12px] leading-relaxed text-[var(--color-muted-foreground)]">
-                    The link may have expired or been used already. If you've signed in since
-                    this email was sent, you can ignore it.
+                    {t("confirm.errorHint")}
                   </p>
                 </div>
                 <div className="flex items-center justify-center gap-2 pt-1">
                   <Link to="/login">
                     <Button type="button" variant="outline">
-                      Back to sign in
+                      {t("confirm.backToSignIn")}
                     </Button>
                   </Link>
                   <Link to="/forgot-password">
                     <Button type="button" variant="ghost">
-                      Reset password instead
+                      {t("confirm.resetInstead")}
                     </Button>
                   </Link>
                 </div>
@@ -199,7 +199,7 @@ export function ConfirmEmailPage() {
             to="/login"
             className="text-[12.5px] text-[var(--color-muted-foreground)] underline-offset-4 hover:text-[var(--color-foreground)] hover:underline"
           >
-            ← Back to sign in
+            {t("confirm.backLink")}
           </Link>
         </div>
       </div>

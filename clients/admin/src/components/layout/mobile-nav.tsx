@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
 import {
   Dialog as Sheet,
@@ -64,6 +65,7 @@ export function MobileNavRoot() {
   const { open, setOpen } = useMobileNav();
   const location = useLocation();
   const { user, permissionsHydrated } = useAuth();
+  const { t } = useTranslation("common");
 
   const granted = permissionsHydrated ? (user?.permissions ?? []) : [];
   const visibleSections: NavSection[] = useMemo(
@@ -93,9 +95,9 @@ export function MobileNavRoot() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="left" className="flex flex-col p-0">
         {/* Radix Dialog requires a Title for the accessible tree. */}
-        <DialogTitle className="sr-only">Primary navigation</DialogTitle>
+        <DialogTitle className="sr-only">{t("shell.primaryNav")}</DialogTitle>
         <DialogDescription className="sr-only">
-          Admin sections and account links.
+          {t("shell.mobileNavDescription")}
         </DialogDescription>
 
         {/* Brand row — matches Topbar height */}
@@ -115,7 +117,7 @@ export function MobileNavRoot() {
               fullstack<span className="text-[var(--color-primary)]">hero</span>
             </span>
             <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
-              Admin
+              {t("shell.appSubtitle")}
             </span>
           </div>
         </div>
@@ -143,11 +145,12 @@ export function MobileNavRoot() {
  */
 export function MobileNavTrigger({ className }: { className?: string }) {
   const { setOpen } = useMobileNav();
+  const { t } = useTranslation("common");
   const onClick = useCallback(() => setOpen(true), [setOpen]);
   return (
     <button
       type="button"
-      aria-label="Open navigation menu"
+      aria-label={t("shell.openNavMenu")}
       onClick={onClick}
       className={cn(
         "grid h-9 w-9 cursor-pointer place-items-center rounded-md md:hidden",
