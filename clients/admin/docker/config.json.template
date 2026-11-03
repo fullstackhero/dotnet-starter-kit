@@ -1,5 +1,7 @@
 {
   "apiBase": "${FSH_API_URL}",
   "defaultTenant": "${FSH_DEFAULT_TENANT}",
+  "inactivityIdleMs": ${FSH_INACTIVITY_IDLE_MS},
+  "inactivityWarningMs": ${FSH_INACTIVITY_WARNING_MS},
   "dashboardUrl": "${FSH_DASHBOARD_URL}"
 }

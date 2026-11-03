@@ -4,6 +4,14 @@ namespace Framework.Tests.Web;
 
 public sealed class CorsConfigurationTests
 {
+    // appsettings files are read by the ASP.NET configuration loader, which accepts comments and
+    // trailing commas, so parse them the same way.
+    private static readonly JsonDocumentOptions AppSettingsJson = new()
+    {
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
+
     [Theory]
     [InlineData("appsettings.json")]
     [InlineData("appsettings.Production.json")]
@@ -13,7 +21,7 @@ public sealed class CorsConfigurationTests
         string path = Path.Combine(AppContext.BaseDirectory, "HostConfiguration", fileName);
 
         // Act
-        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path), AppSettingsJson);
         JsonElement corsOptions = document.RootElement.GetProperty("CorsOptions");
         string[] allowedMethods = corsOptions
             .GetProperty("AllowedMethods")
@@ -47,7 +55,7 @@ public sealed class CorsConfigurationTests
         string path = Path.Combine(AppContext.BaseDirectory, "HostConfiguration", fileName);
 
         // Act
-        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path), AppSettingsJson);
         string[] allowedHeaders = document.RootElement
             .GetProperty("CorsOptions")
             .GetProperty("AllowedHeaders")
