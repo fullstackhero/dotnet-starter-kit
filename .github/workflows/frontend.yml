@@ -133,11 +133,13 @@ jobs:
       - name: Smoke test start and restart
         env:
           IMAGE: fsh-${{ matrix.app }}:ci
+          DEFAULT_IDLE_MS: ${{ matrix.app == 'admin' && 600000 || 1200000 }}
         run: |
           set -euo pipefail
           docker run -d --name smoke -p 8080:80 \
             -e FSH_API_URL=http://api.example.test -e FSH_DEFAULT_TENANT=acme \
-            -e FSH_DASHBOARD_URL=http://app.example.test "$IMAGE"
+            -e FSH_DASHBOARD_URL=http://app.example.test \
+            -e FSH_INACTIVITY_IDLE_MS= -e FSH_INACTIVITY_WARNING_MS= "$IMAGE"
           check() {
             rm -f config.json
             for _ in $(seq 1 20); do
@@ -146,6 +148,9 @@ jobs:
             done
             [ "$(docker inspect -f '{{.State.Running}} {{.RestartCount}}' smoke)" = "true 0" ]
             jq -e '.apiBase == "http://api.example.test" and .defaultTenant == "acme"' config.json
+            # Empty inactivity variables (what compose passes when .env leaves them unset)
+            # fall back to the app's built-in timings.
+            jq -e --argjson idle "$DEFAULT_IDLE_MS" '.inactivityIdleMs == $idle and .inactivityWarningMs == 60000' config.json
           }
           check
           if curl -fsS http://localhost:8080/config.json.template | grep -qF '${FSH_API_URL}'; then
@@ -154,6 +159,30 @@ jobs:
           fi
           docker restart smoke
           check
+
+      - name: Inactivity timings from the environment
+        env:
+          IMAGE: fsh-${{ matrix.app }}:ci
+        run: |
+          set -euo pipefail
+          docker run -d --name tuned -p 8081:80 \
+            -e FSH_API_URL=http://api.example.test -e FSH_DASHBOARD_URL=http://app.example.test \
+            -e FSH_INACTIVITY_IDLE_MS=300000 -e FSH_INACTIVITY_WARNING_MS=30000 "$IMAGE"
+          for _ in $(seq 1 20); do
+            curl -fsS http://localhost:8081/config.json -o tuned.json && break
+            sleep 1
+          done
+          jq -e '.inactivityIdleMs == 300000 and .inactivityWarningMs == 30000' tuned.json
+          # A value that would render invalid JSON must stop the container, not break the app.
+          for bad in abc 0 -5 1.5 "10 20" 007; do
+            if docker run --rm -e FSH_API_URL=http://api.example.test \
+              -e FSH_DASHBOARD_URL=http://app.example.test \
+              -e FSH_INACTIVITY_IDLE_MS="$bad" "$IMAGE" 2> bad.err; then
+              echo "::error::FSH_INACTIVITY_IDLE_MS='$bad' was accepted"
+              exit 1
+            fi
+            grep -q "FSH_INACTIVITY_IDLE_MS must be a positive integer" bad.err
+          done
 
       - name: Container logs
         if: failure()
