@@ -9,9 +9,9 @@ This brings up the full stack on a single host:
 | `dashboard` | `fsh/dashboard:local` | `FSH_DASHBOARD_PORT` (default 8082) | Tenant dashboard (nginx + React) |
 | `migrator` | `fsh/dbmigrator:local` | — | One-shot: applies EF migrations + seeds the root tenant + creates the default admin user |
 | `postgres` | `postgres:18-alpine` | (internal) | Identity, tenant catalog, module schemas |
-| `redis` | `valkey/valkey:9.1.0-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
-| `rustfs` | `rustfs/rustfs:1.0.0` | `FSH_S3_PORT` (default 9000), S3 API only | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)); published because browsers upload to it through presigned URLs |
-| `mailpit` | `axllent/mailpit:v1.31.3` | `127.0.0.1:FSH_MAILPIT_PORT` (default 8025), SMTP 1025 internal | Local mail catcher ([Mailpit](https://mailpit.axllent.org)), only with the `mail-catcher` profile, which `.env.example` enables |
+| `redis` | `valkey/valkey:9.1.3-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
+| `rustfs` | `rustfs/rustfs:1.0.4` | `FSH_S3_PORT` (default 9000), S3 API only | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)); published because browsers upload to it through presigned URLs |
+| `mailpit` | `axllent/mailpit:v1.33.0` | `127.0.0.1:FSH_MAILPIT_PORT` (default 8025), SMTP 1025 internal | Local mail catcher ([Mailpit](https://mailpit.axllent.org)), only with the `mail-catcher` profile, which `.env.example` enables |
 
 The compose file does **not** include a reverse proxy or TLS terminator. You bring your own edge — Cloudflare Tunnel, AWS ALB, Tailscale Funnel, your existing nginx, anything that can route a TLS subdomain to a host:port on this machine.
 

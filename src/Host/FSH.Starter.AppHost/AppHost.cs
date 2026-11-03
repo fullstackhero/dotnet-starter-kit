@@ -25,7 +25,7 @@ var apiPgConnection = ReferenceExpression.Create(
     $"{postgres.Resource.ConnectionStringExpression};Minimum Pool Size=5");
 
 // Valkey (BSD-3 Redis fork) as a plain container: Aspire 13.4.0 AddRedis() forces TLS-by-default in run mode and never materializes the container, so we drop to plain RESP over TCP. Name stays "redis" so config keys don't churn.
-var redis = builder.AddContainer("redis", "valkey/valkey", "9.1.0")
+var redis = builder.AddContainer("redis", "valkey/valkey", "9.1.3")
     .WithEndpoint(targetPort: 6379, scheme: "tcp", name: "tcp")
     .WithVolume($"{appPrefix}-redis-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
@@ -35,7 +35,7 @@ var redisConnectionString = ReferenceExpression.Create(
     $"{redisEndpoint.Property(EndpointProperty.HostAndPort)}");
 
 // RedisInsight cache browser (dev-only) sidecar; RI_REDIS_* pre-registers the Valkey connection via the container-network alias "redis".
-builder.AddContainer("redis-insight", "redis/redisinsight", "latest")
+builder.AddContainer("redis-insight", "redis/redisinsight", "3.8.0")
     .WithHttpEndpoint(port: 5540, targetPort: 5540, name: "http")
     .WithEnvironment("RI_REDIS_HOST0", "redis")
     .WithEnvironment("RI_REDIS_PORT0", "6379")
@@ -52,7 +52,7 @@ const string DashboardOrigin = "http://localhost:5174";
 var s3User = builder.AddParameter("rustfs-user", "rustfsadmin");
 var s3Password = builder.AddParameter("rustfs-password", "rustfsadmin", secret: true);
 
-var rustfs = builder.AddContainer("rustfs", "rustfs/rustfs", "1.0.0")
+var rustfs = builder.AddContainer("rustfs", "rustfs/rustfs", "1.0.4")
     .WithHttpEndpoint(port: 9000, targetPort: 9000, name: "api")
     .WithHttpEndpoint(port: 9001, targetPort: 9001, name: "console")
     .WithEnvironment("RUSTFS_ACCESS_KEY", s3User)
@@ -73,7 +73,7 @@ aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket {{S3Bucket}} 2>
 aws --endpoint-url http://rustfs:9000 s3api put-bucket-policy --bucket {{S3Bucket}} --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::{{S3Bucket}}/public/*"]}]}';
 """).ReplaceLineEndings("\n");
 
-var s3Init = builder.AddContainer("rustfs-init", "amazon/aws-cli", "2.37.3")
+var s3Init = builder.AddContainer("rustfs-init", "amazon/aws-cli", "2.39.3")
     .WithEntrypoint("/bin/sh")
     .WithArgs("-c", s3InitScript)
     .WithEnvironment("AWS_ACCESS_KEY_ID", s3User)
