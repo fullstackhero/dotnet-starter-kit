@@ -68,6 +68,28 @@ public sealed class InMemoryEventBusHandlerIsolationTests
         (await act.ShouldThrowAsync<AggregateException>()).InnerExceptions.Count.ShouldBe(2);
     }
 
+    [Fact]
+    public async Task PublishAsync_Should_GiveEachHandlerAFreshScope_So_AFailedHandlersPendingChangesAreNotSavedByTheNext()
+    {
+        // Arrange - both handlers share a scoped "unit of work", like two handlers on one module DbContext.
+        // The first stages a change and throws before saving; the second saves whatever is staged.
+        var saved = new List<string>();
+        var services = new ServiceCollection();
+        services.AddSingleton<IInboxStore>(new RecordingInbox());
+        services.AddSingleton(saved);
+        services.AddScoped<UnitOfWork>();
+        services.AddScoped<IIntegrationEventHandler<TestEvent>, StagesThenThrowsHandler>();
+        services.AddScoped<IIntegrationEventHandler<TestEvent>, SavesStagedHandler>();
+        using var provider = services.BuildServiceProvider();
+        var bus = new InMemoryEventBus(provider, NullLogger<InMemoryEventBus>.Instance, new NullScope());
+
+        // Act
+        await Should.ThrowAsync<InvalidOperationException>(() => bus.PublishAsync(new TestEvent()));
+
+        // Assert - the second handler ran in its own scope, so the failed handler's staged change was dropped.
+        saved.ShouldBe(["saved-by-second"]);
+    }
+
     private static ServiceProvider BuildProvider(IInboxStore inbox, params IIntegrationEventHandler<TestEvent>[] handlers)
     {
         var services = new ServiceCollection();
@@ -125,6 +147,30 @@ public sealed class InMemoryEventBusHandlerIsolationTests
         public Task HandleAsync(TestEvent @event, CancellationToken ct = default)
         {
             Calls++;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class UnitOfWork
+    {
+        public List<string> Staged { get; } = [];
+    }
+
+    private sealed class StagesThenThrowsHandler(UnitOfWork work) : IIntegrationEventHandler<TestEvent>
+    {
+        public Task HandleAsync(TestEvent @event, CancellationToken ct = default)
+        {
+            work.Staged.Add("partial-from-failed-handler");
+            throw new InvalidOperationException("failed before saving");
+        }
+    }
+
+    private sealed class SavesStagedHandler(UnitOfWork work, List<string> saved) : IIntegrationEventHandler<TestEvent>
+    {
+        public Task HandleAsync(TestEvent @event, CancellationToken ct = default)
+        {
+            work.Staged.Add("saved-by-second");
+            saved.AddRange(work.Staged);
             return Task.CompletedTask;
         }
     }
