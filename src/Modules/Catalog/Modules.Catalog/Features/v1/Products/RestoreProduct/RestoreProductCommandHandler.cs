@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,8 @@ public sealed class RestoreProductCommandHandler(CatalogDbContext dbContext)
             .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Product {command.ProductId} not found.");
+            ?? throw new NotFoundException($"Product {command.ProductId} not found.")
+                .Localized<CatalogResources>("Catalog.ProductNotFound", command.ProductId);
 
         product.Restore();
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

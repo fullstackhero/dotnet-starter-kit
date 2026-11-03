@@ -175,6 +175,9 @@
   <data name="Validation.PageNumberMinimum" xml:space="preserve">
     <value>Page number must be greater than or equal to 1.</value>
   </data>
+  <data name="Validation.PageNumberRange" xml:space="preserve">
+    <value>Page number must be between 1 and {0}.</value>
+  </data>
   <data name="Validation.PageSizeMinimum" xml:space="preserve">
     <value>Page size must be greater than or equal to 1.</value>
   </data>

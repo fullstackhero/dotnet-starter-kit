@@ -40,6 +40,13 @@ export default defineConfig({
     navigationTimeout: 15_000,
   },
 
+  // Assertions get the same budget as actions. Left at the 5s default they were
+  // the tightest deadline in the suite — every test ends in a toBeVisible, and
+  // under CPU contention (a second suite running, a loaded dev server) the first
+  // paint of a lazy route lands past 5s while staying well inside the action and
+  // navigation budgets. That asymmetry, not the specs, is what made runs flaky.
+  expect: { timeout: 10_000 },
+
   projects: [
     {
       name: "chromium",

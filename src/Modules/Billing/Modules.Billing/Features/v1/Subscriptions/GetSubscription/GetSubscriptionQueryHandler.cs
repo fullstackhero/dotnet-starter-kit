@@ -19,7 +19,7 @@ public sealed class GetSubscriptionQueryHandler(
         ArgumentNullException.ThrowIfNull(query);
 
         var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
+            ?? throw new UnauthorizedException("Tenant context is required.").Localized("Error.TenantContextRequired");
 
         // BillingDbContext is not tenant-filtered, so a tenant caller is pinned to its OWN
         // subscription and only root may pass an arbitrary tenant id (else cross-tenant reads).

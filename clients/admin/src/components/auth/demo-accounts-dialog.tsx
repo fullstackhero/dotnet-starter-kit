@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 import {
   Dialog,
@@ -26,6 +27,7 @@ interface DemoAccountsDialogProps {
 }
 
 export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsDialogProps) {
+  const { t } = useTranslation("auth");
   // Nothing to reset on re-open (single account list, no tenant rail).
   useEffect(() => {}, [open]);
 
@@ -37,9 +39,9 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="overflow-hidden rounded-2xl border-border/70 p-0 sm:max-w-[480px]">
-        <DialogTitle className="sr-only">Demo accounts</DialogTitle>
+        <DialogTitle className="sr-only">{t("demo.dialogTitle")}</DialogTitle>
         <DialogDescription className="sr-only">
-          Pick a demo account to sign in to the admin console.
+          {t("demo.dialogDescription")}
         </DialogDescription>
 
         {/* Atmospheric gradient wash */}
@@ -60,14 +62,14 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
               <span className="relative inline-flex size-1.5 rounded-full bg-[var(--color-primary)]" />
             </span>
             <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-[oklch(from_var(--color-primary)_l_c_h_/_0.85)]">
-              Dev · demo
+              {t("demo.badge")}
             </span>
           </div>
           <h2 className="font-display text-[20px] font-semibold leading-[1.15] tracking-[-0.01em] text-[var(--color-foreground)]">
-            Sign in as operator.
+            {t("demo.title")}
           </h2>
           <p className="mt-1.5 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]/80">
-            Tap an account below — we'll fill the credentials and sign you in instantly.
+            {t("demo.subtitle")}
           </p>
         </header>
 
@@ -75,11 +77,11 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
         <div className="relative border-t border-[var(--color-border)]/60 bg-[var(--color-background)]/30 px-4 py-3">
           <div className="mb-2 flex items-baseline gap-2 px-2">
             <span className="font-mono text-[9.5px] font-semibold uppercase tabular-nums tracking-[0.18em] text-[oklch(from_var(--color-primary)_l_c_h_/_0.55)]">
-              Operator accounts
+              {t("demo.operatorAccounts")}
             </span>
             <div className="relative top-[-2px] h-px flex-1 bg-[var(--color-border)]/70" />
             <span className="font-mono text-[9.5px] uppercase tracking-[0.15em] text-[var(--color-muted-foreground)]/50">
-              tap to sign in
+              {t("demo.tapToSignIn")}
             </span>
           </div>
 
@@ -100,9 +102,9 @@ export function DemoAccountsDialog({ open, onOpenChange, onPick }: DemoAccountsD
           <p className="flex items-center gap-1.5 text-[10.5px] text-[var(--color-muted-foreground)]/60">
             <ShieldCheck className="size-3 shrink-0" />
             <span>
-              <span className="font-mono text-[var(--color-muted-foreground)]/80">dev only</span>
+              <span className="font-mono text-[var(--color-muted-foreground)]/80">{t("demo.devOnly")}</span>
               <span className="mx-2 text-[var(--color-muted-foreground)]/30">·</span>
-              Not visible in production.
+              {t("demo.notVisibleInProduction")}
             </span>
           </p>
           <kbd className="hidden items-center gap-1 rounded border border-[var(--color-border)]/60 bg-[var(--color-background)]/60 px-1.5 py-0.5 font-mono text-[9.5px] text-[var(--color-muted-foreground)]/60 sm:inline-flex">

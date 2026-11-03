@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -61,6 +62,7 @@ export function AuditDetailSheetBody({
   auditId: string | null;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("audits");
   const query = useQuery({
     queryKey: ["audits", auditId],
     queryFn: () => getAudit(auditId!),
@@ -80,16 +82,16 @@ export function AuditDetailSheetBody({
           </span>
           <div>
             <div className="text-[13px] font-semibold leading-tight tracking-tight text-[var(--color-foreground)]">
-              {event ? `${formatEventType(event.eventType)} event` : "Audit event"}
+              {event ? t("detail.eventTitle", { type: formatEventType(event.eventType) }) : t("detail.eventFallback")}
             </div>
             <div className="mt-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-              {event ? formatTimestamp(event.occurredAtUtc) : "Loading…"}
+              {event ? formatTimestamp(event.occurredAtUtc) : t("detail.loadingTs")}
             </div>
           </div>
         </div>
         <button
           type="button"
-          aria-label="Close"
+          aria-label={t("detail.close")}
           onClick={onClose}
           className={cn(
             "grid h-7 w-7 shrink-0 place-items-center rounded-md",
@@ -106,7 +108,7 @@ export function AuditDetailSheetBody({
       <div className="min-h-0 flex-1 overflow-y-auto">
         {query.isLoading && !event && (
           <div className="p-6">
-            <LoadingRow label="Loading event" />
+            <LoadingRow label={t("detail.loadingRow")} />
           </div>
         )}
 
@@ -116,7 +118,7 @@ export function AuditDetailSheetBody({
               message={
                 query.error instanceof ApiRequestError
                   ? query.error.problem?.detail ?? query.error.message
-                  : "Failed to load event."
+                  : t("detail.loadError")
               }
             />
           </div>
@@ -140,12 +142,13 @@ export function AuditDetailSheetBody({
 // ─────────────────────────────────────────────────────────────────────────
 
 function IdentityBand({ event }: { event: AuditDetailDto }) {
+  const { t } = useTranslation("audits");
   const sev = severityTone(event.severity);
   const eventLabel = formatEventType(event.eventType);
   return (
-    <div className="px-6 py-4" aria-label="Event identity">
+    <div className="px-6 py-4" aria-label={t("detail.identity")}>
       <div className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-        Identity
+        {t("detail.identity")}
       </div>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <Badge
@@ -162,7 +165,7 @@ function IdentityBand({ event }: { event: AuditDetailDto }) {
         </Badge>
         {event.source && (
           <span className="min-w-0 truncate font-mono text-[12px] text-[var(--color-muted-foreground)]">
-            <span className="opacity-60">source · </span>
+            <span className="opacity-60">{t("detail.sourceLabel")}</span>
             <span className="text-[var(--color-foreground)]">{event.source}</span>
           </span>
         )}
@@ -179,11 +182,12 @@ function IdentityBand({ event }: { event: AuditDetailDto }) {
 // ─────────────────────────────────────────────────────────────────────────
 
 function CorrelationBand({ event }: { event: AuditDetailDto }) {
+  const { t } = useTranslation("audits");
   const slots: Array<{ label: string; value: string | null | undefined }> = [
-    { label: "Trace id", value: event.traceId },
-    { label: "Span id", value: event.spanId },
-    { label: "Correlation id", value: event.correlationId },
-    { label: "Request id", value: event.requestId },
+    { label: t("detail.field.traceId"), value: event.traceId },
+    { label: t("detail.field.spanId"), value: event.spanId },
+    { label: t("detail.field.correlationId"), value: event.correlationId },
+    { label: t("detail.field.requestId"), value: event.requestId },
   ];
 
   return (
@@ -191,10 +195,10 @@ function CorrelationBand({ event }: { event: AuditDetailDto }) {
       <div className="mb-2 flex items-center gap-1.5">
         <Fingerprint className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
         <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-          Correlation
+          {t("detail.correlation")}
         </span>
         <span className="ml-1 text-[10.5px] text-[var(--color-muted-foreground)]">
-          — paste into your observability stack
+          {t("detail.correlationHint")}
         </span>
       </div>
       <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
@@ -207,6 +211,7 @@ function CorrelationBand({ event }: { event: AuditDetailDto }) {
 }
 
 function CorrelationChip({ label, value }: { label: string; value: string | null }) {
+  const { t } = useTranslation("audits");
   const [copied, setCopied] = useState(false);
   const hasValue = Boolean(value && value !== "—");
 
@@ -232,7 +237,7 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
           ? "hover:bg-[var(--color-muted)]/50"
           : "opacity-60",
       )}
-      aria-label={hasValue ? `Copy ${label}` : `${label} not available`}
+      aria-label={hasValue ? t("detail.copy", { label }) : t("detail.notAvailable", { label })}
     >
       <div className="min-w-0 flex-1 space-y-0.5">
         <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
@@ -263,6 +268,7 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
 // ─────────────────────────────────────────────────────────────────────────
 
 function ContextGrid({ event }: { event: AuditDetailDto }) {
+  const { t } = useTranslation("audits");
   const userLine = event.userName
     ? `${event.userName} (${event.userId})`
     : event.userId ?? "—";
@@ -270,12 +276,12 @@ function ContextGrid({ event }: { event: AuditDetailDto }) {
   const tags = renderTagsInline(event.tags as number);
 
   const tiles: Array<{ label: string; value: React.ReactNode; mono?: boolean }> = [
-    { label: "Occurred at", value: formatTimestamp(event.occurredAtUtc), mono: true },
-    { label: "Received at", value: formatTimestamp(event.receivedAtUtc), mono: true },
-    { label: "Tenant", value: event.tenantId ?? "—", mono: true },
-    { label: "User", value: userLine, mono: true },
-    { label: "Source", value: event.source ?? "—", mono: true },
-    { label: "Tags", value: tags },
+    { label: t("detail.tile.occurredAt"), value: formatTimestamp(event.occurredAtUtc), mono: true },
+    { label: t("detail.tile.receivedAt"), value: formatTimestamp(event.receivedAtUtc), mono: true },
+    { label: t("detail.tile.tenant"), value: event.tenantId ?? "—", mono: true },
+    { label: t("detail.tile.user"), value: userLine, mono: true },
+    { label: t("detail.tile.source"), value: event.source ?? "—", mono: true },
+    { label: t("detail.tile.tags"), value: tags },
   ];
 
   return (
@@ -283,7 +289,7 @@ function ContextGrid({ event }: { event: AuditDetailDto }) {
       <div className="mb-2 flex items-center gap-1.5">
         <AlertTriangle className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
         <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-          Context
+          {t("detail.context")}
         </span>
       </div>
       <div
@@ -329,6 +335,7 @@ function FactTile({
 // ─────────────────────────────────────────────────────────────────────────
 
 function PayloadPanel({ payload }: { payload: unknown }) {
+  const { t } = useTranslation("audits");
   const json = useMemo(() => JSON.stringify(payload ?? null, null, 2), [payload]);
   const [copied, setCopied] = useState(false);
 
@@ -350,20 +357,20 @@ function PayloadPanel({ payload }: { payload: unknown }) {
         <div className="flex items-center gap-1.5">
           <FileText className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
           <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            Payload
+            {t("detail.payload")}
           </span>
           <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
-            · {lineCount} lines
+            {t("detail.payloadLines", { count: lineCount })}
           </span>
         </div>
         <Button variant="ghost" size="sm" onClick={copy} className="h-6 px-2 text-[11px]">
           {copied ? (
             <>
-              <ClipboardCheck className="mr-1 h-3 w-3" /> Copied
+              <ClipboardCheck className="mr-1 h-3 w-3" /> {t("detail.copied")}
             </>
           ) : (
             <>
-              <Copy className="mr-1 h-3 w-3" /> Copy
+              <Copy className="mr-1 h-3 w-3" /> {t("detail.copyShort")}
             </>
           )}
         </Button>

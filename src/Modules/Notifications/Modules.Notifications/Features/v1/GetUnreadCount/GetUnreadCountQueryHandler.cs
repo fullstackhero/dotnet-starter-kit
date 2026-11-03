@@ -16,7 +16,10 @@ public sealed class GetUnreadCountQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(query);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty)
+        {
+            throw new UnauthorizedException("no current user").Localized("Error.NoCurrentUser");
+        }
         var currentUserId = userId.ToString();
 
         return await db.Notifications.AsNoTracking()

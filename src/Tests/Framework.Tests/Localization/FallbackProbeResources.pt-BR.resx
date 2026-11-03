@@ -15,4 +15,7 @@
   <data name="Probe.Translated" xml:space="preserve">
     <value>Traduzido em português</value>
   </data>
+  <data name="Probe.ItemNotFound" xml:space="preserve">
+    <value>Item {0} não foi encontrado</value>
+  </data>
 </root>

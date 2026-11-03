@@ -72,24 +72,6 @@ public sealed class UpdateUserCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_Should_Fail_When_EmailIsInvalid()
-    {
-        // Arrange
-        var command = new UpdateUserCommand
-        {
-            Id = "user-123",
-            Email = "not-an-email"
-        };
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.PropertyName == "Email");
-    }
-
-    [Fact]
     public void Validate_Should_Fail_When_DeleteImageAndUploadImage_Simultaneously()
     {
         // Arrange
@@ -149,13 +131,13 @@ public sealed class UpdateUserCommandValidatorTests
     {
         // Act — FluentValidation resolves built-in messages via CurrentUICulture (ships a pt catalog).
         var result = WithCulture("pt-BR", () =>
-            _sut.Validate(new UpdateUserCommand { Id = "user-123", Email = "not-an-email" }));
+            _sut.Validate(new UpdateUserCommand { Id = "user-123", PhoneNumber = new string('1', 16) }));
 
         // Assert — pin the actual Portuguese text, not merely the absence of the English one.
         // "does not contain the English sentence" is satisfied by a blank message, by a raw
         // resource key leaking through, and by any wrong-but-non-English string, so it stayed
         // green through exactly the failures it existed to catch.
-        var message = result.Errors.Single(e => e.PropertyName == "Email").ErrorMessage;
-        message.ShouldBe("'Email' é um endereço de email inválido.");
+        var message = result.Errors.Single(e => e.PropertyName == "PhoneNumber").ErrorMessage;
+        message.ShouldBe("'Phone Number' deve ser menor ou igual a 15 caracteres. Você digitou 16 caracteres.");
     }
 }

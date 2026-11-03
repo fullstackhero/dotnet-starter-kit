@@ -3,6 +3,7 @@ using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Tickets.Contracts.v1.Tickets;
 using FSH.Modules.Tickets.Data;
+using FSH.Modules.Tickets.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,8 @@ public sealed class AddTicketCommentCommandHandler(
             throw new CustomException(
                 "Cannot post a comment without an authenticated author.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Unauthorized);
+                HttpStatusCode.Unauthorized)
+                .Localized<TicketsResources>("Tickets.CommentAuthorRequired");
         }
 
         // Load the Comments collection up front so EF's change tracker detects the new TicketComment
@@ -32,7 +34,8 @@ public sealed class AddTicketCommentCommandHandler(
             .Include(t => t.Comments)
             .FirstOrDefaultAsync(t => t.Id == command.TicketId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Ticket {command.TicketId} not found.");
+            ?? throw new NotFoundException($"Ticket {command.TicketId} not found.")
+                .Localized<TicketsResources>("Tickets.TicketNotFound", command.TicketId);
 
         var commentId = ticket.AddComment(authorId, command.Body);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

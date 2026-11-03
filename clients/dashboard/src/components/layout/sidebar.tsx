@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ChevronDown,
   PanelLeftClose,
@@ -44,6 +45,7 @@ function useCollapsedSidebar() {
 }
 
 export function Sidebar() {
+  const { t } = useTranslation("common");
   const { collapsed, toggle } = useCollapsedSidebar();
   const location = useLocation();
 
@@ -73,7 +75,7 @@ export function Sidebar() {
   return (
     <aside
       data-collapsed={collapsed || undefined}
-      aria-label="Primary navigation"
+      aria-label={t("nav.primary")}
       className={cn(
         "hidden shrink-0 flex-col border-r border-[var(--color-border)]",
         "bg-[oklch(from_var(--color-card)_l_c_h_/_0.85)] backdrop-blur-xl backdrop-saturate-150 md:flex",
@@ -104,7 +106,7 @@ export function Sidebar() {
                 fullstack<span className="text-[var(--color-primary)]">hero</span>
               </span>
               <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
-                Dashboard
+                {t("brand.dashboard")}
               </span>
             </div>
           )}
@@ -114,9 +116,9 @@ export function Sidebar() {
           <button
             type="button"
             onClick={toggle}
-            aria-label="Collapse sidebar"
+            aria-label={t("sidebar.collapse")}
             aria-expanded={!collapsed}
-            title="Collapse sidebar"
+            title={t("sidebar.collapse")}
             className={cn(
               "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
               "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -146,9 +148,9 @@ export function Sidebar() {
           <button
             type="button"
             onClick={toggle}
-            aria-label="Expand sidebar"
+            aria-label={t("sidebar.expand")}
             aria-expanded={false}
-            title="Expand sidebar"
+            title={t("sidebar.expand")}
             className={cn(
               "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
               "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -287,6 +289,7 @@ function AccordionSection({
   onToggle: () => void;
   onNavigate?: () => void;
 }) {
+  const { t } = useTranslation("common");
   const SectionIcon = section.icon;
   return (
     <div
@@ -326,7 +329,7 @@ function AccordionSection({
         )}
       >
         <SectionIcon className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="flex-1 truncate">{section.caption}</span>
+        <span className="flex-1 truncate">{t(section.captionKey)}</span>
         <ChevronDown
           aria-hidden
           className={cn(
@@ -395,15 +398,17 @@ function NavItemLink({
    *  itself once the user navigates somewhere. */
   onNavigate?: () => void;
 }) {
+  const { t } = useTranslation("common");
   const Icon = item.icon;
+  const label = t(item.labelKey);
   return (
     <NavLink
       to={item.to}
       end={item.to === "/"}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
       // When collapsed the text label is hidden, so the icon-only link needs
       // an explicit accessible name (title alone is the weakest AT signal).
-      aria-label={collapsed ? item.label : undefined}
+      aria-label={collapsed ? label : undefined}
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
@@ -432,7 +437,7 @@ function NavItemLink({
           <Icon className="h-4 w-4 shrink-0" />
 
           {!collapsed && (
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap">{label}</span>
           )}
 
           {/* Tooltip in collapsed mode — surfaces on hover OR keyboard
@@ -450,7 +455,7 @@ function NavItemLink({
                 "group-hover/nav:opacity-100 group-focus-visible/nav:opacity-100",
               )}
             >
-              {item.label}
+              {label}
             </span>
           )}
         </>

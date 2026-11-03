@@ -1,14 +1,16 @@
 using FluentValidation;
+using FSH.Framework.Core.Localization;
 using FSH.Framework.Web.Validation;
 using FSH.Modules.Identity.Contracts.v1.Users.SearchUsers;
+using Microsoft.Extensions.Localization;
 
 namespace FSH.Modules.Identity.Features.v1.Users.SearchUsers;
 
 public sealed class SearchUsersQueryValidator : AbstractValidator<SearchUsersQuery>
 {
-    public SearchUsersQueryValidator()
+    public SearchUsersQueryValidator(IStringLocalizer<SharedResources> localizer)
     {
-        Include(new PagedQueryValidator<SearchUsersQuery>());
+        Include(new PagedQueryValidator<SearchUsersQuery>(localizer));
 
         RuleFor(q => q.Search)
             .MaximumLength(200)

@@ -20,7 +20,7 @@ public sealed class GetMyWalletQueryHandler(
 
         // BillingDbContext is not tenant-filtered; resolve caller's own tenant and scope strictly to it.
         var tenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
+            ?? throw new UnauthorizedException("Tenant context is required.").Localized("Error.TenantContextRequired");
 
         var wallet = await billingService.GetOrCreateWalletAsync(tenantId, "USD", cancellationToken).ConfigureAwait(false);
         return wallet.ToDto();

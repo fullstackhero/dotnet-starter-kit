@@ -1,0 +1,536 @@
+import { expect, test } from "@playwright/test";
+import {
+  IMPERSONATED_USER,
+  OPERATOR_ACTOR,
+  seedAuthedSession,
+  seedImpersonationSession,
+  TEST_USER,
+} from "../helpers/auth-seed";
+import { installShellMocks } from "../helpers/shell-mocks";
+
+// Task 10 — the topbar language switcher. Switching to Português must:
+//  (a) localize the UI in place (the "Language" section label becomes "Idioma"),
+//  (b) PUT the chosen locale to /identity/profile with the name preserved
+//      (a locale-only save must not wipe FirstName/LastName), and
+//  (c) trigger a token refresh so the new `locale` JWT claim is minted.
+
+/** Minimal decodable JWT for the refreshed session (auth-context decodes it). */
+function fakeJwt(payload: Record<string, unknown>): string {
+  const b64url = (obj: unknown) =>
+    btoa(JSON.stringify(obj)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+  return [b64url({ alg: "HS256", typ: "JWT" }), b64url(payload), "sig"].join(".");
+}
+
+test.beforeEach(async ({ page }) => {
+  await seedAuthedSession(page, TEST_USER);
+  await installShellMocks(page);
+});
+
+test.describe("language switcher", () => {
+  test("switching to Português localizes the UI, persists the locale and refreshes the token", async ({
+    page,
+  }) => {
+    // Accumulated rather than held in a `let`: TS narrows a nullable local that is
+    // only assigned inside a callback down to `null` at the assertion site, which
+    // makes every property read an error.
+    const putBodies: Array<{ locale?: string; firstName?: string; lastName?: string }> = [];
+    let refreshCalled = false;
+
+    // GET returns the current (en-US) profile with a name so we can assert it is
+    // preserved; PUT captures the body. Registered AFTER installShellMocks so
+    // this handler wins (LIFO) over the default profile stub. updateMyProfile
+    // itself issues a GET before the PUT, so both methods route through here.
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const method = route.request().method();
+      if (method === "PUT") {
+        putBodies.push(route.request().postDataJSON());
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      if (method === "GET") {
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: "u-test-1",
+            firstName: "Alice",
+            lastName: "Nguyen",
+            phoneNumber: "",
+            email: "alice@acme.com",
+            isActive: true,
+            emailConfirmed: true,
+            locale: "en-US",
+          }),
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    // The onSuccess token refresh — capture the call and return a fresh session
+    // carrying the new locale claim so the auth context stays valid.
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      refreshCalled = true;
+      const token = fakeJwt({
+        sub: "u-test-1",
+        email: TEST_USER.email,
+        name: "Alice Nguyen",
+        tenant: "acme",
+        locale: "pt-BR",
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+      });
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, refreshToken: "fresh-refresh-token" }),
+      });
+    });
+
+    await page.goto("/");
+
+    // Open the profile dropdown, then the (default en-US) language section.
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await expect(page.getByText("Language", { exact: true })).toBeVisible();
+
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    // (b) the chosen locale was persisted, name preserved (no data loss). Poll
+    // the captured body: the route handler that assigns it runs asynchronously.
+    await expect.poll(() => putBodies[0]?.locale).toBe("pt-BR");
+    expect(putBodies[0]?.firstName).toBe("Alice");
+    expect(putBodies[0]?.lastName).toBe("Nguyen");
+
+    // (a) the section label localized in place (menu kept open on select).
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+
+    // (c) the token refresh fired to re-mint the locale claim.
+    await expect.poll(() => refreshCalled).toBe(true);
+  });
+
+  // Regression (data-loss): the PUT body must be built from a fresh server read
+  // inside updateMyProfile, NOT from the topbar's ["identity","profile"] query
+  // snapshot. If that query is still pending (or failed) when the user switches
+  // language, the old code sent firstName/lastName = undefined and the backend
+  // wiped the name. We gate every GET so the profile is provably NOT loaded in
+  // the component at click time, then release it and assert the PUT still
+  // carries the name.
+  test("preserves firstName/lastName even when the profile query has not loaded", async ({
+    page,
+  }) => {
+    // A gate held closed until we've already clicked the language item, so at
+    // click time no GET has resolved — profile.data in the topbar is undefined.
+    let releaseGet: () => void = () => {};
+    const getGate = new Promise<void>((resolve) => {
+      releaseGet = resolve;
+    });
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const method = route.request().method();
+      if (method === "PUT") {
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      if (method === "GET") {
+        await getGate;
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: "u-test-1",
+            firstName: "Alice",
+            lastName: "Nguyen",
+            phoneNumber: "",
+            email: "alice@acme.com",
+            isActive: true,
+            emailConfirmed: true,
+            locale: "en-US",
+          }),
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      const token = fakeJwt({
+        sub: "u-test-1",
+        email: TEST_USER.email,
+        name: "Alice Nguyen",
+        tenant: "acme",
+        locale: "pt-BR",
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+      });
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, refreshToken: "fresh-refresh-token" }),
+      });
+    });
+
+    await page.goto("/");
+
+    // The dropdown and language list render from i18n/SUPPORTED, not the profile,
+    // so the menu is usable while the (gated) profile GET is still pending.
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await expect(page.getByText("Language", { exact: true })).toBeVisible();
+
+    const putRequest = page.waitForRequest(
+      (r) => r.url().includes("/api/v1/identity/profile") && r.method() === "PUT",
+    );
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    // Only now let the profile reads resolve: updateMyProfile's own GET feeds the PUT.
+    releaseGet();
+    // Read the body straight off the resolved request (race-free — waitForRequest
+    // fires on dispatch, before the route handler would have captured anything).
+    const putBody = (await putRequest).postDataJSON() as {
+      locale?: string;
+      firstName?: string;
+      lastName?: string;
+    };
+
+    expect(putBody.locale).toBe("pt-BR");
+    expect(putBody.firstName).toBe("Alice");
+    expect(putBody.lastName).toBe("Nguyen");
+  });
+
+  // Regression (silent data change): Identity compares the incoming phone number to the stored one
+  // with a plain string compare and calls SetPhoneNumberAsync on any difference, which clears
+  // PhoneNumberConfirmed. The switcher sends a whole profile, so the phone it echoes has to be the
+  // one the server just gave it, unchanged - "" and null are not interchangeable here, and neither
+  // is a trimmed variant. Nothing asserted that, so a normalization added anywhere on this path
+  // would un-confirm a verified phone number for choosing a language, with no error and no log.
+  for (const stored of [null, "", "+1 555 0142"] as const) {
+    test(`echoes the stored phone number (${JSON.stringify(stored)}) unchanged on a language switch`, async ({
+      page,
+    }) => {
+      await page.route("**/api/v1/identity/profile", async (route) => {
+        if (route.request().method() === "PUT") {
+          await route.fulfill({ status: 200 });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: TEST_USER.sub,
+            userName: "alice",
+            email: TEST_USER.email,
+            firstName: TEST_USER.firstName,
+            lastName: TEST_USER.lastName,
+            phoneNumber: stored,
+            isActive: true,
+            emailConfirmed: true,
+            locale: "en-US",
+          }),
+        });
+      });
+      await page.route("**/api/v1/identity/token/refresh", (route) =>
+        route.fulfill({ status: 500, body: "" }),
+      );
+
+      await page.goto("/");
+      await page.getByRole("button", { name: /open profile menu/i }).click();
+
+      const putRequest = page.waitForRequest(
+        (r) => r.url().includes("/api/v1/identity/profile") && r.method() === "PUT",
+      );
+      await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+      const putBody = (await putRequest).postDataJSON() as { phoneNumber?: string | null };
+
+      expect(putBody.phoneNumber).toBe(stored);
+    });
+  }
+
+  // PUT /identity/profile answers 412 on a stale If-Match, and every save rotates the stamp. The
+  // switch must therefore (a) send the tag of the read its body was built from, and (b) refetch
+  // the shared profile query afterwards: otherwise the cache keeps the spent tag, and Settings >
+  // Profile, which seeds from that cache, fails its first save with "changed elsewhere".
+  test("sends If-Match from its own read and refreshes the cached tag after the save", async ({
+    page,
+  }) => {
+    let stamp = 1;
+    const sentIfMatch: string[] = [];
+    let getsAfterPut = 0;
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const request = route.request();
+      if (request.method() === "PUT") {
+        sentIfMatch.push(request.headers()["if-match"] ?? "");
+        stamp += 1;
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      if (sentIfMatch.length > 0) getsAfterPut += 1;
+      await route.fulfill({
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Expose-Headers": "ETag",
+          ETag: `"stamp-${stamp}"`,
+        },
+        body: JSON.stringify({
+          id: TEST_USER.sub,
+          email: TEST_USER.email,
+          firstName: TEST_USER.firstName,
+          lastName: TEST_USER.lastName,
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+    await page.route("**/api/v1/identity/token/refresh", (route) =>
+      route.fulfill({ status: 500, body: "" }),
+    );
+
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    await expect.poll(() => sentIfMatch.length).toBe(1);
+    expect(sentIfMatch[0]).toBe('"stamp-1"');
+    await expect.poll(() => getsAfterPut).toBeGreaterThan(0);
+  });
+
+  // The same rotation with Settings > Profile already open: the form was seeded from the pre-switch
+  // read, so unless it adopts the refetched version while it is still clean, its next save carries
+  // the spent tag and tells the user someone else changed the profile, for their own switch.
+  test("a profile form left open across a language switch saves against the post-switch tag", async ({
+    page,
+  }) => {
+    let stamp = 1;
+    const sentIfMatch: string[] = [];
+
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      const request = route.request();
+      if (request.method() === "PUT") {
+        const ifMatch = request.headers()["if-match"] ?? "";
+        sentIfMatch.push(ifMatch);
+        if (ifMatch !== `"stamp-${stamp}"`) {
+          await route.fulfill({
+            status: 412,
+            headers: { "Content-Type": "application/problem+json" },
+            body: JSON.stringify({ status: 412, title: "Precondition Failed", detail: "stale" }),
+          });
+          return;
+        }
+        stamp += 1;
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Expose-Headers": "ETag",
+          ETag: `"stamp-${stamp}"`,
+        },
+        body: JSON.stringify({
+          id: TEST_USER.sub,
+          email: TEST_USER.email,
+          firstName: "Alice",
+          // Differs after the switch only so the test can see the clean form adopt the refetch.
+          lastName: stamp === 1 ? "Nguyen" : "Nguyen-Silva",
+          phoneNumber: "",
+          isActive: true,
+          emailConfirmed: true,
+          locale: stamp === 1 ? "en-US" : "pt-BR",
+        }),
+      });
+    });
+    await page.route("**/api/v1/identity/token/refresh", (route) =>
+      route.fulfill({ status: 500, body: "" }),
+    );
+
+    await page.goto("/settings/profile");
+    await expect(page.locator("#first-name")).toHaveValue("Alice");
+
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+    await expect.poll(() => sentIfMatch.length).toBe(1);
+    await page.keyboard.press("Escape");
+
+    // The switch saved at stamp-1 and moved the server to stamp-2. The clean form adopting the
+    // refetch is visible as the new last name; only then edit and save.
+    await expect(page.locator("#last-name")).toHaveValue("Nguyen-Silva");
+    await page.locator("#first-name").fill("Alicia");
+    await page.locator('form button[type="submit"]').click();
+
+    await expect.poll(() => sentIfMatch.length).toBe(2);
+    expect(sentIfMatch[1]).toBe('"stamp-2"');
+    await expect(page.getByText("Perfil alterado em outro lugar")).toHaveCount(0);
+  });
+});
+
+// Language is the operator's own presentation choice: StartImpersonation strips
+// the target's `locale` claim so the operator keeps reading in their language.
+// /identity/profile is scoped to the impersonated subject, so persisting the
+// switch would write the operator's language onto the target's profile, and
+// hydrating from it would yank the operator into the target's language.
+test.describe("language switcher during impersonation", () => {
+  // Overrides the file-level authed session: the impersonation seed installs an
+  // act_sub token and drops the refresh slot.
+  test.beforeEach(async ({ page }) => {
+    await seedImpersonationSession(page, IMPERSONATED_USER, OPERATOR_ACTOR);
+  });
+
+  test("switches the UI locally without persisting onto the impersonated user", async ({
+    page,
+  }) => {
+    let putSeen = false;
+    let refreshCalled = false;
+
+    // The impersonated user's persisted locale is pt-BR — the operator's UI must
+    // NOT hydrate from it.
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        putSeen = true;
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: IMPERSONATED_USER.sub,
+            firstName: IMPERSONATED_USER.firstName,
+            lastName: IMPERSONATED_USER.lastName,
+            phoneNumber: "",
+            email: IMPERSONATED_USER.email,
+            isActive: true,
+            emailConfirmed: true,
+            locale: "pt-BR",
+          }),
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      refreshCalled = true;
+      await route.fulfill({ status: 500 });
+    });
+
+    await page.goto("/");
+
+    // The target's pt-BR did not leak into the operator's shell.
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await expect(page.getByText("Language", { exact: true })).toBeVisible();
+
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    // The switch still applies client-side…
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    // …but nothing was written to the impersonated user, and no token re-mint
+    // fired (the locale claim belongs to the operator's own session). Both are
+    // negatives about requests that would be issued asynchronously, so they only
+    // mean something once the network has settled: asserted right after the label
+    // flips, they would pass even against code that does persist.
+    await page.waitForLoadState("networkidle");
+    expect(putSeen).toBe(false);
+    expect(refreshCalled).toBe(false);
+  });
+});
+
+// Regression (session loss): the re-mint is speculative, so its failure must stay
+// invisible to the session. Before the fix, refreshAccessToken() cleared the token
+// store on any non-ok response, tokenStore.subscribe pushed setUser(null), and
+// ProtectedRoute redirected to /login — the user lost their session for choosing a
+// language.
+test.describe("language switcher when the token re-mint fails", () => {
+  test("keeps the session and the new language", async ({ page }) => {
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({ status: 200 });
+        return;
+      }
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: "u-test-1",
+            firstName: "Alice",
+            lastName: "Nguyen",
+            phoneNumber: "",
+            email: TEST_USER.email,
+            isActive: true,
+            emailConfirmed: true,
+            locale: "en-US",
+          }),
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    // The refresh token is dead (revoked, rotated by another tab, DB reseeded).
+    let refreshCalled = false;
+    await page.route("**/api/v1/identity/token/refresh", async (route) => {
+      refreshCalled = true;
+      await route.fulfill({
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: 401, title: "Unauthorized" }),
+      });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+
+    await expect.poll(() => refreshCalled).toBe(true);
+    // The redirect this guards against is a client-side route change with no
+    // network of its own, so it cannot be awaited directly; networkidle gives the
+    // failed refresh and everything it triggers time to settle first.
+    await page.waitForLoadState("networkidle");
+
+    expect(new URL(page.url()).pathname).not.toBe("/login");
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => window.localStorage.getItem("fsh.dashboard.accessToken"))).not.toBeNull();
+  });
+});
+
+// The UI switches on click and the save is what can fail. Without an onError the language
+// silently reverts on the next fresh mount, which reads as the app forgetting the choice.
+test.describe("language switcher when the save fails", () => {
+  test("the save failure is surfaced to the user", async ({ page }) => {
+    await page.route("**/api/v1/identity/profile", async (route) => {
+      if (route.request().method() === "PUT") {
+        await route.fulfill({
+          status: 500,
+          headers: { "Content-Type": "application/problem+json" },
+          body: JSON.stringify({ status: 500, title: "Server Error" }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "u-test-1",
+          firstName: "Alice",
+          lastName: "Nguyen",
+          phoneNumber: "",
+          email: TEST_USER.email,
+          isActive: true,
+          emailConfirmed: true,
+          locale: "en-US",
+        }),
+      });
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: /open profile menu/i }).click();
+    await page.getByRole("menuitem", { name: "Português (BR)" }).click();
+    // The switch still applies locally…
+    await expect(page.getByText("Idioma", { exact: true })).toBeVisible();
+    // …and the user is told it did not stick.
+    await expect(page.getByText("Idioma não salvo")).toBeVisible();
+  });
+});

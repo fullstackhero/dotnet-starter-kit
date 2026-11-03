@@ -38,6 +38,7 @@ public static class Extensions
                 .AddOptions<S3StorageOptions>()
                 .Bind(configuration.GetSection("Storage:S3"))
                 .Validate(o => string.IsNullOrWhiteSpace(o.PresignServiceUrl) || IsRootHttpUrl(o.PresignServiceUrl), "Storage:S3:PresignServiceUrl must be an absolute http(s) URL with no path, e.g. https://s3.example.com.")
+                .Validate(o => !PrefixStartsWithVisibilityRoot(o.Prefix), "Storage:S3:Prefix must not start with 'public' or 'private': keys are stored as {Prefix}/public/... and {Prefix}/private/..., and a public/* read policy would then cover private files.")
                 .ValidateOnStart();
 
             services.AddSingleton<IAmazonS3>(sp =>
@@ -108,6 +109,20 @@ public static class Extensions
         && uri.AbsolutePath == "/"
         && string.IsNullOrEmpty(uri.Query)
         && string.IsNullOrEmpty(uri.Fragment);
+
+    // Keys are {Prefix}/{public|private}/…. A prefix whose first segment is itself a visibility root puts
+    // private keys under public/ (or the other way round), where the bucket's public/* read policy applies.
+    private static bool PrefixStartsWithVisibilityRoot(string? prefix)
+    {
+        if (string.IsNullOrWhiteSpace(prefix))
+        {
+            return false;
+        }
+
+        var firstSegment = prefix.Trim().TrimStart('/').Split('/', 2)[0];
+        return string.Equals(firstSegment + "/", StorageVisibilityRoot.Public, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(firstSegment + "/", StorageVisibilityRoot.Private, StringComparison.OrdinalIgnoreCase);
+    }
 
     private static void RegisterStorageService<TInner>(
         IServiceCollection services,

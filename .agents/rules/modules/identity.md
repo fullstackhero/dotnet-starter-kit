@@ -24,6 +24,7 @@ Auth (JWT + ASP.NET Identity), users, roles, permissions, sessions, impersonatio
 ## Hosted services (background)
 
 - `RolePermissionSyncHostedService` — best-effort sync of the permission catalog; loops, catches `Exception` *with* an `OperationCanceledException` filter, logs and continues.
+  The sync is authoritative for the built-in `Basic` and `Admin` roles: it adds missing permissions **and removes revoked ones** (root `Admin` keeps `Root` permissions), logging each removal. `PermissionSyncOptions:RemoveRevoked=false` makes it add-only — use it for hosts that load only some modules. Custom roles are never touched.
 - `SessionCleanupHostedService` — hourly expired-session purge; OCE handled by a preceding catch.
 
 These are the model for background loops: stay alive, log with context, never swallow cancellation. See `api-conventions.md`.

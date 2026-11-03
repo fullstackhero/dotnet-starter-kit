@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Tickets.Contracts.Dtos;
+using FSH.Modules.Tickets.Localization;
 using FSH.Modules.Tickets.Contracts.v1.Tickets;
 using FSH.Modules.Tickets.Data;
 using FSH.Modules.Tickets.Domain;
@@ -25,7 +26,8 @@ public sealed class ListTicketCommentsQueryHandler(TicketsDbContext dbContext)
             .ConfigureAwait(false);
         if (!ticketExists)
         {
-            throw new NotFoundException($"Ticket {query.TicketId} not found.");
+            throw new NotFoundException($"Ticket {query.TicketId} not found.")
+                .Localized<TicketsResources>("Tickets.TicketNotFound", query.TicketId);
         }
 
         var comments = await dbContext.TicketComments

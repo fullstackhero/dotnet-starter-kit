@@ -5,6 +5,7 @@ using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
+using FSH.Modules.Chat.Localization;
 using Mediator;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -21,18 +22,19 @@ public sealed class AddChannelMembersCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty) throw new UnauthorizedException("no current user").Localized("Error.NoCurrentUser");
         var currentUserId = userId.ToString();
 
         var channel = await db.Channels.FirstOrDefaultAsync(c => c.Id == cmd.ChannelId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Channel not found.");
+            ?? throw new NotFoundException("Channel not found.").Localized<ChatResources>("Chat.ChannelNotFound");
 
         // Members can invite to public channels they belong to; private channels require Admin.
         var caller = channel.RequireMember(currentUserId);
         if (channel.IsPrivate && caller.Role != ChannelMemberRole.Admin)
         {
-            throw new ForbiddenException("Only channel admins can add members to private channels.");
+            throw new ForbiddenException("Only channel admins can add members to private channels.")
+                .Localized<ChatResources>("Chat.OnlyAdminsCanAddMembersToPrivateChannel");
         }
 
         var newlyAdded = new List<string>();
