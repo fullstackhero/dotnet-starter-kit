@@ -92,12 +92,24 @@ internal sealed class IdentityDbInitializer(
             await dbContext.RoleClaims.AddAsync(claim, cancellationToken);
         }
 
-        // Save changes to the database context
-        if (newClaims.Count != 0)
+        if (newClaims.Count == 0)
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            return;
         }
 
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return;
+        }
+        catch (DbUpdateException ex) when (RoleClaimUniqueness.IsDuplicateRoleClaim(ex))
+        {
+            // Another writer (the startup permission sync or a second instance) inserted the same grant
+            // first, so the role already holds it. Drop the rejected entries so later saves don't retry them.
+            dbContext.ChangeTracker.Clear();
+        }
+
+        logger.LogRoleClaimsAlreadyInserted(role.Name, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
     }
 
     private async Task SeedSystemGroupsAsync(CancellationToken cancellationToken = default)

@@ -51,6 +51,13 @@ public class ApplicationRoleClaimConfig : IEntityTypeConfiguration<FshRoleClaim>
         builder
             .ToTable("RoleClaims", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
+
+        // One row per grant. ClaimValue is nullable and PostgreSQL treats NULLs as distinct here,
+        // which is fine: a null-valued claim grants nothing and the permission sync removes it.
+        builder
+            .HasIndex(rc => new { rc.RoleId, rc.ClaimType, rc.ClaimValue })
+            .IsUnique()
+            .HasDatabaseName(RoleClaimUniqueness.IndexName);
     }
 }
 

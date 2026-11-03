@@ -52,4 +52,34 @@ public sealed class RolePermissionTests
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task UpdateRolePermissions_Should_Store_A_Repeated_Permission_Once()
+    {
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        var createResponse = await client.PostAsJsonAsync($"{TestConstants.IdentityBasePath}/roles", new
+        {
+            id = string.Empty,
+            name = $"PermRole-{uniqueId}",
+            description = "Role for duplicate permission testing"
+        });
+        var createdRole = await createResponse.DeserializeAsync<RoleDto>();
+
+        // RoleClaims is unique per (RoleId, ClaimType, ClaimValue), so a repeated entry must be collapsed, not a 500.
+        var response = await client.PutAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/{createdRole.Id}/permissions", new
+            {
+                roleId = createdRole.Id,
+                permissions = new[] { "Permissions.AuditTrails.View", "Permissions.AuditTrails.View" }
+            });
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var getResponse = await client.GetAsync($"{TestConstants.IdentityBasePath}/{createdRole.Id}/permissions");
+        var role = await getResponse.DeserializeAsync<RoleDto>();
+        role.Permissions.ShouldNotBeNull();
+        role.Permissions.Count(p => p == "Permissions.AuditTrails.View").ShouldBe(1);
+    }
 }
