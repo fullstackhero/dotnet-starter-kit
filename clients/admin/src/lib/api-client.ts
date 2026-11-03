@@ -46,7 +46,12 @@ export function describeError(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-type RequestInitEx = RequestInit & { skipAuth?: boolean; timeoutMs?: number };
+type RequestInitEx = RequestInit & {
+  skipAuth?: boolean;
+  timeoutMs?: number;
+  /** Sees the final response (after any token refresh) before the body is read, e.g. to capture an ETag. */
+  onResponse?: (response: Response) => void;
+};
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 
@@ -128,7 +133,7 @@ export async function apiFetch<T = unknown>(
   path: string,
   init: RequestInitEx = {},
 ): Promise<T> {
-  const { skipAuth, headers, timeoutMs, signal, ...rest } = init;
+  const { skipAuth, headers, timeoutMs, signal, onResponse, ...rest } = init;
   const effectiveTimeout = timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
   const mergedHeaders = new Headers(headers);
@@ -192,6 +197,8 @@ export async function apiFetch<T = unknown>(
       signal: mergeSignal(signal, effectiveTimeout),
     });
   }
+
+  onResponse?.(response);
 
   if (!response.ok) {
     const problem = await parseError(response);

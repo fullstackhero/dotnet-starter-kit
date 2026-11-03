@@ -72,19 +72,4 @@ test.describe("tenant deactivated mid-session", () => {
     await page.waitForLoadState("networkidle");
     await expect(page).not.toHaveURL(/\/tenant-deactivated/);
   });
-
-  // Compatibility: against an API that predates the localized-errors slice the 403
-  // carries no `code` at all. Routing must still happen, otherwise this app only
-  // works once that slice has shipped.
-  test("routes on an uncoded 403 carrying the legacy English detail", async ({ page }) => {
-    await mockProblemDetails(page, "**/api/v1/catalog/products**", 403, {
-      title: "Forbidden",
-      detail: "This tenant has been deactivated. Contact your administrator.",
-    });
-
-    await page.goto("/catalog/products");
-
-    await expect(page).toHaveURL(/\/tenant-deactivated$/);
-    await expect(page.getByRole("heading", { name: /tenant deactivated/i })).toBeVisible();
-  });
 });

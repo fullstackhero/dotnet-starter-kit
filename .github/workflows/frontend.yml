@@ -151,6 +151,8 @@ jobs:
             # Empty inactivity variables (what compose passes when .env leaves them unset)
             # fall back to the app's built-in timings.
             jq -e --argjson idle "$DEFAULT_IDLE_MS" '.inactivityIdleMs == $idle and .inactivityWarningMs == 60000' config.json
+            # Unset FSH_DEFAULT_LANGUAGE falls back to the bundle's own default.
+            jq -e '.defaultLanguage == "en-US"' config.json
           }
           check
           if curl -fsS http://localhost:8080/config.json.template | grep -qF '${FSH_API_URL}'; then
