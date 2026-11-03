@@ -129,6 +129,11 @@ public class IdentityModule : IModule
         // Tenant subscription grace period (shared "Billing" section) — used by the login expiry check.
         services.Configure<TenantGraceOptions>(builder.Configuration.GetSection(TenantGraceOptions.SectionName));
 
+        services.AddOptions<TwoFactorOptions>()
+            .BindConfiguration(nameof(TwoFactorOptions))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         // Register password history service
         services.AddScoped<IPasswordHistoryService, PasswordHistoryService>();
 

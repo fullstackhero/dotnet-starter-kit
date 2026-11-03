@@ -125,7 +125,7 @@ test.describe("activity (/activity)", () => {
   });
 
   test("without Audit trail access, no audits call and a live-only notice", async ({ page }) => {
-    // installShellMocks grants no permissions ([]).
+    // installShellMocks grants only SHELL_PERMISSIONS, not AuditTrails.View.
     await mockSseOnce(page);
     const audits = countAuditCalls(page);
 

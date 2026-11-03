@@ -57,7 +57,7 @@ test.describe("overview (/)", () => {
     await expect(page.getByText(/no usage captured yet/i)).toBeVisible();
   });
 
-  // GET /audits requires AuditTrails.View; installShellMocks grants no permissions.
+  // GET /audits requires AuditTrails.View; installShellMocks does not grant it.
   test("recent audits: without Audit trail access, no /audits call and a no-access state", async ({ page }) => {
     let auditCalls = 0;
     page.on("request", (req) => {
@@ -151,6 +151,15 @@ test.describe("overview (/)", () => {
         expect(tile.descriptionLines, `${tile.title} description at ${width}px`).toBeLessThanOrEqual(2);
       }
     }
+  });
+
+  test("first-run panel welcomes the tenant by its name, not its identifier", async ({ page }) => {
+    // No subscription → first-run panel. The shell mock's status says tenant
+    // "acme" is named "Acme Corp"; the JWT only carries the identifier.
+    await mockJsonResponse(page, "**/api/v1/billing/subscriptions/me**", null);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Welcome to Acme Corp" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Welcome to acme", exact: true })).toHaveCount(0);
   });
 
   test("Valid-for card reflects an in-grace tenant", async ({ page }) => {
