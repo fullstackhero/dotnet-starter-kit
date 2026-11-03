@@ -9,6 +9,7 @@ import {
   markNotificationRead,
   type NotificationDto,
 } from "@/api/notifications";
+import { useAuth } from "@/auth/use-auth";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
 import {
   DropdownMenu,
@@ -25,7 +26,13 @@ import { cn } from "@/lib/cn";
  * NotificationCreated event lands, we patch cache so the badge updates
  * without a refetch.
  */
+// GET /notifications/unread-count requires this; without it every poll is a 403.
+const INBOX_VIEW_PERMISSION = "Permissions.Notifications.Inbox.View";
+
 export function NotificationBell() {
+  const { user, permissionsHydrated } = useAuth();
+  const canViewInbox =
+    permissionsHydrated && (user?.permissions.includes(INBOX_VIEW_PERMISSION) ?? false);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -33,6 +40,7 @@ export function NotificationBell() {
   const unreadQuery = useQuery({
     queryKey: ["notifications", "unread-count"],
     queryFn: getUnreadCount,
+    enabled: canViewInbox,
     staleTime: 30_000,
   });
 
@@ -83,6 +91,8 @@ export function NotificationBell() {
       navigate(n.link);
     }
   };
+
+  if (!canViewInbox) return null;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
