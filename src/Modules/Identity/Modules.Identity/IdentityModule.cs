@@ -87,6 +87,7 @@ public class IdentityModule : IModule
             FSH.Modules.Identity.Contracts.Authorization.IdentityPermissions.All);
 
         var services = builder.Services;
+        services.Configure<PermissionSyncOptions>(builder.Configuration.GetSection(PermissionSyncOptions.SectionName));
         services.AddScoped<RolePermissionSyncer>();
         services.AddHostedService<RolePermissionSyncHostedService>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
