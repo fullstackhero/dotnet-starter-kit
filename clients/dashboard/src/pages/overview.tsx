@@ -563,6 +563,9 @@ function recentEventTypeIcon(eventType: AuditEventType): React.ComponentType<{ c
 /** Mirrors the permission GET /api/v1/audits enforces server-side. */
 const AUDIT_VIEW_PERMISSION = "Permissions.AuditTrails.View";
 
+/** Mirrors the permission GET /api/v1/billing/usage enforces server-side. */
+const BILLING_VIEW_PERMISSION = "Permissions.Billing.View";
+
 function RecentAuditsSkeleton() {
   return (
     <ul className="space-y-2.5">
@@ -972,12 +975,16 @@ export function OverviewPage() {
   // hold it, so everyone else gets a quiet no-access state instead of a 403.
   const canViewAudits =
     permissionsHydrated && (user?.permissions.includes(AUDIT_VIEW_PERMISSION) ?? false);
+  // Same for GET /billing/usage and Billing.View.
+  const canViewUsage =
+    permissionsHydrated && (user?.permissions.includes(BILLING_VIEW_PERMISSION) ?? false);
   const { status: sseStatus, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
   const usage = useQuery({
     queryKey: ["billing", "usage"],
     queryFn: () => getUsageSnapshots(),
+    enabled: canViewUsage,
     staleTime: 60_000,
   });
 
@@ -1029,7 +1036,8 @@ export function OverviewPage() {
 
   const refreshing = usage.isFetching || subscription.isFetching || status.isFetching;
   const onRefresh = () => {
-    void usage.refetch();
+    // refetch() bypasses `enabled`, so it needs the same gate.
+    if (canViewUsage) void usage.refetch();
     void subscription.refetch();
     void status.refetch();
   };
@@ -1046,7 +1054,9 @@ export function OverviewPage() {
   const firstName = (user?.name ?? user?.email?.split("@")[0] ?? "operator")
     .toString()
     .split(" ")[0];
-  const tenantLabel = user?.tenant ?? "your tenant";
+  // The JWT `tenant` claim is the identifier; the display name comes from the
+  // status query, so the id only shows while that is unavailable.
+  const tenantLabel = status.data?.name ?? user?.tenant ?? "your tenant";
 
   // ── Stat values ───────────────────────────────────────────────────────
   const planValue = subscription.isLoading ? (
@@ -1106,12 +1116,17 @@ export function OverviewPage() {
             ? `until ${new Date(validity.targetUtc).toLocaleDateString("en-US", validityDateFmt)}`
             : "no end date";
 
-  const resourcesValue = usage.isLoading ? (
+  const usageDenied = permissionsHydrated && !canViewUsage;
+  const resourcesValue = usageDenied ? (
+    "—"
+  ) : usage.isPending ? (
     <Skeleton className="h-5 w-10" />
   ) : (
     formatNumber(totalsView.resourceCount)
   );
-  const resourcesSub = (
+  const resourcesSub = usageDenied ? (
+    "No access"
+  ) : (
     <>
       <span className="tabular-nums">{totalsView.avgUtilization.toFixed(0)}%</span>{" "}
       avg utilization
@@ -1281,7 +1296,12 @@ export function OverviewPage() {
               totalsView.overage > 0 ? <Badge variant="danger">overage</Badge> : undefined
             }
           >
-            {usage.isLoading ? (
+            {usageDenied ? (
+              <UsageEmpty
+                title="No access to usage"
+                description="Usage needs the Billing permission. Ask an administrator if you need it."
+              />
+            ) : usage.isPending ? (
               <UsageSkeleton />
             ) : usage.isError ? (
               <UsageEmpty

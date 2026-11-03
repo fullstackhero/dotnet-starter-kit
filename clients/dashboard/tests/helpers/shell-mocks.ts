@@ -18,6 +18,13 @@ export const DEFAULT_PROFILE = {
   imageUrl: null,
 } as const;
 
+/** Basic-role grants behind the shell's own queries. */
+export const SHELL_PERMISSIONS = [
+  "Permissions.Notifications.Inbox.View",
+  "Permissions.Chat.Channels.View",
+  "Permissions.Billing.View",
+];
+
 /**
  * Mock every API call the authenticated AppShell fires on load so any
  * protected page can be visited in isolation without hanging on the
@@ -43,9 +50,12 @@ export async function installShellMocks(page: Page): Promise<void> {
   // Topbar chat unread badge.
   await mockJsonResponse(page, "**/api/v1/chat/channels**", []);
 
-  // Defensive: profile + permissions (harmless if a page re-reads them).
+  // Profile + permissions. The default grants match the Basic role and are
+  // the ones the shell's own queries need (topbar badges, overview usage);
+  // without them those queries never fire. Permission-gated specs re-mock
+  // this route with the exact grants they need.
   await mockJsonResponse(page, "**/api/v1/identity/profile", DEFAULT_PROFILE);
-  await mockJsonResponse(page, "**/api/v1/identity/permissions", []);
+  await mockJsonResponse(page, "**/api/v1/identity/permissions", SHELL_PERMISSIONS);
 
   // Tenant status drives the global expiry/grace banner mounted in the
   // AppShell. Default to a healthy, far-future tenant so the banner stays
