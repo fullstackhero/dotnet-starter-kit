@@ -1046,7 +1046,9 @@ export function OverviewPage() {
   const firstName = (user?.name ?? user?.email?.split("@")[0] ?? "operator")
     .toString()
     .split(" ")[0];
-  const tenantLabel = user?.tenant ?? "your tenant";
+  // The JWT `tenant` claim is the identifier; the display name comes from the
+  // status query, so the id only shows while that is unavailable.
+  const tenantLabel = status.data?.name ?? user?.tenant ?? "your tenant";
 
   // ── Stat values ───────────────────────────────────────────────────────
   const planValue = subscription.isLoading ? (
