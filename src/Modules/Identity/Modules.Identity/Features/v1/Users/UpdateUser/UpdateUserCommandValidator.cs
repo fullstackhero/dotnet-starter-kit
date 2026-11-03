@@ -26,10 +26,6 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
             .MaximumLength(15)
             .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
 
-        RuleFor(x => x.Email)
-            .EmailAddress()
-            .When(x => !string.IsNullOrWhiteSpace(x.Email));
-
         When(x => x.Image is not null, () =>
         {
             RuleFor(x => x.Image!)

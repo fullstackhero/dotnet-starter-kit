@@ -12,7 +12,7 @@ public class ForbiddenException : CustomException
     public ForbiddenException()
         : base("Unauthorized access.", Array.Empty<string>(), HttpStatusCode.Forbidden)
     {
-        MessageKey = "Error.ForbiddenAccess";
+        Localized("Error.ForbiddenAccess");
     }
 
     /// <summary>

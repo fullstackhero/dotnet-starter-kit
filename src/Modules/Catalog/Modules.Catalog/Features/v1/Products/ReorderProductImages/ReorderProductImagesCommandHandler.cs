@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Products.ReorderProductImages;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +17,8 @@ public sealed class ReorderProductImagesCommandHandler(CatalogDbContext dbContex
         var product = await dbContext.Products
             .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Product {command.ProductId} not found.");
+            ?? throw new NotFoundException($"Product {command.ProductId} not found.")
+                .Localized<CatalogResources>("Catalog.ProductNotFound", command.ProductId);
 
         product.ReorderImages(command.OrderedImageIds);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

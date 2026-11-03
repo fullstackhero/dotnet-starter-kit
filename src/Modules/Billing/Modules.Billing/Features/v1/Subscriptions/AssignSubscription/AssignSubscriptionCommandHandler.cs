@@ -4,6 +4,7 @@ using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Billing.Contracts.v1.Subscriptions;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Domain;
+using FSH.Modules.Billing.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,7 @@ public sealed class AssignSubscriptionCommandHandler(
         // Only root may target an arbitrary tenant; a tenant caller is pinned to its own, so it can't
         // (re)assign or cancel another tenant's subscription via a foreign tenant id in the body.
         var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
+            ?? throw new UnauthorizedException("Tenant context is required.").Localized("Error.TenantContextRequired");
         var isRoot = callerTenantId == MultitenancyConstants.Root.Id;
         var targetTenantId = isRoot ? command.TenantId : callerTenantId;
 
@@ -29,7 +30,8 @@ public sealed class AssignSubscriptionCommandHandler(
         var key = command.PlanKey.ToLowerInvariant();
 #pragma warning restore CA1308
         var plan = await dbContext.Plans.FirstOrDefaultAsync(p => p.Key == key && p.IsActive, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Active plan with key '{command.PlanKey}' not found.");
+            ?? throw new NotFoundException($"Active plan with key '{command.PlanKey}' not found.")
+                .Localized<BillingResources>("Billing.ActivePlanNotFound", command.PlanKey);
 
         var now = DateTime.UtcNow;
         var current = await dbContext.Subscriptions

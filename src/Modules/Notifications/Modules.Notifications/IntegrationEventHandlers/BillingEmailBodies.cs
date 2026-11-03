@@ -1,3 +1,4 @@
+// TODO(i18n): email bodies are localized in a follow-up PR — recipient locale must be propagated (no HTTP request culture in background handlers).
 using System.Globalization;
 using FSH.Framework.Mailing;
 

@@ -4,14 +4,16 @@ using FSH.Framework.Shared.Multitenancy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Identity.Authorization;
 
 /// <summary>
-/// Runs once on host startup: iterates every tenant and adds any permission claims that
-/// have been registered via <see cref="FSH.Framework.Shared.Constants.PermissionConstants"/>
-/// but are missing from the role claims table for that tenant. Idempotent and lightweight —
-/// only writes when there's something new, so it's safe to run unconditionally.
+/// Runs once on host startup: iterates every tenant and reconciles the built-in roles' permission
+/// claims with the ones registered via <see cref="FSH.Framework.Shared.Constants.PermissionConstants"/>,
+/// adding the missing ones and removing the ones no longer granted (unless
+/// <see cref="PermissionSyncOptions.RemoveRevoked"/> is off). Idempotent and lightweight —
+/// only writes when something changed, so it's safe to run unconditionally.
 /// </summary>
 /// <remarks>
 /// Implemented as a <see cref="BackgroundService"/> so it does not block host startup.
@@ -23,6 +25,7 @@ namespace FSH.Modules.Identity.Authorization;
 /// </remarks>
 internal sealed class RolePermissionSyncHostedService(
     IServiceProvider serviceProvider,
+    IOptions<PermissionSyncOptions> options,
     ILogger<RolePermissionSyncHostedService> logger) : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
@@ -39,6 +42,14 @@ internal sealed class RolePermissionSyncHostedService(
                     "Role permission sync skipped — tenant catalog was not ready within {Timeout}",
                     MaxWait);
                 return;
+            }
+
+            // Once per process, not per tenant and role: a worker host runs with this off on every start.
+            if (!options.Value.RemoveRevoked && logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(
+                    "Role permission sync runs add-only: {Setting} is false, so revoked permissions are not removed",
+                    $"{PermissionSyncOptions.SectionName}:{nameof(PermissionSyncOptions.RemoveRevoked)}");
             }
 
             foreach (var tenant in tenants)

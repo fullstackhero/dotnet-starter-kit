@@ -3,7 +3,8 @@
 	<PropertyGroup>
 		<RootNamespace>FSH.Modules.Auditing</RootNamespace>
 		<AssemblyName>FSH.Modules.Auditing</AssemblyName>
-		<NoWarn>$(NoWarn);CA1031;CA1308;CA1812;CA1859;S3267</NoWarn>
+		<!-- AuditingResources is an intentional empty localizer marker (see Localization/AuditingResources.cs). -->
+		<NoWarn>$(NoWarn);CA1031;CA1308;CA1812;CA1859;S3267;S2094</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

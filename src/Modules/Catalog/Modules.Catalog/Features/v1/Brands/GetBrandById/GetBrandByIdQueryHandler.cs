@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.Dtos;
 using FSH.Modules.Catalog.Contracts.v1.Brands;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,8 @@ public sealed class GetBrandByIdQueryHandler(CatalogDbContext dbContext)
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == query.BrandId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Brand {query.BrandId} not found.");
+            ?? throw new NotFoundException($"Brand {query.BrandId} not found.")
+                .Localized<CatalogResources>("Catalog.BrandNotFound", query.BrandId);
 
         return new BrandDto(
             brand.Id,

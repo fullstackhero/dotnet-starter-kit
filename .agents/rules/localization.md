@@ -23,23 +23,19 @@ Key naming: `Error.<Module>.<Case>` for domain messages (`Catalog.ProductNotFoun
 
 ## Exceptions — localize at the boundary, log stays English
 
-Throw with the **English message** as `Exception.Message` (used for logs and fallback) plus the resource key metadata. **Never** pre-localize the message at the throw site.
+Throw with the **English message** as `Exception.Message` (used for logs and fallback) and attach the resource key with `.Localized(...)` on any `CustomException` subclass. **Never** pre-localize the message at the throw site.
 
 ```csharp
-// domain message -> module catalog
+// domain message -> module catalog (the marker type names the catalog)
 throw new NotFoundException($"Product {id} not found.")
-{
-    MessageKey = "Catalog.ProductNotFound",
-    MessageArgs = [id],
-    ResourceSource = typeof(CatalogResources),
-};
+    .Localized<CatalogResources>("Catalog.ProductNotFound", id);
 
-// cross-cutting message -> Core catalog (ResourceSource omitted = SharedResources)
+// cross-cutting message -> Core catalog (no type argument = SharedResources)
 throw new UnauthorizedException("Tenant context is required.")
-{
-    MessageKey = "Error.TenantContextRequired",
-};
+    .Localized("Error.TenantContextRequired");
 ```
+
+`.Localized` returns the same instance, so `throw` keeps the subclass and its status code. Its arguments are `params object[]`: pass a list as one string (`string.Join(", ", ids)`), because a `string[]` argument binds as the whole argument array and only its first item reaches `{0}`; never pass a `null` array. `MessageKey`, `MessageArgs` and `ResourceSource` have private setters: `.Localized` is the only way to set them. The BCL wrappers (`LocalizedKeyNotFoundException`, `LocalizedUnauthorizedAccessException`) do not derive from `CustomException` and keep the `{ MessageKey = …, ResourceSource = … }` initializer.
 
 `GlobalExceptionHandler` resolves `Title` (by status) and `Detail` (via `MessageKey` + `ResourceSource`) under the request culture, and falls back to `Exception.Message` when the key is missing (`ResourceNotFound`) or malformed (`FormatException`). Migration is therefore incremental: an un-migrated `throw new NotFoundException("...")` still renders its English literal.
 
@@ -69,7 +65,7 @@ Always the `.WithMessage(_ => localizer["Key"])` lambda (resolution is deferred 
 ## Tests (required with every catalog change)
 
 - **Parity** — add every new key to the neutral (English) catalog; the `pt-BR` entry is optional, and a key it lacks falls back to English at runtime, so nobody has to write Portuguese to get a green build. The build fails only on a `pt-BR` key the neutral catalog does not have (an orphan, usually a renamed or deleted key) or on a `pt-BR` value whose `{n}` placeholders differ from the English one. Applies to Core and every `<Module>Resources`. Per-catalog tests live in each module's test project; `CatalogParityTests` in `Architecture.Tests` enumerates every module catalog generically, so a **new** module catalog is covered without adding a test.
-- **Code → resx guard** — every referenced key (`MessageKey`, `localizer["…"]`) must exist in its catalog, or the build fails. This is what catches a forgotten/typo `ResourceSource` (which would otherwise fall back silently).
+- **Code → resx guard** — `LocalizedKeyReferenceTests` (`Architecture.Tests`) scans `src/BuildingBlocks` and `src/Modules` for every literal key passed to `.Localized<T>(…)`, `.Localized(…)`, a wrapper's `MessageKey = "…"` and `localizer["…"]`, and fails when the key is missing from the neutral catalog it targets or when the entry's `{n}` placeholders need more arguments than the call passes. This is what catches a typo or the wrong catalog, which would otherwise fall back to English (or show the raw key) silently. It resolves a `…localizer` / `…Localizer` name through the file's `IStringLocalizer<T>` declaration, so a localizer of unknown type fails too; a localizer field named otherwise is not scanned. Only string-literal keys are checked: a `.Localized(...)` call whose key is a variable fails until the site is listed in `NonLiteralKeySites`, and an indexer with a variable key (`localizer[titleKey]`) is skipped entirely, so keep those lookups few and covered by a test of their own.
 - Build validators/handlers with a real localizer from the embedded catalog via `SharedResourcesLocalizerFactory.Create()` (test-project `Support/` helper), not a stub.
 
 ## Emails / background handlers

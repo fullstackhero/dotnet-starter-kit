@@ -9,6 +9,7 @@ using FSH.Modules.Files.Contracts.v1.Commands;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.Extensions.Options;
@@ -28,17 +29,19 @@ public sealed class RequestUploadUrlCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
 
-        var tenantId = currentUser.GetTenant() ?? throw new UnauthorizedException("invalid tenant");
+        var tenantId = currentUser.GetTenant() ?? throw new UnauthorizedException("invalid tenant")
+            .Localized("Error.InvalidTenant");
         var userId = currentUser.GetUserId();
         if (userId == Guid.Empty)
         {
-            throw new UnauthorizedException("no current user");
+            throw new UnauthorizedException("no current user").Localized("Error.NoCurrentUser");
         }
 
         // Category lookup + extension/size validation.
         if (!options.Value.Categories.TryGetValue(cmd.Category, out var category))
         {
-            throw new CustomException($"Unknown category '{cmd.Category}'.", (IEnumerable<string>?)null, HttpStatusCode.BadRequest);
+            throw new CustomException($"Unknown category '{cmd.Category}'.", (IEnumerable<string>?)null, HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.UnknownCategory", cmd.Category);
         }
 
         var extension = Path.GetExtension(cmd.FileName);
@@ -48,7 +51,8 @@ public sealed class RequestUploadUrlCommandHandler(
             throw new CustomException(
                 $"Extension '{extension}' not allowed for category '{cmd.Category}'.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.ExtensionNotAllowed", extension, cmd.Category);
         }
 
         if (cmd.SizeBytes > category.MaxBytes)
@@ -56,15 +60,18 @@ public sealed class RequestUploadUrlCommandHandler(
             throw new CustomException(
                 $"File exceeds max size of {category.MaxBytes} bytes for category '{cmd.Category}'.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.FileExceedsMaxSize", category.MaxBytes, cmd.Category);
         }
 
         // Authorization: policy must exist and allow the attach.
         var policy = policies.Resolve(cmd.OwnerType)
-            ?? throw new ForbiddenException($"No file access policy registered for owner type '{cmd.OwnerType}'.");
+            ?? throw new ForbiddenException($"No file access policy registered for owner type '{cmd.OwnerType}'.")
+                .Localized<FilesResources>("Files.NoPolicyForOwnerType", cmd.OwnerType);
         if (!await policy.CanAttachAsync(cmd.OwnerId, userId.ToString(), cancellationToken).ConfigureAwait(false))
         {
-            throw new ForbiddenException("Not allowed to attach files to this owner.");
+            throw new ForbiddenException("Not allowed to attach files to this owner.")
+                .Localized<FilesResources>("Files.NotAllowedToAttach");
         }
 
         // Quota pre-check (no debit yet — debit happens on finalize with actual bytes).
@@ -74,7 +81,8 @@ public sealed class RequestUploadUrlCommandHandler(
             throw new CustomException(
                 $"Storage quota exceeded ({quotaCheck.CurrentUsage}/{quotaCheck.Limit} bytes).",
                 (IEnumerable<string>?)null,
-                (HttpStatusCode)507);
+                (HttpStatusCode)507)
+                .Localized<FilesResources>("Files.StorageQuotaExceeded", quotaCheck.CurrentUsage, quotaCheck.Limit);
         }
 
         // Generate id + storage key + presigned URL.

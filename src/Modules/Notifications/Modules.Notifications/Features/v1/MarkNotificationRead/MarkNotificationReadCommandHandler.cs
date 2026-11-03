@@ -2,6 +2,7 @@ using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Notifications.Contracts.v1.Commands;
 using FSH.Modules.Notifications.Data;
+using FSH.Modules.Notifications.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +17,10 @@ public sealed class MarkNotificationReadCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(cmd);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty)
+        {
+            throw new UnauthorizedException("no current user").Localized("Error.NoCurrentUser");
+        }
         var currentUserId = userId.ToString();
 
         // Caller-scoped: filter by (Id, UserId) so users can only mutate their own rows. Returns
@@ -24,7 +28,8 @@ public sealed class MarkNotificationReadCommandHandler(
         var notification = await db.Notifications
             .FirstOrDefaultAsync(n => n.Id == cmd.NotificationId && n.UserId == currentUserId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("Notification not found.");
+            ?? throw new NotFoundException("Notification not found.")
+                .Localized<NotificationsResources>("Notifications.NotificationNotFound");
 
         notification.MarkRead();
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

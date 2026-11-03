@@ -9,8 +9,8 @@ import { cn } from "@/lib/cn";
 //  content in a padded body, optional action row in a footer stripe.
 //
 //  Usage:
-//    <SettingsSection title="Identity" icon={UserCircle2} description="…"
-//      footer={<Button>Save</Button>}>
+//    <SettingsSection title={t("…")} icon={UserCircle2} description={t("…")}
+//      footer={<Button>{t("…")}</Button>}>
 //      {children}
 //    </SettingsSection>
 // ───────────────────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Features.v1.Internal;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -31,25 +32,28 @@ public sealed class FinalizeUploadCommandHandler(
     public async ValueTask<FileAssetDto> Handle(FinalizeUploadCommand cmd, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(cmd);
-        var tenantId = currentUser.GetTenant() ?? throw new UnauthorizedException("invalid tenant");
+        var tenantId = currentUser.GetTenant() ?? throw new UnauthorizedException("invalid tenant")
+            .Localized("Error.InvalidTenant");
         var userId = currentUser.GetUserId().ToString();
 
         var asset = await db.FileAssets
             .FirstOrDefaultAsync(f => f.Id == cmd.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found").Localized<FilesResources>("Files.FileNotFound");
 
         if (!string.Equals(asset.CreatedByUserId, userId, StringComparison.Ordinal))
         {
-            throw new ForbiddenException("not your pending file");
+            throw new ForbiddenException("not your pending file").Localized<FilesResources>("Files.NotYourPendingFile");
         }
         if (asset.Status != FileAssetStatus.PendingUpload)
         {
-            throw new CustomException("file already finalized", (IEnumerable<string>?)null, HttpStatusCode.Conflict);
+            throw new CustomException("file already finalized", (IEnumerable<string>?)null, HttpStatusCode.Conflict)
+                .Localized<FilesResources>("Files.AlreadyFinalized");
         }
 
         var head = await storage.HeadObjectAsync(asset.StorageKey, cancellationToken).ConfigureAwait(false)
-            ?? throw new CustomException("upload not received", (IEnumerable<string>?)null, HttpStatusCode.Conflict);
+            ?? throw new CustomException("upload not received", (IEnumerable<string>?)null, HttpStatusCode.Conflict)
+                .Localized<FilesResources>("Files.UploadNotReceived");
 
         // Allow declared+1% slack (S3 may differ slightly on multipart). Reject larger sizes.
         var maxAllowed = asset.SizeBytes + Math.Max(1024L, asset.SizeBytes / 100);
@@ -61,7 +65,8 @@ public sealed class FinalizeUploadCommandHandler(
             throw new CustomException(
                 $"uploaded size ({head.SizeBytes}) exceeds declared ({asset.SizeBytes})",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.UploadedSizeExceedsDeclared", head.SizeBytes, asset.SizeBytes);
         }
 
         if (!string.Equals(head.ContentType, asset.ContentType, StringComparison.OrdinalIgnoreCase))
@@ -72,7 +77,8 @@ public sealed class FinalizeUploadCommandHandler(
             throw new CustomException(
                 "uploaded content-type mismatch",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.ContentTypeMismatch");
         }
 
         var scanResult = await scanner.ScanAsync(asset.StorageKey, cancellationToken).ConfigureAwait(false);

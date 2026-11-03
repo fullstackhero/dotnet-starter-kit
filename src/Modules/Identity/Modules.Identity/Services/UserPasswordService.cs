@@ -7,6 +7,7 @@ using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.ObjectModel;
@@ -73,7 +74,7 @@ internal sealed class UserPasswordService(
         var user = await userManager.FindByEmailAsync(email);
         if (user == null)
         {
-            throw new NotFoundException("user not found");
+            throw new NotFoundException("user not found").Localized<IdentityResources>("Identity.UserNotFound");
         }
 
         token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
@@ -82,7 +83,8 @@ internal sealed class UserPasswordService(
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new CustomException("error resetting password", errors);
+            throw new CustomException("error resetting password", errors)
+                .Localized<IdentityResources>("Identity.ErrorResettingPassword");
         }
 
         // Raise domain event for password reset
@@ -95,14 +97,15 @@ internal sealed class UserPasswordService(
     {
         var user = await userManager.FindByIdAsync(userId);
 
-        _ = user ?? throw new NotFoundException("user not found");
+        _ = user ?? throw new NotFoundException("user not found").Localized<IdentityResources>("Identity.UserNotFound");
 
         var result = await userManager.ChangePasswordAsync(user, password, newPassword);
 
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new CustomException("failed to change password", errors);
+            throw new CustomException("failed to change password", errors)
+                .Localized<IdentityResources>("Identity.FailedToChangePassword");
         }
 
         // Raise domain event for password change
@@ -121,7 +124,7 @@ internal sealed class UserPasswordService(
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedException("invalid tenant");
+            throw new UnauthorizedException("invalid tenant").Localized("Error.InvalidTenant");
         }
     }
 }

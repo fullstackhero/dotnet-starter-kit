@@ -64,9 +64,7 @@ internal sealed class FrontendOriginResolver(
             "The request origin is not an allowed front-end origin.",
             errors: null,
             HttpStatusCode.BadRequest)
-        {
-            MessageKey = "Frontend.OriginNotAllowed",
-        };
+            .Localized("Frontend.OriginNotAllowed");
     }
 
     public string ResolveDefault()

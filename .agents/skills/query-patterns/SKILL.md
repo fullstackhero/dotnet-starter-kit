@@ -82,7 +82,8 @@ public sealed class Get{Entity}QueryHandler({X}DbContext dbContext)
         ArgumentNullException.ThrowIfNull(query);
         var entity = await dbContext.{Entities}.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == query.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"{Entity} {query.Id} not found");
+            ?? throw new NotFoundException($"{Entity} {query.Id} not found")
+                .Localized<{X}Resources>("{X}.{Entity}NotFound", query.Id);   // key in {X}Resources.resx
         return entity.ToDto();
     }
 }

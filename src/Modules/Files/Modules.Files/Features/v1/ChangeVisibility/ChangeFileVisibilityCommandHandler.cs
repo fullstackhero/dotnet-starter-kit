@@ -7,6 +7,7 @@ using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Features.v1.Internal;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -30,22 +31,24 @@ public sealed class ChangeFileVisibilityCommandHandler(
             throw new CustomException(
                 $"Unknown visibility value '{cmd.Visibility}'.",
                 errors: null,
-                System.Net.HttpStatusCode.BadRequest);
+                System.Net.HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.UnknownVisibility", cmd.Visibility);
         }
 
         var f = await db.FileAssets
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == cmd.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found").Localized<FilesResources>("Files.FileNotFound");
 
         var userId = currentUser.GetUserId().ToString();
         var policy = policies.Resolve(f.OwnerType)
-            ?? throw new ForbiddenException("no policy");
+            ?? throw new ForbiddenException("no policy").Localized<FilesResources>("Files.NoAccessPolicy");
         var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
         if (!await policy.CanChangeVisibilityAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
-            throw new ForbiddenException("not allowed to change this file's visibility");
+            throw new ForbiddenException("not allowed to change this file's visibility")
+                .Localized<FilesResources>("Files.NotAllowedToChangeVisibility");
         }
 
         // Visibility lives in the storage key (public/ vs private/), so a flip moves the object: bucket
@@ -56,13 +59,13 @@ public sealed class ChangeFileVisibilityCommandHandler(
         {
             if (asset.IsDeleted)
             {
-                throw new NotFoundException("file not found");
+                throw new NotFoundException("file not found").Localized<FilesResources>("Files.FileNotFound");
             }
 
             asset.ChangeVisibility(cmd.Visibility);
             return true;
         }, cancellationToken).ConfigureAwait(false);
-        f = changed ?? throw new NotFoundException("file not found");
+        f = changed ?? throw new NotFoundException("file not found").Localized<FilesResources>("Files.FileNotFound");
 
         var publicUrl = f.Visibility == Visibility.Public
             ? storage.BuildPublicUrl(f.StorageKey)

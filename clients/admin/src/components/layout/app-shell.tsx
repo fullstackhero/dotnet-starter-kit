@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import {
@@ -22,6 +23,7 @@ import { InactivityGuard } from "@/components/auth/inactivity-guard";
  * add a banner component here that reads from admin's AuthContext.
  */
 export function AppShell() {
+  const { t } = useTranslation("common");
   return (
     <MobileNavProvider>
       {/* Skip-to-content link — first focusable element. */}
@@ -29,7 +31,7 @@ export function AppShell() {
         href="#main-content"
         className="sr-only z-[100] rounded-md bg-[var(--color-foreground)] px-4 py-2 text-sm font-medium text-[var(--color-background)] focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]"
       >
-        Skip to content
+        {t("shell.skipToContent")}
       </a>
 
       <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-background)] text-[var(--color-foreground)]">
@@ -50,7 +52,7 @@ export function AppShell() {
                     role="status"
                     className="flex min-h-[40vh] items-center justify-center text-sm text-[var(--color-muted-foreground)]"
                   >
-                    Loading&hellip;
+                    {t("shell.loading")}
                   </div>
                 }
               >

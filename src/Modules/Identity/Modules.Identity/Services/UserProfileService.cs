@@ -34,11 +34,7 @@ internal sealed class UserProfileService(
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        _ = user ?? throw new NotFoundException("user not found")
-        {
-            MessageKey = "Identity.UserNotFound",
-            ResourceSource = typeof(IdentityResources),
-        };
+        _ = user ?? throw new NotFoundException("user not found").Localized<IdentityResources>("Identity.UserNotFound");
 
         return new UserDto
         {
@@ -85,11 +81,7 @@ internal sealed class UserProfileService(
     {
         var user = await userManager.FindByIdAsync(userId);
 
-        _ = user ?? throw new NotFoundException("user not found")
-        {
-            MessageKey = "Identity.UserNotFound",
-            ResourceSource = typeof(IdentityResources),
-        };
+        _ = user ?? throw new NotFoundException("user not found").Localized<IdentityResources>("Identity.UserNotFound");
 
         // This is a full-representation update, so a caller working from a stale read would
         // silently blank whatever changed since. The precondition is checked here, before the
@@ -155,10 +147,7 @@ internal sealed class UserProfileService(
             }
 
             throw new CustomException("Update profile failed")
-            {
-                MessageKey = "Identity.UpdateProfileFailed",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.UpdateProfileFailed");
         }
 
         if (replacedBlob is not null)
@@ -199,24 +188,17 @@ internal sealed class UserProfileService(
                 new[] { user.FirstName, user.LastName, user.PhoneNumber, user.ImageUrl?.OriginalString, user.Locale })));
 
     private static CustomException StaleProfileException() =>
-        new(
+        new CustomException(
             "The profile changed since you loaded it. Reload it and apply your changes again.",
             errors: null,
             HttpStatusCode.PreconditionFailed)
-        {
-            MessageKey = "Identity.ProfileChangedSinceLoaded",
-            ResourceSource = typeof(IdentityResources),
-        };
+            .Localized<IdentityResources>("Identity.ProfileChangedSinceLoaded");
 
     public async Task SetImageUrlAsync(string userId, string? imageUrl, CancellationToken cancellationToken)
     {
         EnsureValidTenant();
         var user = await userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException("user not found")
-            {
-                MessageKey = "Identity.UserNotFound",
-                ResourceSource = typeof(IdentityResources),
-            };
+            ?? throw new NotFoundException("user not found").Localized<IdentityResources>("Identity.UserNotFound");
 
         user.ImageUrl = string.IsNullOrWhiteSpace(imageUrl)
             ? null
@@ -226,10 +208,7 @@ internal sealed class UserProfileService(
         if (!result.Succeeded)
         {
             throw new CustomException("Update profile image failed")
-            {
-                MessageKey = "Identity.UpdateProfileImageFailed",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.UpdateProfileImageFailed");
         }
 
         await signInManager.RefreshSignInAsync(user);
@@ -257,10 +236,7 @@ internal sealed class UserProfileService(
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedException("invalid tenant")
-            {
-                MessageKey = "Error.InvalidTenant",
-            };
+            throw new UnauthorizedException("invalid tenant").Localized("Error.InvalidTenant");
         }
     }
 
