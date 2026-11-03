@@ -146,8 +146,9 @@ export function EntityDetailAvatar({
 
   // Fall back to the icon/initials when the image is missing OR fails to load
   // (e.g. a seeded default-avatar URL that 404s) — never show a broken image.
-  const [imgFailed, setImgFailed] = React.useState(false);
-  React.useEffect(() => setImgFailed(false), [src]);
+  // The failure is keyed by the src that failed, so a new src resets it without an effect.
+  const [failedSrc, setFailedSrc] = React.useState<string | null | undefined>(null);
+  const imgFailed = Boolean(src) && failedSrc === src;
   const showImage = Boolean(src) && !imgFailed;
 
   return (
@@ -163,7 +164,7 @@ export function EntityDetailAvatar({
         <img
           src={src ?? undefined}
           alt=""
-          onError={() => setImgFailed(true)}
+          onError={() => setFailedSrc(src)}
           className="size-full object-cover"
         />
       ) : Icon ? (

@@ -64,7 +64,16 @@ export function SessionsPage() {
     return () => window.clearTimeout(id);
   }, [search]);
 
-  useEffect(() => setPageNumber(1), [debouncedSearch, includeInactive]);
+  // Back to page 1 whenever the effective search or filter changes — adjusted
+  // during render against the previous inputs instead of in an effect.
+  const [pageResetKey, setPageResetKey] = useState({ debouncedSearch, includeInactive });
+  if (
+    pageResetKey.debouncedSearch !== debouncedSearch ||
+    pageResetKey.includeInactive !== includeInactive
+  ) {
+    setPageResetKey({ debouncedSearch, includeInactive });
+    setPageNumber(1);
+  }
 
   const query = useQuery({
     queryKey: [

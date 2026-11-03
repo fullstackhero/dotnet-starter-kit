@@ -299,13 +299,17 @@ function CreateGroupDialog({ open, onClose }: { open: boolean; onClose: () => vo
   const [description, setDescription] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
-  useEffect(() => {
+  // Clear the form whenever the dialog closes — adjusted during render
+  // (react.dev "adjusting state when a prop changes").
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (!open) {
       setName("");
       setDescription("");
       setIsDefault(false);
     }
-  }, [open]);
+  }
 
   const mutation = useMutation({
     mutationFn: () =>

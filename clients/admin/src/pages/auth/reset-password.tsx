@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
@@ -78,10 +78,6 @@ export function ResetPasswordPage() {
       setError(detail);
     },
   });
-
-  useEffect(() => {
-    setError(null);
-  }, [password, confirm]);
 
   if (isAuthenticated) return <Navigate to="/" replace />;
 
@@ -203,7 +199,10 @@ export function ResetPasswordPage() {
                         id="new-password"
                         type={showPassword ? "text" : "password"}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          setError(null);
+                        }}
                         required
                         autoComplete="new-password"
                         autoFocus
@@ -252,7 +251,10 @@ export function ResetPasswordPage() {
                         id="confirm-password"
                         type={showConfirm ? "text" : "password"}
                         value={confirm}
-                        onChange={(e) => setConfirm(e.target.value)}
+                        onChange={(e) => {
+                          setConfirm(e.target.value);
+                          setError(null);
+                        }}
                         required
                         autoComplete="new-password"
                         minLength={8}

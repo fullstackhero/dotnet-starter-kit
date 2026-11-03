@@ -473,12 +473,16 @@ function NewDmDialog({
     return () => clearTimeout(t);
   }, [query]);
 
-  useEffect(() => {
+  // Clear the search whenever the dialog closes (any close path) — adjusted
+  // during render against the previous `open` value instead of in an effect.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (!open) {
       setQuery("");
       setDebounced("");
     }
-  }, [open]);
+  }
 
   // Two queries layered: a "suggested" list that fires the moment the dialog
   // opens (no search filter, just first page of active tenant users), and an

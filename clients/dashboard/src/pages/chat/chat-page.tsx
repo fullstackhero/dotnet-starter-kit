@@ -166,12 +166,15 @@ function ActiveChannel({
     void invoke("JoinChannel", channelId);
   }, [channelId, status, invoke]);
 
-  // Clear ephemeral state when the user switches channels.
-  useEffect(() => {
+  // Clear ephemeral state when the user switches channels — adjusted during
+  // render against the previous channel id instead of in an effect.
+  const [prevChannelId, setPrevChannelId] = useState(channelId);
+  if (prevChannelId !== channelId) {
+    setPrevChannelId(channelId);
     setReplyTo(null);
     setSearching(false);
     setSettingsOpen(false);
-  }, [channelId]);
+  }
 
   const channelQuery = useQuery({
     queryKey: ["chat", "channel", channelId],

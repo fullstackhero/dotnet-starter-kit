@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: build the SPA bundle
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 
 # Install deps with a cached layer
@@ -13,10 +13,10 @@ COPY . .
 RUN npm run build
 
 # Stage 2: serve via nginx
-FROM nginx:alpine AS runtime
+FROM nginx:1.31.8-alpine AS runtime
 WORKDIR /usr/share/nginx/html
 
-# nginx:alpine needs `envsubst` from gettext (it ships busybox without it).
+# nginx alpine images need `envsubst` from gettext (it ships busybox without it).
 RUN apk add --no-cache gettext
 
 # Replace the default nginx site
@@ -30,7 +30,7 @@ COPY docker/config.json.template /etc/fsh/config.json.template
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-# Non-root: nginx:alpine includes the `nginx` user (uid 101).
+# Non-root: the nginx alpine image includes the `nginx` user (uid 101).
 # We do NOT switch to it here because the upstream image's master process
 # needs root to bind :80; nginx will fork workers as the `nginx` user on
 # its own per its default config.

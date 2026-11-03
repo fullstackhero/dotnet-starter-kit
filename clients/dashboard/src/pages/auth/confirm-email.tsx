@@ -32,31 +32,39 @@ export function ConfirmEmailPage() {
   const tenant = params.get("tenant") ?? "";
   const malformed = !userId || !code || !tenant;
 
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
+  // The async outcome is stored keyed by the request it answers, so the
+  // displayed status is derived: malformed links fail immediately, and a
+  // result for different params reads as still loading.
+  const requestKey = `${userId}
+${code}
+${tenant}`;
+  const [result, setResult] = useState<{ key: string; status: Status } | null>(null);
+  const status: Status = malformed
+    ? { kind: "error", message: t("confirm.malformed") }
+    : result?.key === requestKey
+      ? result.status
+      : { kind: "loading" };
 
   // We run the call exactly once per mount keyed on the URL params —
   // double-firing the GET in StrictMode would still be idempotent
   // server-side (UserManager.ConfirmEmailAsync is idempotent for the
   // same token), but holding off the second call keeps the UI honest.
   useEffect(() => {
-    if (malformed) {
-      setStatus({
-        kind: "error",
-        message: t("confirm.malformed"),
-      });
-      return;
-    }
+    if (malformed) return;
 
     let cancelled = false;
     void confirmEmail({ userId, code, tenant })
       .then((message) => {
         if (cancelled) return;
-        setStatus({
-          kind: "success",
-          message:
-            typeof message === "string" && message.length > 0
-              ? message
-              : t("confirm.successFallback"),
+        setResult({
+          key: requestKey,
+          status: {
+            kind: "success",
+            message:
+              typeof message === "string" && message.length > 0
+                ? message
+                : t("confirm.successFallback"),
+          },
         });
       })
       .catch((err: unknown) => {
@@ -65,13 +73,13 @@ export function ConfirmEmailPage() {
           err instanceof ApiRequestError
             ? err.problem?.detail ?? err.problem?.title ?? err.message
             : (err as Error).message;
-        setStatus({ kind: "error", message: detail });
+        setResult({ key: requestKey, status: { kind: "error", message: detail } });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [userId, code, tenant, malformed, t]);
+  }, [userId, code, tenant, malformed, requestKey, t]);
 
   return (
     <AuthShell

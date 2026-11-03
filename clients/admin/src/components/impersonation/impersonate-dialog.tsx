@@ -64,12 +64,15 @@ export function ImpersonateDialog({
   const [selected, setSelected] = useState<UserDto | null>(prefillUser ?? null);
 
   // Reset on close + when prefill changes so reopening is idempotent.
-  useEffect(() => {
+  // Adjusted during render (react.dev "adjusting state when a prop changes").
+  const [synced, setSynced] = useState({ open: false, prefillUser });
+  if (synced.open !== open || synced.prefillUser !== prefillUser) {
+    setSynced({ open, prefillUser });
     if (open) {
       setStep(prefillUser ? "configure" : "pick");
       setSelected(prefillUser ?? null);
     }
-  }, [open, prefillUser]);
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

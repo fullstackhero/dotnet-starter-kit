@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2, Sparkles, TimerOff } from "lucide-react";
@@ -42,7 +42,10 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  // Surface why the previous session ended (read-and-clear, one-shot):
+  // consumed once on mount by the lazy initializer.
+  const [signedOutForInactivity] = useState(() => consumeSignedOutReason() === "inactivity");
+  const notice = signedOutForInactivity ? t("login.inactivityNotice") : null;
   // Second factor. When the token call answers Identity.TwoFactorRequired the
   // credentials move here (component memory only — never storage) so the code
   // step can repeat the call with them. Cleared on back, on success, and with
@@ -50,13 +53,6 @@ export function LoginPage() {
   const [pending, setPending] = useState<Credentials | null>(null);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
-
-  // Surface why the previous session ended (read-and-clear, one-shot).
-  useEffect(() => {
-    if (consumeSignedOutReason() === "inactivity") {
-      setNotice(t("login.inactivityNotice"));
-    }
-  }, [t]);
 
   if (isAuthenticated) {
     return <Navigate to={from} replace />;

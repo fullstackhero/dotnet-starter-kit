@@ -27,16 +27,14 @@ export function ConfirmEmailPage() {
   const tenant = params.get("tenant") ?? "";
   const malformed = !userId || !code || !tenant;
 
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
+  const [fetchStatus, setStatus] = useState<Status>({ kind: "loading" });
+  // A malformed link never fires the request — its error state is derived.
+  const status: Status = malformed
+    ? { kind: "error", message: t("confirm.malformed") }
+    : fetchStatus;
 
   useEffect(() => {
-    if (malformed) {
-      setStatus({
-        kind: "error",
-        message: t("confirm.malformed"),
-      });
-      return;
-    }
+    if (malformed) return;
     let cancelled = false;
     void confirmEmail({ userId, code, tenant })
       .then((message) => {

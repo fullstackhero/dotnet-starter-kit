@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -234,9 +234,13 @@ function RolesEditor({
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
+  // Re-seed the draft whenever the server roles change (adjusted during
+  // render rather than in an effect).
+  const [seededFrom, setSeededFrom] = useState<UserRoleDto[] | null>(null);
+  if (seededFrom !== roles) {
+    setSeededFrom(roles);
     setDraft(Object.fromEntries(roles.map((r) => [r.roleId, r.enabled])));
-  }, [roles]);
+  }
 
   const original = useMemo(
     () => Object.fromEntries(roles.map((r) => [r.roleId, r.enabled])),

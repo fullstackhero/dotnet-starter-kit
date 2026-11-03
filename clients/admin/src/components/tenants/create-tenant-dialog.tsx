@@ -48,7 +48,7 @@ const makeSchema = (t: TFn) =>
       .trim()
       .regex(TENANT_ID_RE, t("create.validation.id")),
     name: z.string().trim().min(2, t("create.validation.min2")).max(128),
-    adminEmail: z.string().trim().email(t("create.validation.email")),
+    adminEmail: z.string().trim().pipe(z.email(t("create.validation.email"))),
     adminPassword: z
       .string()
       .min(8, t("create.validation.min8"))

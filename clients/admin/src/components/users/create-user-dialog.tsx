@@ -38,14 +38,14 @@ const makeSchema = (t: TFn) =>
         .string()
         .trim()
         .regex(USERNAME_RE, t("create.validation.username")),
-      email: z.string().trim().email(t("create.validation.email")),
+      email: z.string().trim().pipe(z.email(t("create.validation.email"))),
       phoneNumber: z.string().trim().max(32).optional(),
       password: z.string().min(8, t("create.validation.min8")),
-      confirmPassword: z.string().min(8),
+      confirmPassword: z.string().min(8, t("create.validation.min8")),
     })
     .refine((d) => d.password === d.confirmPassword, {
       path: ["confirmPassword"],
-      message: t("create.validation.mismatch"),
+      error: t("create.validation.mismatch"),
     });
 
 type FormValues = z.infer<ReturnType<typeof makeSchema>>;

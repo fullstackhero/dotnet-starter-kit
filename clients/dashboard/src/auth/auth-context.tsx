@@ -157,10 +157,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Hydrate (or re-hydrate) the permission list from the server whenever the
   // signed-in subject changes — covers cold-start, login, and impersonation
   // swaps. Permissions live server-side per role, not in the JWT.
+  // Signed out → nothing to hydrate. Adjusted during render (not in the
+  // effect below) so there's no extra commit with a stale `false`.
+  if (!user && !permissionsHydrated) {
+    setPermissionsHydrated(true);
+  }
+
   useEffect(() => {
     if (!user) {
       lastHydratedSubject.current = null;
-      setPermissionsHydrated(true);
       return;
     }
     if (lastHydratedSubject.current === user.id && permissionsHydrated) {

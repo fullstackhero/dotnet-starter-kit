@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -59,18 +59,14 @@ export function Sidebar() {
   // On every route change, re-sync the expanded section to the route's
   // owning section. This re-opens the right section when the user
   // navigates via the command palette, browser back/forward, or any
-  // link outside the sidebar.
-  useEffect(() => {
-    const next = findSectionForPath(location.pathname);
-    if (next !== null) {
-      setOpenSection(next);
-    }
-    // If the route is a top-level page (Overview / Settings), close the
-    // accordion entirely so no section is highlighted.
-    else {
-      setOpenSection(null);
-    }
-  }, [location.pathname]);
+  // link outside the sidebar. A top-level page (Overview / Settings)
+  // resolves to null, closing the accordion entirely. Adjusted during
+  // render (react.dev "adjusting state when a prop changes").
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
+    setOpenSection(findSectionForPath(location.pathname));
+  }
 
   return (
     <aside

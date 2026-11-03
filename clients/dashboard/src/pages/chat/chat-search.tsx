@@ -41,11 +41,14 @@ export function ChatSearchOverlay({
     return () => clearTimeout(t);
   }, [query]);
 
-  // Reset when the channel changes underneath us.
-  useEffect(() => {
+  // Reset when the channel changes underneath us — adjusted during render
+  // against the previous channel id instead of in an effect.
+  const [prevChannelId, setPrevChannelId] = useState(channelId);
+  if (prevChannelId !== channelId) {
+    setPrevChannelId(channelId);
     setQuery("");
     setDebounced("");
-  }, [channelId]);
+  }
 
   const resultsQuery = useQuery({
     queryKey: ["chat", "search", channelId, debounced],

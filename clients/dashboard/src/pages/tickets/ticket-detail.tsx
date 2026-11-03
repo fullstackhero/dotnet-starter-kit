@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useState,
   type FormEvent,
 } from "react";
@@ -635,9 +634,13 @@ function ResolveDialog({
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
 
-  useEffect(() => {
+  // Clear the note each time the dialog opens — adjusted during render
+  // against the previous `open`, not in an effect.
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (open) setNote("");
-  }, [open]);
+  }
 
   const mutation = useMutation({
     mutationFn: () => resolveTicket(ticket.id, note.trim() || null),
@@ -726,12 +729,19 @@ function AssignDialog({
   const [assignee, setAssignee] = useState(ticket.assignedToUserId ?? "");
   const [touched, setTouched] = useState(false);
 
-  useEffect(() => {
+  // Re-seed when the dialog opens or the assignee changes while open —
+  // adjusted during render against the previous inputs, not in an effect.
+  const [seededFrom, setSeededFrom] = useState<{
+    open: boolean;
+    assignedToUserId: string | null | undefined;
+  }>({ open: false, assignedToUserId: ticket.assignedToUserId });
+  if (seededFrom.open !== open || seededFrom.assignedToUserId !== ticket.assignedToUserId) {
+    setSeededFrom({ open, assignedToUserId: ticket.assignedToUserId });
     if (open) {
       setAssignee(ticket.assignedToUserId ?? "");
       setTouched(false);
     }
-  }, [open, ticket.assignedToUserId]);
+  }
 
   const mutation = useMutation({
     mutationFn: () => assignTicket(ticket.id, assignee.trim() || null),

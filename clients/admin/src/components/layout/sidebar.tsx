@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
@@ -44,26 +44,25 @@ export function Sidebar() {
   const { t } = useTranslation("common");
 
   // Permission-filtered sections
-  const granted = permissionsHydrated ? (user?.permissions ?? []) : [];
-  const visibleSections: NavSection[] = useMemo(
-    () =>
-      sections
-        .map((s) => ({ ...s, items: filterNavSpec(s.items, granted) }))
-        .filter((s) => s.items.length > 0),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [granted.join(",")],
-  );
+  const userPermissions = user?.permissions;
+  const visibleSections: NavSection[] = useMemo(() => {
+    const granted = permissionsHydrated ? (userPermissions ?? []) : [];
+    return sections
+      .map((s) => ({ ...s, items: filterNavSpec(s.items, granted) }))
+      .filter((s) => s.items.length > 0);
+  }, [permissionsHydrated, userPermissions]);
 
   // Single-select accordion: which section is currently open.
   const [openSection, setOpenSection] = useState<string | null>(() =>
     findSectionForPath(location.pathname),
   );
 
-  // Re-sync the open section on every route change.
-  useEffect(() => {
-    const next = findSectionForPath(location.pathname);
-    setOpenSection(next);
-  }, [location.pathname]);
+  // Re-sync the open section on every route change (adjusted during render).
+  const [syncedPathname, setSyncedPathname] = useState(location.pathname);
+  if (syncedPathname !== location.pathname) {
+    setSyncedPathname(location.pathname);
+    setOpenSection(findSectionForPath(location.pathname));
+  }
 
   return (
     <aside

@@ -399,15 +399,18 @@ function ChangePasswordDialog({
   const [confirm, setConfirm] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Reset state every time the dialog opens so stale values don't bleed.
-  useEffect(() => {
+  // Reset state every time the dialog opens so stale values don't bleed —
+  // adjusted during render against the previous `open`, not in an effect.
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (open) {
       setCurrent("");
       setNext("");
       setConfirm("");
       setLocalError(null);
     }
-  }, [open]);
+  }
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -576,7 +579,13 @@ function TwoFactorEnroll() {
   const queryClient = useQueryClient();
   const [enrollment, setEnrollment] = useState<TwoFactorEnrollmentResponse | null>(null);
   const [code, setCode] = useState("");
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
+  // The rendered QR is stored keyed by the enrollment it was drawn for, so a
+  // stale or missing enrollment reads as "no QR" without an effect reset.
+  const [qr, setQr] = useState<{
+    enrollment: TwoFactorEnrollmentResponse;
+    svg: string;
+  } | null>(null);
+  const qrSvg = enrollment !== null && qr?.enrollment === enrollment ? qr.svg : null;
   const [copiedKey, setCopiedKey] = useState(false);
 
   const beginMutation = useMutation({
@@ -597,7 +606,7 @@ function TwoFactorEnroll() {
         });
         setEnrollment(null);
         setCode("");
-        setQrSvg(null);
+        setQr(null);
         void queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
       } else {
         toast.error(t("security.twoFa.verifyFailed"), {
@@ -615,10 +624,7 @@ function TwoFactorEnroll() {
   // image source-of-truth in JS without an extra <canvas>, and lets us
   // theme it via currentColor so it tracks dark/light mode.
   useEffect(() => {
-    if (!enrollment) {
-      setQrSvg(null);
-      return;
-    }
+    if (!enrollment) return;
     let cancelled = false;
     void QRCode.toString(enrollment.authenticatorUri, {
       type: "svg",
@@ -632,7 +638,7 @@ function TwoFactorEnroll() {
         .replace(/fill="#FFFFFF"/gi, 'fill="transparent"')
         .replace(/fill="#000000"/gi, 'fill="currentColor"')
         .replace(/fill="#000"/gi, 'fill="currentColor"');
-      setQrSvg(themed);
+      setQr({ enrollment, svg: themed });
     });
     return () => {
       cancelled = true;

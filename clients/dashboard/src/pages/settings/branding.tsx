@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import type { TFunction, ParseKeys } from "i18next";
@@ -58,11 +58,14 @@ export function BrandingSettings() {
   // Seed the draft from the server payload — fires on initial load and after our
   // own save/reset invalidations (background refetches are disabled above, so
   // this never clobbers in-progress edits).
-  useEffect(() => {
+  // Adjusted during render against the previously seen payload, not in an effect.
+  const [seededFrom, setSeededFrom] = useState<TenantThemeDto | undefined>(undefined);
+  if (seededFrom !== themeQuery.data) {
+    setSeededFrom(themeQuery.data);
     if (themeQuery.data) {
       setDraft(themeQuery.data);
     }
-  }, [themeQuery.data]);
+  }
 
   const saveMutation = useMutation({
     mutationFn: (theme: TenantThemeDto) => updateTenantTheme(theme),

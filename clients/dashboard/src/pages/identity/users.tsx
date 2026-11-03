@@ -95,9 +95,19 @@ export function UsersPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  useEffect(() => {
-    setPageNumber(1);
-  }, [statusFilter, emailFilter, roleFilter]);
+  // Changing a filter jumps back to page 1 — done in the handler, not an effect.
+  const changeStatusFilter = (v: StatusFilter) => {
+    if (v !== statusFilter) setPageNumber(1);
+    setStatusFilter(v);
+  };
+  const changeEmailFilter = (v: EmailFilter) => {
+    if (v !== emailFilter) setPageNumber(1);
+    setEmailFilter(v);
+  };
+  const changeRoleFilter = (v: string | null) => {
+    if (v !== roleFilter) setPageNumber(1);
+    setRoleFilter(v);
+  };
 
   const queryParams = useMemo(
     () => ({
@@ -134,9 +144,9 @@ export function UsersPage() {
 
   const clearFilters = () => {
     setSearch("");
-    setStatusFilter("all");
-    setEmailFilter("all");
-    setRoleFilter(null);
+    changeStatusFilter("all");
+    changeEmailFilter("all");
+    changeRoleFilter(null);
   };
 
   return (
@@ -167,7 +177,7 @@ export function UsersPage() {
         <EntityFilterPill
           label={t("usersList.filterAccountStatus")}
           value={statusFilter}
-          onChange={setStatusFilter}
+          onChange={changeStatusFilter}
           options={[
             { value: "all", label: t("usersList.filterAll") },
             { value: "active", label: t("usersList.filterActive") },
@@ -177,7 +187,7 @@ export function UsersPage() {
         <EntityFilterPill
           label={t("usersList.filterEmailStatus")}
           value={emailFilter}
-          onChange={setEmailFilter}
+          onChange={changeEmailFilter}
           options={[
             { value: "all", label: t("usersList.filterAnyEmail") },
             { value: "confirmed", label: t("usersList.filterConfirmed") },
@@ -187,7 +197,7 @@ export function UsersPage() {
         <Combobox
           label={t("usersList.filterRole")}
           value={roleFilter}
-          onChange={setRoleFilter}
+          onChange={changeRoleFilter}
           options={(rolesQuery.data ?? []).map((r) => ({
             value: r.id,
             label: r.name,
@@ -406,7 +416,11 @@ function RegisterUserDialog({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  useEffect(() => {
+  // Clear the form whenever the dialog closes — adjusted during render
+  // (react.dev "adjusting state when a prop changes").
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (!open) {
       setFirstName("");
       setLastName("");
@@ -416,7 +430,7 @@ function RegisterUserDialog({
       setConfirmPassword("");
       setPhoneNumber("");
     }
-  }, [open]);
+  }
 
   const passwordMismatch =
     confirmPassword.length > 0 && password !== confirmPassword;

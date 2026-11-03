@@ -62,12 +62,35 @@ export function ChannelSettingsDialog({
   const [description, setDescription] = useState(channel.description ?? "");
   const [isPrivate, setIsPrivate] = useState(channel.isPrivate);
 
-  useEffect(() => {
-    if (!open) return;
-    setName(channel.name ?? "");
-    setDescription(channel.description ?? "");
-    setIsPrivate(channel.isPrivate);
-  }, [open, channel.id, channel.name, channel.description, channel.isPrivate]);
+  // Re-seed the form when the dialog opens or the channel changes underneath
+  // it while open — adjusted during render against the previous inputs.
+  const [seededFrom, setSeededFrom] = useState({
+    open,
+    id: channel.id,
+    name: channel.name,
+    description: channel.description,
+    isPrivate: channel.isPrivate,
+  });
+  if (
+    seededFrom.open !== open ||
+    seededFrom.id !== channel.id ||
+    seededFrom.name !== channel.name ||
+    seededFrom.description !== channel.description ||
+    seededFrom.isPrivate !== channel.isPrivate
+  ) {
+    setSeededFrom({
+      open,
+      id: channel.id,
+      name: channel.name,
+      description: channel.description,
+      isPrivate: channel.isPrivate,
+    });
+    if (open) {
+      setName(channel.name ?? "");
+      setDescription(channel.description ?? "");
+      setIsPrivate(channel.isPrivate);
+    }
+  }
 
   const dirty =
     name.trim() !== (channel.name ?? "").trim() ||

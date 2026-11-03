@@ -110,15 +110,21 @@ export function GroupDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
-  useEffect(() => {
-    if (!group) return;
-    setName(group.name);
-    setDescription(group.description ?? "");
-    setIsDefault(group.isDefault);
-    const next = new Set(group.roleIds ?? []);
-    setSelectedRoleIds(next);
-    setInitialRoleIds(new Set(next));
-  }, [group]);
+  // Re-seed the draft whenever a new copy of the group arrives — adjusted
+  // during render (react.dev "adjusting state when a prop changes"). Starts
+  // undefined so data already cached on mount is seeded on the first render.
+  const [seededFrom, setSeededFrom] = useState<typeof group>(undefined);
+  if (group !== seededFrom) {
+    setSeededFrom(group);
+    if (group) {
+      setName(group.name);
+      setDescription(group.description ?? "");
+      setIsDefault(group.isDefault);
+      const next = new Set(group.roleIds ?? []);
+      setSelectedRoleIds(next);
+      setInitialRoleIds(new Set(next));
+    }
+  }
 
   const dirtyMeta = useMemo(() => {
     if (!group) return false;
@@ -526,13 +532,17 @@ function AddMembersDialog({
   const [debounced, setDebounced] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
+  // Clear the picker whenever the dialog closes — adjusted during render
+  // (react.dev "adjusting state when a prop changes").
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (!open) {
       setSearch("");
       setDebounced("");
       setPicked(new Set());
     }
-  }, [open]);
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 250);

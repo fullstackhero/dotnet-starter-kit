@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import type { ParseKeys } from "i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -143,20 +143,25 @@ export function PlanFormDialog({
   const [overage, setOverage] = useState<OverageState>({});
 
   // Reset/populate whenever the dialog opens (or the target plan changes).
-  useEffect(() => {
-    if (!open) return;
-    setKey(plan?.key ?? "");
-    setName(plan?.name ?? "");
-    setCurrency(plan?.currency ?? "USD");
-    setMonthlyBasePrice(plan ? String(plan.monthlyBasePrice) : "");
-    setInterval(plan?.interval === "Yearly" ? "Yearly" : "Monthly");
-    setAnnualPrice(plan?.annualPrice != null ? String(plan.annualPrice) : "");
-    const next: OverageState = {};
-    for (const [resource, rate] of Object.entries(plan?.overageRates ?? {})) {
-      if (rate !== undefined && rate !== null) next[resource] = String(rate);
+  // Adjusted during render (react.dev "adjusting state when a prop changes")
+  // instead of in an effect, so the first open frame never shows stale values.
+  const [synced, setSynced] = useState<{ open: boolean; plan?: BillingPlanDto }>({ open: false, plan });
+  if (synced.open !== open || synced.plan !== plan) {
+    setSynced({ open, plan });
+    if (open) {
+      setKey(plan?.key ?? "");
+      setName(plan?.name ?? "");
+      setCurrency(plan?.currency ?? "USD");
+      setMonthlyBasePrice(plan ? String(plan.monthlyBasePrice) : "");
+      setInterval(plan?.interval === "Yearly" ? "Yearly" : "Monthly");
+      setAnnualPrice(plan?.annualPrice != null ? String(plan.annualPrice) : "");
+      const next: OverageState = {};
+      for (const [resource, rate] of Object.entries(plan?.overageRates ?? {})) {
+        if (rate !== undefined && rate !== null) next[resource] = String(rate);
+      }
+      setOverage(next);
     }
-    setOverage(next);
-  }, [open, plan]);
+  }
 
   const keyInvalid = !isEdit && key.length > 0 && !PLAN_KEY_PATTERN.test(key);
   const priceNum = Number(monthlyBasePrice);

@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
         let base: Record<string, unknown> = {};
         try {
           base = JSON.parse(
-            fs.readFileSync(path.resolve(__dirname, "public/config.json"), "utf8"),
+            fs.readFileSync(path.resolve(import.meta.dirname, "public/config.json"), "utf8"),
           ) as Record<string, unknown>;
         } catch {
           // Fall back to defaults if the file is missing/unreadable.
@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
     plugins: [devDirectApiConfig, react(), tailwindcss()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": path.resolve(import.meta.dirname, "./src"),
       },
     },
     server: {

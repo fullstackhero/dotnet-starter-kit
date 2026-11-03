@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -51,7 +51,12 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  // Surface why the previous session ended (read-and-clear, one-shot). Read
+  // once at mount via the lazy initializer — React keeps the first call's
+  // result (StrictMode's discarded second call sees the already-cleared key).
+  const [notice] = useState<string | null>(() =>
+    consumeSignedOutReason() === "inactivity" ? t("login.inactivityNotice") : null,
+  );
   // Second factor. When the token call answers Identity.TwoFactorRequired the
   // credentials move here (component memory only — never storage) so the code
   // step can repeat the call with them. Cleared on back, on success, and with
@@ -59,13 +64,6 @@ export function LoginPage() {
   const [pending, setPending] = useState<Credentials | null>(null);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
-
-  // Surface why the previous session ended (read-and-clear, one-shot).
-  useEffect(() => {
-    if (consumeSignedOutReason() === "inactivity") {
-      setNotice(t("login.inactivityNotice"));
-    }
-  }, [t]);
 
   if (isAuthenticated) {
     return <Navigate to={from} replace />;

@@ -122,11 +122,15 @@ export function Composer({
   const [highlight, setHighlight] = useState(0);
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
+  // Every mention change goes through here so the debounced query is
+  // cleared in the same event the token goes inactive (no effect needed).
+  const updateMention = (next: { query: string; atPos: number } | null) => {
+    setMention(next);
+    if (!next || next.query.length < 2) setDebouncedQuery("");
+  };
+
   useEffect(() => {
-    if (!mention || mention.query.length < 2) {
-      setDebouncedQuery("");
-      return;
-    }
+    if (!mention || mention.query.length < 2) return;
     const t = setTimeout(() => setDebouncedQuery(mention.query), 200);
     return () => clearTimeout(t);
   }, [mention]);
@@ -148,9 +152,18 @@ export function Composer({
 
   // Reset highlight whenever the candidate list changes — keeps the
   // selection sensible even as the query narrows.
-  useEffect(() => {
+  // Adjusted during render against the previous inputs instead of in an effect.
+  const [highlightResetKey, setHighlightResetKey] = useState({
+    query: debouncedQuery,
+    count: candidates.length,
+  });
+  if (
+    highlightResetKey.query !== debouncedQuery ||
+    highlightResetKey.count !== candidates.length
+  ) {
+    setHighlightResetKey({ query: debouncedQuery, count: candidates.length });
     setHighlight(0);
-  }, [debouncedQuery, candidates.length]);
+  }
 
   // ── Detection: walk back from the caret to find an active @ token ──────
   // Triggers when the @ is at the start of input or after whitespace
@@ -161,10 +174,10 @@ export function Composer({
     const before = value.slice(0, caretPos);
     const match = before.match(/(?:^|\s)@([A-Za-z0-9._-]*)$/);
     if (!match) {
-      setMention(null);
+      updateMention(null);
       return;
     }
-    setMention({ query: match[1], atPos: caretPos - match[1].length - 1 });
+    updateMention({ query: match[1], atPos: caretPos - match[1].length - 1 });
   };
 
   // ── Send mutation (optimistic) ─────────────────────────────────────────
@@ -223,7 +236,7 @@ export function Composer({
       ]);
 
       setBody("");
-      setMention(null);
+      updateMention(null);
       setPendingAttachment(null);
       onClearReply?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
@@ -278,7 +291,7 @@ export function Composer({
     const insertion = `@${handle} `;
     const next = before + insertion + after;
     setBody(next);
-    setMention(null);
+    updateMention(null);
     const newCaret = (before + insertion).length;
     // Re-position the caret after the inserted handle. Needs to happen after
     // React commits the textarea value, so defer to rAF.
@@ -313,7 +326,7 @@ export function Composer({
       }
       if (e.key === "Escape") {
         e.preventDefault();
-        setMention(null);
+        updateMention(null);
         return;
       }
     }
@@ -402,7 +415,7 @@ export function Composer({
             // Close the picker when focus actually leaves the textarea.
             // Mouse-down in the picker preventsDefault so blur doesn't fire
             // for in-picker clicks.
-            setMention(null);
+            updateMention(null);
           }}
           onKeyDown={onKeyDown}
           placeholder={

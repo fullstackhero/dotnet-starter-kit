@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Camera, Fingerprint, UserCircle2 } from "lucide-react";
@@ -28,12 +28,15 @@ export function ProfileSettings() {
   const profile = profileQuery.data?.profile;
   const loading = profileQuery.isLoading;
 
-  // The version this form is editing against, captured when the form is seeded. Deliberately a
-  // ref and not `profileQuery.data`: a background refetch would otherwise move it to a version
-  // the user never saw, and the save would carry an If-Match that matches whatever someone else
-  // just wrote — silently overwriting it, which is exactly what the ETag exists to prevent. It
+  // The version this form is editing against, captured when the form is seeded. Deliberately its
+  // own state and not `profileQuery.data`: a background refetch would otherwise move it to a
+  // version the user never saw, and the save would carry an If-Match that matches whatever someone
+  // else just wrote — silently overwriting it, which is exactly what the ETag exists to prevent. It
   // moves only on a deliberate step: a successful save, or the user being told about a conflict.
-  const editingVersionRef = useRef<{ profile: UserDto; etag: string | null } | null>(null);
+  const [editingVersion, setEditingVersion] = useState<{
+    profile: UserDto;
+    etag: string | null;
+  } | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -41,42 +44,43 @@ export function ProfileSettings() {
   // Seed the form from the fetched profile exactly once. The JWT-derived
   // `user` provides an immediate non-empty paint; the authoritative profile
   // then seeds and locks. Seeding once means a later background refetch
-  // can't clobber edits the user has already made.
-  const seededRef = useRef(false);
-  useEffect(() => {
-    if (seededRef.current) return;
-    if (profileQuery.data) {
-      const { profile: seeded } = profileQuery.data;
-      setFirstName(seeded.firstName ?? "");
-      setLastName(seeded.lastName ?? "");
-      setPhone(seeded.phoneNumber ?? "");
-      editingVersionRef.current = profileQuery.data;
-      seededRef.current = true;
-    } else if (user && loading) {
-      setFirstName(user.name?.split(" ")[0] ?? "");
-      setLastName(user.name?.split(" ").slice(1).join(" ") ?? "");
-    }
-  }, [profileQuery.data, user, loading]);
+  // can't clobber edits the user has already made. Both steps adjust state
+  // during render (guarded so each fires once per input change) rather than
+  // in an effect.
+  const [seeded, setSeeded] = useState(false);
+  const [prefilledFrom, setPrefilledFrom] = useState<typeof user | null>(null);
+  if (!seeded && profileQuery.data) {
+    const { profile: seededProfile } = profileQuery.data;
+    setFirstName(seededProfile.firstName ?? "");
+    setLastName(seededProfile.lastName ?? "");
+    setPhone(seededProfile.phoneNumber ?? "");
+    setEditingVersion(profileQuery.data);
+    setSeeded(true);
+  } else if (!seeded && user && loading && prefilledFrom !== user) {
+    setPrefilledFrom(user);
+    setFirstName(user.name?.split(" ")[0] ?? "");
+    setLastName(user.name?.split(" ").slice(1).join(" ") ?? "");
+  }
 
   // A clean form has nothing to lose, so it follows a refetch: both the version it edits against
   // and the values on screen move together, which keeps the user looking at what the tag says.
   // Without this, a write the form did not make (the topbar language switch rotates the stamp too)
   // strands it on a spent tag, and the next save 412s against the user's own change. A dirty form
-  // keeps its version, so a genuine concurrent edit still surfaces as a conflict.
-  useEffect(() => {
-    const editing = editingVersionRef.current;
-    const next = profileQuery.data;
-    if (!seededRef.current || !editing || !next || next === editing) return;
+  // keeps its version, so a genuine concurrent edit still surfaces as a conflict. Adjusted during
+  // render; adopting `next` makes `next === editingVersion`, so it settles in one pass.
+  const nextVersion = profileQuery.data;
+  if (seeded && editingVersion && nextVersion && nextVersion !== editingVersion) {
     const clean =
-      (editing.profile.firstName ?? "") === firstName &&
-      (editing.profile.lastName ?? "") === lastName &&
-      (editing.profile.phoneNumber ?? "") === phone;
-    if (!clean) return;
-    editingVersionRef.current = next;
-    setFirstName(next.profile.firstName ?? "");
-    setLastName(next.profile.lastName ?? "");
-    setPhone(next.profile.phoneNumber ?? "");
-  }, [profileQuery.data, firstName, lastName, phone]);
+      (editingVersion.profile.firstName ?? "") === firstName &&
+      (editingVersion.profile.lastName ?? "") === lastName &&
+      (editingVersion.profile.phoneNumber ?? "") === phone;
+    if (clean) {
+      setEditingVersion(nextVersion);
+      setFirstName(nextVersion.profile.firstName ?? "");
+      setLastName(nextVersion.profile.lastName ?? "");
+      setPhone(nextVersion.profile.phoneNumber ?? "");
+    }
+  }
 
   // Re-reads the profile and adopts it as the version the form edits against, so the next save
   // carries a tag the server will accept.
@@ -88,7 +92,7 @@ export function ProfileSettings() {
       // and the cached copy carries the very tag the server just rejected.
       staleTime: 0,
     });
-    editingVersionRef.current = fresh;
+    setEditingVersion(fresh);
     return fresh;
   };
 
@@ -125,7 +129,7 @@ export function ProfileSettings() {
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const editing = editingVersionRef.current;
+    const editing = editingVersion;
     if (!editing) return;
     // Everything the save needs travels through mutate(), never through state the callbacks
     // close over: the values that go out must be the ones on screen when the button was pressed.

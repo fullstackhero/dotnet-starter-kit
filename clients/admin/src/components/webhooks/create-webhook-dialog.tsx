@@ -37,9 +37,9 @@ const schema = z.object({
   url: z
     .string()
     .trim()
-    .url(URL_MSG)
+    .pipe(z.url(URL_MSG))
     .refine((u) => u.startsWith("https://") || u.startsWith("http://"), {
-      message: SCHEME_MSG,
+      error: SCHEME_MSG,
     }),
   secret: z
     .string()
