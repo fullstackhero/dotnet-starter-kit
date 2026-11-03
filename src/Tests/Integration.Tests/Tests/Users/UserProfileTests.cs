@@ -51,6 +51,32 @@ public sealed class UserProfileTests
     }
 
     [Fact]
+    public async Task UpdateProfile_Should_LeaveEmailUnchanged_When_BodyCarriesAnEmail()
+    {
+        // Arrange — e-mail changes need a confirmation flow, so PUT /profile has no email field;
+        // System.Text.Json skips the unknown property rather than rejecting the request.
+        using var adminClient = await _auth.CreateRootAdminClientAsync();
+        var user = await IdentityUserSeeder.CreateLoginableUserAsync(_factory, adminClient, "upd-email");
+        using var userClient = await _auth.CreateAuthenticatedClientAsync(user.Email, user.Password);
+
+        // Act
+        var response = await userClient.PutAsJsonAsync(
+            $"{TestConstants.IdentityBasePath}/profile", new
+            {
+                firstName = "Renamed",
+                email = $"changed-{Guid.NewGuid():N}@example.com"
+            });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var profile = await userClient.GetAsync($"{TestConstants.IdentityBasePath}/profile");
+        var dto = await profile.DeserializeAsync<UserDto>();
+        dto.FirstName.ShouldBe("Renamed");
+        dto.Email.ShouldBe(user.Email);
+    }
+
+    [Fact]
     public async Task UpdateProfile_Should_IgnoreSuppliedId_When_DifferentFromAuthenticatedUser()
     {
         // Arrange — the endpoint forces request.Id to the caller, so supplying another
