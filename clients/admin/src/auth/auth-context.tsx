@@ -31,7 +31,7 @@ export type AuthContextValue = {
    * permissions request is still in flight.
    */
   permissionsHydrated: boolean;
-  login: (input: { email: string; password: string; tenant: string }) => Promise<void>;
+  login: (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => Promise<void>;
   logout: () => void;
   /** Re-fetch the permission set for the signed-in user. Call after a role
    *  assignment changes for the current user. */
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (input: { email: string; password: string; tenant: string }) => {
+    async (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => {
       tokenStore.setTenant(input.tenant);
       // Stale permissions from a previous user must not leak into the new
       // session — clear before issuing the token so the hydration effect

@@ -1,5 +1,9 @@
 name: CodeQL Analysis
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
   pull_request:
     branches: [main]
     paths:
@@ -15,12 +19,16 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: github/codeql-action/init@v3
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
         with:
           languages: csharp
-      - uses: actions/setup-dotnet@v5
+          build-mode: manual
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
-      - run: dotnet build src/FSH.Starter.slnx -c Release
-      - uses: github/codeql-action/analyze@v3
+      # NuGet audit is off for this build only. The weekly scan runs against an unchanged main, so a
+      # newly published advisory fails restore under TreatWarningsAsErrors and the code scan never runs
+      # (that is what broke it every week from 2026-10-19). Backend CI still gates advisories on every PR.
+      - run: dotnet build src/FSH.Starter.slnx -c Release -p:NuGetAudit=false
+      - uses: github/codeql-action/analyze@v4

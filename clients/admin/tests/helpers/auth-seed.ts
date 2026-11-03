@@ -14,7 +14,7 @@ export type SeededUser = {
   permissions?: string[];
 };
 
-function fakeJwt(payload: Record<string, unknown>): string {
+export function fakeJwt(payload: Record<string, unknown>): string {
   const b64url = (obj: unknown) =>
     // UTF-8 bytes, like the server emits, so non-ASCII claims hit the real decode path.
     btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(obj))))

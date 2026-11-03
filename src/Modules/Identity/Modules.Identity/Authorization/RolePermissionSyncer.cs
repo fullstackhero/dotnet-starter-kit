@@ -90,17 +90,21 @@ public sealed class RolePermissionSyncer(
 
         context.RoleClaims.RemoveRange(toRemove);
         await context.RoleClaims.AddRangeAsync(toAdd, cancellationToken).ConfigureAwait(false);
-        if (!await TrySaveAsync(cancellationToken).ConfigureAwait(false))
+        switch (await TrySaveAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (logger.IsEnabled(LogLevel.Information))
-            {
-                logger.LogInformation(
-                    "Permission sync for '{Role}' in tenant '{Tenant}' lost a race with another instance; its changes are already applied",
-                    roleName,
-                    tenantAccessor.MultiTenantContext.TenantInfo?.Id);
-            }
+            case SaveOutcome.LostDeleteRace:
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation(
+                        "Permission sync for '{Role}' in tenant '{Tenant}' lost a race with another instance; its changes are already applied",
+                        roleName,
+                        tenantAccessor.MultiTenantContext.TenantInfo?.Id);
+                }
 
-            return 0;
+                return 0;
+            case SaveOutcome.AlreadyInserted:
+                logger.LogRoleClaimsAlreadyInserted(roleName, tenantAccessor.MultiTenantContext.TenantInfo?.Id);
+                return 0;
         }
 
         if (toRemove.Count > 0 && logger.IsEnabled(LogLevel.Warning))
@@ -127,23 +131,35 @@ public sealed class RolePermissionSyncer(
         return toAdd.Count + toRemove.Count;
     }
 
+    private enum SaveOutcome
+    {
+        Saved,
+        LostDeleteRace,
+        AlreadyInserted,
+    }
+
     /// <summary>
-    /// Saves the pending claim changes. Returns <c>false</c> when another instance starting at the same
-    /// time deleted the same rows first (a delete matched 0 rows): its write already reached the same
-    /// end state, so this is not an error.
+    /// Saves the pending claim changes. Another instance starting at the same time can get there first:
+    /// it deleted the same rows (a delete matched 0 rows) or inserted the same grant (the unique index on
+    /// role claims rejected ours). Its write already reached the same end state, so neither is an error.
     /// </summary>
-    private async Task<bool> TrySaveAsync(CancellationToken cancellationToken)
+    private async Task<SaveOutcome> TrySaveAsync(CancellationToken cancellationToken)
     {
         try
         {
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return true;
+            return SaveOutcome.Saved;
         }
         catch (DbUpdateConcurrencyException)
         {
             // Drop the failed entries, or the next role's save in this scope would retry them.
             context.ChangeTracker.Clear();
-            return false;
+            return SaveOutcome.LostDeleteRace;
+        }
+        catch (DbUpdateException ex) when (RoleClaimUniqueness.IsDuplicateRoleClaim(ex))
+        {
+            context.ChangeTracker.Clear();
+            return SaveOutcome.AlreadyInserted;
         }
     }
 

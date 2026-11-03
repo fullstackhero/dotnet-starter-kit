@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Integration.Tests.Tests.Catalog;
 
@@ -217,17 +218,9 @@ public sealed class RolePermissionSyncerTests
 
             // Stands in for a second instance starting at the same time: just before this instance's
             // first save, it deletes the same row from its own connection.
-            var otherInstance = new DeleteBeforeFirstSaveInterceptor(
+            var otherInstance = new CompetingWriteBeforeFirstSaveInterceptor(
                 () => DeleteClaimAsync(rootTenant, racedRole, RetiredPermission));
-            var options = new DbContextOptionsBuilder<IdentityDbContext>(
-                    sp.GetRequiredService<DbContextOptions<IdentityDbContext>>())
-                .AddInterceptors(otherInstance)
-                .Options;
-            await using var db = new IdentityDbContext(
-                sp.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>(),
-                options,
-                sp.GetRequiredService<IOptions<DatabaseOptions>>(),
-                sp.GetRequiredService<IHostEnvironment>());
+            await using var db = CreateIdentityDbContext(sp, otherInstance);
             var syncer = ActivatorUtilities.CreateInstance<RolePermissionSyncer>(
                 sp, db, Options.Create(new PermissionSyncOptions { RemoveRevoked = true }));
 
@@ -247,7 +240,98 @@ public sealed class RolePermissionSyncerTests
         }
     }
 
+    [Fact]
+    public async Task RoleClaims_Should_Reject_The_Same_Permission_Twice_On_A_Role()
+    {
+        var rootTenant = await GetRootTenantAsync();
+        string roleName = await CreateProbeRoleAsync(rootTenant, RetiredPermission);
+
+        try
+        {
+            var ex = await Should.ThrowAsync<DbUpdateException>(
+                () => SeedClaimAsync(rootTenant, roleName, ClaimConstants.Permission, RetiredPermission));
+
+            var pg = ex.InnerException.ShouldBeOfType<PostgresException>();
+            pg.SqlState.ShouldBe(PostgresErrorCodes.UniqueViolation);
+            pg.ConstraintName.ShouldBe("IX_RoleClaims_RoleId_ClaimType_ClaimValue");
+
+            var count = await CountClaimRowsAsync(rootTenant, roleName, RetiredPermission);
+            count.ShouldBe(1, "The database must hold one row per grant.");
+        }
+        finally
+        {
+            await DeleteRoleAsync(rootTenant, roleName);
+        }
+    }
+
+    [Fact]
+    public async Task SyncRoleAsync_Should_Treat_A_Lost_Insert_Race_As_Done_And_Keep_Syncing()
+    {
+        var rootTenant = await GetRootTenantAsync();
+        string racedRole = await CreateProbeRoleAsync(rootTenant, RetiredPermission);
+        string nextRole = await CreateProbeRoleAsync(rootTenant, RetiredPermission);
+
+        try
+        {
+            using var scope = _factory.Services.CreateScope();
+            var sp = scope.ServiceProvider;
+            sp.GetRequiredService<IMultiTenantContextSetter>()
+                .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(rootTenant);
+
+            // Stands in for a second instance starting at the same time: just before this instance's
+            // first save, it inserts the same missing permission from its own connection.
+            var otherInstance = new CompetingWriteBeforeFirstSaveInterceptor(
+                () => SeedClaimAsync(rootTenant, racedRole, ClaimConstants.Permission, ProbePermission.Name));
+            await using var db = CreateIdentityDbContext(sp, otherInstance);
+            var syncer = ActivatorUtilities.CreateInstance<RolePermissionSyncer>(
+                sp, db, Options.Create(new PermissionSyncOptions { RemoveRevoked = false }));
+
+            int racedChanged = await syncer.SyncRoleAsync(racedRole, [ProbePermission], CancellationToken.None);
+            int nextChanged = await syncer.SyncRoleAsync(nextRole, [ProbePermission], CancellationToken.None);
+
+            otherInstance.Fired.ShouldBeTrue("Pre-condition: the competing insert must have run.");
+            racedChanged.ShouldBe(0, "A lost insert race is reported as no change from this instance.");
+            (await CountClaimRowsAsync(rootTenant, racedRole, ProbePermission.Name))
+                .ShouldBe(1, "The other writer's row is the only one; ours must not be retried.");
+            nextChanged.ShouldBe(1, "The next role in the same scope must still sync.");
+            var next = await GetClaimsAsync(rootTenant, nextRole, ClaimConstants.Permission);
+            next.ShouldBe([RetiredPermission, ProbePermission.Name], ignoreOrder: true);
+        }
+        finally
+        {
+            await DeleteRoleAsync(rootTenant, racedRole);
+            await DeleteRoleAsync(rootTenant, nextRole);
+        }
+    }
+
     // ─── helpers ─────────────────────────────────────────────────────
+
+    private static IdentityDbContext CreateIdentityDbContext(IServiceProvider sp, IInterceptor interceptor)
+    {
+        var options = new DbContextOptionsBuilder<IdentityDbContext>(
+                sp.GetRequiredService<DbContextOptions<IdentityDbContext>>())
+            .AddInterceptors(interceptor)
+            .Options;
+        return new IdentityDbContext(
+            sp.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>(),
+            options,
+            sp.GetRequiredService<IOptions<DatabaseOptions>>(),
+            sp.GetRequiredService<IHostEnvironment>());
+    }
+
+    private async Task<int> CountClaimRowsAsync(AppTenantInfo tenant, string roleName, string claimValue)
+    {
+        using var scope = _factory.Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
+
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<FshRole>>();
+        var role = await roleManager.Roles.SingleAsync(r => r.Name == roleName);
+
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        return await db.RoleClaims.CountAsync(rc =>
+            rc.RoleId == role.Id && rc.ClaimType == ClaimConstants.Permission && rc.ClaimValue == claimValue);
+    }
 
     private async Task<int> RunSyncRoleAsync(AppTenantInfo tenant, string roleName, IReadOnlyList<FshPermission> target, bool removeRevoked)
     {
@@ -305,7 +389,7 @@ public sealed class RolePermissionSyncerTests
         deleted.ShouldBe(1);
     }
 
-    private sealed class DeleteBeforeFirstSaveInterceptor(Func<Task> competingDelete) : SaveChangesInterceptor
+    private sealed class CompetingWriteBeforeFirstSaveInterceptor(Func<Task> competingWrite) : SaveChangesInterceptor
     {
         public bool Fired { get; private set; }
 
@@ -317,7 +401,7 @@ public sealed class RolePermissionSyncerTests
             if (!Fired)
             {
                 Fired = true;
-                await competingDelete();
+                await competingWrite();
             }
 
             return result;

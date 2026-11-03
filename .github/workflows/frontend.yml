@@ -27,8 +27,8 @@ jobs:
     outputs:
       frontend: ${{ github.event_name != 'pull_request' || steps.filter.outputs.frontend == 'true' }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -50,7 +50,7 @@ jobs:
         working-directory: clients/${{ matrix.app }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -83,7 +83,7 @@ jobs:
         working-directory: clients/${{ matrix.app }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -125,7 +125,7 @@ jobs:
         app: [admin, dashboard]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Build image
         run: docker build -t fsh-${{ matrix.app }}:ci clients/${{ matrix.app }}
@@ -151,6 +151,8 @@ jobs:
             # Empty inactivity variables (what compose passes when .env leaves them unset)
             # fall back to the app's built-in timings.
             jq -e --argjson idle "$DEFAULT_IDLE_MS" '.inactivityIdleMs == $idle and .inactivityWarningMs == 60000' config.json
+            # Unset FSH_DEFAULT_LANGUAGE falls back to the bundle's own default.
+            jq -e '.defaultLanguage == "en-US"' config.json
           }
           check
           if curl -fsS http://localhost:8080/config.json.template | grep -qF '${FSH_API_URL}'; then

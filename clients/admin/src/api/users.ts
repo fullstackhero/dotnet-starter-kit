@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api-client";
+import { ApiRequestError, apiFetch } from "@/lib/api-client";
 import type { PagedResponse } from "@/lib/api-types";
 
 export type UserDto = {
@@ -92,20 +92,41 @@ export type UpdateMyProfileInput = {
  * unconditionally from the command, so a partial update (e.g. the language
  * switcher sending only `locale`) would wipe the others. Reads the current
  * profile from the server first and merges, so any field the caller omits
- * keeps its persisted value instead of being nulled — never trust a possibly
- * stale/undefined client-side snapshot for the echoed fields.
+ * keeps its persisted value.
+ *
+ * The PUT echoes the read's ETag in `If-Match`, so a profile edit that lands
+ * between the read and the write makes the server answer 412 instead of being
+ * silently overwritten. On 412 the read-merge-write runs once more against the
+ * fresh profile; the caller only sends the fields it means to change.
  */
 export async function updateMyProfile(input: UpdateMyProfileInput): Promise<void> {
-  const profile = await getMyProfile();
+  try {
+    await putMyProfile(input);
+  } catch (err) {
+    if (!(err instanceof ApiRequestError) || err.status !== 412) throw err;
+    await putMyProfile(input);
+  }
+}
+
+async function putMyProfile(input: UpdateMyProfileInput): Promise<void> {
+  let etag: string | null = null;
+  const profile = await apiFetch<UserDto>(`${IDENTITY}/profile`, {
+    onResponse: (response) => {
+      // The endpoint emits a strong validator; a compressing proxy can downgrade it to W/,
+      // which the server's strong If-Match comparison would never match.
+      const header = response.headers.get("ETag");
+      etag = header ? header.replace(/^W\//, "") : null;
+    },
+  });
   await apiFetch<void>(`${IDENTITY}/profile`, {
     method: "PUT",
+    headers: etag ? { "If-Match": etag } : undefined,
     body: JSON.stringify({
       id: profile.id,
       firstName: input.firstName ?? profile.firstName ?? null,
       lastName: input.lastName ?? profile.lastName ?? null,
       phoneNumber: input.phoneNumber ?? profile.phoneNumber ?? null,
       locale: input.locale ?? profile.locale ?? null,
-      email: profile.email,
       deleteCurrentImage: false,
     }),
   });
