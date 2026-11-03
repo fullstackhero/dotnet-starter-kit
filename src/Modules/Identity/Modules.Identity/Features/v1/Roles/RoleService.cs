@@ -224,6 +224,7 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
     {
         var newPermissions = permissions
             .Where(p => !string.IsNullOrEmpty(p) && !currentClaims.Any(c => c.Value == p))
+            .Distinct(StringComparer.Ordinal)
             .ToList();
 
         foreach (string permission in newPermissions)
