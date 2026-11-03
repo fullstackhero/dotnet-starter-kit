@@ -16,17 +16,19 @@ using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Files.Features.v1.FinalizeUpload;
 
-public sealed class FinalizeUploadCommandHandler(
+public sealed partial class FinalizeUploadCommandHandler(
     FilesDbContext db,
     IStorageService storage,
     IFileScanner scanner,
     IQuotaService quotas,
     IOutboxWriter outbox,
     ICurrentUser currentUser,
-    FileStorageRelocator relocator)
+    FileStorageRelocator relocator,
+    ILogger<FinalizeUploadCommandHandler> logger)
     : ICommandHandler<FinalizeUploadCommand, FileAssetDto>
 {
     public async ValueTask<FileAssetDto> Handle(FinalizeUploadCommand cmd, CancellationToken cancellationToken)
@@ -111,13 +113,34 @@ public sealed class FinalizeUploadCommandHandler(
         if (asset.Status == FileAssetStatus.Available
             && !StorageKeyBuilder.IsUnderVisibilityRoot(asset.StorageKey, asset.Visibility))
         {
-            asset = await relocator.ApplyAsync(
+            asset = await TryMoveUnderVisibilityRootAsync(asset, cancellationToken).ConfigureAwait(false);
+        }
+
+        return FileAssetMapper.ToDto(asset);
+    }
+
+    // Best-effort: the finalize above is already committed, so a failed move must not turn into an error
+    // for a file that is Available (a retried finalize would only get 409). The file stays at its legacy
+    // key: a public one is moved by MigrateLegacyPublicFileKeysJob on its next run; a private one stays
+    // there, which is safe because no bucket policy grants anonymous read outside public/*.
+    private async Task<FileAsset> TryMoveUnderVisibilityRootAsync(FileAsset asset, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await relocator.ApplyAsync(
                 asset.Id,
                 a => a.Status == FileAssetStatus.Available
                     && !StorageKeyBuilder.IsUnderVisibilityRoot(a.StorageKey, a.Visibility),
                 cancellationToken).ConfigureAwait(false) ?? asset;
         }
-
-        return FileAssetMapper.ToDto(asset);
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogMoveDeferred(logger, ex, asset.Id, asset.StorageKey);
+            return asset;
+        }
     }
+
+    [LoggerMessage(Level = LogLevel.Warning,
+        Message = "[Files] finalized file {FileAssetId} but could not move it from legacy key {StorageKey}; it stays there until the legacy-key migration moves it")]
+    private static partial void LogMoveDeferred(ILogger logger, Exception exception, Guid fileAssetId, string storageKey);
 }

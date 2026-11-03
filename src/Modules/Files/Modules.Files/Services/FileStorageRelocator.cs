@@ -30,6 +30,8 @@ namespace FSH.Modules.Files.Services;
 /// <c>DeleteSupersededObjectHandler</c> when the outbox delivers the event, which retries with backoff
 /// until the object is really gone. A crash or a swallowed store error therefore leaves at most a
 /// temporary orphan, never a row pointing at nothing and never a public copy of a private file for good.
+/// When the copy succeeds but the commit fails, the copy is removed again (and its bytes refunded), since
+/// no row will ever point at it.
 /// </para>
 /// </summary>
 public sealed partial class FileStorageRelocator(
@@ -54,51 +56,63 @@ public sealed partial class FileStorageRelocator(
 
         FileAsset? result = null;
         string? supersededKey = null;
+        string? copiedKey = null;
         var strategy = db.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async ct =>
+        try
         {
-            // A retried attempt starts from the database again, not from the failed attempt's state.
-            db.ChangeTracker.Clear();
-            result = null;
-            supersededKey = null;
-
-            await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
-            var asset = await LoadLockedAsync(fileAssetId, ct).ConfigureAwait(false);
-            if (asset is null || !mutate(asset))
+            await strategy.ExecuteAsync(async ct =>
             {
-                result = asset;
-                return;
-            }
+                // A retried attempt starts from the database again, not from the failed attempt's state.
+                db.ChangeTracker.Clear();
+                result = null;
+                supersededKey = null;
 
-            var oldKey = asset.StorageKey;
-            var newKey = StorageKeyBuilder.ForVisibility(oldKey, asset.Visibility);
-            var moves = !string.Equals(oldKey, newKey, StringComparison.Ordinal);
-            if (moves)
-            {
-                // Skip the copy only on a confirmed hit: ExistsAsync reports false on store errors, and the
-                // copy itself throws on a missing source or a store failure, which aborts before the row moves.
-                if (!await storage.ExistsAsync(newKey, ct).ConfigureAwait(false))
+                await using var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+                var asset = await LoadLockedAsync(fileAssetId, ct).ConfigureAwait(false);
+                if (asset is null || !mutate(asset))
                 {
-                    await storage.CopyAsync(oldKey, newKey, ct).ConfigureAwait(false);
+                    result = asset;
+                    return;
                 }
 
-                asset.RelocateStorage(newKey);
-            }
+                var oldKey = asset.StorageKey;
+                var newKey = StorageKeyBuilder.ForVisibility(oldKey, asset.Visibility);
+                var moves = !string.Equals(oldKey, newKey, StringComparison.Ordinal);
+                if (moves)
+                {
+                    // Skip the copy only on a confirmed hit: ExistsAsync reports false on store errors, and the
+                    // copy itself throws on a missing source or a store failure, which aborts before the row moves.
+                    if (!await storage.ExistsAsync(newKey, ct).ConfigureAwait(false))
+                    {
+                        await storage.CopyAsync(oldKey, newKey, ct).ConfigureAwait(false);
+                    }
 
-            // acceptAllChangesOnSuccess: false keeps the tracked changes if the commit fails and the
-            // execution strategy retries; they are accepted once the commit has gone through.
-            await db.SaveChangesAsync(acceptAllChangesOnSuccess: false, ct).ConfigureAwait(false);
-            if (moves)
-            {
-                await outbox.AddAsync(NewEvent(asset, oldKey, newKey), ct).ConfigureAwait(false);
-            }
+                    copiedKey = newKey;
+                    asset.RelocateStorage(newKey);
+                }
 
-            await transaction.CommitAsync(ct).ConfigureAwait(false);
-            db.ChangeTracker.AcceptAllChanges();
+                // acceptAllChangesOnSuccess: false keeps the tracked changes if the commit fails and the
+                // execution strategy retries; they are accepted once the commit has gone through.
+                await db.SaveChangesAsync(acceptAllChangesOnSuccess: false, ct).ConfigureAwait(false);
+                if (moves)
+                {
+                    await outbox.AddAsync(NewEvent(asset, oldKey, newKey), ct).ConfigureAwait(false);
+                }
 
-            result = asset;
-            supersededKey = moves ? oldKey : null;
-        }, cancellationToken).ConfigureAwait(false);
+                await transaction.CommitAsync(ct).ConfigureAwait(false);
+                db.ChangeTracker.AcceptAllChanges();
+
+                result = asset;
+                supersededKey = moves ? oldKey : null;
+            }, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (copiedKey is not null)
+        {
+            // The object was copied but the row never moved to it, so nothing references the copy while
+            // the quota decorator has charged it. Remove it (RemoveAsync refunds the bytes once it is gone).
+            await DiscardCopyAsync(fileAssetId, copiedKey, ex).ConfigureAwait(false);
+            throw;
+        }
 
         if (supersededKey is not null && result is not null)
         {
@@ -157,6 +171,21 @@ public sealed partial class FileStorageRelocator(
         }, cancellationToken).ConfigureAwait(false);
     }
 
+    // Best-effort and not tied to the caller's token: the caller's failure is what gets reported. Goes
+    // through DeleteIfUnreferencedAsync, so a copy a concurrent move has since committed is left alone.
+    private async Task DiscardCopyAsync(Guid fileAssetId, string copiedKey, Exception failure)
+    {
+        LogCommitFailed(logger, failure, fileAssetId, copiedKey);
+        try
+        {
+            await DeleteIfUnreferencedAsync(fileAssetId, copiedKey, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            LogDiscardCopyFailed(logger, ex, fileAssetId, copiedKey);
+        }
+    }
+
     // Row lock + fresh read. EF identity resolution would otherwise hand back an already-tracked instance
     // with stale values, hence the ChangeTracker.Clear() at the start of each attempt.
     private Task<FileAsset?> LoadLockedAsync(Guid fileAssetId, CancellationToken ct)
@@ -191,6 +220,14 @@ public sealed partial class FileStorageRelocator(
     [LoggerMessage(Level = LogLevel.Information,
         Message = "[Files] moved file {FileAssetId} from {OldStorageKey} to {NewStorageKey}")]
     private static partial void LogRelocated(ILogger logger, Guid fileAssetId, string oldStorageKey, string newStorageKey);
+
+    [LoggerMessage(Level = LogLevel.Warning,
+        Message = "[Files] move of file {FileAssetId} failed after copying it to {StorageKey}; removing the copy")]
+    private static partial void LogCommitFailed(ILogger logger, Exception exception, Guid fileAssetId, string storageKey);
+
+    [LoggerMessage(Level = LogLevel.Error,
+        Message = "[Files] could not remove the unused copy {StorageKey} of file {FileAssetId}; it stays orphaned and charged to quota")]
+    private static partial void LogDiscardCopyFailed(ILogger logger, Exception exception, Guid fileAssetId, string storageKey);
 
     [LoggerMessage(Level = LogLevel.Warning,
         Message = "[Files] could not delete the superseded object {StorageKey} of file {FileAssetId} yet; the outbox retries it")]
