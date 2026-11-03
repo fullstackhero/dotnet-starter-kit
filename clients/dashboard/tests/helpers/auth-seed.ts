@@ -36,7 +36,7 @@ const TENANT_KEY = "fsh.dashboard.tenant";
  * base64url-encoded JSON. Signature is a junk string — the dashboard
  * never validates it (only the server does), so this is safe.
  */
-function fakeJwt(payload: Record<string, unknown>): string {
+export function fakeJwt(payload: Record<string, unknown>): string {
   const b64url = (obj: unknown) =>
     btoa(JSON.stringify(obj)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
   return [b64url({ alg: "HS256", typ: "JWT" }), b64url(payload), "sig"].join(".");

@@ -41,7 +41,7 @@ export type AuthContextValue = {
   permissionsHydrated: boolean;
   /** Truthy iff the current access token carries act_sub (impersonation mode). */
   impersonation: ImpersonationInfo | null;
-  login: (input: { email: string; password: string; tenant: string }) => Promise<void>;
+  login: (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => Promise<void>;
   logout: () => void;
   /** Re-fetch the permission set for the signed-in user (e.g. after a role change). */
   refreshPermissions: () => Promise<void>;
@@ -216,7 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (input: { email: string; password: string; tenant: string }) => {
+    async (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => {
       tokenStore.setTenant(input.tenant);
       // Stale permissions from a previous user must not leak into the new
       // session — clear before issuing the token so the hydration effect
