@@ -67,7 +67,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.13" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.13" />
-    <!-- Pin the transitive SQLitePCLRaw.lib.e_sqlite3 explicitly. Microsoft.EntityFrameworkCore.Sqlite 10.0.12
+    <!-- Pin the transitive SQLitePCLRaw.lib.e_sqlite3 explicitly. Microsoft.EntityFrameworkCore.Sqlite 10.0.13
          brings in 2.1.11, which bundles a SQLite build vulnerable to a memory-corruption bug fixed upstream in
          SQLite 3.50.2 (GHSA-2m69-gcr7-jv3q) and trips NuGetAudit under TreatWarningsAsErrors. SQLitePCLRaw
          re-versioned its e_sqlite3 packages to track the embedded SQLite version, so 3.50.3 embeds a fixed build. -->
@@ -110,13 +110,15 @@
          trips NuGetAudit under TreatWarningsAsErrors. Stay on the 2.x line — 3.x has breaking API changes that
          fail the framework's OpenAPI transformers. Bump in lockstep with Microsoft.AspNetCore.OpenApi. -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.12.2" />
-    <!-- Pin the transitive System.Security.Cryptography.Xml and .Pkcs explicitly. They float in below the
-         patched line (Xml via Microsoft.AspNetCore.DataProtection; Pkcs at 9.0.x/10.0.x via several packages),
-         and every 10.0.x up to 10.0.12 carries HIGH-severity advisories (Xml: GHSA-r955-8q5j-3h83,
-         GHSA-c399-9853-6jmj, GHSA-7hqp-7c5m-4vq6; Pkcs: GHSA-846f-f764-76mx, GHSA-2fmv-rv2c-59x7) that trip
+    <!-- Pin the transitive System.Security.Cryptography.Xml explicitly. It floats in at 10.0.12 (via
+         Microsoft.AspNetCore.DataProtection), which carries five HIGH-severity advisories — GHSA-23rf-6693-g89p,
+         GHSA-8q5v-6pqq-x66h, GHSA-cvvh-rhrc-wg4q, GHSA-g8r8-53c2-pm3f, GHSA-mmjf-rqrv-855v — that trip
          NuGetAudit under TreatWarningsAsErrors and fail restore for every project. Bump in lockstep with the
          .NET 10 patch line. -->
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.13" />
+    <!-- Same story for System.Security.Cryptography.Pkcs: it floats in at 9.0.x/10.0.0-10.0.12 (via
+         Cryptography.Xml, MailKit and the Aspire hosting stack), and those versions carry
+         GHSA-846f-f764-76mx (HIGH) and GHSA-2fmv-rv2c-59x7. Bump in lockstep with the .NET 10 patch line. -->
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
