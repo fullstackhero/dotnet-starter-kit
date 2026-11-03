@@ -10,7 +10,7 @@ the shared code lives in `src/BuildingBlocks` and is yours to change.
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Node.js 20+](https://nodejs.org) — for the React apps
+- [Node.js 20.19+ or 22.13+](https://nodejs.org) — for the React apps
 - [Docker](https://www.docker.com/) — Postgres, Redis, RustFS (orchestrated by Aspire)
 
 ## Quick start

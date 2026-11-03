@@ -3,7 +3,7 @@
 Applies to **both** `clients/admin` and `clients/dashboard`. Read this for any React work, then read
 the app-specific file (`admin.md` / `dashboard.md`) for divergences.
 
-Stack: React 19 · Vite 7 · TypeScript · TanStack Query v5 · React Router 7 · Radix UI · Tailwind v4 ·
+Stack: React 19 · Vite 8 · TypeScript 6 · TanStack Query v5 · React Router 7 · Radix UI · Tailwind v4 ·
 class-variance-authority (shadcn-style) · `@microsoft/signalr`. Path alias `@` → `src` (`vite.config.ts`).
 
 ## API client (`src/lib/api-client.ts`, `src/api/*`)
