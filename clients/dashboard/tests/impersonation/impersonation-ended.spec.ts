@@ -10,53 +10,18 @@
 //
 // Browser: chromium only, run against the already-running Vite dev server.
 
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { mockProblemDetails } from "../helpers/api-mocks";
+import {
+  ACCESS_KEY,
+  IMPERSONATED_USER,
+  OPERATOR_ACTOR,
+  seedImpersonationSession,
+} from "../helpers/auth-seed";
 import { installShellMocks } from "../helpers/shell-mocks";
 
-const ACCESS_KEY = "fsh.dashboard.accessToken";
-const REFRESH_KEY = "fsh.dashboard.refreshToken";
-const TENANT_KEY = "fsh.dashboard.tenant";
-
-/**
- * Seed an IMPERSONATION session into localStorage before React boots: an
- * access token carrying the `act_sub` actor claim, a target tenant, and —
- * critically — NO refresh token (token-store drops the refresh slot on
- * beginImpersonation). The missing refresh token is what makes a 401 propagate
- * to the global error hook rather than triggering a silent refresh-and-retry.
- */
-async function seedImpersonationSession(page: Page): Promise<void> {
-  const b64url = (obj: unknown) =>
-    btoa(JSON.stringify(obj)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
-  const payload = {
-    sub: "u-impersonated-1",
-    email: "dan@acme.com",
-    name: "Dan Mueller",
-    tenant: "acme",
-    // Actor claims — the original operator's identity. Their presence is what
-    // marks this token as an impersonation session.
-    act_sub: "op-root-1",
-    act_tenant: "root",
-    act_name: "Root Operator",
-    permissions: [],
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    iat: Math.floor(Date.now() / 1000),
-  };
-  const accessToken = [b64url({ alg: "HS256", typ: "JWT" }), b64url(payload), "sig"].join(".");
-
-  await page.addInitScript(
-    ({ access, accessKey, refreshKey, tenantKey }) => {
-      localStorage.setItem(accessKey, access);
-      // Defensive: ensure no refresh token lingers from a prior session.
-      localStorage.removeItem(refreshKey);
-      localStorage.setItem(tenantKey, "acme");
-    },
-    { access: accessToken, accessKey: ACCESS_KEY, refreshKey: REFRESH_KEY, tenantKey: TENANT_KEY },
-  );
-}
-
 test.beforeEach(async ({ page }) => {
-  await seedImpersonationSession(page);
+  await seedImpersonationSession(page, IMPERSONATED_USER, OPERATOR_ACTOR);
   await installShellMocks(page);
 });
 

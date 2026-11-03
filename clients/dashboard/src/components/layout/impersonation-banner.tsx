@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowRight, LogOut, ShieldAlert, UserCog } from "lucide-react";
@@ -25,6 +26,7 @@ import { cn } from "@/lib/cn";
  *     left ribbon, slightly bolder copy).
  */
 export function ImpersonationBanner() {
+  const { t } = useTranslation("common");
   const { impersonation, user, stopImpersonation } = useAuth();
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
@@ -43,16 +45,16 @@ export function ImpersonationBanner() {
       // admin app) → land on /login. Otherwise the operator's own session was
       // restored → back to the dashboard home.
       if (result.signedOut) {
-        toast.success("Impersonation ended");
+        toast.success(t("impersonationBanner.toastEnded"));
         navigate("/login", { replace: true });
       } else {
-        toast.success("Returned to your session");
+        toast.success(t("impersonationBanner.toastReturned"));
         navigate("/", { replace: true });
       }
     },
     onError: (err) => {
-      toast.error("Could not end impersonation cleanly", {
-        description: err instanceof Error ? err.message : "Restored local session.",
+      toast.error(t("impersonationBanner.toastErrorTitle"), {
+        description: err instanceof Error ? err.message : t("impersonationBanner.toastErrorDesc"),
       });
       navigate("/", { replace: true });
     },
@@ -60,7 +62,7 @@ export function ImpersonationBanner() {
 
   if (!impersonation) return null;
 
-  const subjectLabel = user?.name ?? user?.email ?? "Unknown";
+  const subjectLabel = user?.name ?? user?.email ?? t("unknownUser");
   const tenantLabel = user?.tenant ?? "—";
   const actorLabel = impersonation.actorName ?? impersonation.actorUserId.slice(0, 8) + "…";
   const actorTenantLabel = impersonation.actorTenant ?? "—";
@@ -71,8 +73,8 @@ export function ImpersonationBanner() {
   // flip between warning / destructive without scattering conditionals.
   const tone = isCrossTenant ? "var(--color-destructive)" : "var(--color-warning)";
   const metaLabel = isCrossTenant
-    ? "Cross-tenant impersonation"
-    : "Impersonating";
+    ? t("impersonationBanner.crossTenant")
+    : t("impersonationBanner.impersonating");
 
   return (
     <div
@@ -151,7 +153,7 @@ export function ImpersonationBanner() {
               bar to one line on mobile. The `acting as` phrasing covers
               both variants. */}
           <span className="hidden items-center gap-1 text-[12px] text-[var(--color-muted-foreground)] sm:inline-flex">
-            <span>· operator</span>
+            <span>· {t("impersonationBanner.operator")}</span>
             <UserCog className="h-3 w-3" aria-hidden />
             <span className="text-[var(--color-foreground)]">
               {actorLabel}
@@ -172,7 +174,7 @@ export function ImpersonationBanner() {
         }}
       >
         <LogOut className="mr-1.5 h-3.5 w-3.5" />
-        {pending ? "Ending…" : "End impersonation"}
+        {pending ? t("impersonationBanner.ending") : t("impersonationBanner.end")}
       </Button>
     </div>
   );
