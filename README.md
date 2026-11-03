@@ -48,7 +48,7 @@ dotnet run --project src/Host/MyApp.AppHost   # 🎉 whole stack up: API + 2 Rea
 - **Docs**: **OpenAPI** + the **Scalar** API reference UI.
 
 ### Front-ends — two React 19 apps
-- **`clients/admin`** (operator console) and **`clients/dashboard`** (tenant app): **React 19 + Vite 7 + TypeScript**, **TanStack Query v5**, **React Router 7**, **Radix + Tailwind v4** (shadcn-style), real-time via **SignalR**/**SSE**.
+- **`clients/admin`** (operator console) and **`clients/dashboard`** (tenant app): **React 19 + Vite 8 + TypeScript 6**, **TanStack Query v5**, **React Router 7**, **Radix + Tailwind v4** (shadcn-style), real-time via **SignalR**/**SSE**.
 - Runtime config (`/config.json`, no rebuild per environment), hand-written typed API client, and **Playwright** E2E suites.
 
 ### Modules (bounded contexts)
@@ -96,7 +96,7 @@ git clone https://github.com/fullstackhero/dotnet-starter-kit.git MyApp && cd My
 dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
-> **Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download) · [Docker](https://www.docker.com/) (Postgres/Valkey/RustFS via Aspire) · [Node 20+](https://nodejs.org/) (for the React apps).
+> **Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download) · [Docker](https://www.docker.com/) (Postgres/Valkey/RustFS via Aspire) · [Node 20.19+ or 22.13+](https://nodejs.org/) (for the React apps).
 
 **`fsh` commands:** `new` · `doctor` · `info` · `update` · `--version`. Full reference → [fullstackhero.net/docs/cli](https://fullstackhero.net/docs/cli/).
 
@@ -106,7 +106,7 @@ dotnet run --project src/Host/FSH.Starter.AppHost
 
 | Backend | | Frontend | |
 |---|---|---|---|
-| Runtime | .NET 10 / C# latest | Framework | React 19 + Vite 7 + TS 5 |
+| Runtime | .NET 10 / C# latest | Framework | React 19 + Vite 8 + TS 6 |
 | API | Minimal APIs + Mediator (CQRS) | Data | TanStack Query v5 |
 | Validation | FluentValidation | Routing | React Router 7 |
 | ORM / DB | EF Core 10 / PostgreSQL | UI | Radix + Tailwind v4 (shadcn) |
