@@ -57,7 +57,7 @@ test.describe("overview (/)", () => {
     await expect(page.getByText(/no usage captured yet/i)).toBeVisible();
   });
 
-  // GET /audits requires AuditTrails.View; installShellMocks grants no permissions.
+  // GET /audits requires AuditTrails.View; installShellMocks does not grant it.
   test("recent audits: without Audit trail access, no /audits call and a no-access state", async ({ page }) => {
     let auditCalls = 0;
     page.on("request", (req) => {
