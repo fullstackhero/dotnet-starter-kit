@@ -74,10 +74,7 @@ public sealed class IdentityService : IIdentityService
                 "two_factor_required: An authenticator code is required to complete sign-in.",
                 errors: null,
                 HttpStatusCode.Unauthorized)
-            {
-                MessageKey = "Identity.TwoFactorRequired",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.TwoFactorRequired");
         }
 
         var valid = await _userManager.VerifyTwoFactorTokenAsync(
@@ -89,10 +86,7 @@ public sealed class IdentityService : IIdentityService
         {
             _logger.LogWarning("Invalid two-factor code for user {UserId}", user.Id);
             throw new UnauthorizedException("two_factor_invalid: The authenticator code is invalid or expired.")
-            {
-                MessageKey = "Identity.TwoFactorInvalid",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.TwoFactorInvalid");
         }
     }
 
@@ -125,11 +119,7 @@ public sealed class IdentityService : IIdentityService
 
         if (updated == 0)
         {
-            throw new UnauthorizedException("user not found")
-            {
-                MessageKey = "Identity.UserNotFound",
-                ResourceSource = typeof(IdentityResources),
-            };
+            throw new UnauthorizedException("user not found").Localized<IdentityResources>("Identity.UserNotFound");
         }
 
         if (_logger.IsEnabled(LogLevel.Debug))
@@ -213,10 +203,7 @@ public sealed class IdentityService : IIdentityService
                 "Account is temporarily locked due to too many failed login attempts. Try again later.",
                 errors: null,
                 HttpStatusCode.Locked)
-            {
-                MessageKey = "Identity.AccountLocked",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.AccountLocked");
         }
 
         if (!await _userManager.CheckPasswordAsync(user, password))
@@ -261,10 +248,7 @@ public sealed class IdentityService : IIdentityService
         {
             _logger.LogWarning("No user found with matching refresh token hash for tenant {TenantId}", tenantId);
             throw new UnauthorizedException("refresh token is invalid or expired")
-            {
-                MessageKey = "Identity.RefreshTokenInvalidOrExpired",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.RefreshTokenInvalidOrExpired");
         }
 
         return user;
@@ -279,10 +263,7 @@ public sealed class IdentityService : IIdentityService
                 "Refresh token expired for user {UserId}. Expired at: {ExpiryTime}, Current time: {CurrentTime}",
                 user.Id, user.RefreshTokenExpiryTime, now);
             throw new UnauthorizedException("refresh token is invalid or expired")
-            {
-                MessageKey = "Identity.RefreshTokenInvalidOrExpired",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.RefreshTokenInvalidOrExpired");
         }
     }
 
@@ -291,19 +272,13 @@ public sealed class IdentityService : IIdentityService
         if (!user.IsActive)
         {
             throw new UnauthorizedException("user is deactivated")
-            {
-                MessageKey = "Identity.UserDeactivated",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.UserDeactivated");
         }
 
         if (!user.EmailConfirmed)
         {
             throw new UnauthorizedException("email not confirmed")
-            {
-                MessageKey = "Identity.EmailNotConfirmed",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.EmailNotConfirmed");
         }
     }
 
@@ -317,11 +292,7 @@ public sealed class IdentityService : IIdentityService
         if (!tenant.IsActive)
         {
             throw new UnauthorizedException($"tenant {tenant.Id} is deactivated")
-            {
-                MessageKey = "Identity.TenantDeactivated",
-                MessageArgs = [tenant.Id],
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.TenantDeactivated", tenant.Id);
         }
 
         // Honor the billing grace period: a lapsed tenant can still authenticate until
@@ -329,11 +300,7 @@ public sealed class IdentityService : IIdentityService
         if (_timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto.AddDays(_gracePeriodDays))
         {
             throw new UnauthorizedException($"tenant {tenant.Id} validity has expired")
-            {
-                MessageKey = "Identity.TenantValidityExpired",
-                MessageArgs = [tenant.Id],
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.TenantValidityExpired", tenant.Id);
         }
     }
 

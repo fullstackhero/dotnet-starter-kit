@@ -4,6 +4,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;
 using FSH.Modules.Catalog.Domain;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,8 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             .ConfigureAwait(false);
         if (!brandExists)
         {
-            throw new NotFoundException($"Brand {command.BrandId} not found.");
+            throw new NotFoundException($"Brand {command.BrandId} not found.")
+                .Localized<CatalogResources>("Catalog.BrandNotFound", command.BrandId);
         }
 
         bool categoryExists = await dbContext.Categories
@@ -29,7 +31,8 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             .ConfigureAwait(false);
         if (!categoryExists)
         {
-            throw new NotFoundException($"Category {command.CategoryId} not found.");
+            throw new NotFoundException($"Category {command.CategoryId} not found.")
+                .Localized<CatalogResources>("Catalog.CategoryNotFound", command.CategoryId);
         }
 
         var product = Product.Create(
@@ -49,7 +52,8 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"A product with SKU '{product.Sku}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+                .Localized<CatalogResources>("Catalog.ProductSkuAlreadyExists", product.Sku);
         }
 
         bool slugTaken = await dbContext.Products
@@ -60,7 +64,8 @@ public sealed class CreateProductCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"A product with name '{command.Name}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+                .Localized<CatalogResources>("Catalog.ProductNameAlreadyExists", command.Name);
         }
 
         dbContext.Products.Add(product);

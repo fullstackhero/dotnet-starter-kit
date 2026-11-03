@@ -1,5 +1,7 @@
+using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Dtos;
+using FSH.Modules.Auditing.Localization;
 using FSH.Modules.Auditing.Contracts.v1.GetAuditById;
 using FSH.Modules.Auditing.Persistence;
 using Mediator;
@@ -31,9 +33,15 @@ public sealed class GetAuditByIdQueryHandler : IQueryHandler<GetAuditByIdQuery, 
 
         if (record is null)
         {
-            // KeyNotFoundException maps to 404 globally. Kept (not framework NotFoundException)
-            // because audit exception-type fixtures and severity classification key off this type.
-            throw new KeyNotFoundException($"Audit record {query.Id} not found.");
+            // LocalizedKeyNotFoundException maps to 404 globally and still keys off KeyNotFoundException
+            // (its base) for audit exception-type fixtures and severity classification, while the body
+            // localizes via MessageKey under the request culture.
+            throw new LocalizedKeyNotFoundException($"Audit record {query.Id} not found.")
+            {
+                MessageKey = "Auditing.AuditRecordNotFound",
+                MessageArgs = [query.Id],
+                ResourceSource = typeof(AuditingResources),
+            };
         }
 
         JsonElement payload;

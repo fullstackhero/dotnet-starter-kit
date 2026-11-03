@@ -47,6 +47,9 @@ Throw framework exception types; the global handler converts to RFC 9457 `Proble
 | `UnauthorizedException` | 401 |
 | `CustomException(msg, errors?, HttpStatusCode)` | as specified (default 400) |
 
+Localize every client-visible throw: English text as the message (logs), key attached with
+`.Localized<{X}Resources>("{X}.Case", args)` or `.Localized("Error.Case")` for a Core key. See `localization.md`.
+
 Don't catch broadly to swallow. Background loops may `catch (Exception)` to stay alive, but must **log with context** and exclude `OperationCanceledException` (filtered catch or a preceding `catch (OperationCanceledException)`).
 
 ## Permissions

@@ -4,6 +4,7 @@ using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Groups.CreateGroup;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,8 @@ public sealed class CreateGroupCommandHandler : ICommandHandler<CreateGroupComma
 
         if (nameExists)
         {
-            throw new CustomException($"Group with name '{command.Name}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"Group with name '{command.Name}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict)
+                .Localized<IdentityResources>("Identity.GroupNameAlreadyExists", command.Name);
         }
 
         // Validate role IDs exist — fetch Id+Name in a single query to avoid a second roundtrip later
@@ -46,7 +48,8 @@ public sealed class CreateGroupCommandHandler : ICommandHandler<CreateGroupComma
             var invalidRoleIds = command.RoleIds.Except(resolvedRoles.Select(r => r.Id)).ToList();
             if (invalidRoleIds.Count > 0)
             {
-                throw new NotFoundException($"Roles not found: {string.Join(", ", invalidRoleIds)}");
+                throw new NotFoundException($"Roles not found: {string.Join(", ", invalidRoleIds)}")
+                    .Localized<IdentityResources>("Identity.RolesNotFoundWithIds", string.Join(", ", invalidRoleIds));
             }
         }
 

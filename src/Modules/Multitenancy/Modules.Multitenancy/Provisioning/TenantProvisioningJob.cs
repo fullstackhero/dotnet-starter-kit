@@ -4,6 +4,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Multitenancy.Contracts;
+using FSH.Modules.Multitenancy.Localization;
 using FSH.Modules.Multitenancy.Services;
 using Microsoft.Extensions.Logging;
 
@@ -34,7 +35,8 @@ public sealed class TenantProvisioningJob
     public async Task RunAsync(string tenantId, string correlationId, CancellationToken cancellationToken = default)
     {
         var tenant = await _tenantStore.GetAsync(tenantId).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Tenant {tenantId} not found during provisioning.");
+            ?? throw new NotFoundException($"Tenant {tenantId} not found during provisioning.")
+                .Localized<MultitenancyResources>("Multitenancy.TenantNotFoundDuringProvisioning", tenantId);
 
         var currentStep = TenantProvisioningStepName.Database;
         try
