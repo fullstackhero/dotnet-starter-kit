@@ -38,7 +38,7 @@ export const TENANT_KEY = "fsh.dashboard.tenant";
  * such as "Comitê de Ética" exercise the real decode path). Signature is a
  * junk string — the dashboard never validates it (only the server does).
  */
-function fakeJwt(payload: Record<string, unknown>): string {
+export function fakeJwt(payload: Record<string, unknown>): string {
   const b64url = (obj: unknown) =>
     btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(obj))))
       .replace(/=+$/, "")

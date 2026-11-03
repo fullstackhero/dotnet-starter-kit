@@ -43,6 +43,12 @@ public sealed class DetailedTestExceptionHandler : IExceptionHandler
             problemDetails.Title = customEx.GetType().Name;
             problemDetails.Detail = customEx.Message;
 
+            // Mirror GlobalExceptionHandler's machine-readable code, which clients branch on.
+            if (customEx.MessageKey is not null)
+            {
+                problemDetails.Extensions["code"] = customEx.MessageKey;
+            }
+
             if (customEx.ErrorMessages is { Count: > 0 })
             {
                 problemDetails.Extensions["errors"] = customEx.ErrorMessages;

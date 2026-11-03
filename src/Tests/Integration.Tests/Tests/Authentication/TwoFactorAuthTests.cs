@@ -71,6 +71,10 @@ public sealed class TwoFactorAuthTests
 
         var response = await LoginAsync(email, password);
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+
+        // Both React login pages branch on this code to show the authenticator step,
+        // so it is a client contract: the detail text is localized, the code is not.
+        (await ReadProblemCodeAsync(response)).ShouldBe("Identity.TwoFactorRequired");
     }
 
     [Fact]
@@ -81,6 +85,7 @@ public sealed class TwoFactorAuthTests
 
         var response = await LoginAsync(email, password, "000000");
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        (await ReadProblemCodeAsync(response)).ShouldBe("Identity.TwoFactorInvalid");
     }
 
     [Fact]
@@ -220,6 +225,12 @@ public sealed class TwoFactorAuthTests
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         await action(userManager);
+    }
+
+    private static async Task<string?> ReadProblemCodeAsync(HttpResponseMessage response)
+    {
+        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return problem.RootElement.TryGetProperty("code", out var code) ? code.GetString() : null;
     }
 
     private static async Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
