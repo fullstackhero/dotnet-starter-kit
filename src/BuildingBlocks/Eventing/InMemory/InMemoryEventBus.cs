@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace FSH.Framework.Eventing.InMemory;
 
@@ -75,11 +76,45 @@ public sealed partial class InMemoryEventBus : IEventBus
 
             var inbox = provider.GetService<IInboxStore>();
 
+            // One failing handler must not starve the others: every handler gets its turn, and the failure
+            // surfaces afterwards so the outbox retries the event. The inbox records each handler that
+            // succeeded, so a retry re-runs only the ones that failed.
+            List<ExceptionDispatchInfo>? failures = null;
             foreach (var handler in handlers)
             {
-                await InvokeHandlerAsync(handler, dispatch.HandleMethod, eventType, @event, inbox, ct).ConfigureAwait(false);
+                try
+                {
+                    await InvokeHandlerAsync(handler, dispatch.HandleMethod, eventType, @event, inbox, ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    (failures ??= []).Add(ExceptionDispatchInfo.Capture(ex));
+                }
             }
+
+            ThrowIfAnyFailed(failures, @event.Id);
         }
+    }
+
+    private static void ThrowIfAnyFailed(List<ExceptionDispatchInfo>? failures, Guid eventId)
+    {
+        if (failures is null)
+        {
+            return;
+        }
+
+        if (failures.Count == 1)
+        {
+            failures[0].Throw();
+        }
+
+        throw new AggregateException(
+            $"{failures.Count} handlers failed for integration event {eventId}.",
+            failures.Select(f => f.SourceException));
     }
 
     private static object[] ResolveHandlers(IServiceProvider provider, Type handlerInterfaceType)
