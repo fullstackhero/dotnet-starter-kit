@@ -14,6 +14,8 @@ The dashboard does **not** depend on react-hook-form or zod. Use controlled inpu
 
 The JWT carries **only role names**. `auth-context.tsx` fetches the effective permission list from `GET /api/v1/identity/permissions` (`getMyPermissions()` in `src/api/identity.ts`), caches it in `tokenStore` under `fsh.dashboard.permissions`, and exposes a `permissionsHydrated` flag so gated UI doesn't flash while the fetch is in flight (re-fetched on login/impersonation swaps; `refreshPermissions()` for role changes). Nav items are gated via `perm`/`anyPerm` in `src/components/layout/nav-data.ts`. `ProtectedRoute` is still **auth-only** (no per-route permission gating) — don't add `RouteGuard`-style gating here.
 
+A query that mounts outside its own nav-gated page (topbar badges, overview cards) must set `enabled: permissionsHydrated && user.permissions.includes(<the endpoint's RequirePermission>)` and hide or replace its UI without it; otherwise every poll is a 403 the API logs as an error. `refetch()` ignores `enabled`, so gate manual refetches too. Playwright: `installShellMocks` grants `SHELL_PERMISSIONS` (the Basic-role grants these queries need); specs testing the missing-permission path re-mock `/identity/permissions`.
+
 ## Routing & realtime/SSE
 
 - Every route element is wrapped in `withSuspense(node)` (per-route skeleton fallback). No per-route permission guards.

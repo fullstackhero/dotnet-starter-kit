@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Groups.GetGroupById;
 using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,8 @@ public sealed class GetGroupByIdQueryHandler : IQueryHandler<GetGroupByIdQuery, 
             .AsNoTracking()
             .Include(g => g.GroupRoles)
             .FirstOrDefaultAsync(g => g.Id == query.Id, cancellationToken)
-            ?? throw new NotFoundException($"Group with ID '{query.Id}' not found.");
+            ?? throw new NotFoundException($"Group with ID '{query.Id}' not found.")
+                .Localized<IdentityResources>("Identity.GroupNotFound", query.Id);
 
         var memberCount = await _dbContext.UserGroups
             .AsNoTracking()

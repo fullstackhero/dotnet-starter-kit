@@ -47,6 +47,8 @@ Defaults in BuildingBlocks are single-database (`SingleDatabaseDrainTargetProvid
 
 `InMemoryEventBus` resolves handlers in a fresh DI scope and applies the **Inbox**: skips if `IInboxStore.HasProcessedAsync(eventId, handlerName)`, marks processed after success. Composite key `{Id, HandlerName}`; concurrent-insert race is swallowed. Don't hand-roll dedup.
 
+**Handlers are isolated from each other.** The bus runs every handler for an event even when an earlier one throws, then rethrows (the single exception, or an `AggregateException` for several) so the outbox retries. The inbox skips the handlers that already succeeded, so a retry re-runs only the failed ones, and a handler that keeps failing until the row dead-letters never cost the others their turn. Each handler also runs in its own DI scope, so a handler that throws cannot leave unsaved DbContext changes for the next one to persist.
+
 ## Wiring
 
 The **host** bootstraps eventing once (`FSH.Starter.Api/Program.cs` and `FSH.Starter.DbMigrator/Program.cs`, before `AddModules` so `EventingDbInitializer` migrates the `framework` schema first):

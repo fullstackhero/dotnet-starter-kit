@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.Dtos;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,8 @@ public sealed class GetProductByIdQueryHandler(CatalogDbContext dbContext)
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == query.ProductId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Product {query.ProductId} not found.");
+            ?? throw new NotFoundException($"Product {query.ProductId} not found.")
+                .Localized<CatalogResources>("Catalog.ProductNotFound", query.ProductId);
 
         return product.ToDto();
     }

@@ -5,10 +5,24 @@ set -e
 : "${FSH_API_URL:?FSH_API_URL is required (e.g. https://api.example.com)}"
 : "${FSH_DASHBOARD_URL:?FSH_DASHBOARD_URL is required (e.g. https://app.example.com)}"
 
-# Defaults for non-required values.
+# Defaults for non-required values. The language default matches the one the bundle falls back to,
+# so an unset variable and an absent config.json land on the same UI language.
 : "${FSH_DEFAULT_TENANT:=root}"
+: "${FSH_DEFAULT_LANGUAGE:=en-US}"
 
-export FSH_API_URL FSH_DASHBOARD_URL FSH_DEFAULT_TENANT
+# The inactivity timings are bare JSON numbers in the template, so each needs a value and it
+# must be a positive integer. The defaults mirror DEFAULT_INACTIVITY_* in src/env.ts.
+: "${FSH_INACTIVITY_IDLE_MS:=600000}"
+: "${FSH_INACTIVITY_WARNING_MS:=60000}"
+require_positive_ms() {
+  case "$2" in
+    ""|*[!0-9]*|0*) echo "$1 must be a positive integer in milliseconds, got '$2'" >&2; exit 1 ;;
+  esac
+}
+require_positive_ms FSH_INACTIVITY_IDLE_MS "$FSH_INACTIVITY_IDLE_MS"
+require_positive_ms FSH_INACTIVITY_WARNING_MS "$FSH_INACTIVITY_WARNING_MS"
+
+export FSH_API_URL FSH_DASHBOARD_URL FSH_DEFAULT_TENANT FSH_INACTIVITY_IDLE_MS FSH_INACTIVITY_WARNING_MS FSH_DEFAULT_LANGUAGE
 
 # Render the runtime config into nginx's web root on every start. The template
 # lives outside the web root, so it is never served and survives a restart.

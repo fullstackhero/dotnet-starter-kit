@@ -9,9 +9,10 @@ using Microsoft.AspNetCore.Identity;
 namespace Integration.Tests.Tests.Authorization;
 
 /// <summary>
-/// <c>.RequirePermission(a, b)</c> must demand every listed permission. Probed through
-/// <see cref="TestPermissionEndpointStartupFilter.TwoPermissionsPath"/>, a test-only endpoint,
-/// because no production endpoint lists more than one.
+/// <c>.RequirePermission(a, b)</c> must demand every listed permission, and a route group's
+/// <c>.RequirePermission(a)</c> must still apply when an endpoint inside it adds <c>.RequirePermission(b)</c>.
+/// Probed through test-only endpoints from <see cref="TestPermissionEndpointStartupFilter"/>, because no
+/// production endpoint lists more than one permission or gates a group.
 /// </summary>
 [Collection(FshCollectionDefinition.Name)]
 public sealed class RequirePermissionAllOfTests
@@ -49,6 +50,44 @@ public sealed class RequirePermissionAllOfTests
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK,
             $"Holding every required permission must open the gate: {await response.Content.ReadAsStringAsync()}");
+    }
+
+    [Fact]
+    public async Task GroupGatedEndpoint_Should_Return403_When_UserHoldsOnlyTheEndpointPermission()
+    {
+        using var userClient = await CreateUserClientWithPermissionsAsync(
+            "group-endpoint-only", TestPermissionEndpointStartupFilter.SecondPermission);
+
+        var response = await userClient.GetAsync(TestPermissionEndpointStartupFilter.GroupGatedPath);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden,
+            "The endpoint's RequirePermission must not replace the route group's gate.");
+    }
+
+    [Fact]
+    public async Task GroupGatedEndpoint_Should_Return403_When_UserHoldsOnlyTheGroupPermission()
+    {
+        using var userClient = await CreateUserClientWithPermissionsAsync(
+            "group-group-only", TestPermissionEndpointStartupFilter.FirstPermission);
+
+        var response = await userClient.GetAsync(TestPermissionEndpointStartupFilter.GroupGatedPath);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden,
+            "Holding only the group's permission must not open an endpoint that adds its own gate.");
+    }
+
+    [Fact]
+    public async Task GroupGatedEndpoint_Should_Return200_When_UserHoldsGroupAndEndpointPermissions()
+    {
+        using var userClient = await CreateUserClientWithPermissionsAsync(
+            "group-both",
+            TestPermissionEndpointStartupFilter.FirstPermission,
+            TestPermissionEndpointStartupFilter.SecondPermission);
+
+        var response = await userClient.GetAsync(TestPermissionEndpointStartupFilter.GroupGatedPath);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK,
+            $"Holding both the group and endpoint permissions must open the gate: {await response.Content.ReadAsStringAsync()}");
     }
 
     // ─── helpers ─────────────────────────────────────────────────────

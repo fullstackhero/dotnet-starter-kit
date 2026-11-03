@@ -2,6 +2,7 @@ using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.v1.TwoFactor;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.AspNetCore.Identity;
 
@@ -31,7 +32,8 @@ public sealed class VerifyEnrollTwoFactorCommandHandler
 
         var userId = _currentUser.GetUserId().ToString();
         var user = await _userManager.FindByIdAsync(userId)
-            ?? throw new NotFoundException($"User {userId} not found.");
+            ?? throw new NotFoundException($"User {userId} not found.")
+                .Localized<IdentityResources>("Identity.UserNotFoundById", userId);
 
         var sanitized = command.Code.Replace(" ", string.Empty, StringComparison.Ordinal);
         var valid = await _userManager.VerifyTwoFactorTokenAsync(
@@ -44,7 +46,8 @@ public sealed class VerifyEnrollTwoFactorCommandHandler
             throw new CustomException(
                 "The authenticator code is invalid.",
                 errors: null,
-                System.Net.HttpStatusCode.BadRequest);
+                System.Net.HttpStatusCode.BadRequest)
+                .Localized<IdentityResources>("Identity.AuthenticatorCodeInvalid");
         }
 
         await _userManager.SetTwoFactorEnabledAsync(user, true);

@@ -89,7 +89,7 @@ public sealed class GlobalExceptionHandlerLocalizationTests
     [InlineData("en-US", "Unauthorized")]
     public async Task CustomException_detail_is_localized_from_key(string culture, string expected)
     {
-        var exception = new UnauthorizedException("english fallback") { MessageKey = "Error.Unauthorized" };
+        var exception = new UnauthorizedException("english fallback").Localized("Error.Unauthorized");
         var (_, detail) = await HandleAsync(exception, culture);
         detail.ShouldBe(expected);
     }
@@ -119,7 +119,7 @@ public sealed class GlobalExceptionHandlerLocalizationTests
     [Fact]
     public async Task CustomException_detail_falls_back_when_key_missing()
     {
-        var exception = new NotFoundException("English fallback detail.") { MessageKey = "Does.Not.Exist" };
+        var exception = new NotFoundException("English fallback detail.").Localized("Does.Not.Exist");
         var (_, detail) = await HandleAsync(exception, "pt-BR");
         detail.ShouldBe("English fallback detail.");
     }
@@ -167,7 +167,7 @@ public sealed class GlobalExceptionHandlerLocalizationTests
     [InlineData("en-US")]
     public async Task CustomException_surfaces_the_message_key_as_code(string culture)
     {
-        var exception = new UnauthorizedException("english fallback") { MessageKey = "Error.Unauthorized" };
+        var exception = new UnauthorizedException("english fallback").Localized("Error.Unauthorized");
         var (_, _, code) = await HandleWithCodeAsync(exception, culture);
         code.ShouldBe("Error.Unauthorized");
     }
@@ -194,7 +194,7 @@ public sealed class GlobalExceptionHandlerLocalizationTests
     [Fact]
     public async Task Unknown_key_still_surfaces_as_code()
     {
-        var exception = new NotFoundException("English fallback detail.") { MessageKey = "Does.Not.Exist" };
+        var exception = new NotFoundException("English fallback detail.").Localized("Does.Not.Exist");
         var (_, detail, code) = await HandleWithCodeAsync(exception, "pt-BR");
         detail.ShouldBe("English fallback detail.");
         code.ShouldBe("Does.Not.Exist");
@@ -251,5 +251,36 @@ public sealed class GlobalExceptionHandlerLocalizationTests
         var (title, _) = await HandleAsync(exception, culture);
 
         title.ShouldBe(nameof(CustomException));
+    }
+
+    // The lookup is by "{EnumType}.{Member}" against the message own catalog. SharedResources ships
+    // no enum of its own, so these two stand in for the two outcomes: a member whose name happens to
+    // match an existing key (translated) and one that matches nothing (kept as the C# name).
+    private enum Error { Unauthorized }
+
+    private enum Untranslated { Member }
+
+    // Without this, a pt-BR reader gets a translated sentence ending in an English enum name:
+    // "um chamado no status Closed".
+    [Fact]
+    public async Task An_enum_argument_is_translated_through_the_same_catalog()
+    {
+        var exception = new CustomException("english fallback", [], HttpStatusCode.BadRequest)
+            .Localized("Validation.ImpersonationTakeRange", Error.Unauthorized);
+
+        var (_, detail) = await HandleAsync(exception, "pt-BR");
+
+        detail.ShouldBe("O valor de Take deve estar entre 1 e Não autorizado.");
+    }
+
+    [Fact]
+    public async Task An_enum_argument_with_no_entry_keeps_its_member_name()
+    {
+        var exception = new CustomException("english fallback", [], HttpStatusCode.BadRequest)
+            .Localized("Validation.ImpersonationTakeRange", Untranslated.Member);
+
+        var (_, detail) = await HandleAsync(exception, "pt-BR");
+
+        detail.ShouldBe("O valor de Take deve estar entre 1 e Member.");
     }
 }

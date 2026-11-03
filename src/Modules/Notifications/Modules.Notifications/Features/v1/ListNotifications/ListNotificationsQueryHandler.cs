@@ -20,7 +20,10 @@ public sealed class ListNotificationsQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(q);
         var userId = currentUser.GetUserId();
-        if (userId == Guid.Empty) throw new UnauthorizedException("no current user");
+        if (userId == Guid.Empty)
+        {
+            throw new UnauthorizedException("no current user").Localized("Error.NoCurrentUser");
+        }
         var currentUserId = userId.ToString();
 
         int page = Math.Max(1, q.Page);

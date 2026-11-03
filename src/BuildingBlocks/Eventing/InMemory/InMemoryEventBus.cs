@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace FSH.Framework.Eventing.InMemory;
 
@@ -63,23 +64,65 @@ public sealed partial class InMemoryEventBus : IEventBus
         // construction, so a late tenant NREs the query filter. This is what makes background publishers work.
         using (_tenantScope.Begin(@event.TenantId))
         {
-            using var scope = _serviceProvider.CreateScope();
-            var provider = scope.ServiceProvider;
-
-            var handlers = ResolveHandlers(provider, dispatch.HandlerInterfaceType);
-            if (handlers.Length == 0)
+            // One failing handler must not starve the others: every handler gets its turn, and the failure
+            // surfaces afterwards so the outbox retries the event. The inbox records each handler that
+            // succeeded, so a retry re-runs only the ones that failed.
+            //
+            // Each handler runs in its own DI scope. A handler that throws can leave tracked but unsaved
+            // changes on a scoped DbContext; in a shared scope the next handler's SaveChanges would persist
+            // them. Handlers are resolved per scope in registration order, so index i is the same handler.
+            List<ExceptionDispatchInfo>? failures = null;
+            var handlerCount = -1;
+            for (var i = 0; handlerCount < 0 || i < handlerCount; i++)
             {
-                LogNoHandlers(eventType.FullName);
-                return;
+                using var scope = _serviceProvider.CreateScope();
+                var provider = scope.ServiceProvider;
+                var handlers = ResolveHandlers(provider, dispatch.HandlerInterfaceType);
+
+                if (handlerCount < 0)
+                {
+                    handlerCount = handlers.Length;
+                    if (handlerCount == 0)
+                    {
+                        LogNoHandlers(eventType.FullName);
+                        return;
+                    }
+                }
+
+                var inbox = provider.GetService<IInboxStore>();
+                try
+                {
+                    await InvokeHandlerAsync(handlers[i], dispatch.HandleMethod, eventType, @event, inbox, ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    (failures ??= []).Add(ExceptionDispatchInfo.Capture(ex));
+                }
             }
 
-            var inbox = provider.GetService<IInboxStore>();
-
-            foreach (var handler in handlers)
-            {
-                await InvokeHandlerAsync(handler, dispatch.HandleMethod, eventType, @event, inbox, ct).ConfigureAwait(false);
-            }
+            ThrowIfAnyFailed(failures, @event.Id);
         }
+    }
+
+    private static void ThrowIfAnyFailed(List<ExceptionDispatchInfo>? failures, Guid eventId)
+    {
+        if (failures is null)
+        {
+            return;
+        }
+
+        if (failures.Count == 1)
+        {
+            failures[0].Throw();
+        }
+
+        throw new AggregateException(
+            $"{failures.Count} handlers failed for integration event {eventId}.",
+            failures.Select(f => f.SourceException));
     }
 
     private static object[] ResolveHandlers(IServiceProvider provider, Type handlerInterfaceType)
@@ -120,7 +163,8 @@ public sealed partial class InMemoryEventBus : IEventBus
     {
         try
         {
-            var task = (Task)method.Invoke(handler, new object[] { @event, ct })!;
+            // DoNotWrapExceptions: a handler that throws synchronously surfaces its own exception, not a TargetInvocationException.
+            var task = (Task)method.Invoke(handler, BindingFlags.DoNotWrapExceptions, binder: null, new object[] { @event, ct }, culture: null)!;
             await task.ConfigureAwait(false);
 
             if (inbox != null)

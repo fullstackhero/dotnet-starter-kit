@@ -57,17 +57,41 @@ public sealed class Create{Entity}CommandHandler(CatalogDbContext dbContext)
 }
 ```
 
-Throw `NotFoundException` / `CustomException(msg, errors, HttpStatusCode)` (`FSH.Framework.Core.Exceptions`) — the global handler maps them to ProblemDetails.
+Throw `NotFoundException` / `CustomException(msg, errors, HttpStatusCode)` (`FSH.Framework.Core.Exceptions`) — the global handler maps them to ProblemDetails. **Every throw a client can see is localized**: keep the English text as the message (it is what the logs show) and attach the key with `.Localized`:
+
+```csharp
+var entity = await dbContext.{Entities}.FindAsync([command.Id], cancellationToken).ConfigureAwait(false)
+    ?? throw new NotFoundException($"{Entity} {command.Id} not found.")
+        .Localized<{X}Resources>("{X}.{Entity}NotFound", command.Id);
+
+// generic message already in the Core catalog: no type argument
+throw new UnauthorizedException("No current user.").Localized("Error.NoCurrentUser");
+```
+
+## Step 2b — Add the keys to the module catalog
+
+Add each new key to `src/Modules/{X}/Modules.{X}/Localization/{X}Resources.resx` in **English**, with `{0}`, `{1}` for the arguments in the order you pass them. The `{X}Resources.pt-BR.resx` entry is optional: a missing translation falls back to English. Reuse a `SharedResources` key (`Error.*`, `Validation.*`) instead of duplicating a generic message.
+
+```xml
+<data name="{X}.{Entity}NotFound" xml:space="preserve">
+  <value>{Entity} {0} was not found.</value>
+</data>
+```
+
+`LocalizedKeyReferenceTests` fails the build if a key is missing from the catalog you named, or if its placeholders need more arguments than you passed. Rules: `.agents/rules/localization.md`.
 
 ## Step 3 — Validator (required; same folder)
+
+Inject the module's localizer and resolve each custom message lazily with `.WithMessage(_ => localizer["…"])`. Built-in FluentValidation messages (`NotEmpty`, `MaximumLength`, …) come translated from FluentValidation's own language pack under the request culture and need no key (the property name inside them stays as declared).
 
 ```csharp
 public sealed class Create{Entity}CommandValidator : AbstractValidator<Create{Entity}Command>
 {
-    public Create{Entity}CommandValidator()
+    public Create{Entity}CommandValidator(IStringLocalizer<{X}Resources> localizer)
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.PriceCurrency).NotEmpty().Length(3);
+        RuleFor(x => x.PriceCurrency).NotEmpty().Length(3)
+            .WithMessage(_ => localizer["Validation.{Entity}CurrencyCode"]);
     }
 }
 ```
@@ -107,7 +131,9 @@ dotnet test src/Tests/{X}.Tests            # + add a handler/validator test (see
 
 - [ ] Command/Query in the **Contracts** project (`using Mediator;`), DTOs in `Contracts/Dtos/`
 - [ ] Handler `public sealed`, injects `{X}DbContext` (no repository), `ValueTask<T>` + `.ConfigureAwait(false)`
-- [ ] `{Name}Validator` exists
+- [ ] Every client-visible throw ends in `.Localized<{X}Resources>("…")` (or `.Localized("…")` for a Core key); English text kept as the message
+- [ ] New keys added in English to `{X}Resources.resx` (pt-BR optional); `LocalizedKeyReferenceTests` green
+- [ ] `{Name}Validator` exists; custom messages via `IStringLocalizer<{X}Resources>` + `.WithMessage(_ => localizer["…"])`
 - [ ] Endpoint `internal static …Map{Feature}Endpoint`, `.RequirePermission(...)`, `.WithName/.WithSummary`
 - [ ] Wired in `{X}Module.MapEndpoints`
 - [ ] Build 0 warnings; test added

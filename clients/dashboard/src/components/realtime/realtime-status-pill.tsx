@@ -1,13 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { useRealtime } from "@/realtime/realtime-context";
 import { cn } from "@/lib/cn";
-
-const LABEL: Record<string, string> = {
-  idle: "Offline",
-  connecting: "Connecting",
-  connected: "Live",
-  reconnecting: "Reconnecting",
-  error: "Offline",
-};
 
 /**
  * Compact connection-state indicator backed by the shared SignalR hub. Mono
@@ -26,14 +19,22 @@ export function RealtimeStatusPill({
   className?: string;
   announce?: boolean;
 }) {
+  const { t } = useTranslation("common");
   const { status } = useRealtime();
-  const label = LABEL[status] ?? "Offline";
+  const labels: Record<string, string> = {
+    idle: t("realtimeStatus.offline"),
+    connecting: t("realtimeStatus.connecting"),
+    connected: t("realtimeStatus.live"),
+    reconnecting: t("realtimeStatus.reconnecting"),
+    error: t("realtimeStatus.offline"),
+  };
+  const label = labels[status] ?? t("realtimeStatus.offline");
   return (
     <span
       className={cn("chat-status-pill", className)}
       data-status={status}
       {...(announce ? { role: "status", "aria-live": "polite" as const } : {})}
-      title={`Realtime: ${label}`}
+      title={t("realtimeStatus.title", { label })}
     >
       <span aria-hidden className="chat-status-dot" />
       <span>{label}</span>

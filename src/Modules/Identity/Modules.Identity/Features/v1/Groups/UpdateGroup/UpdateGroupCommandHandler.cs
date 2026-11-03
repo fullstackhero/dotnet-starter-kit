@@ -5,6 +5,7 @@ using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Groups.UpdateGroup;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,7 +34,8 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
         // assignments are all part of the seed contract that the startup syncer relies on.
         if (group.IsSystemGroup)
         {
-            throw new ForbiddenException("System groups cannot be modified.");
+            throw new ForbiddenException("System groups cannot be modified.")
+                .Localized<IdentityResources>("Identity.SystemGroupsCannotBeModified");
         }
 
         await ValidateUniqueNameAsync(command.Id, command.Name, cancellationToken);
@@ -69,7 +71,8 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
         return await _dbContext.Groups
             .Include(g => g.GroupRoles)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken)
-            ?? throw new NotFoundException($"Group with ID '{id}' not found.");
+            ?? throw new NotFoundException($"Group with ID '{id}' not found.")
+                .Localized<IdentityResources>("Identity.GroupNotFound", id);
     }
 
     private async Task ValidateUniqueNameAsync(Guid excludeId, string name, CancellationToken cancellationToken)
@@ -79,7 +82,8 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
 
         if (nameExists)
         {
-            throw new CustomException($"Group with name '{name}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"Group with name '{name}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict)
+                .Localized<IdentityResources>("Identity.GroupNameAlreadyExists", name);
         }
     }
 
@@ -98,7 +102,8 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
         var invalidRoleIds = roleIds.Except(existingRoleIds).ToList();
         if (invalidRoleIds.Count > 0)
         {
-            throw new NotFoundException($"Roles not found: {string.Join(", ", invalidRoleIds)}");
+            throw new NotFoundException($"Roles not found: {string.Join(", ", invalidRoleIds)}")
+                .Localized<IdentityResources>("Identity.RolesNotFoundWithIds", string.Join(", ", invalidRoleIds));
         }
     }
 

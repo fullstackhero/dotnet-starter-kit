@@ -1,8 +1,10 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
 import { listMyChannels } from "@/api/chat";
+import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
 
 /**
@@ -17,11 +19,19 @@ import { cn } from "@/lib/cn";
  *   - markChannelRead (chat-page) invalidates it when the user reads
  *   - the composer invalidates it when the user sends
  */
+// GET /chat/channels requires this; without it every poll is a 403.
+const CHANNELS_VIEW_PERMISSION = "Permissions.Chat.Channels.View";
+
 export function ChatUnreadBadge() {
+  const { t } = useTranslation("notifications");
   const navigate = useNavigate();
+  const { user, permissionsHydrated } = useAuth();
+  const canViewChannels =
+    permissionsHydrated && (user?.permissions.includes(CHANNELS_VIEW_PERMISSION) ?? false);
   const { data: channels } = useQuery({
     queryKey: ["chat", "my-channels"],
     queryFn: () => listMyChannels({ pageSize: 100 }),
+    enabled: canViewChannels,
     staleTime: 30_000,
   });
 
@@ -30,11 +40,13 @@ export function ChatUnreadBadge() {
     [channels],
   );
 
+  if (!canViewChannels) return null;
+
   return (
     <button
       type="button"
-      aria-label={`Chat${unread > 0 ? `, ${unread} unread message${unread === 1 ? "" : "s"}` : ""}`}
-      title={unread > 0 ? `${unread} unread chat message${unread === 1 ? "" : "s"}` : "Chat"}
+      aria-label={unread > 0 ? t("badge.ariaUnread", { count: unread }) : t("badge.chat")}
+      title={unread > 0 ? t("badge.titleUnread", { count: unread }) : t("badge.chat")}
       onClick={() => navigate("/chat")}
       className={cn(
         "relative grid h-9 w-9 cursor-pointer place-items-center rounded-md",

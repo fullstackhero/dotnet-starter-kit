@@ -59,10 +59,7 @@ public sealed class StartImpersonationCommandHandler
 
         var actorUserId = _currentUser.GetUserId().ToString();
         var actorTenantId = _currentUser.GetTenant()
-            ?? throw new UnauthorizedException("missing tenant context")
-            {
-                MessageKey = "Error.InvalidTenant",
-            };
+            ?? throw new UnauthorizedException("missing tenant context").Localized("Error.InvalidTenant");
         var actorUserName = _currentUser.Name;
 
         // Cross-tenant impersonation requires the actor to be in the root tenant. Tenant admins
@@ -71,10 +68,7 @@ public sealed class StartImpersonationCommandHandler
             && !string.Equals(actorTenantId, request.TargetTenantId, StringComparison.Ordinal))
         {
             throw new ForbiddenException("cross-tenant impersonation is restricted to platform operators")
-            {
-                MessageKey = "Identity.CrossTenantImpersonationRestricted",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.CrossTenantImpersonationRestricted");
         }
 
         // Prevent self-impersonation (pointless, confuses the audit trail). Caller error → explicit 4xx,
@@ -83,10 +77,7 @@ public sealed class StartImpersonationCommandHandler
             && string.Equals(actorTenantId, request.TargetTenantId, StringComparison.Ordinal))
         {
             throw new CustomException("cannot impersonate yourself", errors: null, System.Net.HttpStatusCode.BadRequest)
-            {
-                MessageKey = "Identity.CannotImpersonateYourself",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.CannotImpersonateYourself");
         }
 
         // Prevent nesting: if the caller is already impersonating, require end-impersonation first.
@@ -98,10 +89,7 @@ public sealed class StartImpersonationCommandHandler
                 "end current impersonation before starting a new one",
                 errors: null,
                 System.Net.HttpStatusCode.BadRequest)
-            {
-                MessageKey = "Identity.EndImpersonationFirst",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.EndImpersonationFirst");
         }
 
         var targetClaimsResult = await _identityService
@@ -110,10 +98,7 @@ public sealed class StartImpersonationCommandHandler
         if (targetClaimsResult is null)
         {
             throw new NotFoundException("target user not found")
-            {
-                MessageKey = "Identity.TargetUserNotFound",
-                ResourceSource = typeof(IdentityResources),
-            };
+                .Localized<IdentityResources>("Identity.TargetUserNotFound");
         }
 
         var (subject, claims) = targetClaimsResult.Value;

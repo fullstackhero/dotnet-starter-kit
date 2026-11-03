@@ -58,6 +58,10 @@ The inbox UI is published on the host loopback only, because it holds live passw
 
 To deliver real mail, edit `.env` only: set `FSH_SMTP_HOST`, `FSH_SMTP_PORT`, `FSH_SMTP_USERNAME`, `FSH_SMTP_PASSWORD` and `FSH_SMTP_SECURITY` to your provider's values (`StartTls` for port 587, `SslOnConnect` for 465), set `FSH_MAIL_FROM` to a sender your provider accepts, delete the `COMPOSE_PROFILES=mail-catcher` line, then `docker compose up -d` and `docker compose rm -sf mailpit` to drop the running catcher.
 
+## Tune the inactivity timeout
+
+Both frontends sign an idle session out: the admin after 10 minutes and the dashboard after 20, each preceded by a 60-second warning countdown. Set `FSH_ADMIN_INACTIVITY_IDLE_MS`, `FSH_DASHBOARD_INACTIVITY_IDLE_MS` and `FSH_INACTIVITY_WARNING_MS` (positive integers, milliseconds) in `.env` to change them. Unset or empty keeps the default; anything else that is not a positive integer stops the container at start with an error. The frontend containers read them as `FSH_INACTIVITY_IDLE_MS` and `FSH_INACTIVITY_WARNING_MS`.
+
 ## Wire up your external proxy
 
 Point four TLS subdomains at the published ports:
