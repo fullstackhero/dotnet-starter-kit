@@ -257,6 +257,32 @@ public sealed class IdempotencyEndpointFilterReplayTests
         capturedTtl.ShouldNotBe(options.DefaultTtl);
     }
 
+    [Fact]
+    public async Task Reservation_Should_LiveUnderTheApplicationKeyPrefix()
+    {
+        // The lock goes straight to the multiplexer, bypassing the IDistributedCache InstanceName,
+        // so the filter must apply CachingOptions.KeyPrefix itself or two apps share lock keys.
+        var db = Substitute.For<IDatabase>();
+        RedisKey? capturedKey = null;
+        db.StringSetAsync(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<TimeSpan?>(), Arg.Any<When>())
+            .Returns(ci => { capturedKey = ci.ArgAt<RedisKey>(0); return Task.FromResult(true); });
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddLocalization(o => o.ResourcesPath = "");
+        services.AddDistributedMemoryCache();
+        services.AddSingleton<IOptions<IdempotencyOptions>>(Options.Create(new IdempotencyOptions()));
+        services.AddSingleton<IOptions<CachingOptions>>(Options.Create(new CachingOptions { KeyPrefix = "MyApp:prod" }));
+        services.AddSingleton(RedisMultiplexer(db));
+        await using var provider = services.BuildServiceProvider();
+
+        await new IdempotencyEndpointFilter().InvokeAsync(
+            new TestFilterContext(NewContext(provider)),
+            _ => ValueTask.FromResult<object?>(TypedResults.Ok(new SampleDto(Guid.NewGuid(), "widget"))));
+
+        capturedKey.ShouldNotBeNull();
+        capturedKey.Value.ToString().ShouldStartWith("MyApp:prod:lock:");
+    }
+
     // ─── MEDIUM + nit: a Redis fault on reserve/release fails open, never 500s ───────────
 
     [Fact]

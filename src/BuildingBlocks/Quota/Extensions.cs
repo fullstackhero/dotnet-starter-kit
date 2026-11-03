@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,10 @@ public static class Extensions
             .BindConfiguration(nameof(QuotaOptions));
 
         var quotaOptions = configuration.GetSection(nameof(QuotaOptions)).Get<QuotaOptions>() ?? new QuotaOptions();
+        if (string.IsNullOrWhiteSpace(quotaOptions.KeyPrefix))
+        {
+            quotaOptions.KeyPrefix = configuration[RedisKeyPrefix.ConfigurationKey];
+        }
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton(quotaOptions);

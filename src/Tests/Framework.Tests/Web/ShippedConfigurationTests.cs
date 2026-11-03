@@ -62,4 +62,18 @@ public sealed class ShippedConfigurationTests
             .ShouldBe(["http://localhost:5173", "http://localhost:5174"]);
         configuration["FrontendOptions:DefaultOrigin"].ShouldBe("http://localhost:5174");
     }
+
+    [Fact]
+    public void Environments_Should_ShipDistinctRedisKeyPrefixes()
+    {
+        // Applications and environments commonly share one Redis server. Without a prefix they share
+        // cache entries, tag invalidations, the Data Protection key ring and — since pub/sub ignores
+        // the database index — the SignalR backplane.
+        var development = LoadFor("Development")["CachingOptions:KeyPrefix"];
+        var production = LoadFor("Production")["CachingOptions:KeyPrefix"];
+
+        development.ShouldNotBeNullOrWhiteSpace();
+        production.ShouldNotBeNullOrWhiteSpace();
+        production.ShouldNotBe(development);
+    }
 }

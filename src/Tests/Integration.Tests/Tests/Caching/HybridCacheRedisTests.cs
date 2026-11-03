@@ -1,9 +1,11 @@
 using System.ComponentModel;
 using FSH.Framework.Caching;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using Testcontainers.Redis;
 
 namespace Integration.Tests.Tests.Caching;
@@ -24,13 +26,14 @@ public sealed class HybridCacheRedisTests : IAsyncLifetime
 
     public Task DisposeAsync() => _redis.DisposeAsync().AsTask();
 
-    private (HybridCache cache, IDistributedCache distributedCache, ServiceProvider provider) CreateCache()
+    private (HybridCache cache, IDistributedCache distributedCache, ServiceProvider provider) CreateCache(string? keyPrefix = null)
     {
         var services = new ServiceCollection();
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["CachingOptions:Redis"] = _redis.GetConnectionString(),
+                ["CachingOptions:KeyPrefix"] = keyPrefix,
             })
             .Build();
         services.AddSingleton<IConfiguration>(config);
@@ -124,6 +127,83 @@ public sealed class HybridCacheRedisTests : IAsyncLifetime
         {
             distributedCache.ShouldBeAssignableTo<IBufferDistributedCache>(
                 "StackExchange.Redis cache must implement IBufferDistributedCache for HybridCache zero-copy reads.");
+        }
+    }
+
+    // ─── CachingOptions.KeyPrefix: two applications sharing one Redis server ─────────────
+
+    [Fact]
+    public async Task KeyPrefix_Should_Isolate_Entries_Between_Applications()
+    {
+        var (appA, _, providerA) = CreateCache("app-a:prod");
+        var (appB, _, providerB) = CreateCache("app-b:prod");
+        await using (providerA)
+        await using (providerB)
+        {
+            await appA.SetAsync("theme:t:root", "from-a");
+
+            var bRuns = 0;
+            var fromB = await appB.GetOrCreateAsync(
+                "theme:t:root",
+                0,
+                (s, ct) => { Interlocked.Increment(ref bRuns); return ValueTask.FromResult("from-b"); });
+
+            fromB.ShouldBe("from-b");
+            bRuns.ShouldBe(1, "app B must not read app A's entry for the same logical key");
+
+            using var redis = await ConnectionMultiplexer.ConnectAsync(_redis.GetConnectionString());
+            var db = redis.GetDatabase();
+            (await db.KeyExistsAsync("app-a:prod:theme:t:root")).ShouldBeTrue();
+            (await db.KeyExistsAsync("theme:t:root")).ShouldBeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task KeyPrefix_Should_Isolate_Tag_Invalidation_Between_Applications()
+    {
+        // HybridCache records tag invalidations in L2. Unprefixed, app A evicting "permissions"
+        // also invalidates app B's permission entries on the same Redis server.
+        var (appB, _, providerB) = CreateCache("app-b:prod");
+        await using (providerB)
+        {
+            await appB.SetAsync("perm:u:1", "b-perms", tags: ["permissions"]);
+        }
+
+        var (appA, _, providerA) = CreateCache("app-a:prod");
+        await using (providerA)
+        {
+            await appA.RemoveByTagAsync("permissions");
+        }
+
+        // A fresh instance of app B (empty L1) must still find its entry in L2.
+        var (appBAgain, _, providerBAgain) = CreateCache("app-b:prod");
+        await using (providerBAgain)
+        {
+            var runs = 0;
+            var value = await appBAgain.GetOrCreateAsync(
+                "perm:u:1",
+                0,
+                (s, ct) => { Interlocked.Increment(ref runs); return ValueTask.FromResult("reloaded"); },
+                tags: ["permissions"]);
+
+            value.ShouldBe("b-perms");
+            runs.ShouldBe(0, "another application's tag invalidation must not evict this one's entries");
+        }
+    }
+
+    [Fact]
+    public async Task KeyPrefix_Should_Namespace_The_DataProtection_KeyRing()
+    {
+        var (_, _, provider) = CreateCache("app-a:prod");
+        await using (provider)
+        {
+            // Protecting forces the key ring to create (and persist) its first key.
+            provider.GetRequiredService<IDataProtectionProvider>().CreateProtector("test").Protect("payload");
+
+            using var redis = await ConnectionMultiplexer.ConnectAsync(_redis.GetConnectionString());
+            var db = redis.GetDatabase();
+            (await db.KeyExistsAsync("app-a:prod:DataProtection-Keys")).ShouldBeTrue();
+            (await db.KeyExistsAsync("DataProtection-Keys")).ShouldBeFalse();
         }
     }
 

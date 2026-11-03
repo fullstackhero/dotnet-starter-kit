@@ -10,6 +10,17 @@ public sealed class CachingOptions
     public string Redis { get; set; } = string.Empty;
 
     /// <summary>
+    /// Namespace for every key and channel the framework writes to Redis (cache entries, Data
+    /// Protection key ring, idempotency locks, quota counters, SignalR backplane). Set it per
+    /// application and environment, e.g. <c>MyApp:prod</c>, whenever applications share a Redis
+    /// server — a <c>defaultDatabase</c> index alone does not isolate the SignalR backplane, because
+    /// pub/sub ignores databases. Empty keeps the unprefixed layout. Changing it rotates the Data
+    /// Protection key ring (issued cookies and tokens stop validating) and starts a cold cache.
+    /// See <see cref="FSH.Framework.Core.Common.RedisKeyPrefix"/>.
+    /// </summary>
+    public string KeyPrefix { get; set; } = string.Empty;
+
+    /// <summary>
     /// Enable SSL/TLS for Redis connection. If null, uses the connection string default.
     /// Aspire 13.x defaults Redis to TLS on the primary port; set to <c>false</c> when wiring via
     /// the plain-TCP secondary endpoint (see <c>AppHost.cs</c>).

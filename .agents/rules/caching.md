@@ -8,6 +8,7 @@
 
 - `CachingOptions.Redis` empty → in-memory only (dev fallback). Set → a **single shared `ConnectionMultiplexer`** (singleton `IConnectionMultiplexer`) backs both the L2 cache and the DataProtection key ring.
 - Defaults: total expiration 1h, L1 (local) expiration 2min (`CachingOptions`).
+- **`CachingOptions:KeyPrefix`** namespaces everything the framework writes to Redis: L2 entries + tag invalidations (`RedisCacheOptions.InstanceName`), the Data Protection key ring, idempotency locks, quota counters (unless `QuotaOptions:KeyPrefix` overrides) and the SignalR channel. Set it per app **and** environment (`MyApp`, `MyApp:prod`) — a `defaultDatabase` index is not enough (pub/sub ignores it). Shared helper: `FSH.Framework.Core.Common.RedisKeyPrefix`. Code that talks to `IConnectionMultiplexer` directly must prepend `RedisKeyPrefix.Normalize(...)` itself; `CacheKeys` stay unprefixed (the prefix is applied underneath). Changing the prefix rotates the Data Protection key ring and starts a cold cache.
 - `ObservableHybridCache` transparently decorates `HybridCache` to emit OpenTelemetry (hits/misses/factory-duration/invalidations). You don't reference it — just inject `HybridCache`.
 
 ## Pattern

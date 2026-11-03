@@ -1,4 +1,5 @@
 using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Common;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Quota;
 using Microsoft.Extensions.Logging;
@@ -8,7 +9,7 @@ namespace FSH.Framework.Quota;
 
 /// <summary>
 /// Redis-backed quota counter. Counter-based resources use atomic <c>INCRBY</c> on a key of the
-/// form <c>quota:{tenantId}:{resource}:{YYYYMM}</c> with a TTL that expires shortly after the
+/// form <c>{KeyPrefix}quota:{tenantId}:{resource}:{YYYYMM}</c> with a TTL that expires shortly after the
 /// billing period boundary. Gauge-based resources delegate to <see cref="IQuotaGaugeProvider"/>
 /// instances that modules register to report live usage from their own state stores.
 /// </summary>
@@ -191,14 +192,14 @@ public sealed class RedisQuotaService : IQuotaService
     {
         if (!IsPeriodic(resource))
         {
-            return $"quota:{tenantId}:{resource}";
+            return $"{RedisKeyPrefix.Normalize(_options.KeyPrefix)}quota:{tenantId}:{resource}";
         }
 
         var now = _timeProvider.GetUtcNow();
         // Monthly billing period is the coarsest useful window for SaaS; hourly/daily windows can be
         // added as additional QuotaResource values if needed later.
         var period = $"{now.Year:D4}{now.Month:D2}";
-        return $"quota:{tenantId}:{resource}:{period}";
+        return $"{RedisKeyPrefix.Normalize(_options.KeyPrefix)}quota:{tenantId}:{resource}:{period}";
     }
 
     private DateTimeOffset? GetPeriodResetUtc(QuotaResource resource)
