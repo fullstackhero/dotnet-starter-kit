@@ -228,7 +228,7 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
       xhrRef.current = null;
       return dto;
     },
-    [options],
+    [options, t],
   );
 
   return {

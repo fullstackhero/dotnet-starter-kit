@@ -35,15 +35,6 @@ export class ApiRequestError extends Error {
 const TENANT_DEACTIVATED_CODE = "Multitenancy.TenantDeactivated";
 
 /**
- * The guard's message before the ProblemDetails `code` existed. Kept as a second
- * match so this app works against an API that predates the localized-errors slice:
- * until that ships, `code` is absent and the only signal is this exact English text.
- * Drop this branch once the API always sends `code`.
- */
-const TENANT_DEACTIVATED_LEGACY_DETAIL =
-  "This tenant has been deactivated. Contact your administrator.";
-
-/**
  * True when an error is the API's deactivated-tenant 403. The guard
  * (MultitenancyModule) rejects *every* request once a tenant is switched off, so
  * this can surface from any query/mutation while a user is mid-session. We match
@@ -55,8 +46,7 @@ const TENANT_DEACTIVATED_LEGACY_DETAIL =
  */
 export function isTenantDeactivatedError(error: unknown): boolean {
   if (!(error instanceof ApiRequestError) || error.status !== 403) return false;
-  if (error.problem?.code === TENANT_DEACTIVATED_CODE) return true;
-  return error.problem?.detail === TENANT_DEACTIVATED_LEGACY_DETAIL;
+  return error.problem?.code === TENANT_DEACTIVATED_CODE;
 }
 
 /**
