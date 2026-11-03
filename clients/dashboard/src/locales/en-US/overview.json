@@ -106,5 +106,8 @@
   "usage.errorBody": "The usage endpoint returned an error. Try refreshing.",
   "usage.emptyTitle": "No usage captured yet",
   "usage.emptyBody": "Activity will appear here as the backend records snapshots for this period.",
+  "usage.noAccessShort": "No access",
+  "usage.noAccessTitle": "No access to usage",
+  "usage.noAccessBody": "Usage needs the Billing permission. Ask an administrator if you need it.",
   "usageOverageBadge": "overage"
 }

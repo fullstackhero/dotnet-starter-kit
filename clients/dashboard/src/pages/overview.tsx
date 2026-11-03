@@ -562,6 +562,9 @@ function recentEventTypeIcon(eventType: AuditEventType): React.ComponentType<{ c
 /** Mirrors the permission GET /api/v1/audits enforces server-side. */
 const AUDIT_VIEW_PERMISSION = "Permissions.AuditTrails.View";
 
+/** Mirrors the permission GET /api/v1/billing/usage enforces server-side. */
+const BILLING_VIEW_PERMISSION = "Permissions.Billing.View";
+
 function RecentAuditsSkeleton() {
   return (
     <ul className="space-y-2.5">
@@ -979,12 +982,16 @@ export function OverviewPage() {
   // hold it, so everyone else gets a quiet no-access state instead of a 403.
   const canViewAudits =
     permissionsHydrated && (user?.permissions.includes(AUDIT_VIEW_PERMISSION) ?? false);
+  // Same for GET /billing/usage and Billing.View.
+  const canViewUsage =
+    permissionsHydrated && (user?.permissions.includes(BILLING_VIEW_PERMISSION) ?? false);
   const { status: sseStatus, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
   const usage = useQuery({
     queryKey: ["billing", "usage"],
     queryFn: () => getUsageSnapshots(),
+    enabled: canViewUsage,
     staleTime: 60_000,
   });
 
@@ -1036,7 +1043,8 @@ export function OverviewPage() {
 
   const refreshing = usage.isFetching || subscription.isFetching || status.isFetching;
   const onRefresh = () => {
-    void usage.refetch();
+    // refetch() bypasses `enabled`, so it needs the same gate.
+    if (canViewUsage) void usage.refetch();
     void subscription.refetch();
     void status.refetch();
   };
@@ -1109,12 +1117,17 @@ export function OverviewPage() {
             ? t("validity.until", { date: formatDate(validity.targetUtc) })
             : t("validity.noEndDate");
 
-  const resourcesValue = usage.isLoading ? (
+  const usageDenied = permissionsHydrated && !canViewUsage;
+  const resourcesValue = usageDenied ? (
+    "—"
+  ) : usage.isPending ? (
     <Skeleton className="h-5 w-10" />
   ) : (
     formatNumber(totalsView.resourceCount)
   );
-  const resourcesSub = (
+  const resourcesSub = usageDenied ? (
+    t("usage.noAccessShort")
+  ) : (
     <>
       <span className="tabular-nums">{totalsView.avgUtilization.toFixed(0)}%</span>{" "}
       {t("resources.avgUtilization")}
@@ -1284,7 +1297,12 @@ export function OverviewPage() {
               totalsView.overage > 0 ? <Badge variant="danger">{t("usageOverageBadge")}</Badge> : undefined
             }
           >
-            {usage.isLoading ? (
+            {usageDenied ? (
+              <UsageEmpty
+                title={t("usage.noAccessTitle")}
+                description={t("usage.noAccessBody")}
+              />
+            ) : usage.isPending ? (
               <UsageSkeleton />
             ) : usage.isError ? (
               <UsageEmpty

@@ -10,8 +10,8 @@ import type { Page } from "@playwright/test";
  * decoder reads sub/email/given_name/family_name/tenant out of the
  * payload. Permissions are NOT read from the JWT: at runtime the app
  * fetches them from GET /api/v1/identity/permissions (installShellMocks
- * stubs that route to []; permission-gated specs re-mock it with the
- * grants they need — see tests/system/trash.spec.ts).
+ * stubs that route to SHELL_PERMISSIONS; permission-gated specs re-mock it
+ * with the grants they need — see tests/system/trash.spec.ts).
  */
 export type SeededUser = {
   sub: string;

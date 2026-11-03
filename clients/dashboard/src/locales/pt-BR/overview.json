@@ -94,5 +94,8 @@
   "usage.errorBody": "O endpoint de uso retornou um erro. Tente atualizar.",
   "usage.emptyTitle": "Nenhum uso registrado ainda",
   "usage.emptyBody": "A atividade aparecerá aqui conforme o backend registra snapshots deste período.",
+  "usage.noAccessShort": "Sem acesso",
+  "usage.noAccessTitle": "Sem acesso ao uso",
+  "usage.noAccessBody": "O uso exige a permissão de Faturamento. Peça a um administrador se precisar dela.",
   "usageOverageBadge": "excedente"
 }
