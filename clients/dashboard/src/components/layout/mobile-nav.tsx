@@ -72,9 +72,12 @@ export function MobileNavRoot() {
     findSectionForPath(location.pathname),
   );
 
-  useEffect(() => {
+  // Re-sync on route change — adjusted during render, not in an effect.
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
     setOpenSection(findSectionForPath(location.pathname));
-  }, [location.pathname]);
+  }
 
   // Belt-and-braces: if the route changes while the drawer is open,
   // close it. NavItemLink also calls onNavigate to close on click.

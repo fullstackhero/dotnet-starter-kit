@@ -194,9 +194,19 @@ export function ProductsPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [brandFilter, categoryFilter, activeFilter]);
+  // Changing a filter jumps back to page 1 — done in the handler, not an effect.
+  const changeBrandFilter = (v: string | null) => {
+    if (v !== brandFilter) setPage(1);
+    setBrandFilter(v);
+  };
+  const changeCategoryFilter = (v: string | null) => {
+    if (v !== categoryFilter) setPage(1);
+    setCategoryFilter(v);
+  };
+  const changeActiveFilter = (v: boolean | null) => {
+    if (v !== activeFilter) setPage(1);
+    setActiveFilter(v);
+  };
 
   const query = useQuery({
     queryKey: [
@@ -304,11 +314,11 @@ export function ProductsPage() {
         brands={brandsQuery.data?.items ?? []}
         categories={categoriesQuery.data?.items ?? []}
         brandFilter={brandFilter}
-        setBrandFilter={setBrandFilter}
+        setBrandFilter={changeBrandFilter}
         categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
+        setCategoryFilter={changeCategoryFilter}
         activeFilter={activeFilter}
-        setActiveFilter={setActiveFilter}
+        setActiveFilter={changeActiveFilter}
       />
 
       {/* Results */}
@@ -321,9 +331,9 @@ export function ProductsPage() {
           onCreate={() => setEditor({ mode: "create" })}
           onClear={() => {
             setSearch("");
-            setBrandFilter(null);
-            setCategoryFilter(null);
-            setActiveFilter(null);
+            changeBrandFilter(null);
+            changeCategoryFilter(null);
+            changeActiveFilter(null);
           }}
         />
       ) : (
@@ -856,7 +866,11 @@ function ProductEditorDialog({
   const [stock, setStock] = useState(String(initial.stock));
   const [isActive, setIsActive] = useState(initial.isActive);
 
-  useEffect(() => {
+  // Re-seed the draft whenever the dialog opens or its target changes —
+  // adjusted during render (react.dev "adjusting state when a prop changes").
+  const [seededFor, setSeededFor] = useState({ isOpen, initial });
+  if (seededFor.isOpen !== isOpen || seededFor.initial !== initial) {
+    setSeededFor({ isOpen, initial });
     if (isOpen) {
       setSku(initial.sku);
       setName(initial.name);
@@ -868,7 +882,7 @@ function ProductEditorDialog({
       setStock(String(initial.stock));
       setIsActive(initial.isActive);
     }
-  }, [isOpen, initial]);
+  }
 
   const createMutation = useMutation({
     mutationFn: (input: CreateProductInput) => createProduct(input),
@@ -1107,12 +1121,17 @@ function PriceDialog({
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("USD");
 
-  useEffect(() => {
+  // Re-seed the draft whenever the dialog opens or its target changes —
+  // adjusted during render (react.dev "adjusting state when a prop changes").
+  // Starts as null so a dialog that mounts already open is seeded too.
+  const [seededFor, setSeededFor] = useState<{ isOpen: boolean; product?: ProductDto } | null>(null);
+  if (seededFor === null || seededFor.isOpen !== isOpen || seededFor.product !== product) {
+    setSeededFor({ isOpen, product });
     if (isOpen && product) {
       setAmount(String(product.price.amount));
       setCurrency(product.price.currency);
     }
-  }, [isOpen, product]);
+  }
 
   const mutation = useMutation({
     mutationFn: (input: ChangeProductPriceInput) => changeProductPrice(input),
@@ -1237,9 +1256,13 @@ function StockDialog({
 
   const [delta, setDelta] = useState("0");
 
-  useEffect(() => {
+  // Reset the delta each time the dialog opens — adjusted during render
+  // (react.dev "adjusting state when a prop changes").
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
     if (isOpen) setDelta("0");
-  }, [isOpen]);
+  }
 
   const mutation = useMutation({
     mutationFn: (input: AdjustProductStockInput) => adjustProductStock(input),

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarClock } from "lucide-react";
@@ -38,19 +38,15 @@ export function RenewTenantDialog({
 }) {
   const { t } = useTranslation("tenants");
   const queryClient = useQueryClient();
-  const [planKey, setPlanKey] = useState<string>("");
+  const [pickedPlanKey, setPlanKey] = useState<string>("");
+  // The selection defaults to the tenant's current plan until the operator picks one.
+  const planKey = pickedPlanKey || currentPlanKey || "";
 
   const plansQuery = useQuery({
     queryKey: ["billing", "plans", "active"],
     queryFn: () => getPlans(false),
     enabled: open,
   });
-
-  // Default the selection to the tenant's current plan once plans (and the current key) are known.
-  useEffect(() => {
-    if (!open) return;
-    if (currentPlanKey && !planKey) setPlanKey(currentPlanKey);
-  }, [open, currentPlanKey, planKey]);
 
   const options: SelectOption[] = (plansQuery.data ?? []).map((p) => ({
     value: p.key,

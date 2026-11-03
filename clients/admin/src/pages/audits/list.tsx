@@ -58,7 +58,13 @@ export function AuditsListPage() {
 
   // Local search box state + debounced sync.
   const [searchInput, setSearchInput] = useState(search);
-  useEffect(() => setSearchInput(search), [search]);
+  // Mirror external URL changes (back/forward, clear) into the box — adjusted
+  // during render rather than in an effect.
+  const [syncedSearch, setSyncedSearch] = useState(search);
+  if (syncedSearch !== search) {
+    setSyncedSearch(search);
+    setSearchInput(search);
+  }
   useEffect(() => {
     const handle = setTimeout(() => {
       if (searchInput === search) return;

@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useState,
   type FormEvent,
 } from "react";
@@ -708,7 +707,11 @@ function ProductEditorDialog({
   const [categoryId, setCategoryId] = useState(product.categoryId);
   const [isActive, setIsActive] = useState(product.isActive);
 
-  useEffect(() => {
+  // Re-seed the draft whenever the dialog opens or the product changes —
+  // adjusted during render (react.dev "adjusting state when a prop changes").
+  const [seededFor, setSeededFor] = useState({ open, product });
+  if (seededFor.open !== open || seededFor.product !== product) {
+    setSeededFor({ open, product });
     if (open) {
       setName(product.name);
       setDescription(product.description ?? "");
@@ -716,7 +719,7 @@ function ProductEditorDialog({
       setCategoryId(product.categoryId);
       setIsActive(product.isActive);
     }
-  }, [open, product]);
+  }
 
   const updateMutation = useMutation({
     mutationFn: (input: UpdateProductInput) => updateProduct(input),
@@ -919,12 +922,16 @@ function PriceDialog({
   const [amount, setAmount] = useState(String(product.price.amount));
   const [currency, setCurrency] = useState(product.price.currency);
 
-  useEffect(() => {
+  // Re-seed the draft whenever the dialog opens or the product changes —
+  // adjusted during render (react.dev "adjusting state when a prop changes").
+  const [seededFor, setSeededFor] = useState({ open, product });
+  if (seededFor.open !== open || seededFor.product !== product) {
+    setSeededFor({ open, product });
     if (open) {
       setAmount(String(product.price.amount));
       setCurrency(product.price.currency);
     }
-  }, [open, product]);
+  }
 
   const mutation = useMutation({
     mutationFn: (input: ChangeProductPriceInput) => changeProductPrice(input),
@@ -1042,9 +1049,13 @@ function StockDialog({
   const queryClient = useQueryClient();
   const [delta, setDelta] = useState("0");
 
-  useEffect(() => {
+  // Reset the delta each time the dialog opens — adjusted during render
+  // (react.dev "adjusting state when a prop changes").
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (open) setDelta("0");
-  }, [open]);
+  }
 
   const mutation = useMutation({
     mutationFn: (input: AdjustProductStockInput) => adjustProductStock(input),

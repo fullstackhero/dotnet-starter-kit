@@ -37,22 +37,27 @@ export function UserPicker({
   disabled?: boolean;
 }) {
   const { t } = useTranslation("tickets");
-  const [selected, setSelected] = useState<UserDto | null>(initialSelected ?? null);
+  // Keep selected snapshot in sync when the parent swaps the value.
+  // We also sync when the parent passes a fresh initialSelected after
+  // having loaded a ticket / row by id. Adjusted during render (react.dev
+  // "adjusting state when a prop changes"), not in an effect.
+  const syncSelected = (current: UserDto | null): UserDto | null => {
+    if (initialSelected && initialSelected.id === value) return initialSelected;
+    if (value === null) return null;
+    return current;
+  };
+  const [selected, setSelected] = useState<UserDto | null>(() =>
+    syncSelected(initialSelected ?? null),
+  );
+  const [prevProps, setPrevProps] = useState({ value, initialSelected });
+  if (prevProps.value !== value || prevProps.initialSelected !== initialSelected) {
+    setPrevProps({ value, initialSelected });
+    setSelected(syncSelected(selected));
+  }
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-  // Keep selected snapshot in sync when the parent swaps the value.
-  // We also sync when the parent passes a fresh initialSelected after
-  // having loaded a ticket / row by id.
-  useEffect(() => {
-    if (initialSelected && initialSelected.id === value) {
-      setSelected(initialSelected);
-    } else if (value === null) {
-      setSelected(null);
-    }
-  }, [value, initialSelected]);
 
   // Debounce the query string — typing fires the search 250ms after the
   // last keystroke, so a fast typist doesn't generate ten in-flight calls.

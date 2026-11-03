@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
@@ -85,6 +85,17 @@ export function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // Keep the error in sync with the form: typing after an error should
+  // clear it rather than persist a stale message under the new input.
+  const onPasswordChange = (value: string) => {
+    setPassword(value);
+    setError(null);
+  };
+  const onConfirmChange = (value: string) => {
+    setConfirm(value);
+    setError(null);
+  };
+
   const strength = useMemo(() => scorePassword(password), [password]);
   const matches = password.length > 0 && password === confirm;
 
@@ -104,12 +115,6 @@ export function ResetPasswordPage() {
       setError(detail);
     },
   });
-
-  // Keep the error in sync with the form: typing after an error should
-  // clear it rather than persist a stale message under the new input.
-  useEffect(() => {
-    setError(null);
-  }, [password, confirm]);
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -194,7 +199,7 @@ export function ResetPasswordPage() {
                   id="new-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => onPasswordChange(e.target.value)}
                   placeholder={t("reset.newPasswordPlaceholder")}
                   required
                   autoComplete="new-password"
@@ -244,7 +249,7 @@ export function ResetPasswordPage() {
                   id="confirm-password"
                   type={showConfirm ? "text" : "password"}
                   value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
+                  onChange={(e) => onConfirmChange(e.target.value)}
                   placeholder={t("reset.confirmPasswordPlaceholder")}
                   required
                   autoComplete="new-password"

@@ -11,14 +11,18 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": path.resolve(import.meta.dirname, "./src"),
       },
     },
     server: {
       port: 5173,
       strictPort: true,
       proxy: {
-        "/api": { target: apiBase, changeOrigin: true, secure: false },
+        // ws: true forwards the WebSocket upgrade for SignalR's hub at /api/v1/realtime/hub
+        // (config.json ships apiBase "", so the hub goes through this proxy). Without it the
+        // negotiate succeeds over HTTP but the upgrade lands on Vite's own server and the
+        // connection falls back to a slower transport.
+        "/api": { target: apiBase, changeOrigin: true, secure: false, ws: true },
         "/health": { target: apiBase, changeOrigin: true, secure: false },
         "/openapi": { target: apiBase, changeOrigin: true, secure: false },
         "/scalar": { target: apiBase, changeOrigin: true, secure: false },

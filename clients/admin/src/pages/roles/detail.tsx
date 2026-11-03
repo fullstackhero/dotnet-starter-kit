@@ -246,7 +246,13 @@ function PermissionEditor({ role, disabled }: { role: RoleDto; disabled: boolean
   const initial = useMemo(() => new Set(role.permissions ?? []), [role.permissions]);
   const [selected, setSelected] = useState<Set<string>>(initial);
 
-  useEffect(() => setSelected(new Set(role.permissions ?? [])), [role.permissions]);
+  // Re-seed from the server whenever the role's permissions change (adjusted
+  // during render rather than in an effect).
+  const [seededFrom, setSeededFrom] = useState(role.permissions);
+  if (seededFrom !== role.permissions) {
+    setSeededFrom(role.permissions);
+    setSelected(new Set(role.permissions ?? []));
+  }
 
   const mutation = useMutation({
     mutationFn: () =>

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -14,7 +14,6 @@
     "noFallthroughCasesInSwitch": true,
     "erasableSyntaxOnly": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

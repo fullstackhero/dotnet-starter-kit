@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ParseKeys } from "i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -55,12 +55,13 @@ export function TenantBrandingCard({ tenantId }: { tenantId: string }) {
 
   // Seed draft state when the server payload arrives. We always replace
   // the draft on a fresh fetch so server-driven changes (other admin's
-  // edits, reset action) are reflected in the editor.
-  useEffect(() => {
-    if (themeQuery.data) {
-      setDraft(themeQuery.data);
-    }
-  }, [themeQuery.data]);
+  // edits, reset action) are reflected in the editor. Adjusted during render
+  // (react.dev "adjusting state when a prop changes") rather than in an effect.
+  const [seededFrom, setSeededFrom] = useState<TenantThemeDto | undefined>(undefined);
+  if (themeQuery.data && themeQuery.data !== seededFrom) {
+    setSeededFrom(themeQuery.data);
+    setDraft(themeQuery.data);
+  }
 
   const saveMutation = useMutation({
     mutationFn: (theme: TenantThemeDto) => updateTenantTheme(tenantId, theme),

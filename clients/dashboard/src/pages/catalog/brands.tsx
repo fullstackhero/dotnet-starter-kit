@@ -434,13 +434,18 @@ function BrandEditorDialog({
   const [description, setDescription] = useState(initial.description);
   const [logoUrl, setLogoUrl] = useState(initial.logoUrl);
 
-  useEffect(() => {
-    if (isOpen) {
+  // Re-seed the draft whenever the dialog opens or its target changes —
+  // adjusted during render (react.dev "adjusting state when a prop changes").
+  const seedKey = isOpen ? JSON.stringify(initial) : null;
+  const [seededFor, setSeededFor] = useState(seedKey);
+  if (seedKey !== seededFor) {
+    setSeededFor(seedKey);
+    if (seedKey !== null) {
       setName(initial.name);
       setDescription(initial.description);
       setLogoUrl(initial.logoUrl);
     }
-  }, [isOpen, initial.name, initial.description, initial.logoUrl]);
+  }
 
   const slugPreview = useMemo(() => slugify(name) || "—", [name]);
 

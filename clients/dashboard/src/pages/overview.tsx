@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -552,11 +552,10 @@ function recentSeverityColor(severity: AuditSeverity): string {
   return "var(--color-muted-foreground)";
 }
 
-function recentEventTypeIcon(eventType: AuditEventType): React.ComponentType<{ className?: string }> {
-  if (eventType === AuditEventType.Security) return ShieldCheck;
-  if (eventType === AuditEventType.Exception) return Activity;
-  if (eventType === AuditEventType.EntityChange) return Server;
-  return Activity;
+function RecentEventIcon({ eventType, className }: { eventType: AuditEventType; className?: string }) {
+  if (eventType === AuditEventType.Security) return <ShieldCheck className={className} />;
+  if (eventType === AuditEventType.EntityChange) return <Server className={className} />;
+  return <Activity className={className} />;
 }
 
 /** Mirrors the permission GET /api/v1/audits enforces server-side. */
@@ -641,7 +640,6 @@ function RecentAuditsBody() {
 
 function RecentAuditRow({ row }: { row: AuditSummaryDto }) {
   const { t } = useTranslation("overview");
-  const Icon = recentEventTypeIcon(row.eventType);
   const tone = recentSeverityColor(row.severity);
   return (
     <li>
@@ -657,7 +655,7 @@ function RecentAuditRow({ row }: { row: AuditSummaryDto }) {
             background: `oklch(from ${tone} l c h / 0.10)`,
           }}
         >
-          <Icon className="size-3.5" />
+          <RecentEventIcon eventType={row.eventType} className="size-3.5" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[12.5px] font-medium tracking-tight text-foreground">
@@ -1018,9 +1016,11 @@ export function OverviewPage() {
   // tenants restores the panel.
   const tenantId = user?.tenant;
   const [dismissed, setDismissed] = useState<boolean>(() => readDismissed(tenantId));
-  useEffect(() => {
+  const [dismissedTenantId, setDismissedTenantId] = useState(tenantId);
+  if (dismissedTenantId !== tenantId) {
+    setDismissedTenantId(tenantId);
     setDismissed(readDismissed(tenantId));
-  }, [tenantId]);
+  }
   const showFirstRun =
     !dismissed &&
     !subscription.isLoading &&

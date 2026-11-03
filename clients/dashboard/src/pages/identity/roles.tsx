@@ -299,12 +299,16 @@ function CreateRoleDialog({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  useEffect(() => {
+  // Clear the form whenever the dialog closes — adjusted during render
+  // (react.dev "adjusting state when a prop changes").
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (!open) {
       setName("");
       setDescription("");
     }
-  }, [open]);
+  }
 
   const mutation = useMutation({
     mutationFn: () =>

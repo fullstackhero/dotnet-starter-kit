@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -108,14 +108,20 @@ export function RoleDetailPage() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    if (!role) return;
-    setName(role.name);
-    setDescription(role.description ?? "");
-    const next = new Set(role.permissions ?? []);
-    setSelected(next);
-    setInitial(new Set(next));
-  }, [role]);
+  // Re-seed the draft whenever a new copy of the role arrives — adjusted
+  // during render (react.dev "adjusting state when a prop changes"). Starts
+  // undefined so data already cached on mount is seeded on the first render.
+  const [seededFrom, setSeededFrom] = useState<typeof role>(undefined);
+  if (role !== seededFrom) {
+    setSeededFrom(role);
+    if (role) {
+      setName(role.name);
+      setDescription(role.description ?? "");
+      const next = new Set(role.permissions ?? []);
+      setSelected(next);
+      setInitial(new Set(next));
+    }
+  }
 
   const dirtyMeta = useMemo(() => {
     if (!role) return false;

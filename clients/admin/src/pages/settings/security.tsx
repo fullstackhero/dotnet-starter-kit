@@ -297,7 +297,10 @@ function TwoFactorEnroll() {
   const queryClient = useQueryClient();
   const [enrollment, setEnrollment] = useState<TwoFactorEnrollmentResponse | null>(null);
   const [code, setCode] = useState("");
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
+  // The rendered QR is keyed by the enrollment it was generated for, so a
+  // cleared/replaced enrollment derives `null` without a reset effect.
+  const [qr, setQr] = useState<{ for: TwoFactorEnrollmentResponse; svg: string } | null>(null);
+  const qrSvg = qr !== null && qr.for === enrollment ? qr.svg : null;
   const [copiedKey, setCopiedKey] = useState(false);
 
   const beginMutation = useMutation({
@@ -321,7 +324,7 @@ function TwoFactorEnroll() {
         });
         setEnrollment(null);
         setCode("");
-        setQrSvg(null);
+        setQr(null);
         void queryClient.invalidateQueries({ queryKey: ["identity", "profile"] });
       } else {
         toast.error(t("security.twoFa.verifyFailed"), { description: t("security.twoFa.verifyFailedDesc") });
@@ -339,10 +342,7 @@ function TwoFactorEnroll() {
   // Render the QR as inline SVG when the otpauth URI changes — keeps the
   // image source-of-truth in JS without an extra <canvas>.
   useEffect(() => {
-    if (!enrollment) {
-      setQrSvg(null);
-      return;
-    }
+    if (!enrollment) return;
     let cancelled = false;
     // Lazy-load the ~50 KB qrcode lib only when 2FA enrollment actually starts.
     import("qrcode")
@@ -362,9 +362,9 @@ function TwoFactorEnroll() {
           .replace(/fill="#FFFFFF"/gi, 'fill="transparent"')
           .replace(/fill="#000000"/gi, 'fill="currentColor"')
           .replace(/fill="#000"/gi, 'fill="currentColor"');
-        setQrSvg(themed);
+        setQr({ for: enrollment, svg: themed });
       })
-      .catch(() => setQrSvg(null));
+      .catch(() => setQr(null));
     return () => {
       cancelled = true;
     };

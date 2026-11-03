@@ -74,10 +74,10 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose, onDeleted }: 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   // Reset the inline confirm state every time the dialog closes so the next file
-  // opens cleanly in its non-armed state.
-  useEffect(() => {
-    if (!open) setConfirmingDelete(false);
-  }, [open]);
+  // opens cleanly in its non-armed state. Adjusted during render, not in an effect.
+  if (!open && confirmingDelete) {
+    setConfirmingDelete(false);
+  }
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteFile(fileAssetId!),

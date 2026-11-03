@@ -96,7 +96,21 @@ export function TicketsPage() {
     return () => window.clearTimeout(id);
   }, [search]);
 
-  useEffect(() => setPageNumber(1), [debouncedSearch, statusFilter, priorityFilter]);
+  // Back to page 1 whenever the effective search or a filter changes —
+  // adjusted during render against the previous inputs instead of in an effect.
+  const [pageResetKey, setPageResetKey] = useState({
+    debouncedSearch,
+    statusFilter,
+    priorityFilter,
+  });
+  if (
+    pageResetKey.debouncedSearch !== debouncedSearch ||
+    pageResetKey.statusFilter !== statusFilter ||
+    pageResetKey.priorityFilter !== priorityFilter
+  ) {
+    setPageResetKey({ debouncedSearch, statusFilter, priorityFilter });
+    setPageNumber(1);
+  }
 
   const query = useQuery({
     queryKey: [
@@ -422,13 +436,17 @@ function CreateTicketDialog({
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<TicketPriority>("Medium");
 
-  useEffect(() => {
+  // Clear the form each time the dialog opens — adjusted during render
+  // against the previous `open`, not in an effect.
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (open) {
       setTitle("");
       setDescription("");
       setPriority("Medium");
     }
-  }, [open]);
+  }
 
   const mutation = useMutation({
     mutationFn: (input: CreateTicketInput) => createTicket(input),

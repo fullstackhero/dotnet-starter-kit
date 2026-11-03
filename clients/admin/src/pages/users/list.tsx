@@ -48,10 +48,23 @@ export function UsersListPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // Reset page when filters change
-  useEffect(() => {
+  // Filter changes jump back to page 1 — done in these change handlers
+  // rather than in an effect.
+  const changeActiveFilter = (v: Tri) => {
+    if (v === activeFilter) return;
+    setActiveFilter(v);
     setPageNumber(1);
-  }, [activeFilter, confirmedFilter, roleId]);
+  };
+  const changeConfirmedFilter = (v: Tri) => {
+    if (v === confirmedFilter) return;
+    setConfirmedFilter(v);
+    setPageNumber(1);
+  };
+  const changeRoleId = (v: string) => {
+    if (v === roleId) return;
+    setRoleId(v);
+    setPageNumber(1);
+  };
 
   const rolesQuery = useQuery({
     queryKey: ["roles"],
@@ -92,6 +105,7 @@ export function UsersListPage() {
   const searchActive = searchTerm.length > 0 || filtersActive;
 
   const clearFilters = () => {
+    if (filtersActive) setPageNumber(1);
     setSearchInput("");
     setActiveFilter("any");
     setConfirmedFilter("any");
@@ -136,7 +150,7 @@ export function UsersListPage() {
         <Segmented
           label={t("filter.status")}
           value={activeFilter}
-          onChange={setActiveFilter}
+          onChange={changeActiveFilter}
           options={[
             { value: "any", label: t("filter.any") },
             { value: "yes", label: t("filter.active") },
@@ -146,7 +160,7 @@ export function UsersListPage() {
         <Segmented
           label={t("filter.email")}
           value={confirmedFilter}
-          onChange={setConfirmedFilter}
+          onChange={changeConfirmedFilter}
           options={[
             { value: "any", label: t("filter.any") },
             { value: "yes", label: t("filter.confirmed") },
@@ -157,7 +171,7 @@ export function UsersListPage() {
         <Select
           label={t("filter.role")}
           value={roleId}
-          onChange={(v) => setRoleId(v)}
+          onChange={changeRoleId}
           options={(rolesQuery.data ?? []).map((r) => ({ value: r.id ?? "", label: r.name ?? r.id ?? "" }))}
           placeholder={t("filter.anyRole")}
           minWidth="9rem"

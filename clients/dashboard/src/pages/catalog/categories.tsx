@@ -483,18 +483,18 @@ function CategoryEditorDialog({
   const [description, setDescription] = useState(initial.description);
   const [parentCategoryId, setParentCategoryId] = useState(initial.parentCategoryId);
 
-  useEffect(() => {
-    if (isOpen) {
+  // Re-seed the draft whenever the dialog opens or its target changes —
+  // adjusted during render (react.dev "adjusting state when a prop changes").
+  const seedKey = isOpen ? JSON.stringify(initial) : null;
+  const [seededFor, setSeededFor] = useState(seedKey);
+  if (seedKey !== seededFor) {
+    setSeededFor(seedKey);
+    if (seedKey !== null) {
       setName(initial.name);
       setDescription(initial.description);
       setParentCategoryId(initial.parentCategoryId);
     }
-  }, [
-    isOpen,
-    initial.name,
-    initial.description,
-    initial.parentCategoryId,
-  ]);
+  }
 
   const slugPreview = useMemo(() => slugify(name) || "—", [name]);
 

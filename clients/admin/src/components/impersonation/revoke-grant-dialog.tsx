@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { formatDateTime } from "@/lib/format";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -42,9 +42,13 @@ export function RevokeGrantDialog({ grant, onOpenChange, onRevoked }: Props) {
   const open = grant !== null;
 
   // Reset reason whenever a new grant is targeted (or the dialog closes).
-  useEffect(() => {
+  // Adjusted during render (react.dev "adjusting state when a prop changes").
+  const grantId = grant?.id;
+  const [synced, setSynced] = useState({ open: false, grantId });
+  if (synced.open !== open || synced.grantId !== grantId) {
+    setSynced({ open, grantId });
     if (open) setReason("");
-  }, [open, grant?.id]);
+  }
 
   const mutation = useMutation<ImpersonationGrantDto, Error, void>({
     mutationFn: () => revokeImpersonationGrant(grant!.id, reason.trim() || undefined),

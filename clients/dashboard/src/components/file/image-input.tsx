@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { Image as ImageIcon, Loader2, Upload, X, Link as LinkIcon } from "lucide-react";
@@ -97,9 +97,10 @@ export function ImageInput({
   const tileClass = shape === "circle" ? "rounded-full" : "rounded-xl";
 
   // Show the placeholder (not a broken-image icon) when the current URL fails to
-  // load — e.g. a seeded default-avatar URL that 404s. Reset on every URL change.
-  const [imgFailed, setImgFailed] = useState(false);
-  useEffect(() => setImgFailed(false), [value]);
+  // load — e.g. a seeded default-avatar URL that 404s. The failure is keyed by the
+  // URL that failed, so it resets on every URL change without an effect.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const imgFailed = failedSrc === value;
   const showImage = hasImage && !imgFailed;
 
   return (
@@ -126,7 +127,7 @@ export function ImageInput({
             <img
               src={value}
               alt=""
-              onError={() => setImgFailed(true)}
+              onError={() => setFailedSrc(value)}
               className={cn("h-full w-full object-cover", tileClass)}
             />
           ) : isWorking ? (
