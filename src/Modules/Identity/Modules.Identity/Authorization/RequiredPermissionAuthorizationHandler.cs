@@ -23,8 +23,10 @@ public sealed class RequiredPermissionAuthorizationHandler(IUserService userServ
 
         // IMPORTANT: resolve IRequiredPermissionMetadata from FSH.Framework.Shared.Identity.Authorization (the
         // interface the attribute implements) — a duplicate would silently fail-open every .RequirePermission().
-        var requiredPermissions = endpoint?.Metadata.GetMetadata<IRequiredPermissionMetadata>()?.RequiredPermissions;
-        if (requiredPermissions == null)
+        // Read every instance, not just the most specific one: a route group's .RequirePermission(A) and an
+        // endpoint's .RequirePermission(B) are both gates, so the caller must hold the union of them (#1429).
+        var permissionMetadata = endpoint?.Metadata.GetOrderedMetadata<IRequiredPermissionMetadata>() ?? [];
+        if (permissionMetadata.Count == 0)
         {
             // there are no permission requirements set by the endpoint
             // hence, authorize requests
@@ -33,9 +35,15 @@ public sealed class RequiredPermissionAuthorizationHandler(IUserService userServ
         }
 
         // An empty set comes from a blank RequirePermission("") and must deny, not fall through to Succeed.
-        if (requiredPermissions.Count == 0 || context.User?.GetUserId() is not { } userId)
+        if (permissionMetadata.Any(m => m.RequiredPermissions.Count == 0) || context.User?.GetUserId() is not { } userId)
         {
             return;
+        }
+
+        var requiredPermissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var metadata in permissionMetadata)
+        {
+            requiredPermissions.UnionWith(metadata.RequiredPermissions);
         }
 
         var cancellationToken = httpContext?.RequestAborted ?? CancellationToken.None;
