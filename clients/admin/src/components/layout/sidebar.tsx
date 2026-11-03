@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/auth/use-auth";
@@ -40,6 +41,7 @@ export function Sidebar() {
   const { collapsed, toggle } = useCollapsedSidebar();
   const location = useLocation();
   const { user, permissionsHydrated } = useAuth();
+  const { t } = useTranslation("common");
 
   // Permission-filtered sections
   const granted = permissionsHydrated ? (user?.permissions ?? []) : [];
@@ -66,7 +68,7 @@ export function Sidebar() {
   return (
     <aside
       data-collapsed={collapsed || undefined}
-      aria-label="Primary navigation"
+      aria-label={t("shell.primaryNav")}
       className={cn(
         "hidden shrink-0 flex-col border-r border-[var(--color-border)]",
         "bg-[oklch(from_var(--color-card)_l_c_h_/_0.85)] backdrop-blur-xl backdrop-saturate-150 md:flex",
@@ -97,7 +99,7 @@ export function Sidebar() {
                 fullstack<span className="text-[var(--color-primary)]">hero</span>
               </span>
               <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
-                Admin
+                {t("shell.appSubtitle")}
               </span>
             </div>
           )}
@@ -107,9 +109,9 @@ export function Sidebar() {
           <button
             type="button"
             onClick={toggle}
-            aria-label="Collapse sidebar"
+            aria-label={t("shell.collapseSidebar")}
             aria-expanded={!collapsed}
-            title="Collapse sidebar"
+            title={t("shell.collapseSidebar")}
             className={cn(
               "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
               "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -140,9 +142,9 @@ export function Sidebar() {
           <button
             type="button"
             onClick={toggle}
-            aria-label="Expand sidebar"
+            aria-label={t("shell.expandSidebar")}
             aria-expanded={false}
-            title="Expand sidebar"
+            title={t("shell.expandSidebar")}
             className={cn(
               "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
               "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -181,10 +183,11 @@ export function SidebarNavBody({
   /** Called after a nav item click — used by the mobile sheet to close itself. */
   onNavigate?: () => void;
 }) {
+  const { t } = useTranslation("common");
   return (
     <nav
       className="flex-1 space-y-1.5 overflow-y-auto overflow-x-clip px-2.5 py-3.5"
-      aria-label="Primary"
+      aria-label={t("shell.primaryNav")}
     >
       {/* Top-level singletons: Overview */}
       <div className="space-y-0.5">
@@ -274,6 +277,7 @@ function AccordionSection({
   onToggle: () => void;
   onNavigate?: () => void;
 }) {
+  const { t } = useTranslation("nav");
   const SectionIcon = section.icon;
   return (
     <div
@@ -301,7 +305,7 @@ function AccordionSection({
         )}
       >
         <SectionIcon className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="flex-1 truncate">{section.caption}</span>
+        <span className="flex-1 truncate">{t(section.caption)}</span>
         <ChevronDown
           aria-hidden
           className={cn(
@@ -365,13 +369,15 @@ function NavItemLink({
   indent?: boolean;
   onNavigate?: () => void;
 }) {
+  const { t } = useTranslation("nav");
   const Icon = item.icon;
+  const label = t(item.label);
   return (
     <NavLink
       to={item.to}
       end={item.to === "/"}
-      title={collapsed ? item.label : undefined}
-      aria-label={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
+      aria-label={collapsed ? label : undefined}
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
@@ -399,7 +405,7 @@ function NavItemLink({
 
           <Icon className="h-4 w-4 shrink-0" aria-hidden />
 
-          {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+          {!collapsed && <span className="whitespace-nowrap">{label}</span>}
 
           {/* Tooltip in collapsed mode */}
           {collapsed && (
@@ -413,7 +419,7 @@ function NavItemLink({
                 "group-hover/nav:opacity-100 group-focus-visible/nav:opacity-100",
               )}
             >
-              {item.label}
+              {label}
             </span>
           )}
         </>

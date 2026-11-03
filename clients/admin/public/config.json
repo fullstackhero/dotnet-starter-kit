@@ -3,5 +3,6 @@
   "defaultTenant": "root",
   "dashboardUrl": "http://localhost:5174",
   "inactivityIdleMs": 600000,
-  "inactivityWarningMs": 60000
+  "inactivityWarningMs": 60000,
+  "defaultLanguage": "en-US"
 }

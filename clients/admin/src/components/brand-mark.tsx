@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 
 /**
@@ -12,6 +13,7 @@ import { cn } from "@/lib/cn";
  * Colour-identity is now driven purely by the shared `--color-primary` token.
  */
 export function BrandMark({ className }: { className?: string }) {
+  const { t } = useTranslation("common");
   return (
     <div className={cn("inline-flex select-none items-center gap-2.5", className)}>
       <span
@@ -28,7 +30,7 @@ export function BrandMark({ className }: { className?: string }) {
           fullstack<span className="text-[var(--color-primary)]">hero</span>
         </span>
         <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
-          Admin
+          {t("brandMark.appName")}
         </span>
       </div>
     </div>
@@ -41,6 +43,7 @@ export function BrandMark({ className }: { className?: string }) {
  * system blurb.
  */
 export function BrandMarkXL({ className }: { className?: string }) {
+  const { t } = useTranslation("common");
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex items-center gap-2.5">
@@ -53,15 +56,14 @@ export function BrandMarkXL({ className }: { className?: string }) {
           fullstack<span className="text-[var(--color-primary)]">hero</span>
         </span>
         <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
-          · platform admin
+          · {t("brandMark.platformAdmin")}
         </span>
       </div>
       <h1 className="font-display text-[clamp(3rem,7vw,5.5rem)] font-semibold leading-[0.95] tracking-[var(--tracking-display)]">
-        Admin<span className="text-[var(--color-primary)]">.</span>
+        {t("brandMark.appName")}<span className="text-[var(--color-primary)]">.</span>
       </h1>
       <p className="max-w-md text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-        Operate every tenant on this instance — identity, multitenancy, billing,
-        and the rest of the system surface, from one place.
+        {t("brandMark.tagline")}
       </p>
     </div>
   );

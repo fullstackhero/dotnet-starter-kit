@@ -47,10 +47,28 @@ export async function create{Resource}(input: Create{Resource}Input) {
 
 (dashboard: inline `type PagedResponse<T> = …`, inline the path, camelCase params, mutations often return `Promise<string>`.)
 
-## Step 2 — Page (`src/pages/{area}/...tsx`, named export)
+## Step 2 — Catalog keys (`src/locales/en-US/{ns}.json`)
+
+Every string the page shows is a key in its area's namespace. Add the English entries **before** using
+them: keys are typed against the en-US catalogs, so `t("{resources}.title")` fails `tsc -b` until the
+key exists. A new area gets a new `{ns}.json` plus one line in the catalog map in `src/i18n.ts`.
+`src/locales/pt-BR/{ns}.json` is optional; a missing key renders in English.
+
+```json
+{
+  "{resources}.title": "{Resources}",
+  "{resources}.count_one": "{{count, number}} {resource}",
+  "{resources}.count_other": "{{count, number}} {resources}",
+  "{resources}.created": "{Resource} created.",
+  "{resources}.createFailed": "Could not create the {resource}."
+}
+```
+
+## Step 3 — Page (`src/pages/{area}/...tsx`, named export)
 
 ```tsx
 export function {Resource}ListPage() {
+  const { t } = useTranslation("{ns}");
   const [search, setSearch] = useState("");           // debounce → reset page to 1 on change
   const [pageNumber, setPage] = useState(1);
   const query = useQuery({
@@ -58,11 +76,12 @@ export function {Resource}ListPage() {
     queryFn: () => search{Resources}({ pageNumber, search: search || undefined }),
     placeholderData: keepPreviousData,
   });
-  // render with components/ui/* + components/list/* (admin: PageHeader/Field…; dashboard: Entity* family)
+  // render with components/ui/* + components/list/* (admin: PageHeader/Field…; dashboard: Entity* family),
+  // every visible string through t(): <h1>{t("{resources}.title")}</h1>
 }
 ```
 
-## Step 3 — Mutation (race-safe `mutate(arg)`)
+## Step 4 — Mutation (race-safe `mutate(arg)`)
 
 Pass per-call data through `mutate(arg)`; read it from the callback `variables` — never from a closed-over render variable.
 
@@ -70,8 +89,9 @@ Pass per-call data through `mutate(arg)`; read it from the callback `variables` 
 const qc = useQueryClient();
 const createMut = useMutation({
   mutationFn: (input: Create{Resource}Input) => create{Resource}(input),
-  onSuccess: () => { toast.success("Created"); qc.invalidateQueries({ queryKey: ["{resources}"] }); },
-  onError: (e) => toast.error(e instanceof ApiRequestError ? e.message : "Failed"),
+  onSuccess: () => { toast.success(t("{resources}.created")); qc.invalidateQueries({ queryKey: ["{resources}"] }); },
+  // ProblemDetails text is already in the user's language: apiFetch sends Accept-Language.
+  onError: (e) => toast.error(e instanceof ApiRequestError ? e.message : t("{resources}.createFailed")),
 });
 // admin: const form = useForm({ resolver: zodResolver(schema) });  form.handleSubmit(v => createMut.mutate(v))
 // dashboard: controlled useState fields; onSubmit(e){ e.preventDefault(); createMut.mutate(payload); }
@@ -79,7 +99,7 @@ const createMut = useMutation({
 
 If you need to track the in-flight item (e.g. a per-row busy state), use `onMutate: (arg) => setBusyId(arg)` reading the `mutate(arg)` value (pattern: `admin/src/pages/settings/sessions.tsx`).
 
-## Step 4 — Register the route (`routes.tsx`)
+## Step 5 — Register the route (`routes.tsx`)
 
 ```tsx
 const {Resource}ListPage = lazyNamed(() => import("@/pages/{area}/list"), "{Resource}ListPage");
@@ -89,11 +109,11 @@ const {Resource}ListPage = lazyNamed(() => import("@/pages/{area}/list"), "{Reso
 { path: "{area}/{resources}", element: withSuspense(<{Resource}ListPage />) },
 ```
 
-## Step 5 — (admin only) mirror the permission
+## Step 6 — (admin only) mirror the permission
 
 Add the constant to `src/lib/permissions.ts` (`{Module}Permissions.{Resources}.View` = `"Permissions.{Resources}.View"`), and a `PERMISSION_CATALOG` entry if it belongs in the Role editor. See `add-permission`.
 
-## Step 6 — Playwright test (`tests/{area}/{resource}.spec.ts`)
+## Step 7 — Playwright test (`tests/{area}/{resource}.spec.ts`)
 
 ```ts
 test.beforeEach(async ({ page }) => {
@@ -105,17 +125,22 @@ test.beforeEach(async ({ page }) => {
 
 Use `mockProblemDetails(...)` for error states. Dashboard: scope row assertions with `.last()` / dialog scoping (lists render mobile + desktop copies → strict-mode double match).
 
-## Step 7 — Verify
+## Step 8 — Verify
 
 ```bash
-cd clients/{app} && npm run lint && npm run test:e2e
+cd clients/{app} && npm run lint && npm run build && npm run test:e2e
 ```
+
+`lint` fails on untranslated JSX text in `src/pages` / `src/components`; `build` (`tsc -b`) fails on a key its
+namespace lacks. Neither sees a literal in `aria-label`, `placeholder`, `title` or a `toast("…")`: check those by
+hand (`.agents/rules/frontend/shared.md`, Translations).
 
 ## Checklist
 
 - [ ] API module: hand-written types, `apiFetch`, correct param casing per app (Pascal=admin, camel=dashboard)
+- [ ] English keys in `src/locales/en-US/{ns}.json` (pt-BR optional); every visible string, toast and `aria-label` through `t()`
 - [ ] Page is a **named export**; `useQuery` key hierarchical + `placeholderData: keepPreviousData`
 - [ ] Mutation passes data via `mutate(arg)`, invalidates in `onSuccess`
 - [ ] Route via `lazyNamed`; admin wraps in `<RouteGuard perms>`, dashboard in `withSuspense`
 - [ ] (admin) permission mirrored in `lib/permissions.ts`
-- [ ] Playwright test: seed + shell mocks + page mocks; `lint` + `test:e2e` green
+- [ ] Playwright test: seed + shell mocks + page mocks; `lint` + `build` + `test:e2e` green
