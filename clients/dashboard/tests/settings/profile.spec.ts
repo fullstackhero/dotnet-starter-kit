@@ -77,8 +77,9 @@ test.describe("settings/profile — wired to PUT /identity/profile", () => {
       firstName: "Alicia",
       lastName: "Nguyen-Ortiz",
       phoneNumber: "+1 (555) 000-1234",
-      email: TEST_USER.email,
     });
+    // The profile PUT can't change the e-mail address, so the body must not pretend it can.
+    expect(body).not.toHaveProperty("email");
   });
 
   test("shows a success toast on 200", async ({ page }) => {
