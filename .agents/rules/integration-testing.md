@@ -14,6 +14,8 @@
 - **Storage is wired eagerly.** `AddHeroStorage` reads `Storage:Provider` before the test config overlay, so it picks `LocalStorageService`. The factory **removes the `IStorageService`/`LocalStorageService`/`S3StorageService` descriptors post-registration and re-registers the S3 stack** at RustFS. Follow that when a test needs real object storage. (See `storage.md`.)
 - **SignalR tests force long-polling** — TestServer has no WebSocket. Configure the client transport accordingly.
 - **Rate limiting is read eagerly** — `Integration.Middleware.Tests` sets `RateLimitingOptions:Enabled` via env var **before** host build, since flipping it after has no effect.
+- **Test order is not guaranteed** (xUnit v3 orders differently from v2, and it shifted several hidden dependencies). Clean up shared state you create. Tenants pointing at an unreachable database go through `_factory.RemoveTenantsAsync(ids)` in `DisposeAsync`, or all-tenant jobs run by later tests count them as failures. Don't assume a new tenant's audit rows fit on page 1, because provisioning writes its seed data as `EntityChange` rows.
+- **`WithWebHostBuilder` hosts share two statics with the shared host**: Hangfire's `JobStorage.Current` and the static `Audit` publisher. `PrimaryHostStaticsRestorer` points both back at the shared host when a derived host stops. Always dispose derived factories (`await using`).
 
 ## Coverage
 

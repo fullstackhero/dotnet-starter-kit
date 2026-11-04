@@ -14,7 +14,7 @@ namespace Integration.Tests.Tests.Multitenancy;
 /// correlation id. Also covers authentication and the not-found path.
 /// </summary>
 [Collection(FshCollectionDefinition.Name)]
-public sealed class RetryTenantProvisioningTests
+public sealed class RetryTenantProvisioningTests : IAsyncLifetime
 {
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -28,6 +28,10 @@ public sealed class RetryTenantProvisioningTests
         "Host=127.0.0.1;Port=59999;Database=fsh_unreachable;Username=nope;Password=nope;Timeout=2;Command Timeout=2";
 
     private readonly FshWebApplicationFactory _factory;
+
+    // Removed after each test; the unreachable one would fail later all-tenant jobs (see FshWebApplicationFactory.RemoveTenantsAsync).
+
+    private readonly List<string> _createdTenantIds = [];
     private readonly AuthHelper _auth;
 
     public RetryTenantProvisioningTests(FshWebApplicationFactory factory)
@@ -35,6 +39,12 @@ public sealed class RetryTenantProvisioningTests
         _factory = factory;
         _auth = new AuthHelper(factory);
     }
+
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+
+
+    public async ValueTask DisposeAsync() => await _factory.RemoveTenantsAsync(_createdTenantIds);
+
 
     #region Happy Path (retry of a failed tenant)
 
@@ -45,6 +55,7 @@ public sealed class RetryTenantProvisioningTests
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var unique = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"retry-{unique}";
+        _createdTenantIds.Add(tenantId);
 
         var createResponse = await rootClient.PostAsJsonAsync(TestConstants.TenantsBasePath, new
         {
@@ -83,6 +94,7 @@ public sealed class RetryTenantProvisioningTests
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var unique = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"retry-ok-{unique}";
+        _createdTenantIds.Add(tenantId);
 
         var createResponse = await rootClient.PostAsJsonAsync(TestConstants.TenantsBasePath, new
         {

@@ -20,9 +20,9 @@ public sealed class HybridCacheRedisTests : IAsyncLifetime
     private readonly RedisContainer _redis = new RedisBuilder("valkey/valkey:9.1.3-alpine")
         .Build();
 
-    public Task InitializeAsync() => _redis.StartAsync();
+    public async ValueTask InitializeAsync() => await _redis.StartAsync();
 
-    public Task DisposeAsync() => _redis.DisposeAsync().AsTask();
+    public ValueTask DisposeAsync() => _redis.DisposeAsync();
 
     private (HybridCache cache, IDistributedCache distributedCache, ServiceProvider provider) CreateCache()
     {

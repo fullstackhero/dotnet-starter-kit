@@ -1,5 +1,7 @@
+using System.Net;
 using System.Text.Json;
 using Integration.Middleware.Tests.Infrastructure;
+using Microsoft.AspNetCore.Http;
 
 namespace Integration.Middleware.Tests.Tests;
 
@@ -21,6 +23,22 @@ public sealed class RateLimitingTests
         _factory = factory;
     }
 
+    private async Task<int> IssueBadTokenFromAsync(IPAddress clientIp)
+    {
+        var body = JsonSerializer.SerializeToUtf8Bytes(new { email = "nobody@example.com", password = "wrong-password" });
+        var context = await _factory.Server.SendAsync(c =>
+        {
+            c.Connection.RemoteIpAddress = clientIp;
+            c.Request.Method = HttpMethods.Post;
+            c.Request.Path = $"{TestConstants.IdentityBasePath}/token/issue";
+            c.Request.Headers["tenant"] = TestConstants.RootTenantId;
+            c.Request.ContentType = "application/json";
+            c.Request.ContentLength = body.Length;
+            c.Request.Body = new MemoryStream(body);
+        });
+        return context.Response.StatusCode;
+    }
+
     private static async Task<HttpResponseMessage> IssueBadTokenAsync(HttpClient client)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
@@ -34,15 +52,17 @@ public sealed class RateLimitingTests
     [Fact]
     public async Task TokenIssue_Should_NotRateLimit_When_RequestsAreWithinTheAuthLimit()
     {
-        // Arrange
-        using var client = _factory.CreateClient();
+        // Arrange: a client IP of its own. TestServer leaves RemoteIpAddress null, so requests from
+        // CreateClient() share the "unknown IP" partition with the 429 test below. If that test ran
+        // first, this one would start on an exhausted window.
+        var clientIp = IPAddress.Parse("203.0.113.10");
 
         // Act + Assert: the first PermitLimit requests must NOT be rejected with 429.
         for (int i = 0; i < AuthPermitLimit; i++)
         {
-            using var response = await IssueBadTokenAsync(client);
-            response.StatusCode.ShouldNotBe(
-                HttpStatusCode.TooManyRequests,
+            var statusCode = await IssueBadTokenFromAsync(clientIp);
+            statusCode.ShouldNotBe(
+                (int)HttpStatusCode.TooManyRequests,
                 $"request #{i + 1} within the auth limit should not be rate limited");
         }
     }

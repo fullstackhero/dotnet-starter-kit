@@ -81,7 +81,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         Environment.SetEnvironmentVariable("SecurityHeadersOptions__Enabled", "true");
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await Task.WhenAll(_postgres.StartAsync(), _s3.StartAsync());
         await CreateS3BucketAsync();
@@ -102,7 +102,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         }
     }
 
-    public new async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
