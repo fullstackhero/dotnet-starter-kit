@@ -40,7 +40,7 @@ public sealed class TenantThemeTests : IAsyncLifetime
         _auth = new AuthHelper(factory);
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         var unique = Guid.NewGuid().ToString("N")[..8];
         _tenantA = $"theme-a-{unique}";
@@ -60,7 +60,7 @@ public sealed class TenantThemeTests : IAsyncLifetime
         _ = await GetTokenWithRetryAsync(_tenantBAdminEmail, TestConstants.DefaultPassword, _tenantB);
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     #region Happy Path
 

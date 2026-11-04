@@ -40,14 +40,15 @@ internal static class AuditTestHelper
     public static async Task<AuditSummaryDto> PollForAuditAsync(
         HttpClient client,
         Func<AuditSummaryDto, bool> predicate,
-        int attempts = DefaultPollAttempts)
+        int attempts = DefaultPollAttempts,
+        string? extraQuery = null)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(predicate);
 
         for (int i = 0; i < attempts; i++)
         {
-            var page = await GetAuditsPageAsync(client, pageSize: 100).ConfigureAwait(false);
+            var page = await GetAuditsPageAsync(client, pageSize: 100, extraQuery: extraQuery).ConfigureAwait(false);
             var match = page.Items.FirstOrDefault(predicate);
             if (match is not null)
             {

@@ -27,9 +27,9 @@ public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
         .WithCleanUp(true)
         .Build();
 
-    public Task InitializeAsync() => _postgres.StartAsync();
+    public async ValueTask InitializeAsync() => await _postgres.StartAsync();
 
-    public Task DisposeAsync() => _postgres.DisposeAsync().AsTask();
+    public ValueTask DisposeAsync() => _postgres.DisposeAsync();
 
     [Fact]
     public async Task CheckHealthAsync_Should_TransitionFromUnhealthyToHealthy_AsMigrationsApply()

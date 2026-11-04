@@ -5,7 +5,7 @@ This folder contains solution-wide architecture tests for the FullStackHero .NET
 ## Project
 
 - `Architecture.Tests` targets `net10.0` and lives under `src/Tests/Architecture.Tests`.
-- Test dependencies are limited to `xunit`, `Shouldly`, and `AutoFixture`, with versions defined in `src/Directory.Packages.props`.
+- Test dependencies are limited to xUnit v3 (`xunit.v3.mtp-off`), `Shouldly`, and `AutoFixture`, with versions defined in `src/Directory.Packages.props`.
 
 ## What Is Covered
 
