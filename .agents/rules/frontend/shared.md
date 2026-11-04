@@ -42,7 +42,8 @@ mutation.mutate({ text, clientId: crypto.randomUUID() });
 
 ## Routing (`routes.tsx`, `App.tsx`)
 
-- `createBrowserRouter`, flat config. Pages are **named exports** loaded via a `lazyNamed(importer, name)` helper (adapts named → `React.lazy`'s default contract). No default exports.
+- `createBrowserRouter`, flat config. Pages are **named exports** loaded via a `lazyNamed(importer, name, namespaces)` helper (adapts named → `React.lazy`'s default contract, and loads the route's lazy translation namespaces alongside the chunk). No default exports.
+- **Initial bundle**: `vite.config.ts` groups everything the entry statically imports (Rolldown's `$initial` tag) into one `vendor` and one `app` chunk; route pages stay lazy. Keep heavy, post-login-only deps (SignalR, zod forms, cmdk) out of the static graph of `main.tsx` with a dynamic `import()`.
 - Nesting: public auth routes → `<ProtectedRoute/>` → `<AppShell/>` → page children. `errorElement: <RouteError/>`.
 - Provider tree: `ThemeProvider > QueryClientProvider > AuthProvider > … > RouterProvider` + `sonner` `<Toaster/>`.
 
@@ -76,7 +77,7 @@ So "neutrals must be chroma 0" is a **dashboard** rule. Admin neutrals are inten
 
 Every string a user reads goes through `t()`; English and Portuguese ship today. The backend negotiates its own messages from the `Accept-Language` that `apiFetch` sends, so ProblemDetails text is shown as-is (`.agents/rules/localization.md`).
 
-- **One namespace per area**: `src/locales/en-US/{ns}.json`, registered with one line in the catalog map in `src/i18n.ts` (`CATALOGS` in admin, `catalogs` in dashboard). `src/locales/pt-BR/{ns}.json` is optional: `src/locales/pt-BR.ts` picks every file up into one lazy chunk, and a missing key renders in English.
+- **One namespace per area**: `src/locales/en-US/{ns}.json`, registered with one line in `src/i18n.ts`. A namespace the app shell renders with (layout, sign-in, banners, notification bell; plus admin's landing dashboard) goes in the eager map (`EAGER_CATALOGS` in admin, `eagerCatalogs` in dashboard) and ships in the main bundle. Every other namespace goes in the lazy map (`LAZY_CATALOGS` / `lazyCatalogs`) as `() => import(...)`, and **every route whose page or components use it lists it** in `lazyNamed(importer, name, ["ns", …])`, which loads it in parallel with the page chunk. A route that forgets a namespace renders guessed labels and logs `[i18n] missing key` in dev. `src/locales/pt-BR/{ns}.json` is optional: `src/locales/pt-BR.ts` picks every file up into one lazy chunk, and a missing key renders in English.
 - **Keys are flat and dotted** inside the file (`"header.title"`, `"create.validation.url"`). Interpolate with `{{name}}`; counts use `_one` / `_other` plus `{{count, number}}` and are called with `{ count }`.
 - **In a component**: `const { t } = useTranslation("ns")`. Another namespace through the list form, `useTranslation(["activity", "audits"])` with `t("audits:…")`, or through a second translator when a helper requires one bound to it (`const { t: tCommon } = useTranslation("common")` for `describeUploadError`). Never prefix a key with the namespace the translator is already bound to.
 - **Keys are typed.** `src/i18next.d.ts` types every key against the en-US catalogs, so add the key to the JSON first: a key the namespace lacks fails `tsc -b`. A helper that receives the translator takes `TFunction<"ns">`; a key stored in data (nav items, tabs, enum labels) is `ParseKeys<"ns">`, and an enum label goes through a map typed against the enum (`satisfies Record<Status, ParseKeys<"ns">>`) rather than a template key, so a new member without a label stops compiling. Billing and impersonation statuses have their maps in `src/lib/status-keys.ts`, read through `statusKey()`, which returns `undefined` for a status added after the build so the caller can show the raw value; `tests/i18n/status-keys.spec.ts` checks every member of the backend enum against those maps and both catalogs. A template key still compiles when the call passes `defaultValue`, but its key is not checked; a few remain.
@@ -95,7 +96,7 @@ Every string a user reads goes through `t()`; English and Portuguese ship today.
 
 1. API: extend `src/api/{feature}.ts` — hand-written types + `apiFetch` calls.
 2. Page: `src/pages/{area}/{name}.tsx`, **named** export. `useQuery` with hierarchical key; `useMutation` invalidating in `onSuccess`, passing per-call data via `mutate(arg)`. Text through `t()` from the area's namespace, with the keys added to `src/locales/en-US/{ns}.json` (see Translations).
-3. Route: add `const X = lazyNamed(() => import("@/pages/area/name"), "XPage")` and a child route under `AppShell`.
+3. Route: add `const X = lazyNamed(() => import("@/pages/area/name"), "XPage", ["ns"])` (its lazy translation namespaces) and a child route under `AppShell`.
 4. Test: `tests/{area}/{name}.spec.ts` with seed + shell mocks + page mocks.
 
 Then apply the app-specific steps in `admin.md` / `dashboard.md` (forms, permission gating, suspense, etc.).

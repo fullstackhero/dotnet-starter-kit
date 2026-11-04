@@ -6,6 +6,7 @@ import { ProtectedRoute } from "@/auth/protected-route";
 import { RouteError } from "@/components/route-error";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { loadNamespaces, type LazyNamespace } from "@/i18n";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Lazy route boundaries
@@ -17,14 +18,20 @@ import { cn } from "@/lib/cn";
 // `lazyNamed` wraps a dynamic import that exports a *named* component
 // (we don't use default exports anywhere in this codebase). Returns a
 // shape compatible with React.lazy.
+//
+// `namespaces` lists the route-only translation catalogs the page (and the
+// components it imports) use. They load in parallel with the page chunk, so
+// the page never renders before its text is there. The shell's namespaces
+// (common, auth, notifications) are always loaded and are not listed.
 // ─────────────────────────────────────────────────────────────────────────
 
 function lazyNamed<T extends Record<string, unknown>, K extends keyof T>(
   importer: () => Promise<T>,
   name: K,
+  namespaces: readonly LazyNamespace[] = [],
 ) {
   return lazy(async () => {
-    const mod = await importer();
+    const [mod] = await Promise.all([importer(), loadNamespaces(namespaces)]);
     return { default: mod[name] as ComponentType<unknown> };
   });
 }
@@ -42,25 +49,16 @@ const ConfirmEmailPage = lazyNamed(
   () => import("@/pages/auth/confirm-email"),
   "ConfirmEmailPage",
 );
-const OverviewPage = lazyNamed(() => import("@/pages/overview"), "OverviewPage");
-const ActivityPage = lazyNamed(() => import("@/pages/activity"), "ActivityPage");
-const InvoicesPage = lazyNamed(() => import("@/pages/invoices"), "InvoicesPage");
-const InvoiceDetailPage = lazyNamed(
-  () => import("@/pages/invoice-detail"),
-  "InvoiceDetailPage",
-);
-const SubscriptionPage = lazyNamed(
-  () => import("@/pages/subscription"),
-  "SubscriptionPage",
-);
-const WalletPage = lazyNamed(() => import("@/pages/wallet"), "WalletPage");
-const BrandsPage = lazyNamed(() => import("@/pages/catalog/brands"), "BrandsPage");
-const CategoriesPage = lazyNamed(() => import("@/pages/catalog/categories"), "CategoriesPage");
-const ProductsPage = lazyNamed(() => import("@/pages/catalog/products"), "ProductsPage");
-const ProductDetailPage = lazyNamed(
-  () => import("@/pages/catalog/product-detail"),
-  "ProductDetailPage",
-);
+const OverviewPage = lazyNamed(() => import("@/pages/overview"), "OverviewPage", ["overview"]);
+const ActivityPage = lazyNamed(() => import("@/pages/activity"), "ActivityPage", ["activity", "audits"]);
+const InvoicesPage = lazyNamed(() => import("@/pages/invoices"), "InvoicesPage", ["subscription"]);
+const InvoiceDetailPage = lazyNamed(() => import("@/pages/invoice-detail"), "InvoiceDetailPage", ["subscription"]);
+const SubscriptionPage = lazyNamed(() => import("@/pages/subscription"), "SubscriptionPage", ["subscription"]);
+const WalletPage = lazyNamed(() => import("@/pages/wallet"), "WalletPage", ["subscription"]);
+const BrandsPage = lazyNamed(() => import("@/pages/catalog/brands"), "BrandsPage", ["catalog"]);
+const CategoriesPage = lazyNamed(() => import("@/pages/catalog/categories"), "CategoriesPage", ["catalog"]);
+const ProductsPage = lazyNamed(() => import("@/pages/catalog/products"), "ProductsPage", ["catalog"]);
+const ProductDetailPage = lazyNamed(() => import("@/pages/catalog/product-detail"), "ProductDetailPage", ["catalog", "files"]);
 const NotFoundPage = lazyNamed(() => import("@/pages/not-found"), "NotFoundPage");
 const TenantDeactivatedPage = lazyNamed(
   () => import("@/pages/tenant-deactivated"),
@@ -70,51 +68,27 @@ const ImpersonationEndedPage = lazyNamed(
   () => import("@/pages/impersonation-ended"),
   "ImpersonationEndedPage",
 );
-const SettingsLayout = lazyNamed(
-  () => import("@/pages/settings/settings-layout"),
-  "SettingsLayout",
-);
-const ProfileSettings = lazyNamed(() => import("@/pages/settings/profile"), "ProfileSettings");
-const SecuritySettings = lazyNamed(() => import("@/pages/settings/security"), "SecuritySettings");
-const BrandingSettings = lazyNamed(
-  () => import("@/pages/settings/branding"),
-  "BrandingSettings",
-);
-const AppearanceSettings = lazyNamed(
-  () => import("@/pages/settings/appearance"),
-  "AppearanceSettings",
-);
-const NotificationsSettings = lazyNamed(
-  () => import("@/pages/settings/notifications"),
-  "NotificationsSettings",
-);
-const ApiKeysSettings = lazyNamed(() => import("@/pages/settings/api-keys"), "ApiKeysSettings");
-const HealthPage = lazyNamed(() => import("@/pages/health"), "HealthPage");
-const AuditsPage = lazyNamed(() => import("@/pages/audits"), "AuditsPage");
-const TicketsPage = lazyNamed(() => import("@/pages/tickets/tickets"), "TicketsPage");
-const TicketDetailPage = lazyNamed(
-  () => import("@/pages/tickets/ticket-detail"),
-  "TicketDetailPage",
-);
-const TrashPage = lazyNamed(() => import("@/pages/system/trash"), "TrashPage");
-const SessionsPage = lazyNamed(() => import("@/pages/system/sessions"), "SessionsPage");
-const UsersPage = lazyNamed(() => import("@/pages/identity/users"), "UsersPage");
-const UserDetailPage = lazyNamed(
-  () => import("@/pages/identity/user-detail"),
-  "UserDetailPage",
-);
-const RolesPage = lazyNamed(() => import("@/pages/identity/roles"), "RolesPage");
-const RoleDetailPage = lazyNamed(
-  () => import("@/pages/identity/role-detail"),
-  "RoleDetailPage",
-);
-const GroupsPage = lazyNamed(() => import("@/pages/identity/groups"), "GroupsPage");
-const GroupDetailPage = lazyNamed(
-  () => import("@/pages/identity/group-detail"),
-  "GroupDetailPage",
-);
-const MyFilesPage = lazyNamed(() => import("@/pages/files/my-files"), "MyFilesPage");
-const ChatPage = lazyNamed(() => import("@/pages/chat/chat-page"), "ChatPage");
+const SettingsLayout = lazyNamed(() => import("@/pages/settings/settings-layout"), "SettingsLayout", ["settings"]);
+const ProfileSettings = lazyNamed(() => import("@/pages/settings/profile"), "ProfileSettings", ["settings", "files"]);
+const SecuritySettings = lazyNamed(() => import("@/pages/settings/security"), "SecuritySettings", ["settings"]);
+const BrandingSettings = lazyNamed(() => import("@/pages/settings/branding"), "BrandingSettings", ["settings"]);
+const AppearanceSettings = lazyNamed(() => import("@/pages/settings/appearance"), "AppearanceSettings", ["settings"]);
+const NotificationsSettings = lazyNamed(() => import("@/pages/settings/notifications"), "NotificationsSettings", ["settings"]);
+const ApiKeysSettings = lazyNamed(() => import("@/pages/settings/api-keys"), "ApiKeysSettings", ["settings"]);
+const HealthPage = lazyNamed(() => import("@/pages/health"), "HealthPage", ["health"]);
+const AuditsPage = lazyNamed(() => import("@/pages/audits"), "AuditsPage", ["audits"]);
+const TicketsPage = lazyNamed(() => import("@/pages/tickets/tickets"), "TicketsPage", ["tickets"]);
+const TicketDetailPage = lazyNamed(() => import("@/pages/tickets/ticket-detail"), "TicketDetailPage", ["tickets"]);
+const TrashPage = lazyNamed(() => import("@/pages/system/trash"), "TrashPage", ["system"]);
+const SessionsPage = lazyNamed(() => import("@/pages/system/sessions"), "SessionsPage", ["system"]);
+const UsersPage = lazyNamed(() => import("@/pages/identity/users"), "UsersPage", ["identity"]);
+const UserDetailPage = lazyNamed(() => import("@/pages/identity/user-detail"), "UserDetailPage", ["identity"]);
+const RolesPage = lazyNamed(() => import("@/pages/identity/roles"), "RolesPage", ["identity"]);
+const RoleDetailPage = lazyNamed(() => import("@/pages/identity/role-detail"), "RoleDetailPage", ["identity"]);
+const GroupsPage = lazyNamed(() => import("@/pages/identity/groups"), "GroupsPage", ["identity"]);
+const GroupDetailPage = lazyNamed(() => import("@/pages/identity/group-detail"), "GroupDetailPage", ["identity"]);
+const MyFilesPage = lazyNamed(() => import("@/pages/files/my-files"), "MyFilesPage", ["files"]);
+const ChatPage = lazyNamed(() => import("@/pages/chat/chat-page"), "ChatPage", ["chat"]);
 
 /**
  * RouteFallback — what shows while a lazy chunk is downloading. Mirrors

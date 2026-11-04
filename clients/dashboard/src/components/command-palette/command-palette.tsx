@@ -9,19 +9,20 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { loadNamespaces } from "@/i18n";
 
 /**
  * Command palette provider — owns open state + ⌘K / Ctrl+K listener,
  * deliberately tiny so the main bundle stays light. The heavy dialog
  * (cmdk + the full action graph + every lucide icon) lives in a lazy
  * chunk that's fetched the first time the palette opens, so cold start
- * doesn't pay for any of it.
+ * doesn't pay for any of it. Its translation catalog loads alongside it.
  */
 
 const LazyCommandPaletteDialog = lazy(() =>
-  import("./command-palette-dialog").then((mod) => ({
-    default: mod.CommandPaletteDialog,
-  })),
+  Promise.all([import("./command-palette-dialog"), loadNamespaces(["commandPalette"])]).then(
+    ([mod]) => ({ default: mod.CommandPaletteDialog }),
+  ),
 );
 
 type CommandPaletteContextValue = {

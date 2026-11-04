@@ -5,17 +5,7 @@ import { fallbackChain, missingKeyFallback } from "@/lib/i18n-fallback";
 import enCommon from "@/locales/en-US/common.json";
 import enNav from "@/locales/en-US/nav.json";
 import enAuth from "@/locales/en-US/auth.json";
-import enSettings from "@/locales/en-US/settings.json";
-import enSessions from "@/locales/en-US/sessions.json";
-import enUsers from "@/locales/en-US/users.json";
-import enRoles from "@/locales/en-US/roles.json";
-import enImpersonation from "@/locales/en-US/impersonation.json";
-import enBilling from "@/locales/en-US/billing.json";
-import enTenants from "@/locales/en-US/tenants.json";
-import enWebhooks from "@/locales/en-US/webhooks.json";
-import enAudits from "@/locales/en-US/audits.json";
 import enNotifications from "@/locales/en-US/notifications.json";
-import enHealth from "@/locales/en-US/health.json";
 import enDashboard from "@/locales/en-US/dashboard.json";
 
 // Canonical tags: specific (what the switcher offers, User.Locale persists, the claim carries).
@@ -23,33 +13,75 @@ export const SUPPORTED = ["en-US", "pt-BR"] as const;
 
 type Catalog = Record<string, string>;
 
-// Translation namespaces keyed by name → en-US catalog. This map is the single source
-// string-migration waves extend: to add a namespace, import its en-US catalog and add one entry
-// here — `resources` and `ns` below derive from it, so no other wiring changes. Its pt-BR file
-// (optional) is picked up by src/locales/pt-BR.ts; a namespace or key pt-BR lacks renders in
-// English through fallbackChain. Its type is also what src/i18next.d.ts checks every t() key against.
-const CATALOGS = {
+// en-US catalogs the app shell renders with (layout, sign-in, notification bell, the landing
+// dashboard). They ship in the main bundle so the first paint never waits on a catalog.
+const EAGER_CATALOGS = {
   common: enCommon,
   nav: enNav,
   auth: enAuth,
-  settings: enSettings,
-  sessions: enSessions,
-  users: enUsers,
-  roles: enRoles,
-  impersonation: enImpersonation,
-  billing: enBilling,
-  tenants: enTenants,
-  webhooks: enWebhooks,
-  audits: enAudits,
   notifications: enNotifications,
-  health: enHealth,
   dashboard: enDashboard,
 } satisfies Record<string, Catalog>;
 
-export type Catalogs = typeof CATALOGS;
+// en-US catalogs only route pages use. Each is its own small chunk, loaded by loadNamespaces()
+// in parallel with the page's chunk (see `lazyNamed` in src/routes.tsx), so the page never
+// renders before its text is there.
+//
+// To add a namespace: add its en-US JSON here (or to EAGER_CATALOGS when the shell uses it) and
+// list it on the routes that use it. `resources`, `ns` and the t() key types all derive from
+// these two maps. Its pt-BR file (optional) is picked up by src/locales/pt-BR.ts; a namespace or
+// key pt-BR lacks renders in English through fallbackChain.
+const LAZY_CATALOGS = {
+  settings: () => import("@/locales/en-US/settings.json"),
+  sessions: () => import("@/locales/en-US/sessions.json"),
+  users: () => import("@/locales/en-US/users.json"),
+  roles: () => import("@/locales/en-US/roles.json"),
+  impersonation: () => import("@/locales/en-US/impersonation.json"),
+  billing: () => import("@/locales/en-US/billing.json"),
+  tenants: () => import("@/locales/en-US/tenants.json"),
+  webhooks: () => import("@/locales/en-US/webhooks.json"),
+  audits: () => import("@/locales/en-US/audits.json"),
+  health: () => import("@/locales/en-US/health.json"),
+} satisfies Record<string, () => Promise<{ default: Catalog }>>;
 
-// en-US ships in the main bundle: it is the terminal fallback and must resolve synchronously.
-// Every other language is one lazy chunk, fetched before the UI switches to it.
+export type LazyNamespace = keyof typeof LAZY_CATALOGS;
+
+// What src/i18next.d.ts checks every t() key against: the eager and lazy catalogs together.
+export type Catalogs = typeof EAGER_CATALOGS & {
+  [K in LazyNamespace]: Awaited<ReturnType<(typeof LAZY_CATALOGS)[K]>>["default"];
+};
+
+const NAMESPACES = [...Object.keys(EAGER_CATALOGS), ...Object.keys(LAZY_CATALOGS)];
+
+const pendingNamespaces = new Map<LazyNamespace, Promise<void>>();
+
+// Loads route namespaces into en-US, the terminal fallback. Other languages need no work here:
+// loadLanguage adds every namespace of a language in one go. A failed load is forgotten so the
+// next navigation retries it.
+export function loadNamespaces(namespaces: readonly LazyNamespace[]): Promise<void> {
+  return Promise.all(
+    namespaces.map((ns) => {
+      let pending = pendingNamespaces.get(ns);
+      if (!pending) {
+        pending = LAZY_CATALOGS[ns]().then(
+          ({ default: catalog }) => {
+            i18n.addResourceBundle("en-US", ns, catalog, true, true);
+          },
+          (error: unknown) => {
+            pendingNamespaces.delete(ns);
+            throw error;
+          },
+        );
+        pendingNamespaces.set(ns, pending);
+      }
+      return pending;
+    }),
+  ).then(() => undefined);
+}
+
+// en-US is the terminal fallback: its shell catalogs ship in the main bundle and its route
+// catalogs load with their routes. Every other language is one lazy chunk, fetched before the UI
+// switches to it.
 const LAZY_LANGUAGES: Partial<
   Record<(typeof SUPPORTED)[number], () => Promise<{ default: Record<string, Catalog> }>>
 > = {
@@ -61,7 +93,7 @@ async function loadLanguage(lng: string) {
   const load = LAZY_LANGUAGES[lng as (typeof SUPPORTED)[number]];
   if (!load || loadedLanguages.has(lng)) return;
   const { default: catalogs } = await load();
-  for (const ns of Object.keys(CATALOGS)) {
+  for (const ns of NAMESPACES) {
     const catalog = catalogs[ns];
     if (catalog) i18n.addResourceBundle(lng, ns, catalog, true, true);
   }
@@ -113,8 +145,9 @@ export async function initI18n(deploymentDefault: string) {
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-      resources: { "en-US": CATALOGS },
-      ns: Object.keys(CATALOGS),
+      // Route catalogs are added later through loadNamespaces().
+      resources: { "en-US": EAGER_CATALOGS },
+      ns: NAMESPACES,
       fallbackLng: fallbackChain(deploymentDefault, SUPPORTED),
       supportedLngs: [...SUPPORTED],
       defaultNS: "common",
