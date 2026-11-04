@@ -4,56 +4,83 @@ import { initReactI18next } from "react-i18next";
 import { fallbackChain, missingKeyFallback } from "@/lib/i18n-fallback";
 import enCommon from "@/locales/en-US/common.json";
 import enAuth from "@/locales/en-US/auth.json";
-import enSettings from "@/locales/en-US/settings.json";
-import enIdentity from "@/locales/en-US/identity.json";
-import enOverview from "@/locales/en-US/overview.json";
-import enSubscription from "@/locales/en-US/subscription.json";
-import enActivity from "@/locales/en-US/activity.json";
-import enCatalog from "@/locales/en-US/catalog.json";
-import enTickets from "@/locales/en-US/tickets.json";
-import enFiles from "@/locales/en-US/files.json";
-import enAudits from "@/locales/en-US/audits.json";
-import enCommandPalette from "@/locales/en-US/commandPalette.json";
 import enNotifications from "@/locales/en-US/notifications.json";
-import enSystem from "@/locales/en-US/system.json";
-import enChat from "@/locales/en-US/chat.json";
-import enHealth from "@/locales/en-US/health.json";
 
 // Canonical tags: specific (what the switcher offers, User.Locale persists, the claim carries).
 export const SUPPORTED = ["en-US", "pt-BR"] as const;
 
 type Catalog = Record<string, string>;
 
-// en-US translation catalogs keyed by namespace. To add a namespace in a later wave: import its
-// en-US JSON file and add one row here — `resources` and the namespace list derive from this
-// single map, so no other wiring changes. Its pt-BR file (optional) is picked up by
-// src/locales/pt-BR.ts; a namespace or key pt-BR lacks renders in English through fallbackChain.
-// Its type is also what src/i18next.d.ts checks every t() key against.
-const catalogs = {
+// en-US catalogs the app shell renders with (layout, sign-in, banners, notification bell). They
+// ship in the main bundle so the first paint never waits on a catalog.
+const eagerCatalogs = {
   common: enCommon,
   auth: enAuth,
-  settings: enSettings,
-  identity: enIdentity,
-  overview: enOverview,
-  subscription: enSubscription,
-  activity: enActivity,
-  catalog: enCatalog,
-  tickets: enTickets,
-  files: enFiles,
-  audits: enAudits,
-  commandPalette: enCommandPalette,
   notifications: enNotifications,
-  system: enSystem,
-  chat: enChat,
-  health: enHealth,
 } satisfies Record<string, Catalog>;
 
-export type Catalogs = typeof catalogs;
+// en-US catalogs only route pages use. Each is its own small chunk, loaded by loadNamespaces()
+// in parallel with the page's chunk (see `lazyNamed` in src/routes.tsx), so the page never
+// renders before its text is there.
+//
+// To add a namespace: add its en-US JSON here (or to eagerCatalogs when the shell uses it) and
+// list it on the routes that use it. `resources`, the namespace list and the t() key types all
+// derive from these two maps. Its pt-BR file (optional) is picked up by src/locales/pt-BR.ts; a
+// namespace or key pt-BR lacks renders in English through fallbackChain.
+const lazyCatalogs = {
+  settings: () => import("@/locales/en-US/settings.json"),
+  identity: () => import("@/locales/en-US/identity.json"),
+  overview: () => import("@/locales/en-US/overview.json"),
+  subscription: () => import("@/locales/en-US/subscription.json"),
+  activity: () => import("@/locales/en-US/activity.json"),
+  catalog: () => import("@/locales/en-US/catalog.json"),
+  tickets: () => import("@/locales/en-US/tickets.json"),
+  files: () => import("@/locales/en-US/files.json"),
+  audits: () => import("@/locales/en-US/audits.json"),
+  commandPalette: () => import("@/locales/en-US/commandPalette.json"),
+  system: () => import("@/locales/en-US/system.json"),
+  chat: () => import("@/locales/en-US/chat.json"),
+  health: () => import("@/locales/en-US/health.json"),
+} satisfies Record<string, () => Promise<{ default: Catalog }>>;
 
-export const NAMESPACES = Object.keys(catalogs);
+export type LazyNamespace = keyof typeof lazyCatalogs;
 
-// en-US ships in the main bundle: it is the terminal fallback and must resolve synchronously.
-// Every other language is one lazy chunk, fetched before the UI switches to it.
+// What src/i18next.d.ts checks every t() key against: the eager and lazy catalogs together.
+export type Catalogs = typeof eagerCatalogs & {
+  [K in LazyNamespace]: Awaited<ReturnType<(typeof lazyCatalogs)[K]>>["default"];
+};
+
+export const NAMESPACES = [...Object.keys(eagerCatalogs), ...Object.keys(lazyCatalogs)];
+
+const pendingNamespaces = new Map<LazyNamespace, Promise<void>>();
+
+// Loads route namespaces into en-US, the terminal fallback. Other languages need no work here:
+// loadLanguage adds every namespace of a language in one go. A failed load is forgotten so the
+// next navigation retries it.
+export function loadNamespaces(namespaces: readonly LazyNamespace[]): Promise<void> {
+  return Promise.all(
+    namespaces.map((ns) => {
+      let pending = pendingNamespaces.get(ns);
+      if (!pending) {
+        pending = lazyCatalogs[ns]().then(
+          ({ default: catalog }) => {
+            i18n.addResourceBundle("en-US", ns, catalog, true, true);
+          },
+          (error: unknown) => {
+            pendingNamespaces.delete(ns);
+            throw error;
+          },
+        );
+        pendingNamespaces.set(ns, pending);
+      }
+      return pending;
+    }),
+  ).then(() => undefined);
+}
+
+// en-US is the terminal fallback: its shell catalogs ship in the main bundle and its route
+// catalogs load with their routes. Every other language is one lazy chunk, fetched before the UI
+// switches to it.
 const LAZY_LANGUAGES: Partial<
   Record<(typeof SUPPORTED)[number], () => Promise<{ default: Record<string, Catalog> }>>
 > = {
@@ -117,7 +144,8 @@ export async function initI18n(deploymentDefault: string) {
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-      resources: { "en-US": catalogs },
+      // Route catalogs are added later through loadNamespaces().
+      resources: { "en-US": eagerCatalogs },
       fallbackLng: fallbackChain(deploymentDefault, SUPPORTED),
       supportedLngs: [...SUPPORTED],
       ns: NAMESPACES,

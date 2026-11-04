@@ -8,15 +8,18 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  HubConnection,
-  HubConnectionBuilder,
-  HubConnectionState,
-  HttpTransportType,
-  LogLevel,
-} from "@microsoft/signalr";
+import type { HubConnection } from "@microsoft/signalr";
 import { env } from "@/env";
 import { tokenStore } from "@/auth/token-store";
+
+// SignalR is about 25 KB gzip. It's imported on first connect, so the sign-in page and the
+// initial bundle don't carry it. Same approach as the dashboard's provider.
+type SignalRModule = typeof import("@microsoft/signalr");
+let signalRPromise: Promise<SignalRModule> | null = null;
+function loadSignalR(): Promise<SignalRModule> {
+  if (!signalRPromise) signalRPromise = import("@microsoft/signalr");
+  return signalRPromise;
+}
 
 export type RealtimeStatus = "idle" | "connecting" | "connected" | "reconnecting" | "error";
 
@@ -50,15 +53,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     stoppedRef.current = false;
     const backoffs = [0, 2_000, 5_000, 10_000, 30_000];
 
-    const buildConnection = () => {
+    const buildConnection = async () => {
+      const sr = await loadSignalR();
       const url = `${env.apiBase || ""}/api/v1/realtime/hub`;
-      return new HubConnectionBuilder()
+      return new sr.HubConnectionBuilder()
         .withUrl(url, {
           accessTokenFactory: () => tokenStore.getAccessToken() ?? "",
           transport:
-            HttpTransportType.WebSockets |
-            HttpTransportType.ServerSentEvents |
-            HttpTransportType.LongPolling,
+            sr.HttpTransportType.WebSockets |
+            sr.HttpTransportType.ServerSentEvents |
+            sr.HttpTransportType.LongPolling,
         })
         // SignalR's automatic reconnect re-negotiates internally, bypassing connect()'s
         // token guard. When the user is signed out (token cleared/expired) every reconnect
@@ -70,7 +74,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
               ? (backoffs.slice(1)[ctx.previousRetryCount] ?? null)
               : null,
         })
-        .configureLogging(LogLevel.Warning)
+        .configureLogging(sr.LogLevel.Warning)
         .build();
     };
 
@@ -99,7 +103,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         return;
       }
       setStatus("connecting");
-      const conn = buildConnection();
+      const conn = await buildConnection();
+      // Torn down while the SignalR chunk was loading: don't open a socket we'd have to stop.
+      if (stoppedRef.current) return;
       connectionRef.current = conn;
       wireListeners(conn);
 
@@ -128,7 +134,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       stoppedRef.current = true;
       const conn = connectionRef.current;
       connectionRef.current = null;
-      if (conn && conn.state !== HubConnectionState.Disconnected) {
+      // HubConnectionState is a string enum; comparing the literal avoids importing the
+      // lazy-loaded module here.
+      if (conn && (conn.state as string) !== "Disconnected") {
         void conn.stop();
       }
       setStatus("idle");
