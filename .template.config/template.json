@@ -175,6 +175,7 @@
                 ".mcp.json",
                 "global.json",
                 "README.md",
+                "RELEASE-NOTES-*.md",
                 "LICENSE"
             ],
             "rename": {
