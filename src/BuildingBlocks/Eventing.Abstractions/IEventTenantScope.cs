@@ -24,4 +24,18 @@ public interface IEventTenantScope
     /// ambient context unchanged (global, non-tenant-scoped events).
     /// </summary>
     IDisposable Begin(string? tenantId);
+
+    /// <summary>
+    /// Runs <paramref name="action"/> inside the tenant scope for <paramref name="tenantId"/>. Implementations
+    /// that resolve tenant metadata asynchronously override this so resolution and the action share one
+    /// async flow. The default bridges to <see cref="Begin"/>.
+    /// </summary>
+    async Task ExecuteAsync(string? tenantId, Func<CancellationToken, Task> action, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        using (Begin(tenantId))
+        {
+            await action(ct).ConfigureAwait(false);
+        }
+    }
 }

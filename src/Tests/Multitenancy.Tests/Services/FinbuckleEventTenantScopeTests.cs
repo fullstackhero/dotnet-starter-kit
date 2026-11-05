@@ -2,6 +2,9 @@ using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Multitenancy.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 using Shouldly;
 using Xunit;
 
@@ -14,7 +17,7 @@ public sealed class FinbuckleEventTenantScopeTests
     [Fact]
     public void Begin_Should_SetTenantContext_When_TenantIdProvided()
     {
-        var sut = new FinbuckleEventTenantScope(_accessor, _accessor);
+        var sut = CreateScope();
 
         using (sut.Begin("acme"))
         {
@@ -30,7 +33,7 @@ public sealed class FinbuckleEventTenantScopeTests
         // Seed a pre-existing ambient tenant.
         ((IMultiTenantContextSetter)_accessor).MultiTenantContext =
             new MultiTenantContext<AppTenantInfo>(new AppTenantInfo("root", "root"));
-        var sut = new FinbuckleEventTenantScope(_accessor, _accessor);
+        var sut = CreateScope();
 
         using (sut.Begin("acme"))
         {
@@ -46,7 +49,7 @@ public sealed class FinbuckleEventTenantScopeTests
         // Seed a known tenant so we can prove Begin(null/"") does not replace it.
         ((IMultiTenantContextSetter)_accessor).MultiTenantContext =
             new MultiTenantContext<AppTenantInfo>(new AppTenantInfo("root", "root"));
-        var sut = new FinbuckleEventTenantScope(_accessor, _accessor);
+        var sut = CreateScope();
 
         using (sut.Begin(null))
         {
@@ -58,6 +61,9 @@ public sealed class FinbuckleEventTenantScopeTests
             _accessor.MultiTenantContext.TenantInfo.Id.ShouldBe("root");
         }
     }
+
+    private FinbuckleEventTenantScope CreateScope()
+        => new(_accessor, _accessor, Substitute.For<IServiceScopeFactory>(), NullLogger<FinbuckleEventTenantScope>.Instance);
 
 #pragma warning disable S2376 // Finbuckle's IMultiTenantContextSetter is a set-only contract.
     private sealed class StubAccessor : IMultiTenantContextAccessor<AppTenantInfo>, IMultiTenantContextSetter

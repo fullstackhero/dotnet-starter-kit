@@ -62,7 +62,7 @@ public sealed partial class InMemoryEventBus : IEventBus
 
         // Set tenant context BEFORE resolving handlers — MultiTenantDbContext captures TenantInfo at
         // construction, so a late tenant NREs the query filter. This is what makes background publishers work.
-        using (_tenantScope.Begin(@event.TenantId))
+        await _tenantScope.ExecuteAsync(@event.TenantId, async _ =>
         {
             // One failing handler must not starve the others: every handler gets its turn, and the failure
             // surfaces afterwards so the outbox retries the event. The inbox records each handler that
@@ -105,7 +105,7 @@ public sealed partial class InMemoryEventBus : IEventBus
             }
 
             ThrowIfAnyFailed(failures, @event.Id);
-        }
+        }, ct).ConfigureAwait(false);
     }
 
     private static void ThrowIfAnyFailed(List<ExceptionDispatchInfo>? failures, Guid eventId)
