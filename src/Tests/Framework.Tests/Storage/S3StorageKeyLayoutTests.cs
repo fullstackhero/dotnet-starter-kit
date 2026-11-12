@@ -34,7 +34,7 @@ public sealed class S3StorageKeyLayoutTests
 
         // Act
         var url = await storage.UploadAsync<Probe>(
-            new FileUploadRequest { FileName = "avatar.png", ContentType = "image/png", Data = [1, 2, 3] },
+            new FileUploadRequest { FileName = "avatar.png", ContentType = "image/png", Data = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3] },
             FileType.Image);
 
         // Assert
@@ -42,6 +42,54 @@ public sealed class S3StorageKeyLayoutTests
             Arg.Is<PutObjectRequest>(r => r.BucketName == Bucket && r.Key.StartsWith("public/uploads/probe/", StringComparison.Ordinal)),
             Arg.Any<CancellationToken>());
         url.ShouldContain("/public/uploads/probe/");
+    }
+
+    [Fact]
+    public async Task UploadAsync_Should_StoreTheContentTypeOfTheExtension_NotTheOneTheClientDeclared()
+    {
+        // Arrange — the bucket serves the object with the stored Content-Type, so a client-declared
+        // text/html on "avatar.png" would be stored XSS.
+        var s3 = Substitute.For<IAmazonS3>();
+        using var provider = BuildProvider(s3);
+        var storage = provider.GetRequiredService<IStorageService>();
+
+        // Act
+        await storage.UploadAsync<Probe>(
+            new FileUploadRequest { FileName = "avatar.png", ContentType = "text/html", Data = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
+            FileType.Image);
+
+        // Assert
+        await s3.Received(1).PutObjectAsync(
+            Arg.Is<PutObjectRequest>(r => r.ContentType == "image/png"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UploadAsync_Should_Reject_ContentThatIsNotTheDeclaredImageType()
+    {
+        var s3 = Substitute.For<IAmazonS3>();
+        using var provider = BuildProvider(s3);
+        var storage = provider.GetRequiredService<IStorageService>();
+
+        await Should.ThrowAsync<InvalidOperationException>(() => storage.UploadAsync<Probe>(
+            new FileUploadRequest { FileName = "avatar.png", ContentType = "image/png", Data = [.. "<script>alert(1)</script>"u8] },
+            FileType.Image));
+
+        await s3.DidNotReceiveWithAnyArgs().PutObjectAsync(default!, default);
+    }
+
+    [Theory]
+    [InlineData("public/../private/tenants/t/secret.pdf")]
+    [InlineData("uploads/./probe/x.png")]
+    public async Task RemoveAsync_Should_NotDelete_When_TheKeyHasDotSegments(string key)
+    {
+        var s3 = Substitute.For<IAmazonS3>();
+        using var provider = BuildProvider(s3);
+        var storage = provider.GetRequiredService<IStorageService>();
+
+        await storage.RemoveAsync(key);
+
+        await s3.DidNotReceiveWithAnyArgs().DeleteObjectAsync(default!, default!, default);
     }
 
     [Fact]

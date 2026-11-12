@@ -133,6 +133,12 @@
   <data name="Validation.MaxFileSize" xml:space="preserve">
     <value>O arquivo deve ter no máximo {0} MB.</value>
   </data>
+  <data name="Validation.FileContentMismatch" xml:space="preserve">
+    <value>O conteúdo do arquivo não corresponde à extensão {0}.</value>
+  </data>
+  <data name="Validation.ImageUrlInvalid" xml:space="preserve">
+    <value>A URL da imagem deve ser uma URL http(s) ou um caminho relativo ao servidor.</value>
+  </data>
   <data name="Jobs.DatabaseOptionsNotFound" xml:space="preserve">
     <value>Opções de banco de dados não encontradas.</value>
   </data>

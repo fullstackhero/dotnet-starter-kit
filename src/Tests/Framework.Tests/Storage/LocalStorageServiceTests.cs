@@ -29,7 +29,8 @@ public sealed class LocalStorageServiceTests : IDisposable
         {
             FileName = fileName,
             ContentType = "image/png",
-            Data = new List<byte> { 1, 2, 3, 4 }
+            // A real PNG signature: UploadAsync checks the bytes match the extension.
+            Data = new List<byte> { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3, 4 }
         };
 
     #region Happy Path
@@ -64,10 +65,10 @@ public sealed class LocalStorageServiceTests : IDisposable
 
         // Assert
         exists.ShouldBeTrue();
-        size.ShouldBe(4);
+        size.ShouldBe(12);
         download.ShouldNotBeNull();
         download.ContentType.ShouldBe("image/png");
-        download.ContentLength.ShouldBe(4);
+        download.ContentLength.ShouldBe(12);
         await download.Stream.DisposeAsync();
     }
 
@@ -96,7 +97,7 @@ public sealed class LocalStorageServiceTests : IDisposable
 
         // Assert
         metadata.ShouldNotBeNull();
-        metadata.SizeBytes.ShouldBe(4);
+        metadata.SizeBytes.ShouldBe(12);
         metadata.ContentType.ShouldBe("image/png");
     }
 
@@ -202,7 +203,7 @@ public sealed class LocalStorageServiceTests : IDisposable
 
         // Assert
         (await _sut.ExistsAsync(destination)).ShouldBeTrue();
-        (await _sut.GetSizeAsync(destination)).ShouldBe(4);
+        (await _sut.GetSizeAsync(destination)).ShouldBe(12);
         (await _sut.ExistsAsync(source)).ShouldBeTrue("a copy must leave the source for the caller to delete");
     }
 
