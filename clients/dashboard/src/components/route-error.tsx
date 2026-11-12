@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,17 +14,18 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
  * exposing the call stack to end users gives nothing actionable and leaks internals.
  */
 export function RouteError() {
+  const { t } = useTranslation();
   const error = useRouteError();
   const navigate = useNavigate();
 
-  const { title, detail } = describe(error);
+  const { title, detail } = describe(error, t);
   const showDetail = import.meta.env.DEV && detail;
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-6">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle>Something went wrong</CardTitle>
+          <CardTitle>{t("routeError.title")}</CardTitle>
           <CardDescription>{title}</CardDescription>
         </CardHeader>
         {showDetail && (
@@ -33,15 +36,15 @@ export function RouteError() {
           </CardContent>
         )}
         <CardFooter className="gap-2">
-          <Button onClick={() => navigate(0)}>Reload</Button>
-          <Button variant="outline" onClick={() => navigate("/")}>Go home</Button>
+          <Button onClick={() => navigate(0)}>{t("routeError.reload")}</Button>
+          <Button variant="outline" onClick={() => navigate("/")}>{t("routeError.goHome")}</Button>
         </CardFooter>
       </Card>
     </div>
   );
 }
 
-function describe(error: unknown): { title: string; detail?: string } {
+function describe(error: unknown, t: TFunction): { title: string; detail?: string } {
   if (isRouteErrorResponse(error)) {
     return {
       title: `${error.status} ${error.statusText}`,
@@ -51,5 +54,5 @@ function describe(error: unknown): { title: string; detail?: string } {
   if (error instanceof Error) {
     return { title: error.message, detail: error.stack };
   }
-  return { title: "Unexpected error", detail: String(error) };
+  return { title: t("routeError.unexpected"), detail: String(error) };
 }

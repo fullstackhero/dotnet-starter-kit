@@ -23,7 +23,7 @@ namespace Integration.Tests.Tests.Multitenancy;
 /// modified; the failure flows through the exact production pipeline.
 /// </summary>
 [Collection(FshCollectionDefinition.Name)]
-public sealed class TenantProvisioningFailureTests
+public sealed class TenantProvisioningFailureTests : IAsyncLifetime
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -39,11 +39,20 @@ public sealed class TenantProvisioningFailureTests
     private readonly FshWebApplicationFactory _factory;
     private readonly AuthHelper _auth;
 
+    // Tenants created here point at an unreachable database. They are removed after each test so that
+    // later tests which walk every tenant (e.g. the legacy public-key migration job) don't count them
+    // as failures. Test order is not guaranteed, so cleanup can't rely on running last.
+    private readonly List<string> _createdTenantIds = [];
+
     public TenantProvisioningFailureTests(FshWebApplicationFactory factory)
     {
         _factory = factory;
         _auth = new AuthHelper(factory);
     }
+
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+
+    public async ValueTask DisposeAsync() => await _factory.RemoveTenantsAsync(_createdTenantIds);
 
     #region Failure Path
 
@@ -54,6 +63,7 @@ public sealed class TenantProvisioningFailureTests
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"fail-{uniqueId}";
+        _createdTenantIds.Add(tenantId);
 
         var createResponse = await rootClient.PostAsJsonAsync(TestConstants.TenantsBasePath, new
         {
@@ -100,6 +110,7 @@ public sealed class TenantProvisioningFailureTests
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"failguard-{uniqueId}";
+        _createdTenantIds.Add(tenantId);
 
         var createResponse = await rootClient.PostAsJsonAsync(TestConstants.TenantsBasePath, new
         {
@@ -135,6 +146,7 @@ public sealed class TenantProvisioningFailureTests
         using var rootClient = await _auth.CreateRootAdminClientAsync();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var tenantId = $"reactivate-{uniqueId}";
+        _createdTenantIds.Add(tenantId);
 
         var createResponse = await rootClient.PostAsJsonAsync(TestConstants.TenantsBasePath, new
         {

@@ -8,13 +8,14 @@ using Microsoft.AspNetCore.Routing;
 namespace Integration.Tests.Infrastructure;
 
 /// <summary>
-/// No production endpoint passes more than one permission to <c>.RequirePermission()</c>, so this
-/// maps one that does. It appends to the live route builder after <c>next(app)</c> has run
+/// No production endpoint passes more than one permission to <c>.RequirePermission()</c> or gates a
+/// route group with it, so this maps endpoints that do. It appends to the live route builder after <c>next(app)</c> has run
 /// <c>UseRouting()</c>, the same way <c>Integration.Middleware.Tests</c> maps <c>/__test/throw</c>.
 /// </summary>
 public sealed class TestPermissionEndpointStartupFilter : IStartupFilter
 {
     public const string TwoPermissionsPath = "/__test/permissions/two";
+    public const string GroupGatedPath = "/__test/permissions/group/endpoint";
     public const string FirstPermission = IdentityPermissions.Groups.Create;
     public const string SecondPermission = IdentityPermissions.Groups.Delete;
 
@@ -34,6 +35,14 @@ public sealed class TestPermissionEndpointStartupFilter : IStartupFilter
                 routeBuilder.MapGet(TwoPermissionsPath, () => Results.Ok())
                     .RequireAuthorization()
                     .RequirePermission(FirstPermission, SecondPermission);
+
+                // Group gate (first) + endpoint gate (second): both must apply, the endpoint's
+                // metadata must not replace the group's.
+                routeBuilder.MapGroup("/__test/permissions/group")
+                    .RequireAuthorization()
+                    .RequirePermission(FirstPermission)
+                    .MapGet("/endpoint", () => Results.Ok())
+                    .RequirePermission(SecondPermission);
             }
         };
     }

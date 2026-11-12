@@ -41,7 +41,7 @@ export type AuthContextValue = {
   permissionsHydrated: boolean;
   /** Truthy iff the current access token carries act_sub (impersonation mode). */
   impersonation: ImpersonationInfo | null;
-  login: (input: { email: string; password: string; tenant: string }) => Promise<void>;
+  login: (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => Promise<void>;
   logout: () => void;
   /** Re-fetch the permission set for the signed-in user (e.g. after a role change). */
   refreshPermissions: () => Promise<void>;
@@ -157,10 +157,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Hydrate (or re-hydrate) the permission list from the server whenever the
   // signed-in subject changes — covers cold-start, login, and impersonation
   // swaps. Permissions live server-side per role, not in the JWT.
+  // Signed out → nothing to hydrate. Adjusted during render (not in the
+  // effect below) so there's no extra commit with a stale `false`.
+  if (!user && !permissionsHydrated) {
+    setPermissionsHydrated(true);
+  }
+
   useEffect(() => {
     if (!user) {
       lastHydratedSubject.current = null;
-      setPermissionsHydrated(true);
       return;
     }
     if (lastHydratedSubject.current === user.id && permissionsHydrated) {
@@ -216,7 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (input: { email: string; password: string; tenant: string }) => {
+    async (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => {
       tokenStore.setTenant(input.tenant);
       // Stale permissions from a previous user must not leak into the new
       // session — clear before issuing the token so the hydration effect

@@ -2,12 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
 import {
   Dialog as Sheet,
@@ -50,6 +50,15 @@ export function useMobileNav() {
 
 export function MobileNavProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  // Close the drawer on route changes (e.g. browser back/forward). Adjusted
+  // during render (react.dev "adjusting state when a prop changes") rather
+  // than in an effect.
+  const { pathname } = useLocation();
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setOpen(false);
+  }
   const value = useMemo(() => ({ open, setOpen }), [open]);
   return (
     <MobileNavContext.Provider value={value}>{children}</MobileNavContext.Provider>
@@ -64,38 +73,34 @@ export function MobileNavRoot() {
   const { open, setOpen } = useMobileNav();
   const location = useLocation();
   const { user, permissionsHydrated } = useAuth();
+  const { t } = useTranslation("common");
 
-  const granted = permissionsHydrated ? (user?.permissions ?? []) : [];
-  const visibleSections: NavSection[] = useMemo(
-    () =>
-      sections
-        .map((s) => ({ ...s, items: filterNavSpec(s.items, granted) }))
-        .filter((s) => s.items.length > 0),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [granted.join(",")],
-  );
+  const userPermissions = user?.permissions;
+  const visibleSections: NavSection[] = useMemo(() => {
+    const granted = permissionsHydrated ? (userPermissions ?? []) : [];
+    return sections
+      .map((s) => ({ ...s, items: filterNavSpec(s.items, granted) }))
+      .filter((s) => s.items.length > 0);
+  }, [permissionsHydrated, userPermissions]);
 
   const [openSection, setOpenSection] = useState<string | null>(() =>
     findSectionForPath(location.pathname),
   );
 
-  useEffect(() => {
+  // Re-sync the open section on every route change (adjusted during render).
+  const [syncedPathname, setSyncedPathname] = useState(location.pathname);
+  if (syncedPathname !== location.pathname) {
+    setSyncedPathname(location.pathname);
     setOpenSection(findSectionForPath(location.pathname));
-  }, [location.pathname]);
-
-  // Close the drawer on route changes (e.g. browser back/forward).
-  useEffect(() => {
-    setOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="left" className="flex flex-col p-0">
         {/* Radix Dialog requires a Title for the accessible tree. */}
-        <DialogTitle className="sr-only">Primary navigation</DialogTitle>
+        <DialogTitle className="sr-only">{t("shell.primaryNav")}</DialogTitle>
         <DialogDescription className="sr-only">
-          Admin sections and account links.
+          {t("shell.mobileNavDescription")}
         </DialogDescription>
 
         {/* Brand row — matches Topbar height */}
@@ -115,7 +120,7 @@ export function MobileNavRoot() {
               fullstack<span className="text-[var(--color-primary)]">hero</span>
             </span>
             <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
-              Admin
+              {t("shell.appSubtitle")}
             </span>
           </div>
         </div>
@@ -143,11 +148,12 @@ export function MobileNavRoot() {
  */
 export function MobileNavTrigger({ className }: { className?: string }) {
   const { setOpen } = useMobileNav();
+  const { t } = useTranslation("common");
   const onClick = useCallback(() => setOpen(true), [setOpen]);
   return (
     <button
       type="button"
-      aria-label="Open navigation menu"
+      aria-label={t("shell.openNavMenu")}
       onClick={onClick}
       className={cn(
         "grid h-9 w-9 cursor-pointer place-items-center rounded-md md:hidden",

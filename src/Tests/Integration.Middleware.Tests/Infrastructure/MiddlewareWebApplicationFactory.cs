@@ -48,7 +48,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
     private const string S3Bucket = "fsh-middleware-test-uploads";
 
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine")
         .WithDatabase("fsh_middleware_tests")
         .WithUsername("postgres")
         .WithPassword("integration_test_pwd")
@@ -58,7 +58,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
 
     // RustFS (S3-compatible) replaces MinIO, whose images were withdrawn from Docker Hub and quay.io.
     private const int S3Port = 9000;
-    private readonly IContainer _s3 = new ContainerBuilder("rustfs/rustfs:1.0.0")
+    private readonly IContainer _s3 = new ContainerBuilder("rustfs/rustfs:1.0.4")
         .WithPortBinding(S3Port, true)
         .WithEnvironment("RUSTFS_ACCESS_KEY", S3AccessKey)
         .WithEnvironment("RUSTFS_SECRET_KEY", S3SecretKey)
@@ -81,7 +81,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         Environment.SetEnvironmentVariable("SecurityHeadersOptions__Enabled", "true");
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await Task.WhenAll(_postgres.StartAsync(), _s3.StartAsync());
         await CreateS3BucketAsync();
@@ -102,7 +102,7 @@ public sealed class MiddlewareWebApplicationFactory : WebApplicationFactory<Prog
         }
     }
 
-    public new async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();

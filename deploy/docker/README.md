@@ -9,9 +9,9 @@ This brings up the full stack on a single host:
 | `dashboard` | `fsh/dashboard:local` | `FSH_DASHBOARD_PORT` (default 8082) | Tenant dashboard (nginx + React) |
 | `migrator` | `fsh/dbmigrator:local` | — | One-shot: applies EF migrations + seeds the root tenant + creates the default admin user |
 | `postgres` | `postgres:18-alpine` | (internal) | Identity, tenant catalog, module schemas |
-| `redis` | `valkey/valkey:9.1.0-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
-| `rustfs` | `rustfs/rustfs:1.0.0` | `FSH_S3_PORT` (default 9000), S3 API only | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)); published because browsers upload to it through presigned URLs |
-| `mailpit` | `axllent/mailpit:v1.31.3` | `127.0.0.1:FSH_MAILPIT_PORT` (default 8025), SMTP 1025 internal | Local mail catcher ([Mailpit](https://mailpit.axllent.org)), only with the `mail-catcher` profile, which `.env.example` enables |
+| `redis` | `valkey/valkey:9.1.3-alpine` | (internal) | HybridCache L2, Data Protection keys, idempotency store |
+| `rustfs` | `rustfs/rustfs:1.0.4` | `FSH_S3_PORT` (default 9000), S3 API only | S3-compatible blob store for the Files module ([RustFS](https://rustfs.com)); published because browsers upload to it through presigned URLs |
+| `mailpit` | `axllent/mailpit:v1.33.0` | `127.0.0.1:FSH_MAILPIT_PORT` (default 8025), SMTP 1025 internal | Local mail catcher ([Mailpit](https://mailpit.axllent.org)), only with the `mail-catcher` profile, which `.env.example` enables |
 
 The compose file does **not** include a reverse proxy or TLS terminator. You bring your own edge — Cloudflare Tunnel, AWS ALB, Tailscale Funnel, your existing nginx, anything that can route a TLS subdomain to a host:port on this machine.
 
@@ -57,6 +57,10 @@ By default (`COMPOSE_PROFILES=mail-catcher` and `FSH_SMTP_HOST=mailpit` in `.env
 The inbox UI is published on the host loopback only, because it holds live password-reset and confirmation links. From another machine, use an SSH tunnel (`ssh -L 8025:127.0.0.1:8025 <host>`).
 
 To deliver real mail, edit `.env` only: set `FSH_SMTP_HOST`, `FSH_SMTP_PORT`, `FSH_SMTP_USERNAME`, `FSH_SMTP_PASSWORD` and `FSH_SMTP_SECURITY` to your provider's values (`StartTls` for port 587, `SslOnConnect` for 465), set `FSH_MAIL_FROM` to a sender your provider accepts, delete the `COMPOSE_PROFILES=mail-catcher` line, then `docker compose up -d` and `docker compose rm -sf mailpit` to drop the running catcher.
+
+## Tune the inactivity timeout
+
+Both frontends sign an idle session out: the admin after 10 minutes and the dashboard after 20, each preceded by a 60-second warning countdown. Set `FSH_ADMIN_INACTIVITY_IDLE_MS`, `FSH_DASHBOARD_INACTIVITY_IDLE_MS` and `FSH_INACTIVITY_WARNING_MS` (positive integers, milliseconds) in `.env` to change them. Unset or empty keeps the default; anything else that is not a positive integer stops the container at start with an error. The frontend containers read them as `FSH_INACTIVITY_IDLE_MS` and `FSH_INACTIVITY_WARNING_MS`.
 
 ## Wire up your external proxy
 

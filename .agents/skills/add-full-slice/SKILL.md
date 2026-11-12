@@ -15,7 +15,8 @@ the order of operations and the **contract** that keeps the two halves in sync.
 1. **Backend slice** — `add-feature` (and `add-entity` first if a new entity is needed):
    - Command/Query + response DTO in `Modules.{X}.Contracts/v1/{Area}/` (+ `Contracts/Dtos/`).
    - Handler (`public sealed`, injects `{X}DbContext`), Validator, Endpoint (`internal static Map…Endpoint`, `.RequirePermission(...)`).
-   - Wire in `{X}Module.MapEndpoints`. Build + test backend green.
+   - Localized errors: every client-visible throw ends in `.Localized<{X}Resources>("…", args)`, validator messages go through `IStringLocalizer<{X}Resources>`, and each new key is added in English to `{X}Resources.resx` (pt-BR optional). The API then answers in the caller's language, so the page shows `problem.detail` as is and never re-translates it.
+   - Wire in `{X}Module.MapEndpoints`. Build + test backend green (`LocalizedKeyReferenceTests` included).
 2. **Lock the contract** — note the final **route path**, HTTP method, request shape, and response DTO field names/casing. The React side must match these exactly.
 3. **Frontend page** — `add-react-page` in the chosen app:
    - API module calls the **same path**; hand-write TS types mirroring the **response DTO** (the API serializes C# records as camelCase JSON — TS fields are camelCase even though admin *query params* are PascalCase).
@@ -43,7 +44,7 @@ cd clients/{app} && npm run lint && npm run test:e2e
 
 ## Checklist
 
-- [ ] Backend slice complete + green (`add-feature`)
+- [ ] Backend slice complete + green (`add-feature`), throws and validator messages localized with keys in `{X}Resources.resx`
 - [ ] Contract locked: route, request shape, response DTO field names
 - [ ] Frontend api module path + TS types match the contract (body JSON camelCase)
 - [ ] Page + route added (`add-react-page`); admin permission mirrored + gated (`add-permission`)

@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { Image as ImageIcon, Loader2, Upload, X, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/cn";
-import { useFileUpload, formatBytes } from "@/hooks/use-file-upload";
+import { useFileUpload, formatBytes, describeUploadError } from "@/hooks/use-file-upload";
 import { getFileMetadata, Visibility } from "@/api/files";
-import { ApiRequestError } from "@/lib/api-client";
 
 type Props = {
   /** Current image URL (or empty). The component is fully controlled. */
@@ -45,6 +45,9 @@ export function ImageInput({
   shape = "square",
   className,
 }: Props) {
+  const { t } = useTranslation("files");
+  // Upload errors carry keys of the common catalog.
+  const { t: tCommon } = useTranslation("common");
   const [mode, setMode] = useState<"upload" | "url">("upload");
   const { upload, progress, isUploading, reset } = useFileUpload({
     ownerType,
@@ -60,7 +63,7 @@ export function ImageInput({
     mutationFn: async (fileAssetId: string) => {
       const dto = await getFileMetadata(fileAssetId);
       if (!dto.publicUrl) {
-        throw new Error("Server returned no publicUrl for this file.");
+        throw new Error(t("imageInput.noPublicUrl"));
       }
       return dto.publicUrl;
     },
@@ -77,17 +80,13 @@ export function ImageInput({
         const asset = await upload(file);
         const url = await resolveUrl.mutateAsync(asset.id);
         onChange(url);
-        toast.success("Image uploaded");
+        toast.success(t("imageInput.toastUploaded"));
         // Clear progress so the dropzone re-arms for another upload.
         setTimeout(reset, 1500);
       } catch (e) {
-        const message =
-          e instanceof ApiRequestError
-            ? (e.problem?.detail ?? e.problem?.title ?? e.message)
-            : e instanceof Error
-              ? e.message
-              : "Upload failed";
-        toast.error(message);
+        // describeUploadError resolves the catalog key an UploadError carries; anything else is
+        // prose the API already localized.
+        toast.error(describeUploadError(e, tCommon, t("imageInput.uploadFailed")));
       }
     };
     input.click();
@@ -98,9 +97,10 @@ export function ImageInput({
   const tileClass = shape === "circle" ? "rounded-full" : "rounded-xl";
 
   // Show the placeholder (not a broken-image icon) when the current URL fails to
-  // load — e.g. a seeded default-avatar URL that 404s. Reset on every URL change.
-  const [imgFailed, setImgFailed] = useState(false);
-  useEffect(() => setImgFailed(false), [value]);
+  // load — e.g. a seeded default-avatar URL that 404s. The failure is keyed by the
+  // URL that failed, so it resets on every URL change without an effect.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const imgFailed = failedSrc === value;
   const showImage = hasImage && !imgFailed;
 
   return (
@@ -108,10 +108,10 @@ export function ImageInput({
       {/* Mode toggle */}
       <div className="flex gap-1">
         <ModeChip active={mode === "upload"} onClick={() => setMode("upload")} icon={<Upload className="h-3.5 w-3.5" />}>
-          Upload
+          {t("imageInput.upload")}
         </ModeChip>
         <ModeChip active={mode === "url"} onClick={() => setMode("url")} icon={<LinkIcon className="h-3.5 w-3.5" />}>
-          Paste URL
+          {t("imageInput.pasteUrl")}
         </ModeChip>
       </div>
 
@@ -127,7 +127,7 @@ export function ImageInput({
             <img
               src={value}
               alt=""
-              onError={() => setImgFailed(true)}
+              onError={() => setFailedSrc(value)}
               className={cn("h-full w-full object-cover", tileClass)}
             />
           ) : isWorking ? (
@@ -144,12 +144,12 @@ export function ImageInput({
                 {isWorking
                   ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   : <Upload className="h-3.5 w-3.5" />}
-                {showImage ? "Replace image" : "Choose image"}
+                {showImage ? t("imageInput.replace") : t("imageInput.choose")}
               </Button>
               {showImage && !isWorking && (
                 <Button type="button" size="sm" variant="outline" onClick={() => onChange("")}>
                   <X className="h-3.5 w-3.5" />
-                  Remove
+                  {t("imageInput.remove")}
                 </Button>
               )}
               {isUploading && progress && (
@@ -163,15 +163,15 @@ export function ImageInput({
               type="url"
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="https://…"
+              placeholder={t("imageInput.urlPlaceholder")}
               maxLength={512}
             />
           )}
 
           <p className="text-xs text-[var(--color-muted-foreground)]">
             {mode === "upload"
-              ? `JPG/PNG/WebP/GIF · up to ${formatBytes(maxBytes)}`
-              : "Direct link to an image you host elsewhere."}
+              ? t("imageInput.hintUpload", { size: formatBytes(maxBytes) })
+              : t("imageInput.hintUrl")}
           </p>
         </div>
       </div>

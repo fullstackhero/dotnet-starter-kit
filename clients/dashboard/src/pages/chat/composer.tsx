@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, Loader2, Paperclip, Send, X } from "lucide-react";
 import { toast } from "sonner";
@@ -51,6 +52,7 @@ export function Composer({
   replyTo?: MessageDto | null;
   onClearReply?: () => void;
 }) {
+  const { t } = useTranslation("chat");
   const parentMessageId = replyTo?.id;
   const [body, setBody] = useState("");
   const [focused, setFocused] = useState(false);
@@ -78,7 +80,7 @@ export function Composer({
     e.target.value = ""; // allow re-picking the same file
     if (!file) return;
     if (pendingAttachment) {
-      toast.info("Replace the existing attachment first.");
+      toast.info(t("composer.replaceAttachment"));
       return;
     }
     try {
@@ -108,7 +110,7 @@ export function Composer({
     } catch {
       // useFileUpload already reflects the error in `progress.status`;
       // surface a toast so the user notices when scrolled away.
-      toast.error("Couldn't attach that file.");
+      toast.error(t("composer.attachError"));
     }
   };
 
@@ -120,11 +122,15 @@ export function Composer({
   const [highlight, setHighlight] = useState(0);
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
+  // Every mention change goes through here so the debounced query is
+  // cleared in the same event the token goes inactive (no effect needed).
+  const updateMention = (next: { query: string; atPos: number } | null) => {
+    setMention(next);
+    if (!next || next.query.length < 2) setDebouncedQuery("");
+  };
+
   useEffect(() => {
-    if (!mention || mention.query.length < 2) {
-      setDebouncedQuery("");
-      return;
-    }
+    if (!mention || mention.query.length < 2) return;
     const t = setTimeout(() => setDebouncedQuery(mention.query), 200);
     return () => clearTimeout(t);
   }, [mention]);
@@ -146,9 +152,18 @@ export function Composer({
 
   // Reset highlight whenever the candidate list changes — keeps the
   // selection sensible even as the query narrows.
-  useEffect(() => {
+  // Adjusted during render against the previous inputs instead of in an effect.
+  const [highlightResetKey, setHighlightResetKey] = useState({
+    query: debouncedQuery,
+    count: candidates.length,
+  });
+  if (
+    highlightResetKey.query !== debouncedQuery ||
+    highlightResetKey.count !== candidates.length
+  ) {
+    setHighlightResetKey({ query: debouncedQuery, count: candidates.length });
     setHighlight(0);
-  }, [debouncedQuery, candidates.length]);
+  }
 
   // ── Detection: walk back from the caret to find an active @ token ──────
   // Triggers when the @ is at the start of input or after whitespace
@@ -159,10 +174,10 @@ export function Composer({
     const before = value.slice(0, caretPos);
     const match = before.match(/(?:^|\s)@([A-Za-z0-9._-]*)$/);
     if (!match) {
-      setMention(null);
+      updateMention(null);
       return;
     }
-    setMention({ query: match[1], atPos: caretPos - match[1].length - 1 });
+    updateMention({ query: match[1], atPos: caretPos - match[1].length - 1 });
   };
 
   // ── Send mutation (optimistic) ─────────────────────────────────────────
@@ -221,7 +236,7 @@ export function Composer({
       ]);
 
       setBody("");
-      setMention(null);
+      updateMention(null);
       setPendingAttachment(null);
       onClearReply?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
@@ -242,7 +257,7 @@ export function Composer({
       // Restore the text + attachment so the user can retry.
       setBody(text);
       if (attachment) setPendingAttachment(attachment);
-      toast.error("Message failed to send — try again.");
+      toast.error(t("composer.sendFailed"));
     },
   });
 
@@ -276,7 +291,7 @@ export function Composer({
     const insertion = `@${handle} `;
     const next = before + insertion + after;
     setBody(next);
-    setMention(null);
+    updateMention(null);
     const newCaret = (before + insertion).length;
     // Re-position the caret after the inserted handle. Needs to happen after
     // React commits the textarea value, so defer to rAF.
@@ -311,7 +326,7 @@ export function Composer({
       }
       if (e.key === "Escape") {
         e.preventDefault();
-        setMention(null);
+        updateMention(null);
         return;
       }
     }
@@ -400,22 +415,22 @@ export function Composer({
             // Close the picker when focus actually leaves the textarea.
             // Mouse-down in the picker preventsDefault so blur doesn't fire
             // for in-picker clicks.
-            setMention(null);
+            updateMention(null);
           }}
           onKeyDown={onKeyDown}
           placeholder={
             replyTo
-              ? "Type your reply…"
+              ? t("composer.replyPlaceholder")
               : channelType === ChannelType.Channel
-                ? `Message #${channelTitle}`
-                : `Message ${channelTitle}`
+                ? t("composer.messageChannel", { name: channelTitle })
+                : t("composer.messageOther", { name: channelTitle })
           }
           aria-label={
             replyTo
-              ? "Type your reply"
+              ? t("composer.ariaReply")
               : channelType === ChannelType.Channel
-                ? `Message channel ${channelTitle}`
-                : `Message ${channelTitle}`
+                ? t("composer.ariaChannel", { name: channelTitle })
+                : t("composer.ariaOther", { name: channelTitle })
           }
           rows={1}
           className={cn(
@@ -439,8 +454,8 @@ export function Composer({
         {/* Paperclip — bottom-left of the plinth, mirrors the send button on the right. */}
         <button
           type="button"
-          aria-label="Attach a file"
-          title="Attach a file"
+          aria-label={t("composer.attachFile")}
+          title={t("composer.attachFile")}
           disabled={fileUpload.isUploading || mutation.isPending}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
@@ -457,7 +472,7 @@ export function Composer({
 
         <button
           type="button"
-          aria-label="Send message"
+          aria-label={t("composer.sendMessage")}
           disabled={(!body.trim() && !pendingAttachment) || mutation.isPending}
           onClick={send}
           className={cn(
@@ -475,13 +490,11 @@ export function Composer({
 
       <div className="mt-1.5 flex items-center justify-between px-1">
         <span className="text-[11px] text-[var(--color-muted-foreground)]">
-          {replyTo
-            ? "Enter to send · Shift+Enter for newline · Esc to clear"
-            : "Enter to send · Shift+Enter for newline · @ + 2 chars to mention"}
+          {replyTo ? t("composer.hintReply") : t("composer.hintDefault")}
         </span>
         {mutation.isError && (
           <span className="text-[11px] font-medium text-[var(--color-destructive)]">
-            Send failed — retry?
+            {t("composer.sendFailedRetry")}
           </span>
         )}
       </div>
@@ -502,8 +515,9 @@ function ReplyQuote({
   replyTo: MessageDto;
   onClear: () => void;
 }) {
+  const { t } = useTranslation("chat");
   const author = useUserDisplay(replyTo.authorUserId);
-  const body = (replyTo.body ?? "").trim() || "(no text — attachment or empty)";
+  const body = (replyTo.body ?? "").trim() || t("composer.noTextEmpty");
 
   return (
     <div
@@ -515,7 +529,7 @@ function ReplyQuote({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Replying to
+            {t("composer.replyingTo")}
           </span>
           <span className="truncate text-[11px] font-semibold tracking-tight text-[var(--color-foreground)]">
             {author.name}
@@ -531,8 +545,8 @@ function ReplyQuote({
       <button
         type="button"
         onClick={onClear}
-        aria-label="Clear reply context"
-        title="Clear reply"
+        aria-label={t("composer.clearReplyAria")}
+        title={t("composer.clearReply")}
         className={cn(
           "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -564,17 +578,18 @@ function UploadingChip({
   error?: string;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation("chat");
   const isError = status === "error";
   const label =
     status === "preparing"
-      ? "Preparing…"
+      ? t("composer.uploadPreparing")
       : status === "uploading"
-        ? `Uploading… ${percent}%`
+        ? t("composer.uploadUploading", { percent })
         : status === "finalizing"
-          ? "Finalizing…"
+          ? t("composer.uploadFinalizing")
           : isError
-            ? error ?? "Upload failed"
-            : "Done";
+            ? error ?? t("composer.uploadFailed")
+            : t("composer.uploadDone");
   return (
     <div
       className={cn(
@@ -609,7 +624,7 @@ function UploadingChip({
       {!isError && (
         <div
           role="progressbar"
-          aria-label="Upload progress"
+          aria-label={t("composer.uploadProgressAria")}
           aria-valuenow={percent}
           aria-valuemin={0}
           aria-valuemax={100}
@@ -626,8 +641,8 @@ function UploadingChip({
       <button
         type="button"
         onClick={onCancel}
-        aria-label="Cancel upload"
-        title="Cancel"
+        aria-label={t("composer.uploadCancelAria")}
+        title={t("composer.uploadCancel")}
         className={cn(
           "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
@@ -651,6 +666,7 @@ function PendingAttachmentChip({
   attachment: PendingAttachment;
   onClear: () => void;
 }) {
+  const { t } = useTranslation("chat");
   const isImage = attachment.contentType.startsWith("image/");
   return (
     <div
@@ -688,14 +704,14 @@ function PendingAttachmentChip({
           {attachment.fileName}
         </p>
         <p className="text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
-          {formatBytes(attachment.sizeBytes)} · ready to send
+          {formatBytes(attachment.sizeBytes)} · {t("composer.readyToSend")}
         </p>
       </div>
       <button
         type="button"
         onClick={onClear}
-        aria-label="Remove attachment"
-        title="Remove attachment"
+        aria-label={t("composer.removeAttachment")}
+        title={t("composer.removeAttachment")}
         className={cn(
           "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",

@@ -1,4 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { useTranslation } from "react-i18next";
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
@@ -34,6 +35,7 @@ export function InactivityDialog({
   onStay: () => void;
   onSignOut: () => void;
 }) {
+  const { t } = useTranslation("auth");
   const fraction =
     totalSeconds > 0 ? Math.max(0, Math.min(1, secondsLeft / totalSeconds)) : 0;
   const dashOffset = RING_CIRCUMFERENCE * (1 - fraction);
@@ -96,7 +98,7 @@ export function InactivityDialog({
                   {Math.max(0, secondsLeft)}
                 </span>
                 <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                  seconds
+                  {t("inactivity.seconds")}
                 </span>
               </div>
             </div>
@@ -105,23 +107,22 @@ export function InactivityDialog({
           <div className="mb-1.5 flex items-center justify-center gap-2">
             <ShieldAlert className="size-4 text-[var(--color-primary)]" aria-hidden />
             <DialogPrimitive.Title className="font-display text-[18px] font-semibold tracking-tight text-[var(--color-foreground)]">
-              Still there?
+              {t("inactivity.title")}
             </DialogPrimitive.Title>
           </div>
           <DialogPrimitive.Description
             id="inactivity-desc"
             className="mx-auto max-w-[300px] text-[13px] leading-relaxed text-[var(--color-muted-foreground)]"
           >
-            You&apos;ve been inactive for a while. We&apos;ll sign you out shortly to keep your
-            account secure.
+            {t("inactivity.description")}
           </DialogPrimitive.Description>
 
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-center">
             <Button variant="outline" onClick={onSignOut} className="sm:min-w-[120px]">
-              Sign out now
+              {t("inactivity.signOutNow")}
             </Button>
             <Button onClick={onStay} className="sm:min-w-[120px]" autoFocus>
-              I&apos;m here
+              {t("inactivity.stay")}
             </Button>
           </div>
         </DialogPrimitive.Content>

@@ -1,11 +1,13 @@
 using FluentValidation;
 using FSH.Modules.Chat.Contracts.v1.Commands;
+using FSH.Modules.Chat.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace FSH.Modules.Chat.Features.v1.Messages.SendMessage;
 
 public sealed class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
 {
-    public SendMessageCommandValidator()
+    public SendMessageCommandValidator(IStringLocalizer<ChatResources> localizer)
     {
         RuleFor(x => x.ChannelId).NotEmpty();
         // Body is optional when an attachment is present (Slack/Teams parity — "here's the file" with
@@ -13,7 +15,7 @@ public sealed class SendMessageCommandValidator : AbstractValidator<SendMessageC
         RuleFor(x => x.Body)
             .NotEmpty()
             .When(x => x.Attachments is null || x.Attachments.Count == 0)
-            .WithMessage("Either a body or an attachment is required.");
+            .WithMessage(_ => localizer["Validation.BodyOrAttachmentRequired"]);
         RuleFor(x => x.Body)
             .MaximumLength(32_768)
             .When(x => !string.IsNullOrEmpty(x.Body));

@@ -16,6 +16,7 @@ export type UserDto = {
   phoneNumber?: string;
   imageUrl?: string;
   twoFactorEnabled?: boolean;
+  locale?: string | null;
 };
 
 export type UserRoleDto = {
@@ -398,6 +399,8 @@ export type UpdateProfileInput = {
   firstName: string | null;
   lastName: string | null;
   phoneNumber: string | null;
+  /** BCP 47 UI language tag persisted on the user (drives the JWT locale claim). */
+  locale: string | null;
 };
 
 /**
@@ -425,9 +428,9 @@ export async function getMyProfileWithETag(): Promise<{ profile: UserDto; etag: 
 }
 
 /**
- * Updates the authenticated user's profile. Maps to UpdateUserCommand server-side. Image and
- * email changes go through their own dedicated endpoints — this is for the editable profile
- * fields surfaced in settings/profile. The unedited fields come off `input.profile`, the copy
+ * Updates the authenticated user's profile. Maps to UpdateUserCommand server-side. The image
+ * goes through its own endpoint, and the e-mail address can't be changed here (it needs a
+ * confirmation flow) — this is for the editable profile fields surfaced in settings/profile. The unedited fields come off `input.profile`, the copy
  * the form was seeded from, so they keep their values instead of being nulled.
  *
  * The PUT carries `If-Match` with that same copy's ETag, so the server answers 412 when the
@@ -447,7 +450,7 @@ export async function updateMyProfile(input: UpdateProfileInput): Promise<void> 
       firstName: input.firstName ?? profile.firstName ?? null,
       lastName: input.lastName ?? profile.lastName ?? null,
       phoneNumber: input.phoneNumber ?? profile.phoneNumber ?? null,
-      email: profile.email,
+      locale: input.locale ?? profile.locale ?? null,
       deleteCurrentImage: false,
     }),
   });

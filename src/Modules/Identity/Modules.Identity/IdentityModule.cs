@@ -87,6 +87,7 @@ public class IdentityModule : IModule
             FSH.Modules.Identity.Contracts.Authorization.IdentityPermissions.All);
 
         var services = builder.Services;
+        services.Configure<PermissionSyncOptions>(builder.Configuration.GetSection(PermissionSyncOptions.SectionName));
         services.AddScoped<RolePermissionSyncer>();
         services.AddHostedService<RolePermissionSyncHostedService>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
@@ -127,6 +128,11 @@ public class IdentityModule : IModule
 
         // Tenant subscription grace period (shared "Billing" section) — used by the login expiry check.
         services.Configure<TenantGraceOptions>(builder.Configuration.GetSection(TenantGraceOptions.SectionName));
+
+        services.AddOptions<TwoFactorOptions>()
+            .BindConfiguration(nameof(TwoFactorOptions))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         // Register password history service
         services.AddScoped<IPasswordHistoryService, PasswordHistoryService>();

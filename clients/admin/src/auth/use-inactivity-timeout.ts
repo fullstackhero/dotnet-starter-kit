@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { activityStore, evaluateInactivity, type InactivityPhase } from "@/auth/inactivity";
 
 // Genuine user-intent signals. Throttled before they touch storage so a
@@ -43,9 +43,13 @@ export function useInactivityTimeout({ enabled, idleMs, warningMs, onExpire }: O
   const idleRef = useRef(idleMs);
   const warnRef = useRef(warningMs);
   const onExpireRef = useRef(onExpire);
-  idleRef.current = idleMs;
-  warnRef.current = warningMs;
-  onExpireRef.current = onExpire;
+  // Refs are written after render, never during it; a layout effect lands before the
+  // watcher effect below and before any timer tick can read them.
+  useLayoutEffect(() => {
+    idleRef.current = idleMs;
+    warnRef.current = warningMs;
+    onExpireRef.current = onExpire;
+  });
 
   const evaluateNow = useCallback(() => {
     const { phase: next, secondsLeft: left } = evaluateInactivity(
@@ -84,13 +88,7 @@ export function useInactivityTimeout({ enabled, idleMs, warningMs, onExpire }: O
   }, []);
 
   useEffect(() => {
-    if (!enabled) {
-      phaseRef.current = "active";
-      expiredRef.current = false;
-      setPhase("active");
-      setSecondsLeft(0);
-      return;
-    }
+    if (!enabled) return;
 
     // Seed the shared stamp on enable so a fresh login isn't instantly idle.
     // The stamp lives in localStorage and survives logout, so a value left over
@@ -127,8 +125,17 @@ export function useInactivityTimeout({ enabled, idleMs, warningMs, onExpire }: O
       }
       window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVisibility);
+      // Going inert (sign-out or unmount) drops back to a clean "active" slate, so a
+      // later sign-in never starts from the previous session's warning or expiry.
+      phaseRef.current = "active";
+      expiredRef.current = false;
+      setPhase("active");
+      setSecondsLeft(0);
     };
   }, [enabled, recordActivity, evaluateNow]);
 
-  return { phase, secondsLeft, dismiss: reset };
+  // While disabled the hook is inert whatever the last tick left behind.
+  return enabled
+    ? { phase, secondsLeft, dismiss: reset }
+    : { phase: "active" as InactivityPhase, secondsLeft: 0, dismiss: reset };
 }

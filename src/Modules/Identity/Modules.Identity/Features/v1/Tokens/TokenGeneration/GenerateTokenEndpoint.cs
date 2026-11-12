@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Localization;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Localization;
 using System.ComponentModel;
 
 namespace FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
@@ -35,14 +37,15 @@ public static class GenerateTokenEndpoint
             [DefaultValue("root")][FromHeader] string tenant,
             [FromHeader(Name = AppHeader)] string? app,
             [FromServices] IMediator mediator,
+            [FromServices] IStringLocalizer<SharedResources> localizer,
             CancellationToken ct) =>
             {
                 if (IsRootViaDashboard(tenant, app))
                 {
                     return TypedResults.Problem(
                         statusCode: StatusCodes.Status403Forbidden,
-                        title: "App boundary",
-                        detail: "SuperAdmin accounts must use the admin app. Sign in there instead of the tenant dashboard.");
+                        title: localizer["Error.AppBoundary"],
+                        detail: localizer["Error.AppBoundary.Detail"]);
                 }
 
                 var token = await mediator.Send(command, ct);

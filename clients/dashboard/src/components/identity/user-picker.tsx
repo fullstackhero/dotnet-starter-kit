@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Search, UserCheck, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export function UserPicker({
   value,
   onChange,
   initialSelected,
-  placeholder = "Search by name or email…",
+  placeholder,
   disabled,
 }: {
   value: string | null;
@@ -35,22 +36,28 @@ export function UserPicker({
   placeholder?: string;
   disabled?: boolean;
 }) {
-  const [selected, setSelected] = useState<UserDto | null>(initialSelected ?? null);
+  const { t } = useTranslation("tickets");
+  // Keep selected snapshot in sync when the parent swaps the value.
+  // We also sync when the parent passes a fresh initialSelected after
+  // having loaded a ticket / row by id. Adjusted during render (react.dev
+  // "adjusting state when a prop changes"), not in an effect.
+  const syncSelected = (current: UserDto | null): UserDto | null => {
+    if (initialSelected && initialSelected.id === value) return initialSelected;
+    if (value === null) return null;
+    return current;
+  };
+  const [selected, setSelected] = useState<UserDto | null>(() =>
+    syncSelected(initialSelected ?? null),
+  );
+  const [prevProps, setPrevProps] = useState({ value, initialSelected });
+  if (prevProps.value !== value || prevProps.initialSelected !== initialSelected) {
+    setPrevProps({ value, initialSelected });
+    setSelected(syncSelected(selected));
+  }
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-  // Keep selected snapshot in sync when the parent swaps the value.
-  // We also sync when the parent passes a fresh initialSelected after
-  // having loaded a ticket / row by id.
-  useEffect(() => {
-    if (initialSelected && initialSelected.id === value) {
-      setSelected(initialSelected);
-    } else if (value === null) {
-      setSelected(null);
-    }
-  }, [value, initialSelected]);
 
   // Debounce the query string — typing fires the search 250ms after the
   // last keystroke, so a fast typist doesn't generate ten in-flight calls.
@@ -128,11 +135,11 @@ export function UserPicker({
               variant="ghost"
               size="sm"
               onClick={clear}
-              aria-label="Clear selection"
+              aria-label={t("userPicker.clearSelection")}
               className="shrink-0"
             >
               <X className="h-3.5 w-3.5" />
-              Clear
+              {t("userPicker.clear")}
             </Button>
           )}
         </div>
@@ -145,7 +152,7 @@ export function UserPicker({
         />
         <Input
           type="search"
-          placeholder={selected ? "Search to reassign…" : placeholder}
+          placeholder={selected ? t("userPicker.searchReassign") : (placeholder ?? t("userPicker.searchPlaceholder"))}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -169,14 +176,14 @@ export function UserPicker({
             {resultsQuery.isFetching && results.length === 0 ? (
               <div className="flex items-center gap-2 px-3 py-2.5 text-[12.5px] text-[var(--color-muted-foreground)]">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Searching for "{debounced}"…
+                {t("userPicker.searching", { term: debounced })}
               </div>
             ) : results.length === 0 ? (
               <div className="px-3 py-3 text-center text-[12.5px] text-[var(--color-muted-foreground)]">
-                No users match "{debounced}".
+                {t("userPicker.noMatch", { term: debounced })}
               </div>
             ) : (
-              <div role="listbox" aria-label="Search results">
+              <div role="listbox" aria-label={t("userPicker.results")}>
                 {results.map((u) => (
                   <div key={u.id}>
                     <button

@@ -269,3 +269,10 @@ dotnet_diagnostic.MSG0005.severity = none
 [**/Migrations.PostgreSQL/**/*.cs]
 dotnet_diagnostic.CA1062.severity = none
 dotnet_diagnostic.CA1861.severity = none
+
+# xUnit v3 (#1457): xUnit1051 asks every async call in a test to take TestContext.Current.CancellationToken.
+# Off on purpose: its code fix adds the token to NSubstitute setups and Received() checks, which changes what
+# the mock matches (handlers are called with CancellationToken.None), and the suite uses no test timeouts that
+# the token would serve. Pass the token by hand where a test does long-running IO and should honour cancellation.
+[Tests/**/*.cs]
+dotnet_diagnostic.xUnit1051.severity = none

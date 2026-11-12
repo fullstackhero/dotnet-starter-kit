@@ -44,7 +44,7 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
         _auth = new AuthHelper(factory);
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         var unique = Guid.NewGuid().ToString("N")[..8];
         _tenantA = $"thot-a-{unique}";
@@ -64,7 +64,7 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
         _ = await GetTokenWithRetryAsync(_tenantBAdminEmail, TestConstants.DefaultPassword, _tenantB);
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     [Fact]
     public async Task RootOperator_Should_TargetOtherTenant_When_HeaderProvided()

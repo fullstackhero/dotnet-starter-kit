@@ -7,6 +7,7 @@ using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Domain;
+using FSH.Modules.Identity.Localization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,7 +41,7 @@ internal sealed class UserStatusService(
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedException("invalid tenant");
+            throw new UnauthorizedException("invalid tenant").Localized("Error.InvalidTenant");
         }
     }
 
@@ -52,16 +53,17 @@ internal sealed class UserStatusService(
         var actorId = currentUser.GetUserId();
         if (actorId == Guid.Empty)
         {
-            throw new UnauthorizedException("authenticated user required to toggle status");
+            throw new UnauthorizedException("authenticated user required to toggle status")
+                .Localized("Error.NoCurrentUser");
         }
 
         var actor = await userManager.FindByIdAsync(actorId.ToString())
-            ?? throw new UnauthorizedException("current user not found");
+            ?? throw new UnauthorizedException("current user not found").Localized("Error.NoCurrentUser");
 
         var targetUser = await userManager.Users
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new NotFoundException("User Not Found.");
+            ?? throw new NotFoundException("User Not Found.").Localized<IdentityResources>("Identity.UserNotFound");
 
         return new ToggleStatusContext(
             ActorId: actorId,
@@ -78,19 +80,22 @@ internal sealed class UserStatusService(
         if (!await userManager.IsInRoleAsync(context.Actor, RoleConstants.Admin))
         {
             await AuditPolicyFailureAsync(context, "ActorNotAdmin", cancellationToken);
-            throw new ForbiddenException("Only administrators can change user status.");
+            throw new ForbiddenException("Only administrators can change user status.")
+                .Localized<IdentityResources>("Identity.OnlyAdminsCanChangeStatus");
         }
 
         if (!context.ActivateUser && context.ActorId.ToString() == context.TargetUser.Id)
         {
             await AuditPolicyFailureAsync(context, "SelfDeactivationBlocked", cancellationToken);
-            throw new CustomException("Users cannot deactivate themselves.", Array.Empty<string>(), HttpStatusCode.BadRequest);
+            throw new CustomException("Users cannot deactivate themselves.", Array.Empty<string>(), HttpStatusCode.BadRequest)
+                .Localized<IdentityResources>("Identity.CannotDeactivateSelf");
         }
 
         if (!context.ActivateUser && await userManager.IsInRoleAsync(context.TargetUser, RoleConstants.Admin))
         {
             await AuditPolicyFailureAsync(context, "AdminDeactivationBlocked", cancellationToken);
-            throw new CustomException("Administrators cannot be deactivated.", Array.Empty<string>(), HttpStatusCode.BadRequest);
+            throw new CustomException("Administrators cannot be deactivated.", Array.Empty<string>(), HttpStatusCode.BadRequest)
+                .Localized<IdentityResources>("Identity.AdminsCannotBeDeactivated");
         }
 
         if (!context.ActivateUser)
@@ -107,7 +112,8 @@ internal sealed class UserStatusService(
         if (!activeAdmins.Any(u => u.IsActive))
         {
             await AuditPolicyFailureAsync(context, "NoActiveAdmins", cancellationToken);
-            throw new CustomException("Tenant must have at least one active administrator.", Array.Empty<string>(), HttpStatusCode.BadRequest);
+            throw new CustomException("Tenant must have at least one active administrator.", Array.Empty<string>(), HttpStatusCode.BadRequest)
+                .Localized<IdentityResources>("Identity.TenantMustHaveActiveAdmin");
         }
     }
 
@@ -130,7 +136,8 @@ internal sealed class UserStatusService(
         var result = await userManager.UpdateAsync(context.TargetUser);
         if (!result.Succeeded)
         {
-            throw new CustomException("Toggle status failed", result.Errors.Select(e => e.Description).ToList(), HttpStatusCode.BadRequest);
+            throw new CustomException("Toggle status failed", result.Errors.Select(e => e.Description).ToList(), HttpStatusCode.BadRequest)
+                .Localized<IdentityResources>("Identity.ToggleStatusFailed");
         }
 
         await auditClient.WriteActivityAsync(

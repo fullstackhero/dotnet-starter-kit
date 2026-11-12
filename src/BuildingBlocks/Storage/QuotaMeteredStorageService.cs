@@ -70,10 +70,7 @@ internal sealed class QuotaMeteredStorageService : IStorageService
                 $"Storage quota exceeded ({check.CurrentUsage}/{check.Limit} bytes).",
                 errors: null,
                 HttpStatusCode.InsufficientStorage)
-            {
-                MessageKey = "Storage.QuotaExceeded",
-                MessageArgs = [check.CurrentUsage, check.Limit],
-            };
+                .Localized("Storage.QuotaExceeded", check.CurrentUsage, check.Limit);
         }
 
         try

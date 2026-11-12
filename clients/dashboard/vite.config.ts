@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
         let base: Record<string, unknown> = {};
         try {
           base = JSON.parse(
-            fs.readFileSync(path.resolve(__dirname, "public/config.json"), "utf8"),
+            fs.readFileSync(path.resolve(import.meta.dirname, "public/config.json"), "utf8"),
           ) as Record<string, unknown>;
         } catch {
           // Fall back to defaults if the file is missing/unreadable.
@@ -42,8 +42,27 @@ export default defineConfig(({ mode }) => {
     plugins: [devDirectApiConfig, react(), tailwindcss()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": path.resolve(import.meta.dirname, "./src"),
       },
+    },
+    build: {
+      // Left to its defaults, Rolldown splits the code the entry loads up front into ~70 tiny
+      // chunks. Each compresses on its own, which costs ~20 KiB gzip on first load over a few
+      // larger files. These groups put everything the entry statically imports (the `$initial`
+      // tag) into one vendor chunk and one app chunk. Route pages stay lazy: they aren't
+      // `$initial`, so automatic chunking still handles them. See #1462.
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              { name: "vendor", test: /node_modules[\\/]/, tags: ["$initial"], priority: 2 },
+              { name: "app", tags: ["$initial"], priority: 1 },
+            ],
+          },
+        },
+      },
+      // The vendor chunk is ~560 KB minified (~175 KiB gzip) on purpose, see above.
+      chunkSizeWarningLimit: 600,
     },
     server: {
       port: 5174,

@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Webhooks.Contracts.v1.TestWebhookSubscription;
 using FSH.Modules.Webhooks.Data;
+using FSH.Modules.Webhooks.Localization;
 using FSH.Modules.Webhooks.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,8 @@ public sealed class TestWebhookSubscriptionCommandHandler(
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == command.Id, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Webhook subscription {command.Id} not found.");
+            ?? throw new NotFoundException($"Webhook subscription {command.Id} not found.")
+                .Localized<WebhooksResources>("Webhooks.SubscriptionNotFound", command.Id);
 
         var testPayload = JsonSerializer.Serialize(new
         {

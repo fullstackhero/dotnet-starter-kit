@@ -65,12 +65,16 @@ public sealed class AuditQueryTenantIsolationTests
     {
         // The other tenant authenticated (Security audit) and now hits an
         // audited endpoint; poll until a row scoped to its own tenant appears.
+        // EntityChange rows are excluded: provisioning writes a tenant's seed data as EntityChange
+        // rows without a correlation id, and there can be more than one page of them (how many
+        // depends on what earlier tests created), which would push the request row off page 1.
         return await AuditTestHelper.PollForAuditAsync(
             otherClient,
             a => a.TenantId == tenantId
                  && !string.IsNullOrEmpty(a.CorrelationId)
                  && !string.IsNullOrEmpty(a.TraceId),
-            attempts: 40);
+            attempts: 40,
+            extraQuery: "ExcludeEventType=EntityChange");
     }
 
     private async Task<HttpClient> CreateTenantAdminClientWithRetryAsync(

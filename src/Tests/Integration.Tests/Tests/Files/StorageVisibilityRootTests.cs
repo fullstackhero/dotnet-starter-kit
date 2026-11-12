@@ -4,18 +4,25 @@ using Amazon.S3.Model;
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Domain;
+using FSH.Framework.Quota;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Quota;
+using FSH.Framework.Storage;
 using FSH.Framework.Storage.Services;
 using FSH.Modules.Catalog.Data;
 using FSH.Modules.Catalog.Domain;
+using FSH.Modules.Files.Contracts.v1.Commands;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
+using FSH.Modules.Files.Features.v1.FinalizeUpload;
 using FSH.Modules.Files.Jobs;
+using FSH.Modules.Files.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using Integration.Tests.Infrastructure;
 using Integration.Tests.Infrastructure.Extensions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Integration.Tests.Tests.Files;
@@ -365,9 +372,160 @@ public sealed class StorageVisibilityRootTests
         (await ObjectExistsAsync(legacyKey)).ShouldBeFalse();
     }
 
+    [Fact]
+    public async Task Finalize_Should_Succeed_And_LeaveTheFileAtItsLegacyKey_When_TheMoveAfterCommitFails()
+    {
+        // Arrange — an in-flight public upload at a pre-#1410 key, bytes already PUT.
+        var adminId = await GetUserIdAsync(TestConstants.RootTenantId, TestConstants.RootAdminEmail);
+        var (id, legacyKey, bytes) = await SeedPendingLegacyUploadAsync(adminId, "move-fails.pdf");
+
+        // Act — finalize through a store whose copy fails, so the move after the finalize commit throws.
+        FileAssetDto dto;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            SetTenant(scope, TestConstants.RootTenantId);
+            var failing = new CopyFailsStorage(scope.ServiceProvider.GetRequiredService<IStorageService>());
+            var relocator = ActivatorUtilities.CreateInstance<FileStorageRelocator>(scope.ServiceProvider, failing);
+            var handler = ActivatorUtilities.CreateInstance<FinalizeUploadCommandHandler>(
+                scope.ServiceProvider, failing, relocator, new FixedCurrentUser(TestConstants.RootTenantId, Guid.Parse(adminId)));
+            dto = await handler.Handle(new FinalizeUploadCommand(id), CancellationToken.None);
+            failing.FailedCopies.ShouldBe(1);
+        }
+
+        // Assert — the client gets the committed, Available file instead of a 500, still at its legacy key.
+        dto.Status.ShouldBe(FileAssetStatus.Available);
+        (await ReadStorageKeyAsync(TestConstants.RootTenantId, id)).ShouldBe(legacyKey);
+        (await ReadObjectAsync(legacyKey)).ShouldBe(bytes);
+        (await ObjectExistsAsync("public/" + legacyKey)).ShouldBeFalse();
+
+        // …and the legacy-key migration repairs it on its next run.
+        await RunMigrationJobAsync();
+        await OutboxDrain.DrainAsync(_factory.Services);
+        (await ReadStorageKeyAsync(TestConstants.RootTenantId, id)).ShouldBe("public/" + legacyKey);
+        (await ReadObjectAsync("public/" + legacyKey)).ShouldBe(bytes);
+    }
+
+    [Fact]
+    public async Task ChangeVisibility_Should_RemoveTheCopy_And_RefundItsBytes_When_TheCommitFailsAfterTheCopy()
+    {
+        // Arrange — a private upload, and a quota-metered store so the copy is charged as in production.
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var bytes = RandomBytes(512);
+        var id = await UploadAndFinalizeAsync(client, "commit-fails.pdf", bytes, visibility: 1);
+        var privateKey = await ReadStorageKeyAsync(TestConstants.RootTenantId, id);
+        var publicKey = "public/" + privateKey["private/".Length..];
+        var quotaOptions = new QuotaOptions { Enabled = true };
+        var quotas = new InMemoryQuotaService(
+            new InMemoryQuotaStore(), quotaOptions, new QuotaPlanResolver(quotaOptions), [], TimeProvider.System);
+
+        // Act — make it public; the copy succeeds, then the transaction fails before it commits.
+        var outbox = new ThrowingOutboxWriter();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            SetTenant(scope, TestConstants.RootTenantId);
+            var metered = new QuotaMeteredStorageService(
+                scope.ServiceProvider.GetRequiredService<IStorageService>(),
+                quotas,
+                scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>(),
+                NullLogger<QuotaMeteredStorageService>.Instance);
+            var relocator = ActivatorUtilities.CreateInstance<FileStorageRelocator>(scope.ServiceProvider, metered, outbox);
+
+            await Should.ThrowAsync<InvalidOperationException>(() => relocator.ApplyAsync(id, asset =>
+            {
+                asset.ChangeVisibility(Visibility.Public);
+                return true;
+            }));
+        }
+
+        // Assert — the copy was made (the outbox write comes after it), then removed and refunded.
+        outbox.Calls.ShouldBe(1);
+        (await ReadStorageKeyAsync(TestConstants.RootTenantId, id)).ShouldBe(privateKey);
+        (await ReadVisibilityAsync(TestConstants.RootTenantId, id)).ShouldBe(Visibility.Private);
+        (await ReadObjectAsync(privateKey)).ShouldBe(bytes);
+        (await ObjectExistsAsync(publicKey)).ShouldBeFalse("a copy no row points at must not be left behind");
+        (await quotas.GetCurrentAsync(TestConstants.RootTenantId, QuotaResource.StorageBytes))
+            .ShouldBe(0, "the copy's charge is refunded when the copy is removed");
+    }
+
     // ─── helpers ─────────────────────────────────────────────────────
 
     private sealed record LegacyAsset(Guid Id, string Key, byte[] Bytes);
+
+    private async Task<(Guid Id, string Key, byte[] Bytes)> SeedPendingLegacyUploadAsync(string adminId, string fileName)
+    {
+        var id = Guid.CreateVersion7();
+        var legacyKey = $"tenants/{TestConstants.RootTenantId}/myfiles/2025/01/{id:N}/{fileName}";
+        var bytes = RandomBytes(300);
+
+        var s3 = _factory.Services.GetRequiredService<IAmazonS3>();
+        using (var stream = new MemoryStream(bytes))
+        {
+            await s3.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = Bucket,
+                Key = legacyKey,
+                InputStream = stream,
+                ContentType = "application/pdf",
+            });
+        }
+
+        using var scope = _factory.Services.CreateScope();
+        SetTenant(scope, TestConstants.RootTenantId);
+        var db = scope.ServiceProvider.GetRequiredService<FilesDbContext>();
+        db.FileAssets.Add(FileAsset.CreatePending(
+            id, "MyFiles", null, fileName, fileName, "application/pdf", bytes.Length, legacyKey,
+            Visibility.Public, createdByUserId: adminId, uploadDeadline: DateTimeOffset.UtcNow.AddMinutes(15)));
+        await db.SaveChangesAsync();
+        return (id, legacyKey, bytes);
+    }
+
+    /// <summary>A store whose server-side copy fails, as when the store rejects the request.</summary>
+    private sealed class CopyFailsStorage(IStorageService inner) : IStorageService
+    {
+        public int FailedCopies { get; private set; }
+
+        public Task CopyAsync(string sourceKey, string destinationKey, CancellationToken cancellationToken = default)
+        {
+            FailedCopies++;
+            throw new AmazonS3Exception("copy rejected by the store");
+        }
+
+        public Task RemoveAsync(string path, CancellationToken cancellationToken = default) => inner.RemoveAsync(path, cancellationToken);
+        public Task<string> UploadAsync<T>(FSH.Framework.Shared.Storage.FileUploadRequest request, FSH.Framework.Storage.FileType fileType, CancellationToken cancellationToken = default)
+            where T : class => inner.UploadAsync<T>(request, fileType, cancellationToken);
+        public Task<FSH.Framework.Storage.DTOs.FileDownloadResponse?> DownloadAsync(string path, CancellationToken cancellationToken = default) => inner.DownloadAsync(path, cancellationToken);
+        public Task<bool> ExistsAsync(string path, CancellationToken cancellationToken = default) => inner.ExistsAsync(path, cancellationToken);
+        public Task<long> GetSizeAsync(string path, CancellationToken cancellationToken = default) => inner.GetSizeAsync(path, cancellationToken);
+        public Task<FSH.Framework.Shared.Storage.PresignedUploadUrl> GenerateUploadUrlAsync(string storageKey, string contentType, long maxBytes, TimeSpan ttl, CancellationToken cancellationToken = default)
+            => inner.GenerateUploadUrlAsync(storageKey, contentType, maxBytes, ttl, cancellationToken);
+        public Task<Uri> GenerateDownloadUrlAsync(string storageKey, TimeSpan ttl, string? responseContentDisposition = null, CancellationToken cancellationToken = default)
+            => inner.GenerateDownloadUrlAsync(storageKey, ttl, responseContentDisposition, cancellationToken);
+        public Task<FSH.Framework.Shared.Storage.StoredObjectMetadata?> HeadObjectAsync(string storageKey, CancellationToken cancellationToken = default) => inner.HeadObjectAsync(storageKey, cancellationToken);
+        public string BuildPublicUrl(string storageKey) => inner.BuildPublicUrl(storageKey);
+    }
+
+    /// <summary>An outbox write that fails, which aborts the move's transaction before it commits.</summary>
+    private sealed class ThrowingOutboxWriter : FSH.Framework.Eventing.Abstractions.IOutboxWriter
+    {
+        public int Calls { get; private set; }
+
+        public Task AddAsync(FSH.Framework.Eventing.Abstractions.IIntegrationEvent @event, CancellationToken ct = default)
+        {
+            Calls++;
+            throw new InvalidOperationException("the transaction failed before commit");
+        }
+    }
+
+    private sealed class FixedCurrentUser(string tenantId, Guid userId) : FSH.Framework.Core.Context.ICurrentUser
+    {
+        public string? Name => null;
+        public Guid GetUserId() => userId;
+        public string? GetUserEmail() => null;
+        public string? GetTenant() => tenantId;
+        public bool IsAuthenticated() => true;
+        public bool IsInRole(string role) => false;
+        public IEnumerable<System.Security.Claims.Claim>? GetUserClaims() => null;
+    }
 
     private static byte[] RandomBytes(int size)
     {

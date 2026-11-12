@@ -7,7 +7,7 @@ namespace FSH.CLI.Commands;
 
 public sealed class DoctorCommand : AsyncCommand
 {
-    protected override async Task<int> ExecuteAsync(CommandContext context, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext context, CancellationToken cancellationToken)
     {
         AnsiConsole.MarkupLine($"[bold {FshConstants.AccentColor}]FSH Doctor[/] — checking your development environment");
         AnsiConsole.WriteLine();

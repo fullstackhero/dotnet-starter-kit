@@ -56,6 +56,33 @@ public sealed class {Entity} : AggregateRoot<Guid>, IHasTenant, IAuditableEntity
 Notes: setters are `private set`; `TenantId`/audit/soft-delete members are settable by the framework
 (interceptor + Finbuckle) so they aren't `private set`. Use `Guid.CreateVersion7()`, never `Guid.NewGuid()`.
 
+## Business-rule violations — localized `CustomException`
+
+`ArgumentException` guards are for programming errors (they surface as a 500). A rule a client can
+break (an illegal state transition, a duplicate) throws a `CustomException` with the matching status,
+English text as the message (for logs) and the key attached with `.Localized`:
+
+```csharp
+public void Archive()
+{
+    if (Status == {Entity}Status.Archived)
+    {
+        throw new CustomException(
+            $"{Entity} {Id} is already archived.",
+            errors: null,
+            HttpStatusCode.Conflict)
+            .Localized<{X}Resources>("{X}.{Entity}AlreadyArchived", Id);
+    }
+
+    Status = {Entity}Status.Archived;
+}
+```
+
+Add the key in English to `src/Modules/{X}/Modules.{X}/Localization/{X}Resources.resx` (`{0}` for each
+argument, in order); the pt-BR entry is optional. Enum arguments are translated when the catalog has a
+`{EnumType}.{Member}` entry. `LocalizedKeyReferenceTests` fails the build on a missing key. Rules:
+`.agents/rules/localization.md`.
+
 ## Domain event — inherit `DomainEvent` (abstract record)
 
 ```csharp
@@ -121,5 +148,6 @@ dotnet ef migrations add Add{Entity} \
 
 - [ ] `sealed`, `AggregateRoot<Guid>` (+ `IHasTenant`/`IAuditableEntity`/`ISoftDeletable` as needed), private ctor, static `Create` using `Guid.CreateVersion7()`
 - [ ] Domain event inherits `DomainEvent`; raised via `DomainEvent.Create` + `AddDomainEvent`
+- [ ] Client-breakable rules throw `CustomException(...).Localized<{X}Resources>("…")`; keys added in English to `{X}Resources.resx`
 - [ ] EF config: no manual soft-delete/tenant filter; `ValueGeneratedNever()` on nav-collection children
 - [ ] `DbSet` added; build green; migration created with `--context {X}DbContext`

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthHeadline, AuthShell } from "@/components/auth/auth-shell";
@@ -24,38 +25,46 @@ type Status =
   | { kind: "error"; message: string };
 
 export function ConfirmEmailPage() {
+  const { t } = useTranslation("auth");
   const [params] = useSearchParams();
   const userId = params.get("userId") ?? "";
   const code = params.get("code") ?? "";
   const tenant = params.get("tenant") ?? "";
   const malformed = !userId || !code || !tenant;
 
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
+  // The async outcome is stored keyed by the request it answers, so the
+  // displayed status is derived: malformed links fail immediately, and a
+  // result for different params reads as still loading.
+  const requestKey = `${userId}
+${code}
+${tenant}`;
+  const [result, setResult] = useState<{ key: string; status: Status } | null>(null);
+  const status: Status = malformed
+    ? { kind: "error", message: t("confirm.malformed") }
+    : result?.key === requestKey
+      ? result.status
+      : { kind: "loading" };
 
   // We run the call exactly once per mount keyed on the URL params —
   // double-firing the GET in StrictMode would still be idempotent
   // server-side (UserManager.ConfirmEmailAsync is idempotent for the
   // same token), but holding off the second call keeps the UI honest.
   useEffect(() => {
-    if (malformed) {
-      setStatus({
-        kind: "error",
-        message:
-          "This confirmation link is missing required parameters. It may have been clipped by your email client.",
-      });
-      return;
-    }
+    if (malformed) return;
 
     let cancelled = false;
     void confirmEmail({ userId, code, tenant })
       .then((message) => {
         if (cancelled) return;
-        setStatus({
-          kind: "success",
-          message:
-            typeof message === "string" && message.length > 0
-              ? message
-              : "Your email is confirmed. You can now sign in.",
+        setResult({
+          key: requestKey,
+          status: {
+            kind: "success",
+            message:
+              typeof message === "string" && message.length > 0
+                ? message
+                : t("confirm.successFallback"),
+          },
         });
       })
       .catch((err: unknown) => {
@@ -64,13 +73,13 @@ export function ConfirmEmailPage() {
           err instanceof ApiRequestError
             ? err.problem?.detail ?? err.problem?.title ?? err.message
             : (err as Error).message;
-        setStatus({ kind: "error", message: detail });
+        setResult({ key: requestKey, status: { kind: "error", message: detail } });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [userId, code, tenant, malformed]);
+  }, [userId, code, tenant, malformed, requestKey, t]);
 
   return (
     <AuthShell
@@ -79,7 +88,7 @@ export function ConfirmEmailPage() {
           to="/login"
           className="text-[var(--color-foreground)] underline-offset-4 hover:underline"
         >
-          ← Back to sign in
+          {t("confirm.backLink")}
         </Link>
       }
     >
@@ -94,9 +103,9 @@ export function ConfirmEmailPage() {
             </span>
           </div>
           <div>
-            <AuthHeadline lead="Verifying your" accent="email…" />
+            <AuthHeadline lead={t("confirm.verifyingLead")} accent={t("confirm.verifyingAccent")} />
             <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-              One moment — checking the confirmation token with the server.
+              {t("confirm.verifyingBody")}
             </p>
           </div>
         </div>
@@ -113,14 +122,14 @@ export function ConfirmEmailPage() {
             </span>
           </div>
           <div>
-            <AuthHeadline lead="Email" accent="confirmed" />
+            <AuthHeadline lead={t("confirm.successLead")} accent={t("confirm.successAccent")} />
             <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
               {status.message}
             </p>
           </div>
           <Link to="/login" className="block">
             <Button type="button" className="group h-11 w-full text-[14px] font-semibold">
-              <span>Continue to sign in</span>
+              <span>{t("confirm.continueSignIn")}</span>
               <ArrowRight className="size-[14px] opacity-60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
             </Button>
           </Link>
@@ -138,24 +147,27 @@ export function ConfirmEmailPage() {
             </span>
           </div>
           <div>
-            <AuthHeadline lead="Couldn't" accent="confirm" trail=" your email" />
+            <AuthHeadline
+              lead={t("confirm.errorLead")}
+              accent={t("confirm.errorAccent")}
+              trail={t("confirm.errorTrail")}
+            />
             <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
               {status.message}
             </p>
             <p className="mt-2 text-[12px] leading-relaxed text-[var(--color-muted-foreground)]">
-              The link may have expired or been used already. If you've signed
-              in since this email was sent, you can ignore it.
+              {t("confirm.errorHint")}
             </p>
           </div>
           <div className="flex items-center justify-center gap-2 pt-1">
             <Link to="/login">
               <Button type="button" variant="outline">
-                Back to sign in
+                {t("confirm.backToSignIn")}
               </Button>
             </Link>
             <Link to="/forgot-password">
               <Button type="button" variant="ghost">
-                Reset password instead
+                {t("confirm.resetInstead")}
               </Button>
             </Link>
           </div>

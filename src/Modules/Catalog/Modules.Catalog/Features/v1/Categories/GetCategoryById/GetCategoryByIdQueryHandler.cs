@@ -2,6 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.Dtos;
 using FSH.Modules.Catalog.Contracts.v1.Categories;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,8 @@ public sealed class GetCategoryByIdQueryHandler(CatalogDbContext dbContext)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == query.CategoryId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Category {query.CategoryId} not found.");
+            ?? throw new NotFoundException($"Category {query.CategoryId} not found.")
+                .Localized<CatalogResources>("Catalog.CategoryNotFound", query.CategoryId);
 
         return new CategoryDto(c.Id, c.Name, c.Slug, c.Description, c.ParentCategoryId, c.CreatedAtUtc, c.UpdatedAtUtc, c.DeletedOnUtc, c.DeletedBy);
     }

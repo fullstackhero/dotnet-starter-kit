@@ -2,6 +2,7 @@ using System.Net;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Catalog.Contracts.v1.Categories;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Catalog.Localization;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,8 @@ public sealed class UpdateCategoryCommandHandler(CatalogDbContext dbContext)
         var category = await dbContext.Categories
             .FirstOrDefaultAsync(c => c.Id == command.CategoryId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException($"Category {command.CategoryId} not found.");
+            ?? throw new NotFoundException($"Category {command.CategoryId} not found.")
+                .Localized<CatalogResources>("Catalog.CategoryNotFound", command.CategoryId);
 
         if (command.ParentCategoryId is { } parentId)
         {
@@ -26,7 +28,8 @@ public sealed class UpdateCategoryCommandHandler(CatalogDbContext dbContext)
                 throw new CustomException(
                     "A category cannot be its own parent.",
                     (IEnumerable<string>?)null,
-                    HttpStatusCode.BadRequest);
+                    HttpStatusCode.BadRequest)
+                    .Localized<CatalogResources>("Catalog.CategoryCannotBeOwnParent");
             }
 
             // Walk parent chain to detect cycles (parent → ancestor of self)
@@ -39,7 +42,8 @@ public sealed class UpdateCategoryCommandHandler(CatalogDbContext dbContext)
                     throw new CustomException(
                         "Setting this parent would create a cycle.",
                         (IEnumerable<string>?)null,
-                        HttpStatusCode.BadRequest);
+                        HttpStatusCode.BadRequest)
+                        .Localized<CatalogResources>("Catalog.CategoryParentCycle");
                 }
                 cursor = await dbContext.Categories
                     .Where(c => c.Id == cur)
@@ -59,7 +63,8 @@ public sealed class UpdateCategoryCommandHandler(CatalogDbContext dbContext)
             throw new CustomException(
                 $"Another category with name '{command.Name}' already exists.",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.Conflict);
+                HttpStatusCode.Conflict)
+                .Localized<CatalogResources>("Catalog.AnotherCategoryNameAlreadyExists", command.Name);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

@@ -1,0 +1,14 @@
+{
+  "overview": "Overview",
+  "tenants": "Tenants",
+  "identity": "Identity",
+  "users": "Users",
+  "roles": "Roles",
+  "impersonation": "Impersonation",
+  "operations": "Operations",
+  "billing": "Billing",
+  "webhooks": "Webhooks",
+  "audits": "Audits",
+  "health": "Health",
+  "settings": "Settings"
+}

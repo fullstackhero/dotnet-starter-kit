@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
+        <OutputType>Exe</OutputType>
         <IsPackable>false</IsPackable>
         <IsPublishable>false</IsPublishable>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -28,7 +29,7 @@
         <PackageReference Include="Testcontainers.Redis" />
         <PackageReference Include="Testcontainers" />
         <PackageReference Include="Hangfire.InMemory" />
-        <PackageReference Include="xunit" />
+        <PackageReference Include="xunit.v3.mtp-off" />
         <PackageReference Include="xunit.runner.visualstudio">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

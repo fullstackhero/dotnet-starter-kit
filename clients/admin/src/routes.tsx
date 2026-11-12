@@ -7,6 +7,7 @@ import { RouteError } from "@/components/route-error";
 import { LoginPage } from "@/pages/login";
 import { DashboardPage } from "@/pages/dashboard";
 import { NotFoundPage } from "@/pages/not-found";
+import { loadNamespaces, type LazyNamespace } from "@/i18n";
 import {
   AuditingPermissions,
   BillingPermissions,
@@ -18,37 +19,42 @@ import {
 // Lazy-loaded pages — each `import()` becomes its own bundle chunk so the
 // initial paint only ships the shell + dashboard. We re-export the named
 // page component as the chunk's `default` via the wrapper-import trick.
+// `namespaces` lists the route-only translation catalogs the page (and the
+// components it imports) use. They load in parallel with the page chunk, so
+// the page never renders before its text is there. The shell's namespaces
+// (common, nav, auth, notifications, dashboard) are always loaded.
 const lazyNamed = <T extends string>(
   loader: () => Promise<Record<string, unknown>>,
   named: T,
+  namespaces: readonly LazyNamespace[] = [],
 ) =>
   lazy(async () => {
-    const mod = await loader();
+    const [mod] = await Promise.all([loader(), loadNamespaces(namespaces)]);
     return { default: mod[named] as React.ComponentType };
   });
 
-const TenantsListPage = lazyNamed(() => import("@/pages/tenants/list"), "TenantsListPage");
-const TenantDetailPage = lazyNamed(() => import("@/pages/tenants/detail"), "TenantDetailPage");
-const UsersListPage = lazyNamed(() => import("@/pages/users/list"), "UsersListPage");
-const UserDetailPage = lazyNamed(() => import("@/pages/users/detail"), "UserDetailPage");
-const RolesListPage = lazyNamed(() => import("@/pages/roles/list"), "RolesListPage");
-const RoleDetailPage = lazyNamed(() => import("@/pages/roles/detail"), "RoleDetailPage");
-const BillingLayout = lazyNamed(() => import("@/pages/billing/layout"), "BillingLayout");
-const PlansListPage = lazyNamed(() => import("@/pages/billing/plans-list"), "PlansListPage");
-const InvoicesListPage = lazyNamed(() => import("@/pages/billing/invoices-list"), "InvoicesListPage");
-const InvoiceDetailPage = lazyNamed(() => import("@/pages/billing/invoice-detail"), "InvoiceDetailPage");
-const TopupsListPage = lazyNamed(() => import("@/pages/billing/topups-list"), "TopupsListPage");
-const AuditsListPage = lazyNamed(() => import("@/pages/audits/list"), "AuditsListPage");
-const HealthPage = lazyNamed(() => import("@/pages/health/page"), "HealthPage");
-const ImpersonationListPage = lazyNamed(() => import("@/pages/impersonation/list"), "ImpersonationListPage");
-const WebhooksListPage = lazyNamed(() => import("@/pages/webhooks/list"), "WebhooksListPage");
-const WebhookDetailPage = lazyNamed(() => import("@/pages/webhooks/detail"), "WebhookDetailPage");
+const TenantsListPage = lazyNamed(() => import("@/pages/tenants/list"), "TenantsListPage", ["tenants"]);
+const TenantDetailPage = lazyNamed(() => import("@/pages/tenants/detail"), "TenantDetailPage", ["tenants", "impersonation"]);
+const UsersListPage = lazyNamed(() => import("@/pages/users/list"), "UsersListPage", ["users"]);
+const UserDetailPage = lazyNamed(() => import("@/pages/users/detail"), "UserDetailPage", ["users", "sessions"]);
+const RolesListPage = lazyNamed(() => import("@/pages/roles/list"), "RolesListPage", ["roles"]);
+const RoleDetailPage = lazyNamed(() => import("@/pages/roles/detail"), "RoleDetailPage", ["roles"]);
+const BillingLayout = lazyNamed(() => import("@/pages/billing/layout"), "BillingLayout", ["billing"]);
+const PlansListPage = lazyNamed(() => import("@/pages/billing/plans-list"), "PlansListPage", ["billing"]);
+const InvoicesListPage = lazyNamed(() => import("@/pages/billing/invoices-list"), "InvoicesListPage", ["billing"]);
+const InvoiceDetailPage = lazyNamed(() => import("@/pages/billing/invoice-detail"), "InvoiceDetailPage", ["billing"]);
+const TopupsListPage = lazyNamed(() => import("@/pages/billing/topups-list"), "TopupsListPage", ["billing"]);
+const AuditsListPage = lazyNamed(() => import("@/pages/audits/list"), "AuditsListPage", ["audits"]);
+const HealthPage = lazyNamed(() => import("@/pages/health/page"), "HealthPage", ["health"]);
+const ImpersonationListPage = lazyNamed(() => import("@/pages/impersonation/list"), "ImpersonationListPage", ["impersonation"]);
+const WebhooksListPage = lazyNamed(() => import("@/pages/webhooks/list"), "WebhooksListPage", ["webhooks"]);
+const WebhookDetailPage = lazyNamed(() => import("@/pages/webhooks/detail"), "WebhookDetailPage", ["webhooks"]);
 const NotificationsInboxPage = lazyNamed(() => import("@/pages/notifications/inbox"), "NotificationsInboxPage");
-const SettingsLayout = lazyNamed(() => import("@/pages/settings/layout"), "SettingsLayout");
-const ProfileSettings = lazyNamed(() => import("@/pages/settings/profile"), "ProfileSettings");
-const SecuritySettings = lazyNamed(() => import("@/pages/settings/security"), "SecuritySettings");
-const SessionsSettings = lazyNamed(() => import("@/pages/settings/sessions"), "SessionsSettings");
-const AppearanceSettings = lazyNamed(() => import("@/pages/settings/appearance"), "AppearanceSettings");
+const SettingsLayout = lazyNamed(() => import("@/pages/settings/layout"), "SettingsLayout", ["settings"]);
+const ProfileSettings = lazyNamed(() => import("@/pages/settings/profile"), "ProfileSettings", ["settings"]);
+const SecuritySettings = lazyNamed(() => import("@/pages/settings/security"), "SecuritySettings", ["settings"]);
+const SessionsSettings = lazyNamed(() => import("@/pages/settings/sessions"), "SessionsSettings", ["sessions"]);
+const AppearanceSettings = lazyNamed(() => import("@/pages/settings/appearance"), "AppearanceSettings", ["settings"]);
 const ForgotPasswordPage = lazyNamed(
   () => import("@/pages/auth/forgot-password"),
   "ForgotPasswordPage",

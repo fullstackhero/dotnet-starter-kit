@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import {
   DropdownMenu,
@@ -63,14 +64,22 @@ export function Combobox({
   id?: string;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Reset filter and focus search whenever the popover opens.
+  // Reset the filter whenever the popover opens — done in the open handler
+  // (the only path that opens it) rather than in an effect.
+  const handleOpenChange = (next: boolean) => {
+    if (disabled) return;
+    if (next) setFilter("");
+    setOpen(next);
+  };
+
+  // Focus the search input whenever the popover opens (DOM sync only).
   useEffect(() => {
     if (open) {
-      setFilter("");
       const t = setTimeout(() => inputRef.current?.focus(), 30);
       return () => clearTimeout(t);
     }
@@ -88,7 +97,7 @@ export function Combobox({
   const showFieldClear = clearable && hasValue && !disabled;
 
   return (
-    <DropdownMenu open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       {variant === "filter" ? (
         <DropdownMenuTrigger asChild disabled={disabled}>
           <FilterTrigger
@@ -169,7 +178,7 @@ export function Combobox({
                   inputRef.current?.focus();
                 }}
                 className="grid h-5 w-5 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
-                aria-label="Clear filter"
+                aria-label={t("list.clearFilter")}
               >
                 <X className="h-3 w-3" />
               </button>
@@ -194,7 +203,7 @@ export function Combobox({
 
           {filtered.length === 0 ? (
             <li className="px-3 py-3 text-center text-[12px] text-[var(--color-muted-foreground)]">
-              No matches.
+              {t("list.noMatches")}
             </li>
           ) : (
             filtered.map((opt) => (

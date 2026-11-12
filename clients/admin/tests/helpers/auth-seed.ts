@@ -14,9 +14,13 @@ export type SeededUser = {
   permissions?: string[];
 };
 
-function fakeJwt(payload: Record<string, unknown>): string {
+export function fakeJwt(payload: Record<string, unknown>): string {
   const b64url = (obj: unknown) =>
-    btoa(JSON.stringify(obj)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+    // UTF-8 bytes, like the server emits, so non-ASCII claims hit the real decode path.
+    btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(obj))))
+      .replace(/=+$/, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
   return [b64url({ alg: "HS256", typ: "JWT" }), b64url(payload), "sig"].join(".");
 }
 

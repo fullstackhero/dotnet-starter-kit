@@ -19,7 +19,7 @@ namespace Integration.Tests.Tests.Health;
 /// </summary>
 public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine")
         .WithDatabase("fsh_migrations_check")
         .WithUsername("postgres")
         .WithPassword("integration_test_pwd")
@@ -27,9 +27,9 @@ public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
         .WithCleanUp(true)
         .Build();
 
-    public Task InitializeAsync() => _postgres.StartAsync();
+    public async ValueTask InitializeAsync() => await _postgres.StartAsync();
 
-    public Task DisposeAsync() => _postgres.DisposeAsync().AsTask();
+    public ValueTask DisposeAsync() => _postgres.DisposeAsync();
 
     [Fact]
     public async Task CheckHealthAsync_Should_TransitionFromUnhealthyToHealthy_AsMigrationsApply()

@@ -142,4 +142,66 @@ public sealed class ExceptionsTests
     }
 
     #endregion
+
+    #region Localized factory
+
+    [Fact]
+    public void Localized_Should_SetKeyArgsAndCatalog_When_ModuleCatalogNamed()
+    {
+        // Arrange
+        var exception = new NotFoundException("Item 42 not found.");
+
+        // Act
+        var localized = exception.Localized<ExceptionsTests>("Module.ItemNotFound", 42, "x");
+
+        // Assert: the same instance comes back, so `throw` keeps the subclass and its status code.
+        localized.ShouldBeSameAs(exception);
+        localized.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        localized.MessageKey.ShouldBe("Module.ItemNotFound");
+        localized.MessageArgs.ShouldBe(new object[] { 42, "x" });
+        localized.ResourceSource.ShouldBe(typeof(ExceptionsTests));
+        localized.Message.ShouldBe("Item 42 not found.");
+    }
+
+    [Fact]
+    public void Localized_Should_UseSharedCatalog_When_NoCatalogNamed()
+    {
+        // Arrange & Act
+        var exception = new NotFoundException("gone").Localized("Error.NotFound");
+
+        // Assert
+        exception.MessageKey.ShouldBe("Error.NotFound");
+        exception.MessageArgs.ShouldBeEmpty();
+        exception.ResourceSource.ShouldBeNull();
+    }
+
+    [Fact]
+    public void DefaultCtors_Should_CarrySharedKeys_When_NoMessageGiven()
+    {
+        // Arrange & Act
+        var forbidden = new ForbiddenException();
+        var unauthorized = new UnauthorizedException();
+
+        // Assert
+        forbidden.MessageKey.ShouldBe("Error.ForbiddenAccess");
+        forbidden.ResourceSource.ShouldBeNull();
+        unauthorized.MessageKey.ShouldBe("Error.AuthenticationFailed");
+        unauthorized.ResourceSource.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Localized_Should_Throw_When_KeyIsBlank(string key)
+    {
+        // Arrange
+        var exception = new NotFoundException("gone");
+
+        // Act & Assert
+        Should.Throw<ArgumentException>(() => exception.Localized<ExceptionsTests>(key));
+        Should.Throw<ArgumentException>(() => exception.Localized(key));
+        exception.MessageKey.ShouldBeNull();
+    }
+
+    #endregion
 }

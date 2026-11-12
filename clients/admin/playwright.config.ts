@@ -18,6 +18,11 @@ export default defineConfig({
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
   },
+  // Assertions get the same budget as actions. Left at the 5s default they were
+  // the tightest deadline in the suite — every test ends in a toBeVisible, and
+  // under CPU contention the first paint of a lazy route lands past 5s while
+  // staying well inside the action and navigation budgets.
+  expect: { timeout: 10_000 },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "npm run dev",

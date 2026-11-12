@@ -12,44 +12,50 @@ using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Features.v1.Internal;
+using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Files.Features.v1.FinalizeUpload;
 
-public sealed class FinalizeUploadCommandHandler(
+public sealed partial class FinalizeUploadCommandHandler(
     FilesDbContext db,
     IStorageService storage,
     IFileScanner scanner,
     IQuotaService quotas,
     IOutboxWriter outbox,
     ICurrentUser currentUser,
-    FileStorageRelocator relocator)
+    FileStorageRelocator relocator,
+    ILogger<FinalizeUploadCommandHandler> logger)
     : ICommandHandler<FinalizeUploadCommand, FileAssetDto>
 {
     public async ValueTask<FileAssetDto> Handle(FinalizeUploadCommand cmd, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(cmd);
-        var tenantId = currentUser.GetTenant() ?? throw new UnauthorizedException("invalid tenant");
+        var tenantId = currentUser.GetTenant() ?? throw new UnauthorizedException("invalid tenant")
+            .Localized("Error.InvalidTenant");
         var userId = currentUser.GetUserId().ToString();
 
         var asset = await db.FileAssets
             .FirstOrDefaultAsync(f => f.Id == cmd.FileAssetId, cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new NotFoundException("file not found");
+            ?? throw new NotFoundException("file not found").Localized<FilesResources>("Files.FileNotFound");
 
         if (!string.Equals(asset.CreatedByUserId, userId, StringComparison.Ordinal))
         {
-            throw new ForbiddenException("not your pending file");
+            throw new ForbiddenException("not your pending file").Localized<FilesResources>("Files.NotYourPendingFile");
         }
         if (asset.Status != FileAssetStatus.PendingUpload)
         {
-            throw new CustomException("file already finalized", (IEnumerable<string>?)null, HttpStatusCode.Conflict);
+            throw new CustomException("file already finalized", (IEnumerable<string>?)null, HttpStatusCode.Conflict)
+                .Localized<FilesResources>("Files.AlreadyFinalized");
         }
 
         var head = await storage.HeadObjectAsync(asset.StorageKey, cancellationToken).ConfigureAwait(false)
-            ?? throw new CustomException("upload not received", (IEnumerable<string>?)null, HttpStatusCode.Conflict);
+            ?? throw new CustomException("upload not received", (IEnumerable<string>?)null, HttpStatusCode.Conflict)
+                .Localized<FilesResources>("Files.UploadNotReceived");
 
         // Allow declared+1% slack (S3 may differ slightly on multipart). Reject larger sizes.
         var maxAllowed = asset.SizeBytes + Math.Max(1024L, asset.SizeBytes / 100);
@@ -61,7 +67,8 @@ public sealed class FinalizeUploadCommandHandler(
             throw new CustomException(
                 $"uploaded size ({head.SizeBytes}) exceeds declared ({asset.SizeBytes})",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.UploadedSizeExceedsDeclared", head.SizeBytes, asset.SizeBytes);
         }
 
         if (!string.Equals(head.ContentType, asset.ContentType, StringComparison.OrdinalIgnoreCase))
@@ -72,7 +79,8 @@ public sealed class FinalizeUploadCommandHandler(
             throw new CustomException(
                 "uploaded content-type mismatch",
                 (IEnumerable<string>?)null,
-                HttpStatusCode.BadRequest);
+                HttpStatusCode.BadRequest)
+                .Localized<FilesResources>("Files.ContentTypeMismatch");
         }
 
         var scanResult = await scanner.ScanAsync(asset.StorageKey, cancellationToken).ConfigureAwait(false);
@@ -105,13 +113,34 @@ public sealed class FinalizeUploadCommandHandler(
         if (asset.Status == FileAssetStatus.Available
             && !StorageKeyBuilder.IsUnderVisibilityRoot(asset.StorageKey, asset.Visibility))
         {
-            asset = await relocator.ApplyAsync(
+            asset = await TryMoveUnderVisibilityRootAsync(asset, cancellationToken).ConfigureAwait(false);
+        }
+
+        return FileAssetMapper.ToDto(asset);
+    }
+
+    // Best-effort: the finalize above is already committed, so a failed move must not turn into an error
+    // for a file that is Available (a retried finalize would only get 409). The file stays at its legacy
+    // key: a public one is moved by MigrateLegacyPublicFileKeysJob on its next run; a private one stays
+    // there, which is safe because no bucket policy grants anonymous read outside public/*.
+    private async Task<FileAsset> TryMoveUnderVisibilityRootAsync(FileAsset asset, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await relocator.ApplyAsync(
                 asset.Id,
                 a => a.Status == FileAssetStatus.Available
                     && !StorageKeyBuilder.IsUnderVisibilityRoot(a.StorageKey, a.Visibility),
                 cancellationToken).ConfigureAwait(false) ?? asset;
         }
-
-        return FileAssetMapper.ToDto(asset);
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogMoveDeferred(logger, ex, asset.Id, asset.StorageKey);
+            return asset;
+        }
     }
+
+    [LoggerMessage(Level = LogLevel.Warning,
+        Message = "[Files] finalized file {FileAssetId} but could not move it from legacy key {StorageKey}; it stays there until the legacy-key migration moves it")]
+    private static partial void LogMoveDeferred(ILogger logger, Exception exception, Guid fileAssetId, string storageKey);
 }

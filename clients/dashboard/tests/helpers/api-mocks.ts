@@ -46,7 +46,13 @@ export async function mockProblemDetails(
   page: Page,
   urlGlob: string,
   status: number,
-  problem: { title?: string; detail?: string; errors?: Record<string, string[]> },
+  problem: {
+    title?: string;
+    detail?: string;
+    errors?: Record<string, string[]>;
+    /** The server's MessageKey — culture-independent, so clients branch on it, not on `detail`. */
+    code?: string;
+  },
 ) {
   await page.route(urlGlob, async (route: Route) => {
     await route.fulfill({
@@ -58,6 +64,7 @@ export async function mockProblemDetails(
         status,
         detail: problem.detail,
         errors: problem.errors,
+        code: problem.code,
       }),
     });
   });

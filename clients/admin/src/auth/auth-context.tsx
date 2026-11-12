@@ -31,7 +31,7 @@ export type AuthContextValue = {
    * permissions request is still in flight.
    */
   permissionsHydrated: boolean;
-  login: (input: { email: string; password: string; tenant: string }) => Promise<void>;
+  login: (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => Promise<void>;
   logout: () => void;
   /** Re-fetch the permission set for the signed-in user. Call after a role
    *  assignment changes for the current user. */
@@ -75,10 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   // Cold-start: if we already have a cached permissions list, treat as hydrated
   // so route guards don't flash 403. Otherwise, wait for the effect.
-  const [permissionsHydrated, setPermissionsHydrated] = useState<boolean>(() => {
+  const [permissionsFetched, setPermissionsFetched] = useState<boolean>(() => {
     if (!tokenStore.getAccessToken()) return true;
     return tokenStore.getPermissions().length > 0;
   });
+  // Signed out → nothing to hydrate, so guards may render immediately.
+  // Derived rather than set from the hydration effect.
+  const permissionsHydrated = user === null || permissionsFetched;
   const lastHydratedSubject = useRef<string | null>(user?.id ?? null);
 
   useEffect(() => {
@@ -107,7 +110,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) {
       lastHydratedSubject.current = null;
-      setPermissionsHydrated(true);
       return;
     }
     if (lastHydratedSubject.current === user.id && permissionsHydrated) {
@@ -122,11 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         tokenStore.setPermissions(perms);
         // setPermissions emits, the subscribe listener will rebuild `user`
         // with the new list.
-        setPermissionsHydrated(true);
+        setPermissionsFetched(true);
       } catch {
         // Permissions fetch failure shouldn't sign the user out — the route
         // guards will treat them as zero-permission until the next refresh.
-        if (!cancelled) setPermissionsHydrated(true);
+        if (!cancelled) setPermissionsFetched(true);
       }
     })();
     return () => {
@@ -162,13 +164,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (input: { email: string; password: string; tenant: string }) => {
+    async (input: { email: string; password: string; tenant: string; twoFactorCode?: string }) => {
       tokenStore.setTenant(input.tenant);
       // Stale permissions from a previous user must not leak into the new
       // session — clear before issuing the token so the hydration effect
       // re-fetches from scratch.
       tokenStore.setPermissions([]);
-      setPermissionsHydrated(false);
+      setPermissionsFetched(false);
       const tokens = await issueToken(input);
       tokenStore.setTokens(tokens.accessToken, tokens.refreshToken);
     },

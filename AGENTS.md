@@ -16,7 +16,7 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 - **Backend** — .NET 10, EF Core 10, PostgreSQL, Redis, JWT + ASP.NET Identity, Finbuckle multitenancy,
   Hangfire, OpenAPI/Scalar, Serilog + OpenTelemetry, .NET Aspire.
 - **Frontends** — `clients/admin` (operator-facing) and `clients/dashboard` (tenant-facing): React 19,
-  Vite 7, TypeScript, TanStack Query v5, React Router 7, Radix + Tailwind v4 (shadcn-style), SignalR/SSE.
+  Vite 8, TypeScript 6, TanStack Query v5, React Router 7, Radix + Tailwind v4 (shadcn-style), SignalR/SSE.
 
 ## Repo map
 
@@ -40,7 +40,7 @@ The `fsh` CLI (Spectre.Console) lives in `src/Tools/CLI`.
 
 | Backend | | Frontend | |
 |---|---|---|---|
-| Framework | .NET 10 / C# latest | Framework | React 19 + Vite 7 + TS 5.x |
+| Framework | .NET 10 / C# latest | Framework | React 19 + Vite 8 + TS 6.x |
 | CQRS | Mediator 3.x (source-gen) | Data | TanStack Query v5 |
 | Validation | FluentValidation 12.x | Routing | React Router 7 |
 | ORM / DB | EF Core 10 / PostgreSQL (Npgsql) | UI | Radix + Tailwind v4 + CVA (shadcn) |
@@ -136,7 +136,7 @@ records for DTOs/events/value objects · `default!` for required non-nullable st
 
 - **Feature** — Contracts command/query → handler → validator → endpoint → wire in module `MapEndpoints()` → tests. Details: `api-conventions.md`.
 - **Module** — new `Modules.{Name}` + `.Contracts`, implement `IModule` w/ assembly-level `[assembly: FshModule(typeof(XModule), order)]`, register in **all four places**, add migration folder + tests. Details: `architecture.md`.
-- **React page** — API module (`src/api/`) → page → register lazy route → (admin) mirror permission + RouteGuard → Playwright test. Details: `frontend/shared.md`.
+- **React page** — API module (`src/api/`) → English keys in `src/locales/en-US/{ns}.json` → page (`t()`) → register lazy route → (admin) mirror permission + RouteGuard → Playwright test. Details: `frontend/shared.md`.
 
 ## AI tooling resources
 
