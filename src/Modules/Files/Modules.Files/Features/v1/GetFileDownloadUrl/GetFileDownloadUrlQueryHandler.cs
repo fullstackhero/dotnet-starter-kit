@@ -10,6 +10,7 @@ using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
 namespace FSH.Modules.Files.Features.v1.GetFileDownloadUrl;
 
@@ -41,8 +42,13 @@ public sealed class GetFileDownloadUrlQueryHandler(
         }
 
         var ttl = TimeSpan.FromMinutes(options.Value.DownloadUrlTtlMinutes);
-        var mode = q.Inline ? "inline" : "attachment";
-        var disposition = $"{mode}; filename=\"{f.OriginalFileName}\"";
+        // The original name is client-supplied: quote it properly (RFC 6266 / 5987) rather than
+        // splicing it into the header, where a '"' or ';' would rewrite the disposition.
+        var disposition = new ContentDispositionHeaderValue(q.Inline ? "inline" : "attachment")
+        {
+            FileName = HeaderUtilities.EscapeAsQuotedString(f.FileName),
+            FileNameStar = f.OriginalFileName,
+        }.ToString();
         var url = await storage.GenerateDownloadUrlAsync(f.StorageKey, ttl, disposition, cancellationToken).ConfigureAwait(false);
         return new PresignedDownloadResponse(url, DateTimeOffset.UtcNow.Add(ttl));
     }
