@@ -528,6 +528,17 @@ variable "migrator_memory" {
   default     = 1024
 }
 
+variable "redis_key_prefix" {
+  type        = string
+  description = "Opt-in namespace for every Redis key and the SignalR channel (CachingOptions:KeyPrefix), e.g. \"MyApp:prod\". Applied to the API and the migrator. Empty keeps the unprefixed layout. Turning it on for an existing environment moves the Data Protection key ring: copy it first (COPY DataProtection-Keys <prefix>:DataProtection-Keys)."
+  default     = ""
+
+  validation {
+    condition     = can(regex("^[^\\s{}]*$", var.redis_key_prefix))
+    error_message = "redis_key_prefix must not contain whitespace, '{' or '}' (braces form a Redis Cluster hash tag)."
+  }
+}
+
 variable "migrator_extra_environment_variables" {
   type        = map(string)
   description = "Extra env vars for the migrator (e.g. Seed__DefaultAdminPassword / JwtOptions__SigningKey when seeding outside the dev Development profile)."

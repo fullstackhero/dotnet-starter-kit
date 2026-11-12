@@ -134,6 +134,8 @@ services:
       # The chiseled image has no libgssapi_krb5; Npgsql's default GSS Prefer logs a load failure per start.
       DatabaseOptions__ConnectionString: Host=postgres;Database=fsh;Username=fsh;Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
       CachingOptions__Redis: redis,password=${REDIS_PASSWORD}
+      # Opt-in Redis namespace; keep it identical on api + migrator (see README "Sharing a Redis server").
+      CachingOptions__KeyPrefix: ${FSH_REDIS_KEY_PREFIX:-}
       JwtOptions__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
       Seed__DefaultAdminPassword: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
     command: ["apply", "--seed"]
@@ -157,6 +159,7 @@ services:
       # Same chiseled-image reason as the migrator: no libgssapi_krb5, so skip the GSS attempt.
       DatabaseOptions__ConnectionString: Host=postgres;Database=fsh;Username=fsh;Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
       CachingOptions__Redis: redis,password=${REDIS_PASSWORD}
+      CachingOptions__KeyPrefix: ${FSH_REDIS_KEY_PREFIX:-}
       JwtOptions__SigningKey: ${JWT_SIGNING_KEY}
       Seed__DefaultAdminPassword: ${SEED_ADMIN_PASSWORD}
       Storage__Provider: s3

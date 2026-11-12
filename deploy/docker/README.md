@@ -122,11 +122,24 @@ Single-host compose is the default story; production deployments often point at 
 1. Comment out the `postgres` / `redis` / `rustfs` service blocks (and `rustfs-init`) AND remove them from the `depends_on:` of `api` and `migrator`.
 2. Swap the matching env vars on `api` and `migrator`:
    - `DatabaseOptions__ConnectionString` → your managed Postgres connection string (keep `GSS Encryption Mode=Disable` unless your server uses Kerberos: the chiseled images have no `libgssapi_krb5`)
-   - `CachingOptions__Redis` → your managed Redis connection string (`host:port,password=...,ssl=True` etc.)
+   - `CachingOptions__Redis` → your managed Redis connection string (`host:port,password=...,ssl=True` etc.). If that Redis is shared with another app or environment, also set `FSH_REDIS_KEY_PREFIX` (see [Sharing a Redis server](#sharing-a-redis-server)).
    - `Storage__Provider`, `Storage__S3__*` → your S3-compatible store (drop `Storage__S3__PresignServiceUrl` when the store's own endpoint is reachable from browsers, as with AWS S3)
 3. `docker compose up -d`.
 
 The data-plane volumes (`pg_data`, `redis_data`, `rustfs_data`) can be deleted once you've migrated.
+
+## Sharing a Redis server
+
+Every key the API writes to Redis (cache entries, the Data Protection key ring, idempotency locks, quota counters) is unprefixed by default, and the SignalR backplane uses the `fsh-signalr` channel. When two applications, or the QA and production deployments of one, point at the same Redis server, set `FSH_REDIS_KEY_PREFIX` (→ `CachingOptions__KeyPrefix` on `api` **and** `migrator`) to a distinct value per app and environment, e.g. `MyApp:prod`. A `defaultDatabase=N` index is not enough: Redis pub/sub ignores the database, so the SignalR backplanes would still cross.
+
+Turning the prefix on for a deployment that already has data:
+
+1. **Copy the Data Protection key ring first.** It moves from `DataProtection-Keys` to `<prefix>:DataProtection-Keys`, and an empty ring cannot unprotect anything protected with the old one: sign-in cookies, reset and confirmation links, and **the webhook signing secrets stored in the database**. Before restarting:
+   ```bash
+   docker compose exec redis sh -c 'valkey-cli -a "$REDIS_PASSWORD" COPY DataProtection-Keys MyApp:prod:DataProtection-Keys'
+   ```
+2. Expect a cold cache: cached entries are rebuilt under the new prefix on first use.
+3. On a multi-replica (rolling) deploy, old and new pods sit on different SignalR channels until the rollout finishes, so realtime broadcasts between them are lost for that window.
 
 ## Troubleshooting
 

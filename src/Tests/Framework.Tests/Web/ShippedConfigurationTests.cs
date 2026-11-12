@@ -63,17 +63,17 @@ public sealed class ShippedConfigurationTests
         configuration["FrontendOptions:DefaultOrigin"].ShouldBe("http://localhost:5174");
     }
 
-    [Fact]
-    public void Environments_Should_ShipDistinctRedisKeyPrefixes()
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public void Environments_Should_ShipAnEmptyRedisKeyPrefix(string environment)
     {
-        // Applications and environments commonly share one Redis server. Without a prefix they share
-        // cache entries, tag invalidations, the Data Protection key ring and — since pub/sub ignores
-        // the database index — the SignalR backplane.
-        var development = LoadFor("Development")["CachingOptions:KeyPrefix"];
-        var production = LoadFor("Production")["CachingOptions:KeyPrefix"];
-
-        development.ShouldNotBeNullOrWhiteSpace();
-        production.ShouldNotBeNullOrWhiteSpace();
-        production.ShouldNotBe(development);
+        // CachingOptions:KeyPrefix is opt-in. A shipped default would move the Data Protection key ring
+        // of every existing deployment on upgrade (DataProtection-Keys -> {prefix}:DataProtection-Keys),
+        // and the new ring is empty: auth cookies and reset tokens stop validating, and webhook signing
+        // secrets stored DP-protected in the database can never be unprotected again. The migrator
+        // links only appsettings.json + .Development.json, so a Production-only value would also give
+        // it a different prefix than the API.
+        LoadFor(environment)["CachingOptions:KeyPrefix"].ShouldBeNullOrEmpty();
     }
 }

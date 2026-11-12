@@ -3,8 +3,10 @@ using FSH.Framework.Caching;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using Testcontainers.Redis;
 
@@ -204,6 +206,30 @@ public sealed class HybridCacheRedisTests : IAsyncLifetime
             var db = redis.GetDatabase();
             (await db.KeyExistsAsync("app-a:prod:DataProtection-Keys")).ShouldBeTrue();
             (await db.KeyExistsAsync("DataProtection-Keys")).ShouldBeFalse();
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task EmptyKeyPrefix_Should_Keep_The_Historical_Redis_Layout(string? keyPrefix)
+    {
+        // The invariant that protects existing deployments on upgrade: without an opt-in prefix every
+        // key stays where it was. A moved Data Protection ring would orphan everything protected with
+        // the old one (webhook signing secrets included). The SignalR side ("fsh-signalr") is pinned by
+        // RedisKeyPrefixWiringTests.AddHeroRealtime_Should_KeepTheHistoricalChannel_When_KeyPrefixIsEmpty.
+        var (cache, _, provider) = CreateCache(keyPrefix);
+        await using (provider)
+        {
+            provider.GetRequiredService<IOptions<RedisCacheOptions>>().Value.InstanceName.ShouldBeNullOrEmpty();
+
+            await cache.SetAsync("theme:t:root", "v");
+            provider.GetRequiredService<IDataProtectionProvider>().CreateProtector("test").Protect("payload");
+
+            using var redis = await ConnectionMultiplexer.ConnectAsync(_redis.GetConnectionString());
+            var db = redis.GetDatabase();
+            (await db.KeyExistsAsync("theme:t:root")).ShouldBeTrue();
+            (await db.KeyExistsAsync("DataProtection-Keys")).ShouldBeTrue();
         }
     }
 

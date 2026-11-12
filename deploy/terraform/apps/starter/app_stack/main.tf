@@ -543,6 +543,12 @@ locals {
 
   # Optional dev seed credentials — injected only when set (prod runs `apply`
   # without --seed, so it never reads them).
+  # Opt-in Redis namespace (CachingOptions:KeyPrefix), injected into BOTH the API
+  # and the migrator so they never disagree. Empty keeps the unprefixed layout.
+  redis_key_prefix_environment_variables = var.redis_key_prefix != "" ? {
+    CachingOptions__KeyPrefix = var.redis_key_prefix
+  } : {}
+
   seed_environment_variables = merge(
     var.seed_default_admin_password != null ? { "Seed__DefaultAdminPassword" = var.seed_default_admin_password } : {},
     var.seed_demo_password != null ? { "Seed__DemoPassword" = var.seed_demo_password } : {},
@@ -656,6 +662,7 @@ module "api_service" {
     # domain, so browsers on those origins can call the API cross-origin.
     local.cors_environment_variables,
     local.frontend_environment_variables,
+    local.redis_key_prefix_environment_variables,
     var.api_extra_environment_variables
   )
 
@@ -713,6 +720,7 @@ module "migrator" {
     # Seed credentials (when configured) so seeding doesn't depend on the baked
     # dev appsettings; empty when unset → falls back to image config.
     local.seed_environment_variables,
+    local.redis_key_prefix_environment_variables,
     var.migrator_extra_environment_variables
   )
 

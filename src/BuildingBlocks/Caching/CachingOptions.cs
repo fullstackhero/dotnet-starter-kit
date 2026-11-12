@@ -14,8 +14,12 @@ public sealed class CachingOptions
     /// Protection key ring, idempotency locks, quota counters, SignalR backplane). Set it per
     /// application and environment, e.g. <c>MyApp:prod</c>, whenever applications share a Redis
     /// server — a <c>defaultDatabase</c> index alone does not isolate the SignalR backplane, because
-    /// pub/sub ignores databases. Empty keeps the unprefixed layout. Changing it rotates the Data
-    /// Protection key ring (issued cookies and tokens stop validating) and starts a cold cache.
+    /// pub/sub ignores databases. Opt-in: empty (the default) keeps the unprefixed layout. Must not
+    /// contain whitespace or <c>{</c>/<c>}</c> (rejected at startup). Turning it on for an existing
+    /// deployment moves the Data Protection key ring — copy <c>DataProtection-Keys</c> to
+    /// <c>{prefix}:DataProtection-Keys</c> first, or DP-protected data (webhook signing secrets,
+    /// cookies, reset tokens) stops unprotecting — and starts a cold cache. During a rolling deploy
+    /// old and new pods sit on different SignalR channels until the rollout finishes.
     /// See <see cref="FSH.Framework.Core.Common.RedisKeyPrefix"/>.
     /// </summary>
     public string KeyPrefix { get; set; } = string.Empty;
