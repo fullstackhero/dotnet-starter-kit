@@ -1,4 +1,5 @@
 using FluentValidation;
+using FSH.Framework.Storage;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.UpdateTenantTheme;
 using FSH.Modules.Multitenancy.Localization;
@@ -30,7 +31,24 @@ public partial class UpdateTenantThemeCommandValidator : AbstractValidator<Updat
         RuleFor(x => x.Theme.Layout)
             .NotNull()
             .SetValidator(new LayoutValidator(localizer));
+
+        // Logo URLs end up in <img src> for every user of the tenant, so only http(s) URLs or
+        // server-relative paths. A data: URL is the editor's unsaved preview and is ignored on save.
+        RuleFor(x => x.Theme.BrandAssets.LogoUrl).Must(BeAcceptableAssetUrl)
+            .When(x => x.Theme?.BrandAssets is not null)
+            .WithMessage(_ => localizer["Validation.BrandAssetUrlInvalid", "LogoUrl"]);
+        RuleFor(x => x.Theme.BrandAssets.LogoDarkUrl).Must(BeAcceptableAssetUrl)
+            .When(x => x.Theme?.BrandAssets is not null)
+            .WithMessage(_ => localizer["Validation.BrandAssetUrlInvalid", "LogoDarkUrl"]);
+        RuleFor(x => x.Theme.BrandAssets.FaviconUrl).Must(BeAcceptableAssetUrl)
+            .When(x => x.Theme?.BrandAssets is not null)
+            .WithMessage(_ => localizer["Validation.BrandAssetUrlInvalid", "FaviconUrl"]);
     }
+
+    private static bool BeAcceptableAssetUrl(string? url) =>
+        string.IsNullOrEmpty(url)
+        || url.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase)
+        || ClientImageUrl.IsValid(url);
 
     [GeneratedRegex("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$")]
     private static partial Regex HexColorRegex();

@@ -125,9 +125,10 @@ public sealed class TenantThemeService : ITenantThemeService
         }
 
         // Handle brand asset uploads
-        await HandleBrandAssetUploadsAsync(theme.BrandAssets, entity, ct).ConfigureAwait(false);
+        var assetChanges = await HandleBrandAssetUploadsAsync(theme.BrandAssets, entity, ct).ConfigureAwait(false);
 
         MapDtoToEntity(theme, entity);
+        AdoptClientBrandAssetUrls(theme.BrandAssets, entity, assetChanges);
         entity.Update(GetCurrentUserId());
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -139,55 +140,93 @@ public sealed class TenantThemeService : ITenantThemeService
         }
     }
 
-    private async Task HandleBrandAssetUploadsAsync(BrandAssetsDto assets, TenantTheme entity, CancellationToken ct)
+    /// <summary>Which brand assets this request uploaded or deleted, so their URLs are not overwritten.</summary>
+    private readonly record struct BrandAssetChanges(bool Logo, bool LogoDark, bool Favicon);
+
+    private async Task<BrandAssetChanges> HandleBrandAssetUploadsAsync(BrandAssetsDto assets, TenantTheme entity, CancellationToken ct)
     {
-        // Handle logo upload (same pattern as profile picture)
-        if (assets.Logo?.Data is { Count: > 0 })
+        bool logo = await ApplyBrandAssetAsync(assets.Logo, assets.DeleteLogo, entity.LogoUrl, url => entity.LogoUrl = url, ct).ConfigureAwait(false);
+        bool logoDark = await ApplyBrandAssetAsync(assets.LogoDark, assets.DeleteLogoDark, entity.LogoDarkUrl, url => entity.LogoDarkUrl = url, ct).ConfigureAwait(false);
+        bool favicon = await ApplyBrandAssetAsync(assets.Favicon, assets.DeleteFavicon, entity.FaviconUrl, url => entity.FaviconUrl = url, ct).ConfigureAwait(false);
+        return new BrandAssetChanges(logo, logoDark, favicon);
+    }
+
+    /// <summary>Uploads a replacement or deletes the asset; true when the stored URL changed.</summary>
+    private async Task<bool> ApplyBrandAssetAsync(
+        FileUploadRequest? upload, bool delete, string? currentUrl, Action<string?> setUrl, CancellationToken ct)
+    {
+        if (upload?.Data is { Count: > 0 })
         {
-            var oldLogoUrl = entity.LogoUrl;
-            entity.LogoUrl = await _storageService.UploadAsync<TenantTheme>(assets.Logo, FileType.Image, ct).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(oldLogoUrl))
-            {
-                await _storageService.RemoveAsync(oldLogoUrl, ct).ConfigureAwait(false);
-            }
-        }
-        else if (assets.DeleteLogo && !string.IsNullOrEmpty(entity.LogoUrl))
-        {
-            await _storageService.RemoveAsync(entity.LogoUrl, ct).ConfigureAwait(false);
-            entity.LogoUrl = null;
+            setUrl(await _storageService.UploadAsync<TenantTheme>(upload, FileType.Image, ct).ConfigureAwait(false));
+            await RemoveOwnedUploadAsync(currentUrl, ct).ConfigureAwait(false);
+            return true;
         }
 
-        // Handle logo dark upload
-        if (assets.LogoDark?.Data is { Count: > 0 })
+        if (delete && !string.IsNullOrEmpty(currentUrl))
         {
-            var oldLogoUrl = entity.LogoDarkUrl;
-            entity.LogoDarkUrl = await _storageService.UploadAsync<TenantTheme>(assets.LogoDark, FileType.Image, ct).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(oldLogoUrl))
-            {
-                await _storageService.RemoveAsync(oldLogoUrl, ct).ConfigureAwait(false);
-            }
-        }
-        else if (assets.DeleteLogoDark && !string.IsNullOrEmpty(entity.LogoDarkUrl))
-        {
-            await _storageService.RemoveAsync(entity.LogoDarkUrl, ct).ConfigureAwait(false);
-            entity.LogoDarkUrl = null;
+            await RemoveOwnedUploadAsync(currentUrl, ct).ConfigureAwait(false);
+            setUrl(null);
+            return true;
         }
 
-        // Handle favicon upload
-        if (assets.Favicon?.Data is { Count: > 0 })
+        return false;
+    }
+
+    /// <summary>
+    /// Deletes a replaced asset only when this service uploaded it. A stored URL can also be one the
+    /// client typed in (an externally hosted logo), and handing that to the storage layer would let a
+    /// tenant administrator delete objects — or, with local storage, files — that are not theirs.
+    /// </summary>
+    private Task RemoveOwnedUploadAsync(string? url, CancellationToken ct) =>
+        StorageUploadKeys.IsUploadOf<TenantTheme>(url)
+            ? _storageService.RemoveAsync(url!, ct)
+            : Task.CompletedTask;
+
+    /// <summary>
+    /// Takes the logo URLs the client sent (an externally hosted image, or the current value echoed
+    /// back). An asset uploaded or deleted in this request keeps the URL that operation produced, and a
+    /// client URL naming another stored upload is ignored: adopting it would make the next delete
+    /// remove that object.
+    /// </summary>
+    private void AdoptClientBrandAssetUrls(BrandAssetsDto dto, TenantTheme entity, BrandAssetChanges changed)
+    {
+        if (!changed.Logo)
         {
-            var oldFaviconUrl = entity.FaviconUrl;
-            entity.FaviconUrl = await _storageService.UploadAsync<TenantTheme>(assets.Favicon, FileType.Image, ct).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(oldFaviconUrl))
+            entity.LogoUrl = AdoptClientUrl(dto.LogoUrl, entity.LogoUrl, nameof(dto.LogoUrl));
+        }
+
+        if (!changed.LogoDark)
+        {
+            entity.LogoDarkUrl = AdoptClientUrl(dto.LogoDarkUrl, entity.LogoDarkUrl, nameof(dto.LogoDarkUrl));
+        }
+
+        if (!changed.Favicon)
+        {
+            entity.FaviconUrl = AdoptClientUrl(dto.FaviconUrl, entity.FaviconUrl, nameof(dto.FaviconUrl));
+        }
+    }
+
+    private string? AdoptClientUrl(string? candidate, string? current, string asset)
+    {
+        // Empty keeps the current value, and a data: URL is the editor's local preview, not a URL.
+        if (string.IsNullOrEmpty(candidate)
+            || candidate.StartsWith("data:", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate, current, StringComparison.Ordinal))
+        {
+            return current;
+        }
+
+        if (StorageUploadKeys.IsUploadOf<TenantTheme>(candidate))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
             {
-                await _storageService.RemoveAsync(oldFaviconUrl, ct).ConfigureAwait(false);
+                _logger.LogWarning("Ignored a client-supplied {Asset} that points at another stored upload", asset);
             }
+
+            return current;
         }
-        else if (assets.DeleteFavicon && !string.IsNullOrEmpty(entity.FaviconUrl))
-        {
-            await _storageService.RemoveAsync(entity.FaviconUrl, ct).ConfigureAwait(false);
-            entity.FaviconUrl = null;
-        }
+
+        return candidate;
     }
 
     public async Task ResetThemeAsync(string tenantId, CancellationToken ct = default)
@@ -339,20 +378,7 @@ public sealed class TenantThemeService : ITenantThemeService
         entity.DarkSuccessColor = dto.DarkPalette.Success;
         entity.DarkInfoColor = dto.DarkPalette.Info;
 
-        // Brand Assets - URLs are handled by HandleBrandAssetUploadsAsync
-        // Only copy URL if it's a real URL (not a data URL preview)
-        if (!string.IsNullOrEmpty(dto.BrandAssets.LogoUrl) && !dto.BrandAssets.LogoUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-        {
-            entity.LogoUrl = dto.BrandAssets.LogoUrl;
-        }
-        if (!string.IsNullOrEmpty(dto.BrandAssets.LogoDarkUrl) && !dto.BrandAssets.LogoDarkUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-        {
-            entity.LogoDarkUrl = dto.BrandAssets.LogoDarkUrl;
-        }
-        if (!string.IsNullOrEmpty(dto.BrandAssets.FaviconUrl) && !dto.BrandAssets.FaviconUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-        {
-            entity.FaviconUrl = dto.BrandAssets.FaviconUrl;
-        }
+        // Brand asset URLs are applied by HandleBrandAssetUploadsAsync and AdoptClientBrandAssetUrls.
 
         // Typography
         entity.FontFamily = dto.Typography.FontFamily;
