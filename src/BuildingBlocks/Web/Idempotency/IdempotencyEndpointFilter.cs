@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Caching;
+using FSH.Framework.Core.Common;
 using FSH.Framework.Core.Localization;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Identity.Claims;
@@ -124,8 +125,11 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
         // ponytail: the reservation is not renewed while the handler runs, so a handler slower than
         // ReservationTtl lets a duplicate through (the entry is not stored yet either, so the probe
         // can't catch it). Add lease renewal if an idempotent endpoint ever runs longer than that.
+        // The lock goes straight to the multiplexer, so it does not inherit the IDistributedCache
+        // InstanceName the entry gets — apply the application's key prefix explicitly.
         var multiplexer = httpContext.RequestServices.GetService<IConnectionMultiplexer>();
-        var reservationKey = "lock:" + cacheKey;
+        var keyPrefix = RedisKeyPrefix.Normalize(httpContext.RequestServices.GetService<IOptions<CachingOptions>>()?.Value.KeyPrefix);
+        var reservationKey = keyPrefix + "lock:" + cacheKey;
         var reservation = await TryReserveAsync(multiplexer, reservationKey, options.ReservationTtl, logger, idempotencyKey).ConfigureAwait(false);
         if (reservation.Denied)
         {

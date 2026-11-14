@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,11 +19,18 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
+        // The KeyPrefix fallback is applied to BOTH views of the options — the bound IOptions and the
+        // singleton the quota services take — so they never disagree.
         services
             .AddOptions<QuotaOptions>()
-            .BindConfiguration(nameof(QuotaOptions));
+            .BindConfiguration(nameof(QuotaOptions))
+            .PostConfigure(options => InheritCachingKeyPrefix(options, configuration));
 
         var quotaOptions = configuration.GetSection(nameof(QuotaOptions)).Get<QuotaOptions>() ?? new QuotaOptions();
+        InheritCachingKeyPrefix(quotaOptions, configuration);
+
+        // Fail at startup, not on the first quota check, when the prefix is not a valid Redis key prefix.
+        _ = RedisKeyPrefix.Normalize(quotaOptions.KeyPrefix);
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton(quotaOptions);
@@ -56,6 +64,18 @@ public static class Extensions
         services.AddTransient<QuotaEnforcementMiddleware>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Quota counters live under <c>CachingOptions:KeyPrefix</c> unless <c>QuotaOptions:KeyPrefix</c>
+    /// overrides it (quota may point at its own Redis).
+    /// </summary>
+    private static void InheritCachingKeyPrefix(QuotaOptions options, IConfiguration configuration)
+    {
+        if (string.IsNullOrEmpty(options.KeyPrefix))
+        {
+            options.KeyPrefix = configuration[RedisKeyPrefix.ConfigurationKey];
+        }
     }
 
     /// <summary>

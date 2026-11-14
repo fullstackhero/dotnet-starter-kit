@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Common;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
@@ -33,6 +34,11 @@ public static class Extensions
 
         var cacheOptions = configuration.GetSection(nameof(CachingOptions)).Get<CachingOptions>() ?? new CachingOptions();
 
+        // Every key below lives under the application's prefix, so applications (and environments)
+        // sharing one Redis server never read each other's entries. Normalized here — before the
+        // Redis branch — so an invalid prefix fails at startup even on the in-memory fallback.
+        string keyPrefix = RedisKeyPrefix.Normalize(cacheOptions.KeyPrefix);
+
         // L2: Redis if configured, in-memory distributed cache otherwise. StackExchangeRedis 9.0+
         // implements IBufferDistributedCache, which HybridCache uses for zero-copy reads.
         if (string.IsNullOrEmpty(cacheOptions.Redis))
@@ -52,16 +58,22 @@ public static class Extensions
             var sharedMultiplexer = ConnectionMultiplexer.Connect(redisConfig);
             services.AddSingleton<IConnectionMultiplexer>(sharedMultiplexer);
 
+            // InstanceName covers all of HybridCache's L2 traffic, including its tag-invalidation
+            // records. An empty prefix keeps InstanceName empty — the historical key layout.
             services.AddStackExchangeRedisCache(options =>
             {
                 options.ConnectionMultiplexerFactory = () =>
                     Task.FromResult<IConnectionMultiplexer>(sharedMultiplexer);
+                options.InstanceName = keyPrefix;
             });
 
             // Persist Data Protection keys (auth cookies, reset/confirmation tokens, antiforgery) to
             // Redis so multi-instance hosts share a key ring and tokens survive rolling restarts.
+            // With an empty prefix the ring stays at "DataProtection-Keys"; a deployment that turns a
+            // prefix on must copy the ring first (see RedisKeyPrefix), or every value protected with
+            // it — webhook signing secrets included — can no longer be unprotected.
             services.AddDataProtection()
-                .PersistKeysToStackExchangeRedis(sharedMultiplexer, "DataProtection-Keys")
+                .PersistKeysToStackExchangeRedis(sharedMultiplexer, keyPrefix + "DataProtection-Keys")
                 .SetApplicationName("FSH.Starter");
         }
 

@@ -1,4 +1,5 @@
 using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Common;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Quota;
 using Microsoft.Extensions.Logging;
@@ -8,7 +9,7 @@ namespace FSH.Framework.Quota;
 
 /// <summary>
 /// Redis-backed quota counter. Counter-based resources use atomic <c>INCRBY</c> on a key of the
-/// form <c>quota:{tenantId}:{resource}:{YYYYMM}</c> with a TTL that expires shortly after the
+/// form <c>{KeyPrefix}quota:{tenantId}:{resource}:{YYYYMM}</c> with a TTL that expires shortly after the
 /// billing period boundary. Gauge-based resources delegate to <see cref="IQuotaGaugeProvider"/>
 /// instances that modules register to report live usage from their own state stores.
 /// </summary>
@@ -16,6 +17,7 @@ public sealed class RedisQuotaService : IQuotaService
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly QuotaOptions _options;
+    private readonly string _keyPrefix;
     private readonly QuotaPlanResolver _planResolver;
     private readonly IMultiTenantContextAccessor<AppTenantInfo>? _tenantAccessor;
     private readonly Dictionary<QuotaResource, IQuotaGaugeProvider> _gauges;
@@ -40,6 +42,8 @@ public sealed class RedisQuotaService : IQuotaService
 
         _redis = redis;
         _options = options;
+        // Normalized once: BuildCounterKey runs on every quota check.
+        _keyPrefix = RedisKeyPrefix.Normalize(options.KeyPrefix);
         _planResolver = planResolver;
         _tenantAccessor = tenantAccessor;
         _timeProvider = timeProvider;
@@ -191,14 +195,14 @@ public sealed class RedisQuotaService : IQuotaService
     {
         if (!IsPeriodic(resource))
         {
-            return $"quota:{tenantId}:{resource}";
+            return $"{_keyPrefix}quota:{tenantId}:{resource}";
         }
 
         var now = _timeProvider.GetUtcNow();
         // Monthly billing period is the coarsest useful window for SaaS; hourly/daily windows can be
         // added as additional QuotaResource values if needed later.
         var period = $"{now.Year:D4}{now.Month:D2}";
-        return $"quota:{tenantId}:{resource}:{period}";
+        return $"{_keyPrefix}quota:{tenantId}:{resource}:{period}";
     }
 
     private DateTimeOffset? GetPeriodResetUtc(QuotaResource resource)

@@ -62,4 +62,18 @@ public sealed class ShippedConfigurationTests
             .ShouldBe(["http://localhost:5173", "http://localhost:5174"]);
         configuration["FrontendOptions:DefaultOrigin"].ShouldBe("http://localhost:5174");
     }
+
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public void Environments_Should_ShipAnEmptyRedisKeyPrefix(string environment)
+    {
+        // CachingOptions:KeyPrefix is opt-in. A shipped default would move the Data Protection key ring
+        // of every existing deployment on upgrade (DataProtection-Keys -> {prefix}:DataProtection-Keys),
+        // and the new ring is empty: auth cookies and reset tokens stop validating, and webhook signing
+        // secrets stored DP-protected in the database can never be unprotected again. The migrator
+        // links only appsettings.json + .Development.json, so a Production-only value would also give
+        // it a different prefix than the API.
+        LoadFor(environment)["CachingOptions:KeyPrefix"].ShouldBeNullOrEmpty();
+    }
 }

@@ -17,6 +17,12 @@ public sealed class QuotaOptions
     /// </summary>
     public string? Redis { get; set; }
 
+    /// <summary>
+    /// Prefix for the quota counter keys. When empty, <c>CachingOptions:KeyPrefix</c> is used, so
+    /// one setting namespaces every key the application writes to Redis.
+    /// </summary>
+    public string? KeyPrefix { get; set; }
+
     public string DefaultPlan { get; set; } = "free";
 
     /// <summary>Plan name → per-resource limit map. Use -1 or long.MaxValue for "unlimited".</summary>
