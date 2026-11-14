@@ -96,7 +96,7 @@ public sealed class JoinChannelTests
                     options.Headers["tenant"] = TestConstants.RootTenantId;
                 })
             .Build();
-        await connection.StartAsync();
+        await connection.StartAndWaitForServerAsync();
         return connection;
     }
 

@@ -109,7 +109,7 @@ public sealed class MentionAndNotificationTests
                     options.Headers["tenant"] = TestConstants.RootTenantId;
                 })
             .Build();
-        await connection.StartAsync();
+        await connection.StartAndWaitForServerAsync();
         return connection;
     }
 
