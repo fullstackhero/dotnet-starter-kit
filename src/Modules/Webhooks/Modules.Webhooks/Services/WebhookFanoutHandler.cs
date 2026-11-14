@@ -59,9 +59,13 @@ public sealed class WebhookFanoutHandler<TEvent> : IIntegrationEventHandler<TEve
         var prev = _tenantContextAccessor.MultiTenantContext;
         try
         {
-            var info = new AppTenantInfo(@event.TenantId, @event.TenantId);
-            ((IMultiTenantContextSetter)_tenantContextAccessor).MultiTenantContext =
-                new MultiTenantContext<AppTenantInfo>(info);
+            // Keep a complete context (e.g. a dedicated-database connection) the bus already resolved.
+            if (prev.TenantInfo?.Id != @event.TenantId || string.IsNullOrWhiteSpace(prev.TenantInfo.ConnectionString))
+            {
+                var info = new AppTenantInfo(@event.TenantId, @event.TenantId);
+                ((IMultiTenantContextSetter)_tenantContextAccessor).MultiTenantContext =
+                    new MultiTenantContext<AppTenantInfo>(info);
+            }
 
             var eventType = typeof(TEvent).Name;
 
