@@ -541,14 +541,14 @@ locals {
     },
   ]
 
-  # Optional dev seed credentials — injected only when set (prod runs `apply`
-  # without --seed, so it never reads them).
   # Opt-in Redis namespace (CachingOptions:KeyPrefix), injected into BOTH the API
   # and the migrator so they never disagree. Empty keeps the unprefixed layout.
   redis_key_prefix_environment_variables = var.redis_key_prefix != "" ? {
     CachingOptions__KeyPrefix = var.redis_key_prefix
   } : {}
 
+  # Optional dev seed credentials — injected only when set (prod runs `apply`
+  # without --seed, so it never reads them).
   seed_environment_variables = merge(
     var.seed_default_admin_password != null ? { "Seed__DefaultAdminPassword" = var.seed_default_admin_password } : {},
     var.seed_demo_password != null ? { "Seed__DemoPassword" = var.seed_demo_password } : {},
