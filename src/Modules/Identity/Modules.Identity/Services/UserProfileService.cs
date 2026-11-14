@@ -150,7 +150,10 @@ internal sealed class UserProfileService(
                 .Localized<IdentityResources>("Identity.UpdateProfileFailed");
         }
 
-        if (replacedBlob is not null)
+        // ImageUrl is also settable through SetImageUrlAsync, so the previous value may be a URL the
+        // client chose. Only an avatar this service uploaded itself is ours to delete; anything else
+        // (a Files-module object, an external URL, a crafted path) is left alone.
+        if (replacedBlob is not null && StorageUploadKeys.IsUploadOf<FshUser>(replacedBlob))
         {
             await storageService.RemoveAsync(replacedBlob, cancellationToken);
         }
@@ -199,6 +202,16 @@ internal sealed class UserProfileService(
         EnsureValidTenant();
         var user = await userManager.FindByIdAsync(userId)
             ?? throw new NotFoundException("user not found").Localized<IdentityResources>("Identity.UserNotFound");
+
+        // A client may point its avatar at any image URL, but not adopt an object UploadAsync created:
+        // the next "delete current image" would then remove it, which is how a user could delete another
+        // user's avatar. Re-sending the avatar it already has is fine.
+        if (StorageUploadKeys.IsUploadOf<FshUser>(imageUrl)
+            && !string.Equals(imageUrl, user.ImageUrl?.OriginalString, StringComparison.Ordinal))
+        {
+            throw new CustomException("Profile image URL not allowed", (IEnumerable<string>?)null, HttpStatusCode.BadRequest)
+                .Localized<IdentityResources>("Identity.ProfileImageUrlNotAllowed");
+        }
 
         user.ImageUrl = string.IsNullOrWhiteSpace(imageUrl)
             ? null

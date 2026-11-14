@@ -7,11 +7,10 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text.RegularExpressions;
 
 namespace FSH.Framework.Storage.S3;
 
-internal sealed partial class S3StorageService : IStorageService
+internal sealed class S3StorageService : IStorageService
 {
     internal const string PresignClientKey = "FSH.Storage.S3.Presign";
 
@@ -23,14 +22,7 @@ internal sealed partial class S3StorageService : IStorageService
 
     // UploadAsync always hands back a durable public URL, so these objects live under the public root
     // that bucket policies open to anonymous reads. Keys written before the root existed stay "uploads/…".
-    private const string UploadBasePath = StorageVisibilityRoot.Public + "uploads";
-
-    // Source-generated, compiled once — the inline Regex.Replace calls re-parsed the pattern on every upload.
-    [GeneratedRegex("[^a-z0-9]")]
-    private static partial Regex FolderSanitizer();
-
-    [GeneratedRegex(@"[^a-zA-Z0-9_\.-]")]
-    private static partial Regex FileNameSanitizer();
+    private const string UploadRoot = StorageVisibilityRoot.Public;
 
     public S3StorageService(
         IAmazonS3 s3,
@@ -67,7 +59,19 @@ internal sealed partial class S3StorageService : IStorageService
             throw new InvalidOperationException($"File exceeds max size of {rules.MaxSizeInMB} MB.");
         }
 
-        var key = BuildKey<T>(SanitizeFileName(request.FileName));
+        if (!FileSignatures.Matches(extension, request.Data))
+        {
+            throw new InvalidOperationException($"File content does not match its '{extension}' extension.");
+        }
+
+        var key = BuildKey<T>(request.FileName);
+
+        // The bucket serves the object with the Content-Type stored here, so it comes from the validated
+        // extension, never from the client: a client-declared text/html on "avatar.png" is stored XSS.
+        if (!_contentTypeProvider.TryGetContentType(key, out var contentType))
+        {
+            contentType = "application/octet-stream";
+        }
 
         using var stream = new MemoryStream([.. request.Data]);
 
@@ -76,7 +80,7 @@ internal sealed partial class S3StorageService : IStorageService
             BucketName = _options.Bucket,
             Key = key,
             InputStream = stream,
-            ContentType = request.ContentType
+            ContentType = contentType
         };
 
         // Rely on bucket policy for public access; do not set ACLs to avoid conflicts with ACL-disabled buckets.
@@ -391,8 +395,7 @@ internal sealed partial class S3StorageService : IStorageService
 
     private string BuildKey<T>(string fileName) where T : class
     {
-        var folder = FolderSanitizer().Replace(typeof(T).Name.ToLowerInvariant(), "_");
-        var relativePath = Path.Combine(UploadBasePath, folder, $"{Guid.NewGuid():N}_{fileName}").Replace("\\", "/", StringComparison.Ordinal);
+        var relativePath = UploadRoot + StorageUploadKeys.NewKey<T>(fileName);
         if (!string.IsNullOrWhiteSpace(_options.Prefix))
         {
             return $"{_options.Prefix.TrimEnd('/')}/{relativePath}";
@@ -440,6 +443,13 @@ internal sealed partial class S3StorageService : IStorageService
         }
 
         var trimmed = path.TrimStart('/');
+
+        // S3 itself treats "." and ".." as literal key characters, but S3-compatible servers, proxies
+        // and CDNs in front of a bucket may normalise them. A key is never built with them, so refuse.
+        if (trimmed.Split('/').Any(segment => segment is "." or ".."))
+        {
+            throw new ArgumentException($"'{path}' is not a valid storage key.", nameof(path));
+        }
         if (!string.IsNullOrWhiteSpace(_options.Prefix) && trimmed.StartsWith(_options.Prefix, StringComparison.OrdinalIgnoreCase))
         {
             return trimmed;
@@ -451,10 +461,5 @@ internal sealed partial class S3StorageService : IStorageService
         }
 
         return trimmed;
-    }
-
-    private static string SanitizeFileName(string fileName)
-    {
-        return FileNameSanitizer().Replace(fileName, "_");
     }
 }

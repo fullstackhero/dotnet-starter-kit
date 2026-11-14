@@ -142,6 +142,9 @@
   <data name="Validation.DefaultElevationRange" xml:space="preserve">
     <value>DefaultElevation must be between 0 and 24.</value>
   </data>
+  <data name="Validation.BrandAssetUrlInvalid" xml:space="preserve">
+    <value>{0} must be an http(s) URL or a server-relative path.</value>
+  </data>
   <data name="TenantProvisioningStatus.Pending" xml:space="preserve">
     <value>Pending</value>
   </data>

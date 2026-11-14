@@ -20,7 +20,29 @@ Bucket policies in every stack (Aspire bootstrap, compose `rustfs-init`, Terrafo
 - With `Storage:S3:Prefix` set, keys become `{Prefix}/public/…` — the policy must match that, and the prefix's first segment must **not** be `public` or `private` (case-insensitive; `AddHeroStorage` fails startup via `ValidateOnStart`).
 - The **Local** provider serves everything under wwwroot: it does not enforce `private/` at all. Use it for dev only.
 
-`FileType`: `Image` (5MB), `Document`, `Pdf` (10MB) — `FileTypeMetadata.GetRules` enforces extension + size. **Always propagate `CancellationToken`.**
+`FileType`: `Image` (5MB), `Document`, `Pdf` (10MB) — `FileTypeMetadata.GetRules` enforces extension + size, and `UploadAsync` also checks the bytes against the extension (`FileSignatures`). **Always propagate `CancellationToken`.**
+
+## Never let a client choose a path, a key or a Content-Type
+
+A real breach on an earlier generation of this kit came from exactly this: a client-supplied path reached
+`Path.Combine` and the API wrote (and could delete) files anywhere the IIS app-pool identity could.
+
+- **Never add a path/key property to a request DTO** that reaches storage (no `TargetPath`, no `Key`). Keys
+  are built server-side: `StorageUploadKeys.NewKey<T>` for `UploadAsync`, `StorageKeyBuilder` for Files.
+- **Only delete what you uploaded.** A field that holds an upload can also hold a URL the client set (avatars,
+  logos accept external URLs). Before `RemoveAsync` on a stored value, check `StorageUploadKeys.IsUploadOf<T>(value)`;
+  never `RemoveAsync` a value that came from the request. Reject a client URL that `IsUploadOf<T>` but is not the
+  current value — adopting another upload is how a user deletes someone else's file.
+- **Validate client image URLs** with `ClientImageUrl.IsValid` (http(s) or a safe `/…` path; no `..`, `\`, `:`).
+- **Content-Type comes from the extension**, never the client: S3 `UploadAsync` stores the mapped type, and
+  `RequestUploadUrl` signs the PUT for it (the browser sends the returned `RequiredHeaders`).
+- `LocalStorageService` resolves every key through one containment check: no `:` (drive letters, schemes,
+  NTFS streams), no empty/`.`/`..` segments or trailing dot/space, only under `uploads/`, `public/`, `private/`,
+  and the full path must stay inside the web root. Out-of-root keys read as missing; `CopyAsync` throws.
+- Build `Content-Disposition` with `ContentDispositionHeaderValue` (`FileNameStar`), never by concatenating a
+  client file name.
+- On IIS, give the app-pool identity **read-only** on the site folder and write access only to the storage
+  folder, so a bug here cannot rewrite `web.config`, `appsettings*.json` or DLLs.
 
 ## Providers
 

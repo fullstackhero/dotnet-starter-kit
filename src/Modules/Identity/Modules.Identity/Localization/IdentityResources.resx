@@ -190,6 +190,9 @@
   <data name="Identity.UpdateProfileImageFailed" xml:space="preserve">
     <value>Update profile image failed.</value>
   </data>
+  <data name="Identity.ProfileImageUrlNotAllowed" xml:space="preserve">
+    <value>That image URL points at a stored upload. Upload a new image instead.</value>
+  </data>
   <data name="Identity.EmailConfirmationError" xml:space="preserve">
     <value>An error occurred while confirming E-Mail.</value>
   </data>

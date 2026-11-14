@@ -12,6 +12,7 @@ using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Localization;
 using FSH.Modules.Files.Services;
 using Mediator;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Files.Features.v1.RequestUploadUrl;
@@ -25,6 +26,8 @@ public sealed class RequestUploadUrlCommandHandler(
     IOptions<FilesOptions> options)
     : ICommandHandler<RequestUploadUrlCommand, PresignedUploadResponse>
 {
+    private static readonly FileExtensionContentTypeProvider ContentTypes = new();
+
     public async ValueTask<PresignedUploadResponse> Handle(RequestUploadUrlCommand cmd, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(cmd);
@@ -89,7 +92,12 @@ public sealed class RequestUploadUrlCommandHandler(
         var id = Guid.CreateVersion7();
         var storageKey = StorageKeyBuilder.Build(tenantId, cmd.OwnerType, id, cmd.FileName, DateTimeOffset.UtcNow, cmd.Visibility);
         var ttl = TimeSpan.FromMinutes(options.Value.UploadUrlTtlMinutes);
-        var presigned = await storage.GenerateUploadUrlAsync(storageKey, cmd.ContentType, category.MaxBytes, ttl, cancellationToken).ConfigureAwait(false);
+        // The presigned PUT is signed for this Content-Type and the object is served with it, so it comes
+        // from the validated extension, never from the client: "photo.png" declared as text/html would
+        // otherwise be stored, and later served, as HTML (stored XSS). The browser sends the
+        // RequiredHeaders it gets back, so it always matches the signature.
+        var contentType = ContentTypes.TryGetContentType(storageKey, out var mapped) ? mapped : "application/octet-stream";
+        var presigned = await storage.GenerateUploadUrlAsync(storageKey, contentType, category.MaxBytes, ttl, cancellationToken).ConfigureAwait(false);
 
         var asset = FileAsset.CreatePending(
             id: id,
@@ -97,7 +105,7 @@ public sealed class RequestUploadUrlCommandHandler(
             ownerId: cmd.OwnerId,
             originalFileName: cmd.FileName,
             sanitizedFileName: StorageKeyBuilder.Sanitize(cmd.FileName),
-            contentType: cmd.ContentType,
+            contentType: contentType,
             declaredSizeBytes: cmd.SizeBytes,
             storageKey: storageKey,
             visibility: cmd.Visibility,
