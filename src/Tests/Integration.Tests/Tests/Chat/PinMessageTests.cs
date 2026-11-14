@@ -241,7 +241,7 @@ public sealed class PinMessageTests
                     options.Headers["tenant"] = TestConstants.RootTenantId;
                 })
             .Build();
-        await connection.StartAsync();
+        await connection.StartAndWaitForServerAsync();
         return connection;
     }
 

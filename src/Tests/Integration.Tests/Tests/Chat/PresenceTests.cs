@@ -178,7 +178,7 @@ public sealed class PresenceTests
                     options.Headers["tenant"] = TestConstants.RootTenantId;
                 })
             .Build();
-        await connection.StartAsync();
+        await connection.StartAndWaitForServerAsync();
         return connection;
     }
 
