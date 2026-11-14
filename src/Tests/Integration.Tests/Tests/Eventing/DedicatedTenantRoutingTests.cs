@@ -180,13 +180,15 @@ public sealed class DedicatedTenantRoutingTests(FshWebApplicationFactory factory
             }
         }
 
+        // Publishes the way OutboxDispatcher does on the default drain pass (inside the root drain scope),
+        // but straight through the bus. Running the real dispatcher here would drain the shared default
+        // outbox, dispatching every event other tests left pending, through this test's handlers.
         public async Task DispatchAsync(IIntegrationEvent integrationEvent)
         {
             using (Provider.GetRequiredService<IEventingDrainScope>().Begin(new EventingDrainTarget(MultitenancyConstants.Root.Id, null)))
             using (var scope = Provider.CreateScope())
             {
-                await scope.ServiceProvider.GetRequiredService<IOutboxWriter>().AddAsync(integrationEvent);
-                await scope.ServiceProvider.GetRequiredService<OutboxDispatcher>().DispatchAsync();
+                await scope.ServiceProvider.GetRequiredService<IEventBus>().PublishAsync(integrationEvent);
             }
         }
 
