@@ -1,0 +1,278 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Claude Security Plugin for Claude Code",
+          "organization": "Anthropic",
+          "informationUri": "https://claude.com/product/claude-security",
+          "version": "0.12.0",
+          "rules": [
+            {
+              "id": "CWE-639",
+              "name": "AuthorizationBypassThroughUserControlledKey",
+              "shortDescription": {
+                "text": "Authorization Bypass Through User-Controlled Key"
+              },
+              "fullDescription": {
+                "text": "Authorization Bypass Through User-Controlled Key (CWE-639, CWE 4.20): findings whose CWE is this entry of the Simplified Mapping view or rolls up to it, reported by Claude Security Plugin for Claude Code from static review of the source."
+              },
+              "help": {
+                "text": "Each alert's message names the finding's own CWE and states the impact, exploit scenario, preconditions and recommended fix; the finding appears under its F<n> id in CLAUDE-SECURITY-RESULTS.md."
+              },
+              "helpUri": "https://cwe.mitre.org/data/definitions/639.html",
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-639"
+                ]
+              }
+            },
+            {
+              "id": "CWE-362",
+              "name": "RaceCondition",
+              "shortDescription": {
+                "text": "Race Condition"
+              },
+              "fullDescription": {
+                "text": "Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition') (CWE-362, CWE 4.20): findings whose CWE is this entry of the Simplified Mapping view or rolls up to it, reported by Claude Security Plugin for Claude Code from static review of the source."
+              },
+              "help": {
+                "text": "Each alert's message names the finding's own CWE and states the impact, exploit scenario, preconditions and recommended fix; the finding appears under its F<n> id in CLAUDE-SECURITY-RESULTS.md."
+              },
+              "helpUri": "https://cwe.mitre.org/data/definitions/362.html",
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-362"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "automationDetails": {
+        "id": "claude-security-plugin/scan/src/BuildingBlocks/Web/ca2d4666-5e9c-4a28-bf99-6ec6a93283f1",
+        "guid": "ca2d4666-5e9c-4a28-bf99-6ec6a93283f1"
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "description": {
+            "text": "The top level of the scanned repository, or the scanned directory when the scan did not run inside a git checkout."
+          }
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CWE-639",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Presence snapshot endpoint leaks any user's online status to any authenticated caller, cross-tenant, with no relationship check.\n\nThe `userIds` query parameter is fully client-controlled and is used directly as the lookup key set into the global, non-tenant-scoped `IPresenceTracker` singleton. The only gate is `.RequireAuthorization()` (any authenticated user of the platform) — there is no check that the caller shares a tenant, channel, or any other relationship with the target user ids before returning their online/offline status. Also CWE-862: GET /api/v1/realtime/presence takes an attacker-controlled, comma-separated list of arbitrary userIds from the query string and returns each one's online/offline status straight from the process-wide IPresenceTracker singleton. The only guard is `.RequireAuthorization()` (any authenticated user of any tenant) — there is no check that the caller shares a tenant, channel, or any other relationship with the requested userIds.\n\nImpact: Any authenticated user (from any tenant, since the tracker has no tenant partitioning) can enumerate the real-time online/offline status of arbitrary user GUIDs across the whole deployment — a user-enumeration / presence-leak information-disclosure primitive that the hub's own broadcast path explicitly avoids (AppHub scopes PresenceChanged broadcasts to the tenant group, see AppHub.cs:93-123), making this endpoint inconsistent with the component's own tenant-isolation intent.\n\nExploit scenario: A low-privileged user in Tenant A authenticates, obtains a JWT, then calls GET /api/v1/realtime/presence?userIds=<guid-from-tenant-B>,<guid-from-tenant-B-2> and receives each target's live online/offline status, even though they have no membership or relationship with Tenant B or its users.\n\nPreconditions: Caller must be authenticated (any valid JWT for the deployment, any tenant/role); Caller must know or guess target user GUIDs (not enumerable from this endpoint alone, but often discoverable via other IDOR-prone endpoints, shared channels, or ticket references elsewhere in the app).\n\nRecommendation: Scope the presence lookup to users the caller is actually allowed to see (same tenant and/or shared channel membership) before querying IPresenceTracker, mirroring the tenant-group scoping already applied to the hub's PresenceChanged broadcast. Also CWE-862: Scope the lookup to the caller's own tenant (and ideally to users the caller actually shares a channel/relationship with), mirroring the tenant-scoped group broadcast already done in AppHub.OnConnectedAsync, instead of querying the global PresenceTracker by raw user id.\n\nCWE-639. Severity MEDIUM, confidence high."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/BuildingBlocks/Web/Realtime/HeroRealtimeExtensions.cs",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 56,
+                  "snippet": {
+                    "text": "var map = presence.GetStatus(ids);"
+                  }
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "MapHeroRealtime (GET /api/v1/realtime/presence handler)",
+                  "fullyQualifiedName": "MapHeroRealtime (GET /api/v1/realtime/presence handler)"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "claudeSecurityPlugin": {
+              "id": "F1",
+              "title": "Presence snapshot endpoint leaks any user's online status to any authenticated caller, cross-tenant, with no relationship check",
+              "impact": "Any authenticated user (from any tenant, since the tracker has no tenant partitioning) can enumerate the real-time online/offline status of arbitrary user GUIDs across the whole deployment — a user-enumeration / presence-leak information-disclosure primitive that the hub's own broadcast path explicitly avoids (AppHub scopes PresenceChanged broadcasts to the tenant group, see AppHub.cs:93-123), making this endpoint inconsistent with the component's own tenant-isolation intent.",
+              "file": "src/BuildingBlocks/Web/Realtime/HeroRealtimeExtensions.cs",
+              "line": 56,
+              "description": "The `userIds` query parameter is fully client-controlled and is used directly as the lookup key set into the global, non-tenant-scoped `IPresenceTracker` singleton. The only gate is `.RequireAuthorization()` (any authenticated user of the platform) — there is no check that the caller shares a tenant, channel, or any other relationship with the target user ids before returning their online/offline status. Also CWE-862: GET /api/v1/realtime/presence takes an attacker-controlled, comma-separated list of arbitrary userIds from the query string and returns each one's online/offline status straight from the process-wide IPresenceTracker singleton. The only guard is `.RequireAuthorization()` (any authenticated user of any tenant) — there is no check that the caller shares a tenant, channel, or any other relationship with the requested userIds.",
+              "exploit_scenario": "A low-privileged user in Tenant A authenticates, obtains a JWT, then calls GET /api/v1/realtime/presence?userIds=<guid-from-tenant-B>,<guid-from-tenant-B-2> and receives each target's live online/offline status, even though they have no membership or relationship with Tenant B or its users.",
+              "preconditions": [
+                "Caller must be authenticated (any valid JWT for the deployment, any tenant/role)",
+                "Caller must know or guess target user GUIDs (not enumerable from this endpoint alone, but often discoverable via other IDOR-prone endpoints, shared channels, or ticket references elsewhere in the app)"
+              ],
+              "category": "Authorization Bypass Through User-Controlled Key",
+              "severity": "MEDIUM",
+              "confidence": "high",
+              "recommendation": "Scope the presence lookup to users the caller is actually allowed to see (same tenant and/or shared channel membership) before querying IPresenceTracker, mirroring the tenant-group scoping already applied to the hub's PresenceChanged broadcast. Also CWE-862: Scope the lookup to the caller's own tenant (and ideally to users the caller actually shares a channel/relationship with), mirroring the tenant-scoped group broadcast already done in AppHub.OnConnectedAsync, instead of querying the global PresenceTracker by raw user id.",
+              "cwe_id": "CWE-639",
+              "snippet": "var map = presence.GetStatus(ids);",
+              "symbol": "MapHeroRealtime (GET /api/v1/realtime/presence handler)",
+              "declared_line": 56,
+              "via_change": null,
+              "other_cwe_ids": [
+                "CWE-862"
+              ],
+              "claudeSecurityPluginFindingId": "v3:afaf232b50c01c1f9b1c5c28d431a97ed1acfc36af7e6308865a53f4710f386a",
+              "verification": {
+                "panel": {
+                  "true": 3,
+                  "false": 0,
+                  "voters": 3
+                }
+              }
+            }
+          }
+        },
+        {
+          "ruleId": "CWE-362",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "SSE token consume-and-delete is not atomic, letting a single-use stream token authenticate more than one concurrent stream.\n\nConsumeAsync is the sole authorization check for the AllowAnonymous /api/v1/sse/stream endpoint. It reads the token payload from the distributed cache, then deletes it in a separate, non-atomic step (cache.RemoveAsync at line 49). Two requests presenting the same token concurrently can both read the payload before either delete completes, both passing the authorization gate.\n\nImpact: Weakens the single-use guarantee: a token that leaks (it travels in the query string per the endpoint's own design, so it is exposed to proxy/server logs, browser history and Referer headers) can authenticate two or more concurrent SSE streams instead of exactly one, extending the usable window for a leaked token beyond the intended single consumption.\n\nExploit scenario: A token leaks via a server/proxy access log entry shortly after issuance. Before the legitimate client's single consumption completes its RemoveAsync call, an attacker who scraped the log replays the same token and both the legitimate client and the attacker establish live SSE streams receiving the same user's real-time events.\n\nPreconditions: Attacker (or a second party) must already possess a valid, unexpired (30s) SSE token, typically via leakage through logs/Referer/history since the token is query-string-borne by design; Requests must race within the same ~tens-of-milliseconds window before the first consumer's RemoveAsync completes.\n\nRecommendation: Make consumption atomic, e.g. use an atomic get-and-delete primitive (Redis GETDEL) or a distributed lock/compare-and-swap so only the first reader of a given token can ever obtain the payload.\n\nCWE-362. Severity LOW, confidence medium."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/BuildingBlocks/Web/Sse/SseTokenService.cs",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 43,
+                  "snippet": {
+                    "text": "var payload = await cache.GetAsync(key, cancellationToken).ConfigureAwait(false);"
+                  }
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "SseTokenService.ConsumeAsync",
+                  "fullyQualifiedName": "SseTokenService.ConsumeAsync"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "claudeSecurityPlugin": {
+              "id": "F2",
+              "title": "SSE token consume-and-delete is not atomic, letting a single-use stream token authenticate more than one concurrent stream",
+              "impact": "Weakens the single-use guarantee: a token that leaks (it travels in the query string per the endpoint's own design, so it is exposed to proxy/server logs, browser history and Referer headers) can authenticate two or more concurrent SSE streams instead of exactly one, extending the usable window for a leaked token beyond the intended single consumption.",
+              "file": "src/BuildingBlocks/Web/Sse/SseTokenService.cs",
+              "line": 43,
+              "description": "ConsumeAsync is the sole authorization check for the AllowAnonymous /api/v1/sse/stream endpoint. It reads the token payload from the distributed cache, then deletes it in a separate, non-atomic step (cache.RemoveAsync at line 49). Two requests presenting the same token concurrently can both read the payload before either delete completes, both passing the authorization gate.",
+              "exploit_scenario": "A token leaks via a server/proxy access log entry shortly after issuance. Before the legitimate client's single consumption completes its RemoveAsync call, an attacker who scraped the log replays the same token and both the legitimate client and the attacker establish live SSE streams receiving the same user's real-time events.",
+              "preconditions": [
+                "Attacker (or a second party) must already possess a valid, unexpired (30s) SSE token, typically via leakage through logs/Referer/history since the token is query-string-borne by design",
+                "Requests must race within the same ~tens-of-milliseconds window before the first consumer's RemoveAsync completes"
+              ],
+              "category": "Race Condition",
+              "severity": "LOW",
+              "confidence": "medium",
+              "recommendation": "Make consumption atomic, e.g. use an atomic get-and-delete primitive (Redis GETDEL) or a distributed lock/compare-and-swap so only the first reader of a given token can ever obtain the payload.",
+              "cwe_id": "CWE-362",
+              "snippet": "var payload = await cache.GetAsync(key, cancellationToken).ConfigureAwait(false);",
+              "symbol": "SseTokenService.ConsumeAsync",
+              "declared_line": 43,
+              "via_change": null,
+              "other_cwe_ids": [],
+              "claudeSecurityPluginFindingId": "v3:2ee3b339bee09dc12250b46e55812f0a37981c8c79ffb45a312c21c572519723",
+              "verification": {
+                "panel": {
+                  "true": 3,
+                  "false": 0,
+                  "voters": 3
+                }
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "claudeSecurityPlugin": {
+          "generated_at": "2026-11-16T11:26:50+00:00",
+          "scan_id": "ca2d4666-5e9c-4a28-bf99-6ec6a93283f1",
+          "mode": "scan",
+          "scan_prefix": "",
+          "scope": [
+            "src/BuildingBlocks/Web"
+          ],
+          "revision": {
+            "versioned": true,
+            "commit": "2f5989b243d702e0e2f089bd0258117da05f32e7",
+            "branch": "main",
+            "dirty": false
+          },
+          "revision_source": "self-reported",
+          "effort": "medium",
+          "run_shape": {
+            "requested_effort": "medium",
+            "collapsed": null,
+            "source": "coverage.json",
+            "diff_files": null,
+            "diff_lines": null,
+            "pre_existing": 0,
+            "scope_files": 60,
+            "empty_diff": false,
+            "empty_scope": false,
+            "researchers_dispatched": 11,
+            "skipped_components": [],
+            "completeness_check_outcome": "not-applicable",
+            "unaccounted_top_level_dirs": [],
+            "inventory_fallback": null,
+            "top_level_dir_count": null,
+            "target_files": 60,
+            "component_cap": 24,
+            "research_coverage": {
+              "files": 60,
+              "read": 60,
+              "not_reached": 0,
+              "unaccounted": 0,
+              "outside_components": 0,
+              "capped": false
+            }
+          },
+          "findings": {
+            "total": 2,
+            "critical": 0,
+            "high": 0,
+            "medium": 1,
+            "low": 1
+          },
+          "verification": {
+            "status": "verified",
+            "candidates": 7,
+            "candidates_deduped": 6,
+            "panel_votes": 18,
+            "panel_reviewed_findings": 2,
+            "panel_quorum_findings": 2,
+            "unreviewed_candidate_sites": 0,
+            "incomplete_panel_candidates": 0,
+            "attested_findings": 0,
+            "reason": null,
+            "researchers_dispatched": 11,
+            "researchers_returned": 11
+          },
+          "target_kind": "git-remote"
+        }
+      },
+      "versionControlProvenance": [
+        {
+          "repositoryUri": "https://github.com/OlehVintoniak/dotnet-starter-kit-fork",
+          "revisionId": "2f5989b243d702e0e2f089bd0258117da05f32e7"
+        }
+      ]
+    }
+  ]
+}

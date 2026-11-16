@@ -1,0 +1,243 @@
+# Upload Claude Security plugin SARIF files to the GitHub Security tab (Code scanning).
+#
+# Copy this file to  .github/workflows/upload-claude-security-sarif.yaml  in the PoC repository
+# (the public fork of dotnet-starter-kit) and commit it to the DEFAULT branch.
+#
+# What it does
+#   1. discover  - finds *.sarif files in the chosen folder, validates them (SARIF 2.1.0, GitHub size limits)
+#                  and builds one matrix entry per file with its own Code scanning category.
+#   2. upload    - one job per file: sets the category, uploads it with github/codeql-action/upload-sarif and
+#                  waits until GitHub has processed it.
+#   3. report    - prints the open alerts per category and a link to the Security tab in the job summary.
+#
+# Before the first run
+#   * Fork -> Actions tab -> "I understand my workflows, go ahead and enable them" (Actions are off in new forks).
+#   * Put the SARIF files in the repo, for example sarif/run1-small-scope.sarif, sarif/run3-full-repo.sarif.
+#     The file name (without .sarif) becomes the category: claude-security/run1-small-scope.
+#   * The repo must be at the commit that was scanned (8f211c2), otherwise alert lines point to the wrong code
+#     and GitHub cannot compute alert fingerprints for moved lines.
+#   * Public repository: Code scanning is free, no extra setup. Private repository: GitHub Code Security is required.
+#
+# Run it: Actions -> "Upload Claude Security SARIF" -> Run workflow (on the default branch, so that alerts
+# show up on the default branch of the Security tab). Results: <repo> -> Security -> Code scanning.
+#
+# Notes
+#   * Each category is an independent set of alerts. Uploading a file again to the same category CLOSES the alerts
+#     that are not in the new file. Different categories never close each other's alerts, but the same issue found
+#     in two categories (for example a scoped run and the full run) shows up as two alerts.
+#   * The plugin writes its own automationDetails.id (claude-security-plugin/scan/...). This workflow replaces the
+#     category part so that every file has a predictable, unique category, and keeps the original run id.
+#   * Alerts have no security-severity score, so GitHub shows the SARIF level (error / warning / note) as severity.
+
+name: Upload Claude Security SARIF
+
+on:
+  workflow_dispatch:
+    inputs:
+      sarif_dir:
+        description: Folder with .sarif files, relative to the repository root
+        required: true
+        default: sarif
+      category_prefix:
+        description: Prefix of the Code scanning category (category = prefix/file-name)
+        required: true
+        default: claude-security
+
+permissions:
+  contents: read
+
+# Never cancel a running upload: a half-finished set of categories is confusing.
+concurrency:
+  group: upload-claude-security-sarif-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    name: Find and validate SARIF files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      files: ${{ steps.find.outputs.files }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find and validate SARIF files
+        id: find
+        env:
+          SARIF_DIR: ${{ inputs.sarif_dir }}
+          CATEGORY_PREFIX: ${{ inputs.category_prefix }}
+        run: |
+          python3 - <<'PY'
+          import collections, gzip, json, os, pathlib, re, sys
+
+          # GitHub Code scanning limits: 10 MB per gzipped file, 25,000 results and 20 runs per file.
+          MAX_GZ, MAX_RESULTS, MAX_RUNS = 10 * 1024 * 1024, 25000, 20
+
+          root = pathlib.Path(os.environ["SARIF_DIR"])
+          prefix = os.environ["CATEGORY_PREFIX"].strip("/ ") or "claude-security"
+          summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+
+          def fail(msg):
+              print(f"::error::{msg}")
+              with summary.open("a", encoding="utf-8") as s:
+                  s.write(f"### SARIF discovery failed\n\n{msg}\n")
+              sys.exit(1)
+
+          if not root.is_dir():
+              fail(f"Folder '{root}' does not exist in the repository.")
+          files = sorted(root.rglob("*.sarif"))
+          if not files:
+              fail(f"No .sarif files found under '{root}'.")
+
+          entries, rows, bad = [], [], 0
+          for f in files:
+              raw = f.read_bytes()
+              problems = []
+              try:
+                  doc = json.loads(raw)
+              except ValueError as e:
+                  doc, problems = {}, [f"not valid JSON ({e})"]
+              runs = doc.get("runs") or []
+              if doc and doc.get("version") != "2.1.0":
+                  problems.append(f"version is {doc.get('version')!r}, expected 2.1.0")
+              if doc and not runs:
+                  problems.append("no runs")
+              if len(runs) > MAX_RUNS:
+                  problems.append(f"{len(runs)} runs, limit is {MAX_RUNS}")
+              results = [r for run in runs for r in (run.get("results") or [])]
+              if any(len(run.get("results") or []) > MAX_RESULTS for run in runs):
+                  problems.append(f"more than {MAX_RESULTS} results in one run")
+              gz = len(gzip.compress(raw))
+              if gz > MAX_GZ:
+                  problems.append(f"{gz / 1048576:.1f} MB gzipped, limit is 10 MB")
+              levels = collections.Counter(r.get("level", "warning") for r in results)
+              rel = f.relative_to(root).with_suffix("").as_posix()
+              category = f"{prefix}/{re.sub(r'[^A-Za-z0-9._/-]+', '-', rel)}"
+              status = "ok" if not problems else "; ".join(problems)
+              bad += bool(problems)
+              rows.append(f"| `{f.as_posix()}` | `{category}` | {len(results)} | "
+                          f"{levels.get('error', 0)} / {levels.get('warning', 0)} / {levels.get('note', 0)} | "
+                          f"{gz / 1024:.0f} KB | {status} |")
+              if not problems:
+                  entries.append({"path": f.as_posix(), "category": category})
+
+          with summary.open("a", encoding="utf-8") as s:
+              s.write("### SARIF files found\n\n"
+                      "| File | Category | Results | error / warning / note | Gzipped | Check |\n"
+                      "|---|---|---|---|---|---|\n" + "\n".join(rows) + "\n")
+          if bad:
+              fail(f"{bad} SARIF file(s) failed validation, see the job summary.")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write("files=" + json.dumps(entries) + "\n")
+          PY
+
+  upload:
+    name: Upload ${{ matrix.category }}
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write # required to upload SARIF
+      actions: read # required by upload-sarif in private repositories
+    strategy:
+      fail-fast: false
+      max-parallel: 1 # one upload at a time, keeps the Security tab updates ordered
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.files) }}
+    steps:
+      # The checked-out files are used to compute alert fingerprints and to show code snippets.
+      - uses: actions/checkout@v4
+
+      - name: Set the Code scanning category
+        env:
+          SARIF_PATH: ${{ matrix.path }}
+          CATEGORY: ${{ matrix.category }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+
+          src = pathlib.Path(os.environ["SARIF_PATH"])
+          category = os.environ["CATEGORY"]
+          doc = json.loads(src.read_text(encoding="utf-8"))
+          for run in doc["runs"]:
+              details = dict(run.get("automationDetails") or {})
+              old = details.get("id", "")
+              # SARIF id format is "<category>/<run id>": keep the run id, replace the category.
+              run_id = old.rstrip("/").rsplit("/", 1)[-1] if old else os.environ["GITHUB_RUN_ID"]
+              details["id"] = f"{category}/{run_id}"
+              run["automationDetails"] = details
+          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "sarif-upload"
+          out.mkdir(parents=True, exist_ok=True)
+          (out /"upload.sarif").write_text(json.dumps(doc), encoding="utf-8")
+          print(f"{src} -> category '{category}', {sum(len(r.get('results') or []) for r in doc['runs'])} results")
+          PY
+
+      - name: Upload SARIF to Code scanning
+        id: upload
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ runner.temp }}/sarif-upload/upload.sarif
+          category: ${{ matrix.category }}
+          wait-for-processing: true
+
+      - name: Show processing result
+        if: ${{ always() && steps.upload.outputs.sarif-id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SARIF_ID: ${{ steps.upload.outputs.sarif-id }}
+          CATEGORY: ${{ matrix.category }}
+        run: |
+          result=$(gh api "repos/${GITHUB_REPOSITORY}/code-scanning/sarifs/${SARIF_ID}" \
+            --jq '"status: \(.processing_status), errors: \(.errors // [] | length)"')
+          echo "SARIF ${SARIF_ID} (${CATEGORY}) -> ${result}"
+          echo "- \`${CATEGORY}\`: ${result}" >> "$GITHUB_STEP_SUMMARY"
+
+  report:
+    name: Alerts in the Security tab
+    needs: [discover, upload]
+    if: ${{ always() && needs.discover.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: read
+    steps:
+      - name: Summarize open alerts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPLOAD_RESULT: ${{ needs.upload.result }}
+        run: |
+          url="https://github.com/${GITHUB_REPOSITORY}/security/code-scanning?query=is%3Aopen+branch%3A${GITHUB_REF_NAME}"
+          {
+            echo "## Code scanning result"
+            echo
+            echo "Upload job result: **${UPLOAD_RESULT}**"
+            echo
+            echo "Security tab: ${url}"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Alerts may need a moment to appear after processing.
+          sleep 10
+          gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/code-scanning/alerts?ref=${GITHUB_REF}&state=open&per_page=100" \
+            --jq '.[] | "\(.most_recent_instance.category)\t\(.rule.severity)"' > alerts.tsv || true
+
+          if [ -s alerts.tsv ]; then
+            {
+              echo "| Category | Severity (SARIF level) | Open alerts |"
+              echo "|---|---|---|"
+              sort alerts.tsv | uniq -c | while read -r count rest; do
+                category=$(printf '%s' "$rest" | cut -f1)
+                severity=$(printf '%s' "$rest" | cut -f2)
+                echo "| \`${category}\` | ${severity} | ${count} |"
+              done
+              echo
+              echo "Total open alerts on \`${GITHUB_REF_NAME}\`: $(wc -l < alerts.tsv)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No open alerts returned for ${GITHUB_REF} yet (processing can take a minute)." >> "$GITHUB_STEP_SUMMARY"
+          fi
