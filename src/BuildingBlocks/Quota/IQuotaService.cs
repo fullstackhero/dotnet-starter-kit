@@ -27,6 +27,13 @@ public interface IQuotaService
     /// resources this delegates to registered <see cref="IQuotaGaugeProvider"/> instances.
     /// </summary>
     ValueTask<long> GetCurrentAsync(string tenantId, QuotaResource resource, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns the usage for <paramref name="resource"/> in the specified calendar month. Monthly
+    /// counters are read from that period's counter; if the counter does not exist, this returns zero.
+    /// Resources that are not period-based are read using their current value.
+    /// </summary>
+    ValueTask<long> GetForPeriodAsync(string tenantId, QuotaResource resource, int year, int month, CancellationToken ct = default);
 }
 
 /// <summary>

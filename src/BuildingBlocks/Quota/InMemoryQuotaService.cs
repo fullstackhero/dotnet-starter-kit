@@ -113,9 +113,33 @@ public sealed class InMemoryQuotaService : IQuotaService
         return ValueTask.FromResult(GetCounter(tenantId, resource));
     }
 
+    public ValueTask<long> GetForPeriodAsync(
+        string tenantId,
+        QuotaResource resource,
+        int year,
+        int month,
+        CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        QuotaPeriodValidator.Validate(year, month);
+
+        if (!IsPeriodic(resource))
+        {
+            return GetCurrentAsync(tenantId, resource, ct);
+        }
+
+        return ValueTask.FromResult(GetCounter(tenantId, resource, year, month));
+    }
+
     private long GetCounter(string tenantId, QuotaResource resource)
     {
-        return _counters.TryGetValue(BuildCounterKey(tenantId, resource), out var value) ? value : 0;
+        var now = _timeProvider.GetUtcNow();
+        return GetCounter(tenantId, resource, now.Year, now.Month);
+    }
+
+    private long GetCounter(string tenantId, QuotaResource resource, int year, int month)
+    {
+        return _counters.TryGetValue(BuildCounterKey(tenantId, resource, year, month), out var value) ? value : 0;
     }
 
     private (long Limit, bool Exempt) ResolveLimit(string tenantId, QuotaResource resource)
@@ -149,13 +173,18 @@ public sealed class InMemoryQuotaService : IQuotaService
 
     private string BuildCounterKey(string tenantId, QuotaResource resource)
     {
+        var now = _timeProvider.GetUtcNow();
+        return BuildCounterKey(tenantId, resource, now.Year, now.Month);
+    }
+
+    private static string BuildCounterKey(string tenantId, QuotaResource resource, int year, int month)
+    {
         if (!IsPeriodic(resource))
         {
             return $"quota:{tenantId}:{resource}";
         }
 
-        var now = _timeProvider.GetUtcNow();
-        var period = $"{now.Year:D4}{now.Month:D2}";
+        var period = $"{year:D4}{month:D2}";
         return $"quota:{tenantId}:{resource}:{period}";
     }
 

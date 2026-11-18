@@ -19,4 +19,11 @@ public sealed class NoopQuotaService : IQuotaService
 
     public ValueTask<long> GetCurrentAsync(string tenantId, QuotaResource resource, CancellationToken ct = default)
         => ValueTask.FromResult(0L);
+
+    public ValueTask<long> GetForPeriodAsync(string tenantId, QuotaResource resource, int year, int month, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        QuotaPeriodValidator.Validate(year, month);
+        return ValueTask.FromResult(0L);
+    }
 }

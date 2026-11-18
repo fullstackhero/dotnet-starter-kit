@@ -9,8 +9,8 @@ namespace FSH.Framework.Quota;
 
 /// <summary>
 /// Redis-backed quota counter. Counter-based resources use atomic <c>INCRBY</c> on a key of the
-/// form <c>{KeyPrefix}quota:{tenantId}:{resource}:{YYYYMM}</c> with a TTL that expires shortly after the
-/// billing period boundary. Gauge-based resources delegate to <see cref="IQuotaGaugeProvider"/>
+/// form <c>{KeyPrefix}quota:{tenantId}:{resource}:{YYYYMM}</c> with a TTL that expires after the
+/// configured retention period. Gauge-based resources delegate to <see cref="IQuotaGaugeProvider"/>
 /// instances that modules register to report live usage from their own state stores.
 /// </summary>
 public sealed class RedisQuotaService : IQuotaService
@@ -83,12 +83,13 @@ public sealed class RedisQuotaService : IQuotaService
         var key = BuildCounterKey(tenantId, resource);
         var newValue = await db.StringIncrementAsync(key, amount).ConfigureAwait(false);
 
-        // Set a TTL aligned to the period boundary the first time we touch this key. KeyExpireAsync
-        // is a no-op if the key already has a TTL, so this is safe to call on every increment.
+        // Keep monthly counters available for late billing capture. Set the absolute retention
+        // deadline every time so counters created by an older version also get the extended TTL.
         var reset = GetPeriodResetUtc(resource);
-        if (reset is not null)
+        var expiration = GetCounterExpirationUtc(reset);
+        if (expiration is not null)
         {
-            await db.KeyExpireAsync(key, reset.Value.UtcDateTime, ExpireWhen.HasNoExpiry).ConfigureAwait(false);
+            await db.KeyExpireAsync(key, expiration.Value.UtcDateTime, ExpireWhen.Always).ConfigureAwait(false);
         }
 
         return newValue;
@@ -116,9 +117,10 @@ public sealed class RedisQuotaService : IQuotaService
         var key = BuildCounterKey(tenantId, resource);
         var newValue = await db.StringIncrementAsync(key, amount).ConfigureAwait(false);
         var reset = GetPeriodResetUtc(resource);
-        if (reset is not null)
+        var expiration = GetCounterExpirationUtc(reset);
+        if (expiration is not null)
         {
-            await db.KeyExpireAsync(key, reset.Value.UtcDateTime, ExpireWhen.HasNoExpiry).ConfigureAwait(false);
+            await db.KeyExpireAsync(key, expiration.Value.UtcDateTime, ExpireWhen.Always).ConfigureAwait(false);
         }
 
         if (newValue <= limit)
@@ -154,7 +156,28 @@ public sealed class RedisQuotaService : IQuotaService
         }
 
         var db = _redis.GetDatabase();
-        var value = await db.StringGetAsync(BuildCounterKey(tenantId, resource)).ConfigureAwait(false);
+        var now = _timeProvider.GetUtcNow();
+        var value = await db.StringGetAsync(BuildCounterKey(tenantId, resource, now.Year, now.Month)).ConfigureAwait(false);
+        return value.TryParse(out long parsed) ? parsed : 0;
+    }
+
+    public async ValueTask<long> GetForPeriodAsync(
+        string tenantId,
+        QuotaResource resource,
+        int year,
+        int month,
+        CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        QuotaPeriodValidator.Validate(year, month);
+
+        if (!IsPeriodic(resource))
+        {
+            return await GetCurrentAsync(tenantId, resource, ct).ConfigureAwait(false);
+        }
+
+        var db = _redis.GetDatabase();
+        var value = await db.StringGetAsync(BuildCounterKey(tenantId, resource, year, month)).ConfigureAwait(false);
         return value.TryParse(out long parsed) ? parsed : 0;
     }
 
@@ -193,17 +216,25 @@ public sealed class RedisQuotaService : IQuotaService
 
     private string BuildCounterKey(string tenantId, QuotaResource resource)
     {
+        var now = _timeProvider.GetUtcNow();
+        return BuildCounterKey(tenantId, resource, now.Year, now.Month);
+    }
+
+    private string BuildCounterKey(string tenantId, QuotaResource resource, int year, int month)
+    {
         if (!IsPeriodic(resource))
         {
             return $"{_keyPrefix}quota:{tenantId}:{resource}";
         }
 
-        var now = _timeProvider.GetUtcNow();
         // Monthly billing period is the coarsest useful window for SaaS; hourly/daily windows can be
         // added as additional QuotaResource values if needed later.
-        var period = $"{now.Year:D4}{now.Month:D2}";
+        var period = $"{year:D4}{month:D2}";
         return $"{_keyPrefix}quota:{tenantId}:{resource}:{period}";
     }
+
+    private DateTimeOffset? GetCounterExpirationUtc(DateTimeOffset? periodEnd) =>
+        periodEnd?.AddDays(_options.PeriodCounterRetentionDays);
 
     private DateTimeOffset? GetPeriodResetUtc(QuotaResource resource)
     {

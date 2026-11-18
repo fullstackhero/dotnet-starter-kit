@@ -23,6 +23,9 @@ public sealed class QuotaOptions
     /// </summary>
     public string? KeyPrefix { get; set; }
 
+    /// <summary>Number of days monthly counter keys are retained after their UTC calendar month ends.</summary>
+    public int PeriodCounterRetentionDays { get; set; } = 90;
+
     public string DefaultPlan { get; set; } = "free";
 
     /// <summary>Plan name → per-resource limit map. Use -1 or long.MaxValue for "unlimited".</summary>

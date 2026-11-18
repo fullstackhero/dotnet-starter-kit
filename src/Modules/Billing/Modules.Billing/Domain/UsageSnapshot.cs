@@ -5,7 +5,8 @@ namespace FSH.Modules.Billing.Domain;
 
 /// <summary>
 /// Frozen record of a tenant's usage for a single resource in a billing period. Sourced from
-/// <c>IQuotaService.GetCurrentAsync</c> at period close — we capture both Used and Limit so the
+/// the quota service at period capture — monthly counters use the requested period while gauges and
+/// perpetual counters use their current value. We capture both Used and Limit so the
 /// invoice math and any later audit remain reproducible even if the plan changes afterwards.
 /// </summary>
 public sealed class UsageSnapshot : BaseEntity<Guid>
