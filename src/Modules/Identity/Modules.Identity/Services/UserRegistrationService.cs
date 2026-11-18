@@ -236,7 +236,9 @@ internal sealed class UserRegistrationService(
     {
         if (await userManager.FindByNameAsync(userName) is not null)
         {
-            return $"{userName}_{Guid.NewGuid():N}"[..20];
+            // Cap the base, not the whole string: the result is still at most 20 characters, but at
+            // least 8 random hex characters survive however long the colliding name is.
+            return $"{userName[..Math.Min(userName.Length, 11)]}_{Guid.NewGuid():N}"[..20];
         }
         return userName;
     }
