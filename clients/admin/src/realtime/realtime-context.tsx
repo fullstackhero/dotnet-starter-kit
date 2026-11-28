@@ -44,13 +44,15 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<RealtimeStatus>("idle");
   const connectionRef = useRef<HubConnection | null>(null);
   const listenersRef = useRef<Map<string, Set<Listener>>>(new Map());
-  const stoppedRef = useRef(false);
   const [tokenEpoch, setTokenEpoch] = useState(0);
 
   useEffect(() => tokenStore.subscribe(() => setTokenEpoch((n) => n + 1)), []);
 
   useEffect(() => {
-    stoppedRef.current = false;
+    // Per-run flag, captured by this run's closures. A shared ref would be reset to false by
+    // the next run, so a stale run's retry/post-start guard would see "not stopped" and keep
+    // (or open) a second connection.
+    let stopped = false;
     const backoffs = [0, 2_000, 5_000, 10_000, 30_000];
 
     const buildConnection = async () => {
@@ -97,7 +99,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     };
 
     const connect = async () => {
-      if (stoppedRef.current) return;
+      if (stopped) return;
       if (!tokenStore.getAccessToken()) {
         setStatus("idle");
         return;
@@ -105,39 +107,50 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       setStatus("connecting");
       const conn = await buildConnection();
       // Torn down while the SignalR chunk was loading: don't open a socket we'd have to stop.
-      if (stoppedRef.current) return;
+      if (stopped) return;
       connectionRef.current = conn;
       wireListeners(conn);
 
       conn.onreconnecting(() => setStatus("reconnecting"));
       conn.onreconnected(() => setStatus("connected"));
       conn.onclose(async () => {
-        if (stoppedRef.current) return;
+        if (stopped) return;
         setStatus("error");
         await new Promise((r) => setTimeout(r, 5_000));
-        if (!stoppedRef.current) void connect();
+        if (!stopped) void connect();
       });
 
       try {
         await conn.start();
+        // Cleanup ran while start() was negotiating and left this socket alone (stopping it
+        // mid-start makes SignalR reject start() and log at Error level). Stop it now.
+        if (stopped) {
+          void conn.stop();
+          return;
+        }
         setStatus("connected");
       } catch {
         setStatus("error");
         await new Promise((r) => setTimeout(r, 5_000));
-        if (!stoppedRef.current) void connect();
+        if (!stopped) void connect();
       }
     };
 
     void connect();
 
     return () => {
-      stoppedRef.current = true;
+      stopped = true;
       const conn = connectionRef.current;
       connectionRef.current = null;
       // HubConnectionState is a string enum; comparing the literal avoids importing the
       // lazy-loaded module here.
-      if (conn && (conn.state as string) !== "Disconnected") {
-        void conn.stop();
+      // Only stop a settled connection; a still-"Connecting" one is stopped by connect()'s
+      // post-start guard once start() resolves.
+      if (conn) {
+        const state = conn.state as string;
+        if (state === "Connected" || state === "Reconnecting") {
+          void conn.stop();
+        }
       }
       setStatus("idle");
     };
