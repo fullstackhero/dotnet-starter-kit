@@ -121,7 +121,7 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
 
             role.Name = name;
             role.Description = description;
-            await roleManager.UpdateAsync(role);
+            EnsureSucceeded(await roleManager.UpdateAsync(role));
         }
         else
         {
@@ -129,7 +129,7 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
             EnsureNotSystemRole(name, "Cannot create a role using a system role's name.", "Identity.CannotCreateWithSystemRoleName");
 
             role = new FshRole(name, description);
-            await roleManager.CreateAsync(role);
+            EnsureSucceeded(await roleManager.CreateAsync(role));
         }
 
         return new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description };
@@ -147,7 +147,7 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         // otherwise the lookup returns an empty set after delete.
         await InvalidateAffectedUsersAsync(id, cancellationToken).ConfigureAwait(false);
 
-        await roleManager.DeleteAsync(role);
+        EnsureSucceeded(await roleManager.DeleteAsync(role));
     }
 
     public async Task<RoleDto> GetWithPermissionsAsync(string id, CancellationToken cancellationToken = default)
@@ -191,6 +191,18 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         {
             throw new CustomException(message, Array.Empty<string>(), HttpStatusCode.BadRequest)
                 .Localized<IdentityResources>(messageKey);
+        }
+    }
+
+    // RoleManager reports a rejected create/update/delete (duplicate name, concurrency, store error)
+    // through IdentityResult rather than by throwing, so an unchecked result reads as success.
+    private static void EnsureSucceeded(IdentityResult result)
+    {
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(error => error.Description).ToList();
+            throw new CustomException("operation failed", errors, HttpStatusCode.BadRequest)
+                .Localized<IdentityResources>("Identity.OperationFailed");
         }
     }
 
