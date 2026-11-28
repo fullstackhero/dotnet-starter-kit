@@ -54,7 +54,9 @@ public sealed class UsageReporter : IUsageReporter
                 continue;
             }
 
-            var used = await _quotas.GetCurrentAsync(tenantId, resource, cancellationToken).ConfigureAwait(false);
+            var used = await _quotas
+                .GetForPeriodAsync(tenantId, resource, periodYear, periodMonth, cancellationToken)
+                .ConfigureAwait(false);
             var limit = _planResolver.ResolveLimit(tenant, resource);
             var snap = UsageSnapshot.Capture(tenantId, periodYear, periodMonth, resource, used, limit);
             _db.UsageSnapshots.Add(snap);

@@ -11,6 +11,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
 		<PackageReference Include="NSubstitute" />
 		<PackageReference Include="Shouldly" />

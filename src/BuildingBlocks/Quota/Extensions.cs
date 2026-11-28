@@ -9,6 +9,9 @@ namespace FSH.Framework.Quota;
 
 public static class Extensions
 {
+    private const string InvalidPeriodCounterRetentionDaysMessage =
+        "QuotaOptions:PeriodCounterRetentionDays must be zero or greater.";
+
     /// <summary>
     /// Registers the quota service. Uses Redis-backed counters when <see cref="QuotaOptions.Redis"/>
     /// is configured; otherwise falls back to a per-process in-memory counter (development/tests
@@ -24,10 +27,16 @@ public static class Extensions
         services
             .AddOptions<QuotaOptions>()
             .BindConfiguration(nameof(QuotaOptions))
+            .Validate(HasValidPeriodCounterRetentionDays, InvalidPeriodCounterRetentionDaysMessage)
+            .ValidateOnStart()
             .PostConfigure(options => InheritCachingKeyPrefix(options, configuration));
 
         var quotaOptions = configuration.GetSection(nameof(QuotaOptions)).Get<QuotaOptions>() ?? new QuotaOptions();
         InheritCachingKeyPrefix(quotaOptions, configuration);
+        if (!HasValidPeriodCounterRetentionDays(quotaOptions))
+        {
+            throw new InvalidOperationException(InvalidPeriodCounterRetentionDaysMessage);
+        }
 
         // Fail at startup, not on the first quota check, when the prefix is not a valid Redis key prefix.
         _ = RedisKeyPrefix.Normalize(quotaOptions.KeyPrefix);
@@ -65,6 +74,9 @@ public static class Extensions
 
         return services;
     }
+
+    private static bool HasValidPeriodCounterRetentionDays(QuotaOptions options) =>
+        options.PeriodCounterRetentionDays >= 0;
 
     /// <summary>
     /// Quota counters live under <c>CachingOptions:KeyPrefix</c> unless <c>QuotaOptions:KeyPrefix</c>
