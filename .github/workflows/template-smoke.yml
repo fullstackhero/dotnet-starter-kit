@@ -85,6 +85,37 @@ jobs:
       - name: Run Architecture tests on scaffolded output
         run: dotnet test "$RUNNER_TEMP/smoke/src/Tests/Architecture.Tests" -c Release --no-build
 
+  # A scaffolded project ships without global.json, so it builds with whatever SDK the
+  # developer has, usually the newest. The repo itself is pinned by global.json, so
+  # nothing else here would notice a newer SDK breaking a generated project (new
+  # analyzer rules + TreatWarningsAsErrors, compiler changes).
+  scaffold-latest-sdk:
+    name: Scaffold and build with the latest .NET SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDKs (pinned + latest)
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          dotnet-version: '11.0.x'
+
+      - name: Pack and install template
+        run: |
+          dotnet pack templates/FullStackHero.NET.StarterKit.csproj -c Release -o "$RUNNER_TEMP/pkg"
+          dotnet new install "$RUNNER_TEMP"/pkg/FullStackHero.NET.StarterKit.*.nupkg
+
+      - name: Scaffold project
+        run: dotnet new fsh -n Latest.App -o "$RUNNER_TEMP/latest" --frontend false --skipRestore true
+
+      - name: Build backend with the latest SDK (warnings as errors)
+        working-directory: ${{ runner.temp }}/latest
+        run: |
+          dotnet --version
+          dotnet build src/Latest.App.slnx -c Release -warnaserror
+
   scaffold-minimal:
     name: Scaffold (no Aspire, no React) and build
     runs-on: ubuntu-latest
