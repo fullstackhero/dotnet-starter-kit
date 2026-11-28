@@ -201,40 +201,47 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
     private static async Task<bool> EnsureTemplateInstalledAsync(CancellationToken cancellationToken)
     {
-        // Check if the template is already available. dotnet new list may return
-        // non-zero due to workload warnings, so check stdout content regardless.
-        (_, string listOutput) = await ProcessRunner.CaptureAsync(
-            "dotnet", $"new list {FshConstants.TemplateShortName}",
-            cancellationToken).ConfigureAwait(false);
+        // The CLI passes template parameters that only exist from its own version on (e.g. 10.0.0
+        // has no --agents), so an older installed template fails the scaffold. Install the
+        // template that matches this CLI when it's missing or older. A folder install ("local")
+        // or a newer template is left alone.
+        string cliVersion = CliVersion.Current;
+        string? installed = await NuGetClient.GetInstalledTemplateVersionAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        bool installed = listOutput.Contains(FshConstants.TemplateShortName, StringComparison.OrdinalIgnoreCase)
-            && listOutput.Contains("FullStackHero", StringComparison.OrdinalIgnoreCase);
+        if (installed == "local") return true;
+        if (installed is not null && !VersionComparer.IsNewer(cliVersion, installed)) return true;
 
-        if (installed) return true;
+        bool pinnable = cliVersion.Length > 0 && char.IsDigit(cliVersion[0]);
+        string package = pinnable
+            ? $"{FshConstants.TemplatePackageId}::{cliVersion}"
+            : FshConstants.TemplatePackageId;
 
-        AnsiConsole.MarkupLine($"[{FshConstants.WarningColor}]FSH template not found. Installing...[/]");
-        await ProcessRunner.RunAsync(
-            "dotnet", $"new install {FshConstants.TemplatePackageId}",
-            cancellationToken: cancellationToken).ConfigureAwait(false);
+        AnsiConsole.MarkupLine(installed is null
+            ? $"[{FshConstants.WarningColor}]FSH template not found. Installing {package.EscapeMarkup()}...[/]"
+            : $"[{FshConstants.WarningColor}]FSH template v{installed.EscapeMarkup()} is older than this CLI. Installing {package.EscapeMarkup()}...[/]");
 
-        // Verify it actually installed (ignore exit code — workload warnings cause non-zero)
-        (_, string verifyOutput) = await ProcessRunner.CaptureAsync(
-            "dotnet", $"new list {FshConstants.TemplateShortName}",
-            cancellationToken).ConfigureAwait(false);
+        await ProcessRunner.RunAsync("dotnet", $"new install {package}", cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
-        bool nowInstalled = verifyOutput.Contains("FullStackHero", StringComparison.OrdinalIgnoreCase);
-        if (!nowInstalled)
+        // Verify by version, not exit code (workload warnings can make it non-zero).
+        string? nowInstalled = await NuGetClient.GetInstalledTemplateVersionAsync(cancellationToken)
+            .ConfigureAwait(false);
+        bool ok = nowInstalled is not null
+            && (nowInstalled == "local" || !VersionComparer.IsNewer(cliVersion, nowInstalled));
+
+        if (!ok)
         {
-            AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]Failed to install template. Run manually:[/] dotnet new install {FshConstants.TemplatePackageId}");
+            AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]Failed to install the template. Run manually:[/] dotnet new install {package.EscapeMarkup()}");
         }
 
-        return nowInstalled;
+        return ok;
     }
 
     private static async Task<int> ScaffoldProjectAsync(
         string name, bool aspire, bool frontend, bool agents, string output, CancellationToken cancellationToken)
     {
-        return await AnsiConsole.Status()
+        (int exitCode, string log) = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
             .SpinnerStyle(Style.Parse(FshConstants.AccentColor))
             .StartAsync("Scaffolding project...", async _ =>
@@ -243,21 +250,30 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
                 string frontendFlag = frontend ? "true" : "false";
                 string agentsFlag = agents ? "true" : "false";
                 string args = $"new {FshConstants.TemplateShortName} -n {name} -o \"{output}\" --aspire {aspireFlag} --frontend {frontendFlag} --agents {agentsFlag} --force";
-                await ProcessRunner.RunAsync("dotnet", args, showOutput: false, cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+                string dotnetNewOutput = (await ProcessRunner.RunQuietAsync("dotnet", args, cancellationToken)
+                    .ConfigureAwait(false)).output;
 
                 // dotnet new may return non-zero due to workload warnings even on success.
                 // Verify by checking if the output directory was populated.
                 string slnxPath = Path.Combine(output, "src", $"{name}.slnx");
                 if (File.Exists(slnxPath))
-                    return 0;
+                    return (0, dotnetNewOutput);
 
                 // Fallback: check if any .slnx exists (template may have different naming)
                 bool anySolution = Directory.Exists(Path.Combine(output, "src"))
                     && Directory.GetFiles(Path.Combine(output, "src"), "*.slnx").Length > 0;
 
-                return anySolution ? 0 : 1;
+                return (anySolution ? 0 : 1, dotnetNewOutput);
             }).ConfigureAwait(false);
+
+        if (exitCode != 0 && log.Length > 0)
+        {
+            // The scaffold runs quietly; on failure show what dotnet new said.
+            foreach (string line in log.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                AnsiConsole.MarkupLine($"  [{FshConstants.ErrorColor}]{line.TrimEnd().EscapeMarkup()}[/]");
+        }
+
+        return exitCode;
     }
 
     private static async Task InitGitRepoAsync(string output, CancellationToken cancellationToken)
