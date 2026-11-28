@@ -15,7 +15,9 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<AnalysisLevel>latest</AnalysisLevel>
+		<!-- Pinned, not "latest": a newer SDK must not add analyzer rules that TreatWarningsAsErrors
+		     turns into build failures in a project that built yesterday. Raise it deliberately. -->
+		<AnalysisLevel>10.0</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 
 		<!-- Docs -->

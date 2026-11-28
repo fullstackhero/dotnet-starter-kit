@@ -51,7 +51,6 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<RealtimeStatus>("idle");
   const connectionRef = useRef<HubConnection | null>(null);
   const listenersRef = useRef<Map<string, Set<Listener>>>(new Map());
-  const stoppedRef = useRef(false);
   // Re-subscribed effect dep — bumped by tokenStore changes so that login,
   // refresh-token rotation, and impersonation switches all force a rebuild.
   const [tokenEpoch, setTokenEpoch] = useState(0);
@@ -65,7 +64,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   useEffect(() => tokenStore.subscribe(() => setTokenEpoch((n) => n + 1)), []);
 
   useEffect(() => {
-    stoppedRef.current = false;
+    // Per-run flag, captured by this run's closures. A shared ref would be reset to false by
+    // the next run, so a stale run's retry/post-start guard would see "not stopped" and keep
+    // (or open) a second connection.
+    let stopped = false;
     const backoffs = [0, 2_000, 5_000, 10_000, 30_000];
     // Recursive-retry state (outside SignalR's own auto-reconnect window).
     // Grows on consecutive failures with jitter; caps at 60s so a long
@@ -157,7 +159,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     };
 
     const connect = async () => {
-      if (stoppedRef.current) return;
+      if (stopped) return;
       if (!tokenStore.getAccessToken()) {
         setStatus("idle");
         return;
@@ -166,7 +168,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       const conn = await buildConnection();
       // Torn down while SignalR's chunk / the connection was still building —
       // abort before any start() so we never open a socket we have to stop.
-      if (stoppedRef.current) return;
+      if (stopped) return;
       connectionRef.current = conn;
       wireListeners(conn);
 
@@ -176,14 +178,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         setStatus("connected");
       });
       conn.onclose(async () => {
-        if (stoppedRef.current) return;
+        if (stopped) return;
         setStatus("error");
         // SignalR's automatic-reconnect gives up after the backoff array runs out.
         // Wait with exponential backoff and rebuild — handles token rotation cleanly
         // because the accessTokenFactory will pick up the new token from the store.
         consecutiveFailures += 1;
         await new Promise((r) => setTimeout(r, nextRetryDelay()));
-        if (!stoppedRef.current) void connect();
+        if (!stopped) void connect();
       });
 
       try {
@@ -193,7 +195,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         // reject with "Failed to start the HttpConnection before stop() was
         // called", logged at Error level). Now that start() has resolved, stop
         // it cleanly — no race, no error log.
-        if (stoppedRef.current) {
+        if (stopped) {
           void conn.stop();
           return;
         }
@@ -203,14 +205,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         setStatus("error");
         consecutiveFailures += 1;
         await new Promise((r) => setTimeout(r, nextRetryDelay()));
-        if (!stoppedRef.current) void connect();
+        if (!stopped) void connect();
       }
     };
 
     void connect();
 
     return () => {
-      stoppedRef.current = true;
+      stopped = true;
       const conn = connectionRef.current;
       connectionRef.current = null;
       // Tear down without re-importing SignalR. HubConnectionState is a
@@ -221,7 +223,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       // Only stop a settled connection. A still-"Connecting" socket is mid
       // initial start(): stopping it here makes SignalR reject start() with
       // "Failed to start the HttpConnection before stop() was called" (Error
-      // level). We've set stoppedRef, so connect()'s post-start guard stops it
+      // level). We've set this run's stopped flag, so connect()'s post-start guard stops it
       // cleanly once start() resolves — start() holds its own `conn` reference.
       if (conn) {
         const state = conn.state as string;

@@ -173,7 +173,7 @@ function toPascal(s: string): string {
 // ────────────────────────────────────────────────────────────────────────
 // Human-readable summaries — turn the terse `source` (e.g. "api.chat.ListMyChannels"
 // or "IdentityDbContext") into a plain-English predicate so rows read like an
-// activity feed ("Mukesh · viewed chat channels") without opening the details.
+// activity feed ("Jane · viewed chat channels") without opening the details.
 // The list DTO carries no field-level before/after, so entity changes summarize
 // at the record level; the detail drawer still shows the full payload.
 // ────────────────────────────────────────────────────────────────────────
@@ -229,7 +229,7 @@ function humanizeAction(action: string, area?: string): string {
 }
 
 /** Plain-English predicate for an audit row — pairs with the actor shown alongside
- *  it: `${actor} ${auditPredicate(row)}` → "Mukesh signed in". */
+ *  it: `${actor} ${auditPredicate(row)}` → "Jane signed in". */
 export function auditPredicate(row: Pick<AuditSummaryDto, "eventType" | "source">): string {
   const src = (row.source ?? "").trim();
 

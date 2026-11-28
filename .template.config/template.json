@@ -175,6 +175,8 @@
                 ".mcp.json",
                 "global.json",
                 "README.md",
+                "CONTRIBUTING.md",
+                "SECURITY.md",
                 "RELEASE-NOTES-*.md",
                 "LICENSE"
             ],

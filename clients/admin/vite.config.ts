@@ -42,7 +42,14 @@ export default defineConfig(({ mode }) => {
         // negotiate succeeds over HTTP but the upgrade lands on Vite's own server and the
         // connection falls back to a slower transport.
         "/api": { target: apiBase, changeOrigin: true, secure: false, ws: true },
-        "/health": { target: apiBase, changeOrigin: true, secure: false },
+        // The admin's own Health page is also /health: a browser navigation (Accept: text/html,
+        // e.g. a refresh or deep link) must get the SPA; only the page's API probes are proxied.
+        "/health": {
+          target: apiBase,
+          changeOrigin: true,
+          secure: false,
+          bypass: (req) => (req.headers.accept?.includes("text/html") ? "/index.html" : undefined),
+        },
         "/openapi": { target: apiBase, changeOrigin: true, secure: false },
         "/scalar": { target: apiBase, changeOrigin: true, secure: false },
       },

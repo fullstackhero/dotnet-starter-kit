@@ -54,7 +54,7 @@ import { cn } from "@/lib/cn";
 // ─────────────────────────────────────────────────────────────────────
 
 /** Up-to-2-char initials from a display name. Drops period-trailing
- *  abbreviations like "Dr." so "Dr. Mukesh Murugan" → "MM" not "DM". */
+ *  abbreviations like "Dr." so "Dr. Jane Doe" → "JD" not "DJ". */
 function initialsOf(name?: string | null): string {
   if (!name) return "U";
   const parts = name

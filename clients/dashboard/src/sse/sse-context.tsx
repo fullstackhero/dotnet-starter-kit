@@ -103,7 +103,6 @@ export function SseProvider({ children }: { children: ReactNode }) {
 
   // We keep the running connection in refs so re-renders don't restart it.
   const abortRef = useRef<AbortController | null>(null);
-  const stoppedRef = useRef(false);
 
   const appendEvent = useCallback((ev: { type: string; data: string; id?: string }) => {
     const entry: SseEvent = {
@@ -121,7 +120,10 @@ export function SseProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    stoppedRef.current = false;
+    // Per-run flag, captured by this run's closures. A shared ref would be reset to false by
+    // the next run, so a stale run's retry/post-start guard would see "not stopped" and keep
+    // (or open) a second connection.
+    let stopped = false;
     let backoff = INITIAL_BACKOFF_MS;
 
     const connect = async () => {
@@ -132,7 +134,7 @@ export function SseProvider({ children }: { children: ReactNode }) {
       // loop and we call issueSseToken() again below, obtaining a fresh one. The user JWT
       // used by issueSseToken() refreshes itself on 401 via api-client. So token refresh
       // during long sessions is implicit in the reconnect path — no dedicated timer needed.
-      while (!stoppedRef.current) {
+      while (!stopped) {
         if (!tokenStore.getAccessToken()) {
           setStatus("idle");
           return;
@@ -171,12 +173,12 @@ export function SseProvider({ children }: { children: ReactNode }) {
 
           // Stream ended cleanly — loop will retry unless stopped.
         } catch (err) {
-          if (stoppedRef.current) return;
+          if (stopped) return;
           if (err instanceof DOMException && err.name === "AbortError") return;
           setStatus("error");
         }
 
-        if (stoppedRef.current) return;
+        if (stopped) return;
         setStatus("reconnecting");
         await new Promise((r) => setTimeout(r, backoff));
         backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
@@ -186,7 +188,7 @@ export function SseProvider({ children }: { children: ReactNode }) {
     void connect();
 
     return () => {
-      stoppedRef.current = true;
+      stopped = true;
       abortRef.current?.abort();
       setStatus("idle");
     };

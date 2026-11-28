@@ -43,7 +43,7 @@ function getInitials(name?: string | null): string {
   const trimmed = name.trim();
   if (trimmed.length === 0) return "?";
   const parts = trimmed.split(/\s+/).slice(0, 2);
-  // For "Mukesh Murugan" → "MM"; for single name "admin@root.com" → "A".
+  // For "Jane Doe" → "JD"; for single name "admin@root.com" → "A".
   return parts.map((p) => p.charAt(0).toUpperCase()).join("");
 }
 

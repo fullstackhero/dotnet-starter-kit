@@ -30,7 +30,7 @@ Client apps live under `clients/admin` and `clients/dashboard` — `npm install 
 
 ## Code of conduct
 
-This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
+This project follows the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
 
 ## Licensing
 
