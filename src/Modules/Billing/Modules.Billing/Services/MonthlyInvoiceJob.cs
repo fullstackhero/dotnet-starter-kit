@@ -4,8 +4,9 @@ namespace FSH.Modules.Billing.Services;
 
 /// <summary>
 /// Hangfire recurring job that generates draft invoices for the previous billing period. Scheduled
-/// to run shortly after midnight UTC on the 1st of each month so that all usage counters for the
-/// prior period are still present in Redis (TTL hasn't expired) when the snapshot is captured.
+/// to run shortly after midnight UTC on the 1st of each month. Usage is read for the requested
+/// period (<c>IQuotaService.GetForPeriodAsync</c>), and monthly Redis counters outlive their period
+/// by <c>QuotaOptions:PeriodCounterRetentionDays</c>, so a late or retried run still sees them.
 /// </summary>
 public sealed class MonthlyInvoiceJob
 {
