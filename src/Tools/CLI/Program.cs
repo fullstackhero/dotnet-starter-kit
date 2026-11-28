@@ -1,19 +1,13 @@
-using System.Reflection;
 using FSH.CLI.Commands;
+using FSH.CLI.Infrastructure;
 using Spectre.Console.Cli;
-
-// Strip the +gitsha build-metadata suffix so `fsh --version` prints a clean version.
-var cliVersion = Assembly.GetExecutingAssembly()
-    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0]
-    ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)
-    ?? "unknown";
 
 var app = new CommandApp();
 
 app.Configure(config =>
 {
     config.SetApplicationName("fsh");
-    config.SetApplicationVersion(cliVersion);
+    config.SetApplicationVersion(CliVersion.Current);
 
     // Reject unknown options. Lenient parsing silently drops a typo or the `dotnet new fsh`
     // spelling (`--aspire false`) and scaffolds a different project than the one asked for.
