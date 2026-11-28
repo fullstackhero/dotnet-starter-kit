@@ -2,7 +2,7 @@ using Aspire.Hosting.ApplicationModel;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Per-app prefix from the AppHost assembly name (FSH.Starter.AppHost -> fsh-starter); namespaces Docker volumes + resource names so multiple FSH apps don't clash.
+// Per-app prefix from the AppHost assembly name (e.g. FSH.Starter.AppHost -> fsh-starter); namespaces Docker volumes + resource names so multiple FSH apps don't clash.
 #pragma warning disable CA1308 // resource + volume names are conventionally lowercase
 var appPrefix = builder.Environment.ApplicationName
     .Replace(".AppHost", string.Empty, StringComparison.OrdinalIgnoreCase)
@@ -162,4 +162,44 @@ builder.AddJavaScriptApp($"{appPrefix}-dashboard", "../../../clients/dashboard",
 _ = api;
 //#endif
 
+if (builder.ExecutionContext.IsRunMode)
+{
+    EnsureVolumesExist(
+        Environment.GetEnvironmentVariable("ASPIRE_CONTAINER_RUNTIME") ?? "docker",
+        $"{appPrefix}-postgres-data",
+        $"{appPrefix}-redis-data",
+        $"{appPrefix}-rustfs-data");
+}
+
 await builder.Build().RunAsync();
+
+// Workaround for https://github.com/microsoft/aspire/issues/21664: Aspire's orchestrator (DCP) checks for a
+// named volume with `volume inspect` and only creates it when the error says "no such volume". Newer Docker
+// (29.5+) words it "volume ... not found", so on a machine where the volumes don't exist yet DCP retries
+// forever and no container ever starts. Creating them up front sidesteps that: `volume create` is a no-op
+// for an existing volume, and any failure here is ignored (Aspire reports a missing runtime itself).
+// Remove once an Aspire release ships the DCP fix.
+static void EnsureVolumesExist(string containerRuntime, params string[] volumes)
+{
+    foreach (string volume in volumes)
+    {
+        try
+        {
+            using var process = System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(containerRuntime, ["volume", "create", volume])
+                {
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                });
+            if (process is not null && !process.WaitForExit(TimeSpan.FromSeconds(15)))
+            {
+                process.Kill();
+            }
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            return;
+        }
+    }
+}
