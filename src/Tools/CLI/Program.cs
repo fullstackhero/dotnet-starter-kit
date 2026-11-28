@@ -15,6 +15,10 @@ app.Configure(config =>
     config.SetApplicationName("fsh");
     config.SetApplicationVersion(cliVersion);
 
+    // Reject unknown options. Lenient parsing silently drops a typo or the `dotnet new fsh`
+    // spelling (`--aspire false`) and scaffolds a different project than the one asked for.
+    config.UseStrictParsing();
+
     config.AddCommand<NewCommand>("new")
         .WithDescription("Create a new FullStackHero .NET project.")
         .WithExample("new", "MyApp")
