@@ -1,4 +1,3 @@
-using System.Reflection;
 using FSH.CLI.Infrastructure;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -9,10 +8,7 @@ public sealed class InfoCommand : AsyncCommand
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CancellationToken cancellationToken)
     {
-        string currentVersion = Assembly.GetExecutingAssembly()
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-            ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)
-            ?? "unknown";
+        string currentVersion = CliVersion.Current;
 
         AnsiConsole.MarkupLine($"[bold {FshConstants.AccentColor}]FullStackHero .NET Starter Kit CLI[/]");
         AnsiConsole.WriteLine();
