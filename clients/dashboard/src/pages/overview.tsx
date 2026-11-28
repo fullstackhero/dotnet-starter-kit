@@ -241,13 +241,14 @@ function StatCard({
         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
-        <p className="mt-1 font-display text-[20px] font-bold leading-none tracking-tight tabular-nums text-foreground sm:text-[22px]">
+        {/* div, not p: value/sublabel are arbitrary nodes (a block <Skeleton> while loading). */}
+        <div className="mt-1 font-display text-[20px] font-bold leading-none tracking-tight tabular-nums text-foreground sm:text-[22px]">
           {value}
-        </p>
+        </div>
         {sublabel && (
-          <p className="mt-1.5 truncate text-[11px] text-muted-foreground">
+          <div className="mt-1.5 truncate text-[11px] text-muted-foreground">
             {sublabel}
-          </p>
+          </div>
         )}
       </div>
       {href && (
