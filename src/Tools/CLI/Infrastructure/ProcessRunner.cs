@@ -77,7 +77,10 @@ internal static class ProcessRunner
                 catch { /* process may have already exited */ }
             });
 
+            // Drain stderr too, even though it's discarded: a full stderr pipe blocks the child.
+            Task<string> stderr = process.StandardError.ReadToEndAsync(cancellationToken);
             string output = await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+            await stderr.ConfigureAwait(false);
             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
             return (process.ExitCode == 0, output.Trim());
@@ -90,6 +93,43 @@ internal static class ProcessRunner
         {
             return (false, string.Empty);
         }
+    }
+
+    /// <summary>
+    /// Runs a process without echoing it and returns its exit code with stdout and stderr
+    /// combined, so a caller can show the output only when the step fails.
+    /// </summary>
+    internal static async Task<(int exitCode, string output)> RunQuietAsync(
+        string fileName,
+        string arguments,
+        CancellationToken cancellationToken = default)
+    {
+        var psi = new ProcessStartInfo(fileName, arguments)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = Process.Start(psi);
+        if (process is null) return (1, $"Could not start '{fileName}'.");
+
+        using var registration = cancellationToken.Register(() =>
+        {
+            try { process.Kill(entireProcessTree: true); }
+            catch { /* process may have already exited */ }
+        });
+
+        // Read both streams concurrently: a full stderr pipe blocks the child otherwise.
+        Task<string> stdout = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> stderr = process.StandardError.ReadToEndAsync(cancellationToken);
+        string[] streams = await Task.WhenAll(stdout, stderr).ConfigureAwait(false);
+        await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+
+        string output = string.Join(Environment.NewLine,
+            streams.Select(s => s.Trim()).Where(s => s.Length > 0));
+        return (process.ExitCode, output);
     }
 
     private static async Task StreamOutputAsync(StreamReader reader, string color)
